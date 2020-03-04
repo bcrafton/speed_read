@@ -1,0 +1,19 @@
+
+could download weights online
+profile and run them
+post results on imagenet or something
+we need to move fast though.
+
+---
+
+we dont need full simulation, we just need to log approx time taken.
+> we should write+run it tho to make sure our assumptions are correct.
+
+---
+
+names:
+smart skip: smart compute in-memory row skipping
+speed read: dynamic compute in-memory 
+Statistical dynamic variance
+ 
+
