@@ -1,0 +1,6 @@
+
+todo:
+> test bench
+> slow conv reference (8 rows at a time)
+> variance
+> weight statistic dynamic speed
