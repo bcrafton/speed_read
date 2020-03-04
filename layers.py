@@ -5,12 +5,6 @@ from conv_utils import conv_output_length
 from defines import *
 
 class Conv:
-    NROW_BITS   = 8
-    NCOL_BITS   = 8
-    FILTER_BITS = 2
-    STRIDE_BITS = 1
-    PAD1_BITS = 2
-    PAD2_BITS = 2
 
     def __init__(self, input_size, filter_size, stride, pad1, pad2, weights=None):
         self.input_size = input_size
@@ -28,7 +22,6 @@ class Conv:
         
         self.y_h = (self.h - self.fh + self.stride + self.pad1 + self.pad2) / self.stride
         self.y_w = (self.w - self.fw + self.stride + self.pad1 + self.pad2) / self.stride
-        # print (self.y_h, self.y_w)
         
         if (self.fh == 1): 
             assert((self.stride==1) and (self.pad1==0) and (self.pad2==0))
@@ -66,10 +59,8 @@ class Dense:
         if weights == None:
             values = np.array(range(-1, 4))
             self.weights = np.random.choice(a=values, size=self.size, replace=True).astype(int)
-            
             # np.random.choice(a=values, size=self.output_size, replace=True).astype(int)
             self.bias = np.zeros(shape=self.output_size).astype(int) 
-            
             # make lut function based on input size
             self.quant = np.ones(shape=self.output_size).astype(int) * 200
         else:
@@ -77,7 +68,6 @@ class Dense:
             assert(np.shape(self.weights) == self.size)
             assert(np.shape(self.bias) == (self.output_size,))
             assert(np.shape(self.quant) == ())
-            
             self.quant = np.ones(shape=self.output_size) * self.quant
 
             self.weights = self.weights.astype(int)
