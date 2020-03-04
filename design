@@ -8,7 +8,7 @@
   > stat weight dist
   > slow var
 
-> ref -> function set.
+> ref -> separate function set.
 > pim -> dictionaries for all params above.
 
 -----
