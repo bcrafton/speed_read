@@ -1,20 +1,2 @@
 
-names:
-smart skip: smart compute in-memory row skipping
-speed read: dynamic compute in-memory 
-Statistical dynamic variance
- 
-----
-
-figure ideas:
-> offset ?
-> partitioning
-> 4 pcm over 4 columns
-
-ideas:
-> download resnet/mobilenet/densenet weights
-> LSTM
-> we dont need to run actual sims, just log time it wud take
-> only concerned with matrix mult.
-
-----
+> how to structure stuff for comparing ? 
