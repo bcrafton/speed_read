@@ -16,4 +16,11 @@ smart skip: smart compute in-memory row skipping
 speed read: dynamic compute in-memory 
 Statistical dynamic variance
  
+----
+
+figure ideas:
+> offset ?
+> partitioning
+> 4 pcm over 4 columns
+
 

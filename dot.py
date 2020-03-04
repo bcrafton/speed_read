@@ -21,7 +21,6 @@ def pim_dot_kernel(x, w, bpa, bpw, rpr):
     wl_stride = np.zeros(128)
     
     y = 0
-    
     while wl_ptr < 128:
         wl[0] = x[0] & (wl_ptr <= 0)
         wl_sum[0] = x[0] & (wl_ptr <= 0)
