@@ -1,32 +1,66 @@
 
 import numpy as np
+from conv_utils import conv_output_length
 
+##################################################
+    
+def conv(x, f, b, q, stride, pad1, pad2):
+    Hi, Wi, Ci = np.shape(x)
+    Fh, Fw, _, Co = np.shape(f)
+    Ho = conv_output_length(Hi, Fh, 'same', stride)
+    Wo = conv_output_length(Hi, Fw, 'same', stride)
+
+    x = np.pad(array=x, pad_width=[[pad1,pad2], [pad1,pad2], [0,0]], mode='constant')
+    y = np.zeros(shape=(Ho, Wo, Co))
+    f_matrix = np.reshape(f, (Fh * Fw * Ci, Co))
+
+    for h in range(Ho):        
+        for w in range(Wo):
+            patch = np.reshape(x[h*stride:(h*stride+Fh), w*stride:(w*stride+Fw), :], -1)
+            y[h, w, :] = dot(patch, f_matrix, b, q)
+
+    return y
+
+def dot(x, w, b, q):
+    y = pim_dot(x, w, bpa=8, bpw=4, rpr=8)
+    assert(np.all(np.absolute(y) < 2 ** 15))
+    y = y + b
+    y = y * (y > 0)
+    y = y.astype(int)
+    y = y // q 
+    y = np.clip(y, 0, 127)
+    return y
+            
 ##################################################
 
 def pim_dot(x, w, bpa, bpw, rpr):
     y = 0
     for b in range(bpa):
         xb = np.bitwise_and(np.right_shift(x.astype(int), b), 1)
-        pim = pim_dot_kernel(xb, w, bpa, bpw, rpr)
-        y += np.left_shift(pim.astype(int), b)
+        for r1 in range(0, len(xb), 128):
+            r2 = min(r1 + 128, len(xb))
+            xbw = xb[r1:r2]
+            pim = pim_kernel(xbw, w, bpa, bpw, rpr)
+            assert (np.all(pim == (xbw @ w)))
+            y += np.left_shift(pim.astype(int), b)
         
     return y
-            
+
 ##################################################
 
-def pim_dot_kernel(x, w, bpa, bpw, rpr):
+def pim_kernel(x, w, bpa, bpw, rpr):
     wl_ptr = 0
-    wl = np.zeros(128)
-    wl_sum = np.zeros(128)
-    wl_stride = np.zeros(128)
+    wl = np.zeros(len(x))
+    wl_sum = np.zeros(len(x))
+    wl_stride = np.zeros(len(x))
     
     y = 0
-    while wl_ptr < 128:
+    while wl_ptr < len(x):
         wl[0] = x[0] & (wl_ptr <= 0)
         wl_sum[0] = x[0] & (wl_ptr <= 0)
         wl_stride[0] = (wl_sum[0] <= 8)
         
-        for ii in range(1, 128):
+        for ii in range(1, len(x)):
             wl[ii]        = (x[ii] & (wl_ptr <= ii)) & (wl_sum[ii - 1] < 8)
             wl_sum[ii]    = (x[ii] & (wl_ptr <= ii)) + wl_sum[ii - 1]
             wl_stride[ii] = (wl_sum[ii] <= 8) + wl_stride[ii - 1]
@@ -35,14 +69,6 @@ def pim_dot_kernel(x, w, bpa, bpw, rpr):
         y += wl @ w
         
     return y
-    
-##################################################
-
-x = np.random.choice(a=np.array(range(256)), size=128, replace=True).astype(int)
-w = np.random.choice(a=np.array(range(256)), size=(128, 128), replace=True).astype(int)
-y = pim_dot(x, w, 8, 4, 8)
-
-print (np.all(y == (x @ w)))
 
 ##################################################
 
