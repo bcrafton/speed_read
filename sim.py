@@ -32,8 +32,6 @@ def dot_ref(x, w, b, q):
     y = y + b
     y = y * (y > 0)
     y = y.astype(int)
-    # y = np.bitwise_and(y, 15)
-    # quant cannot be 1
     y = y // q 
     y = np.clip(y, 0, 127)
     return y
