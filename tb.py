@@ -13,7 +13,7 @@ import threading
 
 from layers import Conv
 from layers import Dense
-from emu import emu
+from sim import sim
 from defines import *
 
 ####
@@ -31,24 +31,30 @@ def init_x(num_example, input_shape, xlow, xhigh):
     x_test = x_test.astype(int)
     return x_test
     
-def compile_emu(x, model, path):
-    emu = {}
+def save_params(x, model, path):
+    params = {}
 
     nlayers = len(model)
     for l in range(nlayers):
         if (model[l].opcode() == OPCODE_CONV):
-            emu[l] = {'weights': model[l].weights, 'bias': model[l].bias, 'quant': model[l].quant,
-                          'op': model[l].opcode(), 'x': model[l].input_size, 
-                          'dims': {'stride': model[l].stride, 'pad1': model[l].pad1, 'pad2': model[l].pad2}}
+            params[l] = { 'weights': model[l].weights, 
+                          'bias': model[l].bias, 
+                          'quant': model[l].quant,
+                          'op': model[l].opcode(), 
+                          'x': model[l].input_size, 
+                          'dims': {'stride': model[l].stride, 'pad1': model[l].pad1, 'pad2': model[l].pad2} }
         else:
-            emu[l] = {'weights': model[l].weights, 'bias': model[l].bias, 'quant': model[l].quant,
-                          'op': model[l].opcode(), 'x': model[l].input_size}
+            params[l] = { 'weights': model[l].weights, 
+                          'bias': model[l].bias, 
+                          'quant': model[l].quant,
+                          'op': model[l].opcode(), 
+                          'x': model[l].input_size }
 
     n, h, w, c = np.shape(x)
-    emu['x'] = x
-    emu['num_example'] = n
-    emu['num_layer'] = nlayers
-    np.save("%s/emu" % (path), emu)
+    params['x'] = x
+    params['num_example'] = n
+    params['num_layer'] = nlayers
+    np.save("%s/params" % (path), params)
     
 ####
 
@@ -73,8 +79,8 @@ for key in tests.keys():
     num_example, input_shape, model = tests[key]
 
     x = init_x(num_example, input_shape, 0, 127)
-    compile_emu(x, model, path)
-    emu(path)
+    save_params(x, model, path)
+    sim(path)
 
 ####
 
