@@ -52,7 +52,7 @@ def sim(path):
             #######
             
             xin = params['x'][ii] if (jj == 0) else yout[ii][jj-1]
-            xin = np.reshape(xin, param['x'])
+            xin = np.reshape(xin, param['input_size'])
             xin = xin.astype(int)
             
             #######

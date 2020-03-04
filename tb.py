@@ -35,25 +35,27 @@ def save_params(x, model, path):
     params = {}
 
     nlayers = len(model)
+    n, h, w, c = np.shape(x)
+    
+    params['x'] = x
+    params['num_example'] = n
+    params['num_layer'] = nlayers
+    
     for l in range(nlayers):
         if (model[l].opcode() == OPCODE_CONV):
             params[l] = { 'weights': model[l].weights, 
                           'bias': model[l].bias, 
                           'quant': model[l].quant,
                           'op': model[l].opcode(), 
-                          'x': model[l].input_size, 
+                          'input_size': model[l].input_size, 
                           'dims': {'stride': model[l].stride, 'pad1': model[l].pad1, 'pad2': model[l].pad2} }
         else:
             params[l] = { 'weights': model[l].weights, 
                           'bias': model[l].bias, 
                           'quant': model[l].quant,
                           'op': model[l].opcode(), 
-                          'x': model[l].input_size }
+                          'input_size': model[l].input_size }
 
-    n, h, w, c = np.shape(x)
-    params['x'] = x
-    params['num_example'] = n
-    params['num_layer'] = nlayers
     np.save("%s/params" % (path), params)
     
 ####
