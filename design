@@ -23,4 +23,13 @@ figure ideas:
 > partitioning
 > 4 pcm over 4 columns
 
+----
 
+todo:
+
+> test bench
+> slow conv reference (8 rows at a time)
+> variance
+> weight statistic dynamic speed
+
+----
