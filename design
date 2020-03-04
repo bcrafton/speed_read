@@ -1,16 +1,4 @@
 
-could download weights online
-profile and run them
-post results on imagenet or something
-we need to move fast though.
-
----
-
-we dont need full simulation, we just need to log approx time taken.
-> we should write+run it tho to make sure our assumptions are correct.
-
----
-
 names:
 smart skip: smart compute in-memory row skipping
 speed read: dynamic compute in-memory 
@@ -23,10 +11,15 @@ figure ideas:
 > partitioning
 > 4 pcm over 4 columns
 
+ideas:
+> download resnet/mobilenet/densenet weights
+> LSTM
+> we dont need to run actual sims, just log time it wud take
+> only concerned with matrix mult.
+
 ----
 
 todo:
-
 > test bench
 > slow conv reference (8 rows at a time)
 > variance

@@ -66,14 +66,15 @@ tests = {
 ####
 
 for key in tests.keys():
-    if not os.path.isdir(key): 
-        os.mkdir(key)
+    path = './sims/%s' % (key)
+    if not os.path.isdir(path): 
+        os.mkdir(path)
     
     num_example, input_shape, model = tests[key]
 
     x = init_x(num_example, input_shape, 0, 127)
-    compile_emu(x, model, './%s' % (key))
-    emu('./%s' % (key))
+    compile_emu(x, model, path)
+    emu(path)
 
 ####
 
