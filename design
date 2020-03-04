@@ -13,5 +13,8 @@
 
 -----
 
+thinking much better design -> model based design where we call forward()
+... yeah
 
+but why didnt we do that before ? for emu ? 
 
