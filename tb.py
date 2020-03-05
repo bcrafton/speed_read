@@ -2,11 +2,6 @@
 import os
 import sys
 import argparse
-
-parser = argparse.ArgumentParser()
-parser.add_argument('--compiler', type=str, default='iverilog')
-args = parser.parse_args()
-
 import numpy as np
 import tensorflow as tf
 import threading
@@ -30,34 +25,7 @@ def init_x(num_example, input_shape, xlow, xhigh):
     
     x_test = x_test.astype(int)
     return x_test
-    
-def save_params(x, model, path):
-    params = {}
 
-    nlayers = len(model)
-    n, h, w, c = np.shape(x)
-    
-    params['x'] = x
-    params['num_example'] = n
-    params['num_layer'] = nlayers
-    
-    for l in range(nlayers):
-        if (model[l].opcode() == OPCODE_CONV):
-            params[l] = { 'weights': model[l].weights, 
-                          'bias': model[l].bias, 
-                          'quant': model[l].quant,
-                          'op': model[l].opcode(), 
-                          'input_size': model[l].input_size, 
-                          'dims': {'stride': model[l].stride, 'pad1': model[l].pad1, 'pad2': model[l].pad2} }
-        else:
-            params[l] = { 'weights': model[l].weights, 
-                          'bias': model[l].bias, 
-                          'quant': model[l].quant,
-                          'op': model[l].opcode(), 
-                          'input_size': model[l].input_size }
-
-    np.save("%s/params" % (path), params)
-    
 ####
 
 cnn1_layers = [
@@ -75,16 +43,9 @@ tests = {
 ####
 
 for key in tests.keys():
-    path = './sims/%s' % (key)
-    if not os.path.isdir(path): 
-        os.mkdir(path)
-    
     num_example, input_shape, model = tests[key]
-
     x = init_x(num_example, input_shape, 0, 127)
     model.forward(x=x)
-    # save_params(x, model, path)
-    # sim(path)
 
 ####
 

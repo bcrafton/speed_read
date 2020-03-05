@@ -48,6 +48,7 @@ class Conv:
             self.quant = self.quant.astype(int)
 
     def forward(self, x):
+        # could move ref inside conv.
         y_ref = conv_ref(x=x, f=self.weights, b=self.bias, q=self.quant, stride=self.stride, pad1=self.pad1, pad2=self.pad2)
         y     = conv(x=x, f=self.weights, b=self.bias, q=self.quant, stride=self.stride, pad1=self.pad1, pad2=self.pad2)
         assert (np.all(y == y_ref))
