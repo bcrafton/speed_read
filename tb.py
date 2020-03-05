@@ -36,7 +36,8 @@ Conv(input_size=(8,8,32), filter_size=(2,2,32,32), stride=2, pad1=0, pad2=0),
 params = {
 'bpa': 8,
 'bpw': 4,
-'rpr': 8
+'rpr': 8,
+'skip': 0
 }
 
 model = model(layers=layers)

@@ -49,6 +49,7 @@ class Conv:
 
     def forward(self, x, params):
         # could move ref inside conv.
+        # conv(x, w_params, op_params, pim_params) rather than all the args 
         y_ref = conv_ref(x=x, f=self.weights, b=self.bias, q=self.quant, stride=self.stride, pad1=self.pad1, pad2=self.pad2)
         y     = conv(x=x, f=self.weights, b=self.bias, q=self.quant, stride=self.stride, pad1=self.pad1, pad2=self.pad2, params=params)
         assert (np.all(y == y_ref))
@@ -83,6 +84,7 @@ class Dense:
     def forward(self, x, params):
         x = np.reshape(x, self.input_size)
         # could move ref inside dot.
+        # dot(x, w_params, op_params, pim_params) rather than all the args 
         y_ref = dot_ref(x=x, f=self.weights, b=self.bias, q=self.quant)
         y     = dot(x=x, f=self.weights, b=self.bias, q=self.quant, params=params)
         assert (np.all(y == y_ref))

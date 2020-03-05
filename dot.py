@@ -86,14 +86,19 @@ def pim_kernel(x, w, params):
     
     y = 0
     while wl_ptr < len(x):
+        # advice = be careful about: (< vs <=), (> vs >=)
         wl[0] = x[0] & (wl_ptr <= 0)
         wl_sum[0] = x[0] & (wl_ptr <= 0)
         wl_stride[0] = (wl_sum[0] <= 8)
         
         for ii in range(1, len(x)):
-            wl[ii]        = (x[ii] & (wl_ptr <= ii)) & (wl_sum[ii - 1] < 8)
-            wl_sum[ii]    = (x[ii] & (wl_ptr <= ii)) + wl_sum[ii - 1]
-            wl_stride[ii] = (wl_sum[ii] <= 8) + wl_stride[ii - 1]
+            if params['skip']:
+                wl[ii]        = (x[ii] & (wl_ptr <= ii)) & (wl_sum[ii - 1] < params['rpr'])
+                wl_sum[ii]    = (x[ii] & (wl_ptr <= ii)) + wl_sum[ii - 1]
+                wl_stride[ii] = (wl_sum[ii] <= params['rpr']) + wl_stride[ii - 1]
+            else:
+                wl[ii]        = (x[ii] & (wl_ptr <= ii)) & (ii < (wl_ptr + params['rpr']))
+                wl_stride[ii] = wl_ptr + params['rpr']
 
         wl_ptr = wl_stride[-1]
         y += wl @ w
