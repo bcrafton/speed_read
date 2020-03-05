@@ -46,3 +46,9 @@ dont really want to break up these annoying params
 we cud just pass it to each layer.
 
 lets do that for now.
+
+-----
+
+randomness in #pim comes from 2 things:
+1) if using weight stats (of course)
+2) in multi-layer networks, weights cause activation after layer 1 to be random

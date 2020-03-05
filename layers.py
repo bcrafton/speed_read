@@ -49,17 +49,17 @@ class Conv:
             self.w = self.w.astype(int)
             self.b = self.b.astype(int)
             self.q = self.q.astype(int)
-            
+
+        w_offset = self.w + pow(2, params['bpw'] - 1)
         wb = []
         for bit in range(params['bpw']):
-            wb.append(np.bitwise_and(np.right_shift(self.w, bit), 1))
-            
-        self.wb = np.stack(wb, axis=0)
+            wb.append(np.bitwise_and(np.right_shift(w_offset, bit), 1))
+        self.wb = np.stack(wb, axis=-1)
 
     def forward(self, x):
         # could move ref inside conv.
         y_ref  = conv_ref(x=x, f=self.w, b=self.b, q=self.q, stride=self.s, pad1=self.p1, pad2=self.p2)
-        y, psum = conv(x=x, f=self.w, b=self.b, q=self.q, stride=self.s, pad1=self.p1, pad2=self.p2, params=self.params)
+        y, psum = conv(x=x, f=self.wb, b=self.b, q=self.q, stride=self.s, pad1=self.p1, pad2=self.p2, params=self.params)
         assert (np.all(y == y_ref))
         return y, psum
 
@@ -97,7 +97,7 @@ class Dense:
         x = np.reshape(x, self.input_size)
         # could move ref inside dot.
         y_ref  = dot_ref(x=x, f=self.w, b=self.b, q=self.q)
-        y, psum = dot(x=x, f=self.w, b=self.b, q=self.q, params=self.params)
+        y, psum = dot(x=x, f=self.wb, b=self.b, q=self.q, params=self.params)
         assert (np.all(y == y_ref))
         return y, psum
 
