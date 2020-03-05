@@ -3,21 +3,20 @@ import numpy as np
 np.set_printoptions(threshold=1000)
 
 class model:
-    def __init__(self, layers : tuple):
+    def __init__(self, layers):
         self.num_layers = len(layers)
         self.layers = layers
 
-    def forward(self, X):
-        A = [None] * self.num_layers
+    def forward(self, x):
+        num_examples, _, _, _ = np.shape(x)
+        
+        y = [None] * num_examples
+        for ii in range(num_examples):
+            y[ii] = x[ii]
+            for layer in self.layers:
+                y[ii] = layer.forward(x=y[ii])
 
-        for ii in range(self.num_layers):
-            l = self.layers[ii]
-            if ii == 0:
-                A[ii] = l.forward(X)
-            else:
-                A[ii] = l.forward(A[ii-1])
-
-        return A[self.num_layers-1]
+        return y
 
     
 

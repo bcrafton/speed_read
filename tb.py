@@ -13,8 +13,8 @@ import threading
 
 from layers import Conv
 from layers import Dense
-from sim import sim
 from defines import *
+from model import model
 
 ####
 
@@ -60,10 +60,11 @@ def save_params(x, model, path):
     
 ####
 
-cnn1 = [
+cnn1_layers = [
 Conv(input_size=(8,8,3), filter_size=(4,4,3,32), stride=1, pad1=1, pad2=2),
 Conv(input_size=(8,8,32), filter_size=(2,2,32,32), stride=2, pad1=0, pad2=0),
 ]
+cnn1 = model(layers=cnn1_layers)
 
 ####
 
@@ -81,8 +82,9 @@ for key in tests.keys():
     num_example, input_shape, model = tests[key]
 
     x = init_x(num_example, input_shape, 0, 127)
-    save_params(x, model, path)
-    sim(path)
+    model.forward(x=x)
+    # save_params(x, model, path)
+    # sim(path)
 
 ####
 

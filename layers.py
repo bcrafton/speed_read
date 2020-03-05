@@ -2,10 +2,12 @@
 import math
 import numpy as np
 from conv_utils import conv_output_length
+from dot import *
 from defines import *
 
-class Conv:
+#########################
 
+class Conv:
     def __init__(self, input_size, filter_size, stride, pad1, pad2, weights=None):
         self.input_size = input_size
         self.h, self.w, self.c = self.input_size
@@ -45,8 +47,11 @@ class Conv:
             self.bias = self.bias.astype(int)
             self.quant = self.quant.astype(int)
 
-    def opcode(self):
-        return OPCODE_CONV
+    def forward(self, x):
+        y_ref = conv_ref(x=x, f=self.weights, b=self.bias, q=self.quant, stride=self.stride, pad1=self.pad1, pad2=self.pad2)
+        y     = conv(x=x, f=self.weights, b=self.bias, q=self.quant, stride=self.stride, pad1=self.pad1, pad2=self.pad2)
+        assert (np.all(y == y_ref))
+        return y
 
 #########################
 
@@ -74,8 +79,21 @@ class Dense:
             self.bias = self.bias.astype(int)
             self.quant = self.quant.astype(int)
 
-    def opcode(self):
-        return OPCODE_DOT
+    def forward(self, x):
+        x = np.reshape(x, self.input_size)
+        # could move ref inside dot.
+        y_ref = dot_ref(x=x, f=self.weights, b=self.bias, q=self.quant)
+        y     = dot(x=x, f=self.weights, b=self.bias, q=self.quant)
+        assert (np.all(y == y_ref))
+        return y
 
 #########################
+        
+        
+        
+        
+        
+        
+        
+        
         
