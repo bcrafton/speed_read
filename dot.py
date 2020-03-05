@@ -90,24 +90,31 @@ def pim_kernel(x, w, params):
     
     y = 0
     psum = 0
+    flag = False
     while wl_ptr < len(x):
         # advice = be careful about: (< vs <=), (> vs >=)
         wl[0] = x[0] & (wl_ptr <= 0)
         wl_sum[0] = x[0] & (wl_ptr <= 0)
-        wl_stride[0] = (wl_sum[0] <= 8)
+        wl_stride[0] = (wl_sum[0] <= params['adc'])
         
         for ii in range(1, len(x)):
             if params['skip']:
-                wl[ii]        = (x[ii] & (wl_ptr <= ii)) & (wl_sum[ii - 1] < params['rpr'])
+                row = params['adc'] if flag else params['rpr']
+                wl[ii]        = (x[ii] & (wl_ptr <= ii)) & (wl_sum[ii - 1] < row)
                 wl_sum[ii]    = (x[ii] & (wl_ptr <= ii)) + wl_sum[ii - 1]
-                wl_stride[ii] = (wl_sum[ii] <= params['rpr']) + wl_stride[ii - 1]
+                wl_stride[ii] = (wl_sum[ii] <= row) + wl_stride[ii - 1]
             else:
-                wl[ii]        = (x[ii] & (wl_ptr <= ii)) & (ii < (wl_ptr + params['rpr']))
-                wl_stride[ii] = wl_ptr + params['rpr']
+                assert (params['rpr'] == params['adc'])
+                wl[ii]        = (x[ii] & (wl_ptr <= ii)) & (ii < (wl_ptr + params['adc']))
+                wl_stride[ii] = wl_ptr + params['adc']
 
-        wl_ptr = wl_stride[-1]
-        y += wl @ w
+        pdot = wl @ w
         psum += 1
+        
+        flag = (not flag) and (params['rpr'] > params['adc']) and (np.any(pdot == params['adc']))
+        if not flag:
+            wl_ptr = wl_stride[-1]
+            y += pdot
         
     return y, psum
 
