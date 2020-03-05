@@ -11,12 +11,14 @@ class model:
         num_examples, _, _, _ = np.shape(x)
         
         y = [None] * num_examples
+        psum = [0] * num_examples
         for ii in range(num_examples):
             y[ii] = x[ii]
             for layer in self.layers:
-                y[ii] = layer.forward(x=y[ii], params=params)
+                y[ii], p = layer.forward(x=y[ii], params=params)
+                psum[ii] += p
 
-        return y
+        return y, psum
 
     
 

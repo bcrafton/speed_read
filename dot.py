@@ -41,40 +41,44 @@ def conv(x, f, b, q, stride, pad1, pad2, params):
     Wo = conv_output_length(Hi, Fw, 'same', stride)
 
     x = np.pad(array=x, pad_width=[[pad1,pad2], [pad1,pad2], [0,0]], mode='constant')
-    y = np.zeros(shape=(Ho, Wo, Co))
     f_matrix = np.reshape(f, (Fh * Fw * Ci, Co))
+    y = np.zeros(shape=(Ho, Wo, Co))
+    psum = 0
 
     for h in range(Ho):        
         for w in range(Wo):
             patch = np.reshape(x[h*stride:(h*stride+Fh), w*stride:(w*stride+Fw), :], -1)
-            y[h, w, :] = dot(patch, f_matrix, b, q, params)
-
-    return y
+            y[h, w, :], p = dot(patch, f_matrix, b, q, params)
+            psum += p
+            
+    return y, psum
 
 def dot(x, w, b, q, params):
-    y = pim_dot(x, w, params)
+    y, psum = pim_dot(x, w, params)
     assert(np.all(np.absolute(y) < 2 ** 15))
     y = y + b
     y = y * (y > 0)
     y = y.astype(int)
     y = y // q 
     y = np.clip(y, 0, 127)
-    return y
+    return y, psum
             
 ##################################################
 
 def pim_dot(x, w, params):
     y = 0
+    psum = 0
     for b in range(params['bpa']):
         xb = np.bitwise_and(np.right_shift(x.astype(int), b), 1)
         for r1 in range(0, len(xb), 128):
             r2 = min(r1 + 128, len(xb))
             xbw = xb[r1:r2]
-            pim = pim_kernel(xbw, w, params)
+            pim, p = pim_kernel(xbw, w, params)
             assert (np.all(pim == (xbw @ w)))
             y += np.left_shift(pim.astype(int), b)
-        
-    return y
+            psum += p
+            
+    return y, psum
 
 ##################################################
 
@@ -85,6 +89,7 @@ def pim_kernel(x, w, params):
     wl_stride = np.zeros(len(x))
     
     y = 0
+    psum = 0
     while wl_ptr < len(x):
         # advice = be careful about: (< vs <=), (> vs >=)
         wl[0] = x[0] & (wl_ptr <= 0)
@@ -102,8 +107,9 @@ def pim_kernel(x, w, params):
 
         wl_ptr = wl_stride[-1]
         y += wl @ w
+        psum += 1
         
-    return y
+    return y, psum
 
 ##################################################
 

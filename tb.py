@@ -53,7 +53,8 @@ tests = [
 for test in tests:
     num_example, input_shape, params, model = test
     x = init_x(num_example, input_shape, 0, 127)
-    model.forward(x=x, params=params)
+    _, psum = model.forward(x=x, params=params)
+    print (psum)
 
 ####
 
