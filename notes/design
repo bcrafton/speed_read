@@ -14,7 +14,10 @@
 -----
 
 thinking much better design -> model based design where we call forward()
-... yeah
+> but why didnt we do that before ? for emu ? 
 
-but why didnt we do that before ? for emu ? 
+-----
 
+we messed up:
+np.any(pdot == params['adc'])
+> because this is supposed to be binary, but our weights are 4 bit.
