@@ -31,8 +31,8 @@ def init_x(num_example, input_shape, xlow, xhigh):
 params = {
 'bpa': 8,
 'bpw': 8,
-'rpr': 8,
-'adc': 8,
+'rpr': 16,
+'adc': 16,
 'skip': 1
 }
 

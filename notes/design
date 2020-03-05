@@ -52,3 +52,22 @@ lets do that for now.
 randomness in #pim comes from 2 things:
 1) if using weight stats (of course)
 2) in multi-layer networks, weights cause activation after layer 1 to be random
+
+-----
+
+> we are going to need to profile on the fly.
+> because certain parts of the image and filter will not yield high results.
+  > take advantage of space
+> for lstm, take advantage of time
+
+since LSTM sparsity maybe we can just use LSTM as primary thing
+... wonder if we can argue PIM can inherently do sparsity better.
+
+
+
+
+
+
+
+
+
