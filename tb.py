@@ -44,13 +44,13 @@ model = model(layers=layers)
 ####
 
 tests = [
-(3, (8, 8), model)
+(3, (8, 8), params, model)
 ]
 
 ####
 
 for test in tests:
-    num_example, input_shape, model = test
+    num_example, input_shape, params, model = test
     x = init_x(num_example, input_shape, 0, 127)
     model.forward(x=x, params=params)
 
