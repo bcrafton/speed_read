@@ -8,7 +8,7 @@ from defines import *
 #########################
 
 class Conv:
-    def __init__(self, input_size, filter_size, stride, pad1, pad2, weights=None):
+    def __init__(self, input_size, filter_size, stride, pad1, pad2, params, weights=None):
         self.input_size = input_size
         self.h, self.w, self.c = self.input_size
                 
@@ -24,6 +24,8 @@ class Conv:
         
         self.y_h = (self.h - self.fh + self.stride + self.pad1 + self.pad2) / self.stride
         self.y_w = (self.w - self.fw + self.stride + self.pad1 + self.pad2) / self.stride
+        
+        self.params = params
         
         if (self.fh == 1): 
             assert((self.stride==1) and (self.pad1==0) and (self.pad2==0))
@@ -47,21 +49,22 @@ class Conv:
             self.bias = self.bias.astype(int)
             self.quant = self.quant.astype(int)
 
-    def forward(self, x, params):
+    def forward(self, x):
         # could move ref inside conv.
-        # conv(x, w_params, op_params, pim_params) rather than all the args 
         y_ref  = conv_ref(x=x, f=self.weights, b=self.bias, q=self.quant, stride=self.stride, pad1=self.pad1, pad2=self.pad2)
-        y, psum = conv(x=x, f=self.weights, b=self.bias, q=self.quant, stride=self.stride, pad1=self.pad1, pad2=self.pad2, params=params)
+        y, psum = conv(x=x, f=self.weights, b=self.bias, q=self.quant, stride=self.stride, pad1=self.pad1, pad2=self.pad2, params=self.params)
         assert (np.all(y == y_ref))
         return y, psum
 
 #########################
 
 class Dense:
-    def __init__(self, size, weights=None):        
+    def __init__(self, size, params, weights=None):
         self.size = size
         self.input_size, self.output_size = self.size
         assert((self.output_size == 32) or (self.output_size == 64) or (self.output_size == 128))
+
+        self.params = params
 
         if weights == None:
             values = np.array(range(-1, 4))
@@ -81,12 +84,11 @@ class Dense:
             self.bias = self.bias.astype(int)
             self.quant = self.quant.astype(int)
 
-    def forward(self, x, params):
+    def forward(self, x):
         x = np.reshape(x, self.input_size)
         # could move ref inside dot.
-        # dot(x, w_params, op_params, pim_params) rather than all the args 
         y_ref  = dot_ref(x=x, f=self.weights, b=self.bias, q=self.quant)
-        y, psum = dot(x=x, f=self.weights, b=self.bias, q=self.quant, params=params)
+        y, psum = dot(x=x, f=self.weights, b=self.bias, q=self.quant, params=self.params)
         assert (np.all(y == y_ref))
         return y, psum
 

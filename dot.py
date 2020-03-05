@@ -65,7 +65,35 @@ def dot(x, w, b, q, params):
             
 ##################################################
 
+'''
+def pcm2pcm(pcm, path):
+    for ii in range(len(pcm)):
+        assert(np.shape(pcm[ii]) == (8192, 32)) # 8192x32x4 -> 1024x1024
+        
+        pcm_ii = np.copy(pcm[ii])
+        pcm_ii = pcm_ii + 8
+        
+        pcm_ii = np.reshape(pcm_ii, (8192, 32))
+        pcm_ii_0 = np.bitwise_and(np.right_shift(pcm_ii.astype(int), 0), 1)
+        pcm_ii_1 = np.bitwise_and(np.right_shift(pcm_ii.astype(int), 1), 1)
+        pcm_ii_2 = np.bitwise_and(np.right_shift(pcm_ii.astype(int), 2), 1)
+        pcm_ii_3 = np.bitwise_and(np.right_shift(pcm_ii.astype(int), 3), 1)
+        pcm_ii = np.stack((pcm_ii_0, pcm_ii_1, pcm_ii_2, pcm_ii_3), axis=2)        
+        assert(np.shape(pcm_ii) == (8192, 32, 4))
+        
+        pcm_ii = np.reshape(pcm_ii, (8, 1024, 128))
+        pcm_ii = np.transpose(pcm_ii, (1, 2, 0))
+        
+        pcm_ii = np.reshape(pcm_ii, (1024, 1024))
+        np.savetxt("%s/pcm%d.csv" % (path, ii+1), pcm_ii, fmt='%d', delimiter=" ")
+'''
+
 def pim_dot(x, w, params):
+    # we need to do something like above.
+    # reshape -> [N, 4]
+    # multiply last dimension [8, 4, 2, 1]
+    # offset
+
     y = 0
     psum = 0
     for b in range(params['bpa']):

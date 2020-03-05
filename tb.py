@@ -28,33 +28,33 @@ def init_x(num_example, input_shape, xlow, xhigh):
 
 ####
 
-layers = [
-Conv(input_size=(8,8,3), filter_size=(4,4,3,32), stride=1, pad1=1, pad2=2),
-Conv(input_size=(8,8,32), filter_size=(2,2,32,32), stride=2, pad1=0, pad2=0),
-]
-
 params = {
 'bpa': 8,
-'bpw': 4,
-'rpr': 10,
+'bpw': 8,
+'rpr': 8,
 'adc': 8,
 'skip': 1
 }
+
+layers = [
+Conv(input_size=(8,8,3), filter_size=(4,4,3,32), stride=1, pad1=1, pad2=2, params=params),
+Conv(input_size=(8,8,32), filter_size=(2,2,32,32), stride=2, pad1=0, pad2=0, params=params),
+]
 
 model = model(layers=layers)
 
 ####
 
 tests = [
-(3, (8, 8), params, model)
+(3, (8, 8), model)
 ]
 
 ####
 
 for test in tests:
-    num_example, input_shape, params, model = test
+    num_example, input_shape, model = test
     x = init_x(num_example, input_shape, 0, 127)
-    _, psum = model.forward(x=x, params=params)
+    _, psum = model.forward(x=x)
     print (psum)
 
 ####

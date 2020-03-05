@@ -21,3 +21,28 @@ thinking much better design -> model based design where we call forward()
 we messed up:
 np.any(pdot == params['adc'])
 > because this is supposed to be binary, but our weights are 4 bit.
+
+we probably want 64 bits per array ? 128 is crazy ...
+> we can have Sam make a figure about pitch matching and what not.
+> 128 -> all 128 have to be less than 8.
+  > 32, 64 much better i think.
+  > give more than 8 states, then things really get crazy
+
+-----
+
+params = {
+'bpa': 8,
+'bpw': 8,
+'rpr': 10,
+'adc': 8,
+'skip': 1
+}
+
+so we need to break this up.
+bpw needed at both conv/pim level
+is bpa ? 
+
+dont really want to break up these annoying params
+we cud just pass it to each layer.
+
+lets do that for now.
