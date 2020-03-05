@@ -66,11 +66,28 @@ since LSTM sparsity maybe we can just use LSTM as primary thing
 -----
 
 real weights.
+> need better repo for generating real weights.
+> tf.floor/tf.clip kills gradient.
 
+solutions
+> tf.stop_gradient
+> tf.quantization.quantize_and_dequantize
+> https://github.com/tensorpack/tensorpack/issues/53
+  '''
+  E = tf.stop_gradient(tf.reduce_mean(tf.abs(x)))
+  clip_x = tf.clip_by_value(x/E, -2.0, 2.0) / 2.0
+  with G.gradient_override_map({"Floor": "Identity"}):
+      return tf.round(clip_x) * E
+  '''
 
+these are really nice solutions for what we want to do
 
+what about batchnorm ?
+> do we need it or nah ?
 
+okay we can make this happen.
 
+-----
 
 
 

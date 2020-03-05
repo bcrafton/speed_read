@@ -8,6 +8,9 @@ done
 todo
 -------
 > more tests
-> dynamic profiling
-> variance
+  > generate weights with ssdfa.quant branch
 
+> dynamic profiling
+
+> variance
+  > this is worst part, so we should wait.

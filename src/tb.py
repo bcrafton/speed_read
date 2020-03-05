@@ -41,6 +41,7 @@ Conv(input_size=(8,8,3), filter_size=(4,4,3,32), stride=1, pad1=1, pad2=2, param
 Conv(input_size=(8,8,32), filter_size=(2,2,32,32), stride=2, pad1=0, pad2=0, params=params),
 ]
 
+# TODO: these have the same name ...
 model = model(layers=layers)
 
 ####
