@@ -24,7 +24,7 @@ def conv_ref(x, f, b, q, stride, pad1, pad2):
 
 def dot_ref(x, w, b, q):
     y = x @ w
-    assert(np.all(np.absolute(y) < 2 ** 15))
+    assert(np.all(np.absolute(y) < 2 ** 23))
     y = y + b
     y = y * (y > 0)
     y = y.astype(int)
@@ -55,7 +55,7 @@ def conv(x, f, b, q, stride, pad1, pad2, params):
 
 def dot(x, w, b, q, params):
     y, psum = pim_dot(x, w, params)
-    assert(np.all(np.absolute(y) < 2 ** 15))
+    assert(np.all(np.absolute(y) < 2 ** 23))
     y = y + b
     y = y * (y > 0)
     y = y.astype(int)
