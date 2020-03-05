@@ -63,6 +63,30 @@ randomness in #pim comes from 2 things:
 since LSTM sparsity maybe we can just use LSTM as primary thing
 ... wonder if we can argue PIM can inherently do sparsity better.
 
+-----
+
+real weights.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

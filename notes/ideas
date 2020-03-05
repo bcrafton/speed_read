@@ -18,3 +18,20 @@ ideas:
 > only concerned with matrix mult.
 
 ----
+
+> reference
+> wl speed
+> 8 fixed
+> stat weight dist
+> slow var
+
+----
+
+> profile on the fly.
+> certain parts of x@w will be small ... spatial profiling
+> for lstm, take advantage of time
+
+LSTM = sparsity -> LSTM primary thing ? 
+> argue PIM can inherently do sparsity better.
+
+----
