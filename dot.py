@@ -34,7 +34,7 @@ def dot_ref(x, w, b, q):
     
 ##################################################
     
-def conv(x, f, b, q, stride, pad1, pad2):
+def conv(x, f, b, q, stride, pad1, pad2, params):
     Hi, Wi, Ci = np.shape(x)
     Fh, Fw, _, Co = np.shape(f)
     Ho = conv_output_length(Hi, Fh, 'same', stride)
@@ -47,12 +47,12 @@ def conv(x, f, b, q, stride, pad1, pad2):
     for h in range(Ho):        
         for w in range(Wo):
             patch = np.reshape(x[h*stride:(h*stride+Fh), w*stride:(w*stride+Fw), :], -1)
-            y[h, w, :] = dot(patch, f_matrix, b, q)
+            y[h, w, :] = dot(patch, f_matrix, b, q, params)
 
     return y
 
-def dot(x, w, b, q):
-    y = pim_dot(x, w, bpa=8, bpw=4, rpr=8)
+def dot(x, w, b, q, params):
+    y = pim_dot(x, w, params)
     assert(np.all(np.absolute(y) < 2 ** 15))
     y = y + b
     y = y * (y > 0)
@@ -63,14 +63,14 @@ def dot(x, w, b, q):
             
 ##################################################
 
-def pim_dot(x, w, bpa, bpw, rpr):
+def pim_dot(x, w, params):
     y = 0
-    for b in range(bpa):
+    for b in range(params['bpa']):
         xb = np.bitwise_and(np.right_shift(x.astype(int), b), 1)
         for r1 in range(0, len(xb), 128):
             r2 = min(r1 + 128, len(xb))
             xbw = xb[r1:r2]
-            pim = pim_kernel(xbw, w, bpa, bpw, rpr)
+            pim = pim_kernel(xbw, w, params)
             assert (np.all(pim == (xbw @ w)))
             y += np.left_shift(pim.astype(int), b)
         
@@ -78,7 +78,7 @@ def pim_dot(x, w, bpa, bpw, rpr):
 
 ##################################################
 
-def pim_kernel(x, w, bpa, bpw, rpr):
+def pim_kernel(x, w, params):
     wl_ptr = 0
     wl = np.zeros(len(x))
     wl_sum = np.zeros(len(x))

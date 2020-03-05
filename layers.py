@@ -47,10 +47,10 @@ class Conv:
             self.bias = self.bias.astype(int)
             self.quant = self.quant.astype(int)
 
-    def forward(self, x):
+    def forward(self, x, params):
         # could move ref inside conv.
         y_ref = conv_ref(x=x, f=self.weights, b=self.bias, q=self.quant, stride=self.stride, pad1=self.pad1, pad2=self.pad2)
-        y     = conv(x=x, f=self.weights, b=self.bias, q=self.quant, stride=self.stride, pad1=self.pad1, pad2=self.pad2)
+        y     = conv(x=x, f=self.weights, b=self.bias, q=self.quant, stride=self.stride, pad1=self.pad1, pad2=self.pad2, params=params)
         assert (np.all(y == y_ref))
         return y
 
@@ -80,11 +80,11 @@ class Dense:
             self.bias = self.bias.astype(int)
             self.quant = self.quant.astype(int)
 
-    def forward(self, x):
+    def forward(self, x, params):
         x = np.reshape(x, self.input_size)
         # could move ref inside dot.
         y_ref = dot_ref(x=x, f=self.weights, b=self.bias, q=self.quant)
-        y     = dot(x=x, f=self.weights, b=self.bias, q=self.quant)
+        y     = dot(x=x, f=self.weights, b=self.bias, q=self.quant, params=params)
         assert (np.all(y == y_ref))
         return y
 
