@@ -50,21 +50,33 @@ class Conv:
             # q must be larger than 0
             assert(self.q > 0)
 
+        #########################
+
         w_offset = self.w + pow(2, params['bpw'] - 1)
         wb = []
         for bit in range(params['bpw']):
             wb.append(np.bitwise_and(np.right_shift(w_offset, bit), 1))
         self.wb = np.stack(wb, axis=-1)
         
-        nonzero = np.count_nonzero(self.wb) / np.prod(np.shape(self.wb))
-        print ('nonzero %', nonzero)
+        #########################
+        
+        assert (np.count_nonzero(self.wb) == np.sum(self.wb))
+                
+        # nonzero = np.count_nonzero(self.wb) / np.prod(np.shape(self.wb))
+        # print ('nonzero %', nonzero)
+        
+        max_col_count = np.max(np.sum(self.wb, axis=(0, 1, 2)))
+        print ('max col count %d/%d' % (max_col_count, self.fh*self.fw*self.fc))
+        
+        #########################
 
     def forward(self, x):
-        # could move ref inside conv.
+        # 1) tensorflow to compute y_ref
+        # 2) save {x,y1,y2,...} as tb from tensorflow 
         y_ref   = conv_ref(x=x, f=self.w, b=self.b, q=self.q, stride=self.s, pad1=self.p1, pad2=self.p2)
         y, psum = conv(x=x, f=self.wb, b=self.b, q=self.q, stride=self.s, pad1=self.p1, pad2=self.p2, params=self.params)
         assert (np.all(y == y_ref))
-        return y, psum
+        return y_ref, psum
 
 #########################
 
@@ -98,11 +110,10 @@ class Dense:
 
     def forward(self, x):
         x = np.reshape(x, self.isize)
-        # could move ref inside dot.
         y_ref   = dot_ref(x=x, f=self.w, b=self.b, q=self.q)
         y, psum = dot(x=x, f=self.wb, b=self.b, q=self.q, params=self.params)
         assert (np.all(y == y_ref))
-        return y, psum
+        return y_ref, psum
 
 #########################
         
