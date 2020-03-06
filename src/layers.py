@@ -65,8 +65,9 @@ class Conv:
         # nonzero = np.count_nonzero(self.wb) / np.prod(np.shape(self.wb))
         # print ('nonzero %', nonzero)
         
-        max_col_count = np.max(np.sum(self.wb, axis=(0, 1, 2)))
-        print ('max col count %d/%d' % (max_col_count, self.fh*self.fw*self.fc))
+        for bit in range(params['bpw']):
+            max_col_count = np.max(np.sum(self.wb[:,:,:,:,bit], axis=(0, 1, 2)))
+            print ('b=%d | max col count: %d/%d' % (bit, max_col_count, self.fh*self.fw*self.fc))
         
         #########################
 
