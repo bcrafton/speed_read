@@ -36,9 +36,12 @@ params = {
 'skip': 1
 }
 
+weights = np.load('../cifar10_weights.npy', allow_pickle=True).item()
+
 layers = [
-Conv(input_size=(8,8,3), filter_size=(4,4,3,32), stride=1, pad1=1, pad2=2, params=params),
-Conv(input_size=(8,8,32), filter_size=(2,2,32,32), stride=2, pad1=0, pad2=0, params=params),
+Conv(input_size=(32,32,3),  filter_size=(3,3,3,32), stride=2, pad1=0, pad2=1, params=params),
+Conv(input_size=(16,16,32), filter_size=(3,3,32,64), stride=2, pad1=0, pad2=1, params=params),
+# Conv(input_size=(8,8,64),   filter_size=(3,3,64,128), stride=2, pad1=0, pad2=1, params=params),
 ]
 
 # TODO: these have the same name ...
@@ -47,7 +50,7 @@ model = model(layers=layers)
 ####
 
 tests = [
-(3, (8, 8), model)
+(3, (32, 32), model)
 ]
 
 ####

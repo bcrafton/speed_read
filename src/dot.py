@@ -66,6 +66,16 @@ def dot(x, w, b, q, params):
             
 ##################################################
 
+# wow okay lol
+# how did we not run into this problem earlier.
+# 4x4x3 < 128
+# 2x2x32 = 128
+# but now since we have more than 128 rows
+# w is smaller than activations.
+# so what do we do ? 
+# > xbr = xb[r1:r2]
+# > wr = w[r1:r2]
+
 def pim_dot(x, w, params):
     y = 0
     psum = 0
@@ -73,9 +83,10 @@ def pim_dot(x, w, params):
         xb = np.bitwise_and(np.right_shift(x.astype(int), b), 1)
         for r1 in range(0, len(xb), 128):
             r2 = min(r1 + 128, len(xb))
-            xbw = xb[r1:r2]
-            pim, p = pim_kernel(xbw, w, params)
-            # assert (np.all(pim == (xbw @ w)))
+            xbr = xb[r1:r2]
+            wr = w[r1:r2]
+            pim, p = pim_kernel(xbr, wr, params)
+            # assert (np.all(pim == (xbr @ wr)))
             y += np.left_shift(pim.astype(int), b)
             psum += p
             
