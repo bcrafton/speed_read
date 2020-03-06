@@ -31,9 +31,12 @@ def init_x(num_example, input_shape, xlow, xhigh):
 params = {
 'bpa': 8,
 'bpw': 8,
-'rpr': 16,
+'rpr': 24,
 'adc': 16,
-'skip': 1
+'skip': 1,
+'wl': 128,
+'bl': 64,
+'wpb': 8, # weights per bank = (bl / bpw)
 }
 
 weights = np.load('../cifar10_weights.npy', allow_pickle=True).item()

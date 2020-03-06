@@ -21,6 +21,8 @@ todo
   > put flag in for actually running computation for y.
   > we can replace this with tensorflow in the future
   
+> actually better yet -> save {x,y1,y2,...} as tb from tensorflow.
+  
 -------
 
 > how do we do batchnorm and fix this bias question issue.

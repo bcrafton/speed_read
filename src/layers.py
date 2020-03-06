@@ -55,6 +55,9 @@ class Conv:
         for bit in range(params['bpw']):
             wb.append(np.bitwise_and(np.right_shift(w_offset, bit), 1))
         self.wb = np.stack(wb, axis=-1)
+        
+        nonzero = np.count_nonzero(self.wb) / np.prod(np.shape(self.wb))
+        print ('nonzero %', nonzero)
 
     def forward(self, x):
         # could move ref inside conv.
