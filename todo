@@ -14,3 +14,15 @@ todo
 
 > variance
   > this is worst part, so we should wait.
+  
+-------
+  
+> let y = y_ref instead.
+  > put flag in for actually running computation for y.
+  > we can replace this with tensorflow in the future
+  
+-------
+
+> how do we do batchnorm and fix this bias question issue.
+
+-------

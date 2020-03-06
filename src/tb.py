@@ -38,10 +38,11 @@ params = {
 
 weights = np.load('../cifar10_weights.npy', allow_pickle=True).item()
 
+# TODO - its looking like we want a pooling operation.
 layers = [
-Conv(input_size=(32,32,3),  filter_size=(3,3,3,32), stride=2, pad1=0, pad2=1, params=params),
-Conv(input_size=(16,16,32), filter_size=(3,3,32,64), stride=2, pad1=0, pad2=1, params=params),
-# Conv(input_size=(8,8,64),   filter_size=(3,3,64,128), stride=2, pad1=0, pad2=1, params=params),
+Conv(input_size=(32,32,3),  filter_size=(3,3,3,32), stride=2, pad1=0, pad2=1, params=params, weights=weights[0]),
+Conv(input_size=(16,16,32), filter_size=(3,3,32,64), stride=2, pad1=0, pad2=1, params=params, weights=weights[1]),
+Conv(input_size=(8,8,64),   filter_size=(3,3,64,128), stride=2, pad1=0, pad2=1, params=params, weights=weights[2]),
 ]
 
 # TODO: these have the same name ...
