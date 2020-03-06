@@ -17,36 +17,9 @@ todo
   
 -------
   
-> let y = y_ref instead.
-  > put flag in for actually running computation for y.
-  > we can replace this with tensorflow in the future
-  
-> actually better yet -> save {x,y1,y2,...} as tb from tensorflow.
-  
--------
-
-> how do we do batchnorm and fix this bias question issue.
-
--------
-
-what can we do to make wstats work ? 
-> increase wl
-> decrease bl
-> sparsity data
-> params as f(x_bit, layer)
-
--------
-
-can we make a quantize_weight function
-or scheme
-that tries to quantize things to give us more zeros ? 
-
-can really think of it as a giant mapping function
-that maps things from float to decimal values.
-
--------
-
-what about a different encoding format
-where numbers will lots of 1s are 255 or something like this.
+> let y = y_ref instead, dont run actual compute for pim
+> save {x,y1,y2,...} as tb from tensorflow.
+> batchnorm
+> different encoding for weights
 
 -------

@@ -35,3 +35,35 @@ LSTM = sparsity -> LSTM primary thing ?
 > argue PIM can inherently do sparsity better.
 
 ----
+
+what can we do to make wstats work ? 
+> increase wl
+> decrease bl
+> sparsity data
+> params as f(x_bit, layer)
+
+----
+
+can we make a quantize_weight function
+> that tries to quantize things to give us more zeros ? 
+
+----
+
+what about a different encoding format
+where numbers will lots of 1s are 255 or something like this.
+> this is the next step I believe.
+
+----
+
+
+
+
+
+
+
+
+
+
+
+
+
