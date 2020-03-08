@@ -89,23 +89,112 @@ okay we can make this happen.
 
 -----
 
+https://stackoverflow.com/questions/41391718/tensorflows-gradient-override-map-function
+https://github.com/tensorpack/tensorpack/issues/53
 
+lets start by replacing quantize_and_dequantize.
 
+-----
 
+[81008, 83808, 81440] = 8
+wasnt 16 = 60000
+what is up with that ...
+[64160, 65864, 64936]
 
+yeah wtf.
+this is a totally different game than what i thought.
 
+if 16 over 8 dosnt buy u a serious advantage ... then we have been doing something wrong. 
 
+-----
 
+setting wl = 1024
+> 35520, 37240, 35656
+what the fuck ??? 
 
+definitely feels like we on to something here,
+well a bug atleast
+also seems like we need:
+1) multi threading
+2) writing this kernel in c or something.
 
+something that is not so horribly slow.
 
+-----
 
+18536 @ 8/8
+12296 @ 16/16
 
+> we want to make 3x3x64x64 dominate the psum count
+> so that means not using strides for this shit
 
+-----
 
+yeah so the first of our problems with weight stats
+are this weird af not great benefit for 
 
+756. 1152. 1166. @ 16
+1208. 1416. 2010 @ 8
 
+-----
 
+[[ 6831.  6415. 13330.]] @ 12
+[[4832. 5664. 8040.]] @ 8
+
+[[4207. 4493. 9148.]] @ 10
+[[3240. 4032. 6088.]] @ 8
+
+-----
+
+you might be able to go at 16->17 or 8->9 for free.
+just because u can start at 17 if u failed.
+nah because then the rest of ur numbers are fucked up.
+
+-----
+
+okay so now we can see the advantage to using 16 over 8
+but is it though ? 
+what are odds differences between 
+20/16 vs 10/8 ? 
+
+> take percentage of 1s columnwise
+> odds of getting 16/20 in one of them
+> how many times do u need to win for it to make up for 1 loss ?
+
+-----
+
+> time to add variance ???
+> time to train networks to handle variance ?
+
+[[2024. 3200. 3504.]] @ 16
+[[1811. 3200. 3516.]] @ 20
+> we only care about the large cases.
+  > but why the fuck is col #1 so many pims ? 
+  > (8h*8w*8b) * (27/16=2) * (32/4=8) 
+
+okay but then why are there so few pims for the larger operations.
+
+wow! there are so few 1s in these activations.
+40/576 is probably the average.
+
+when you make wl=1024
+then it basically makes everything go as fast
+
+64x32 takes same number of bitlines as 3x32.
+just has slightly more ones.
+
+-----
+
+very interesting idea:
+we are aware of quantization value = 100 probably or w.e.
+and we know what our sums are.
+so we can pick the speed to go at based on this information.
+
+so to me, this means we go in the wrong order.
+
+we wud want to start with b=7 and go down the line.
+
+-----
 
 
 

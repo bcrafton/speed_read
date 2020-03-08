@@ -48,6 +48,7 @@ def conv(x, f, b, q, stride, pad1, pad2, params):
 
     for h in range(Ho):        
         for w in range(Wo):
+            print ("(%d, %d)" % (h, w))
             patch = np.reshape(x[h*stride:(h*stride+Fh), w*stride:(w*stride+Fw), :], -1)
             y[h, w, :], p = dot(patch, f_matrix, b, q, params)
             psum += p
@@ -73,6 +74,7 @@ def pim_dot(x, w, params):
     
     for b in range(params['bpa']):
         xb = np.bitwise_and(np.right_shift(x.astype(int), b), 1)
+        print ("%d | %d/%d" % (b, np.sum(xb), np.shape(xb)[0]))
 
         for r1 in range(0, len(xb), params['wl']):
             r2 = min(r1 + params['wl'], len(xb))
@@ -125,13 +127,15 @@ def pim_kernel(x, w, params):
                 wl[ii]        = (x[ii] & (wl_ptr <= ii)) & (ii < (wl_ptr + params['adc']))
                 wl_stride[ii] = wl_ptr + params['adc']
 
-        x_offset = np.sum(wl).astype(int) << (params['bpw'] - 1)
+        # x_offset = np.sum(wl).astype(int) << (params['bpw'] - 1)
+        x_offset = np.sum(wl).astype(int) * params['offset']
 
         pdot = wl @ w_matrix
         pdot_sum = pdot.reshape(oshape, params['bpw']) @ shift
         psum += 1
-        
+                
         flag = (not flag) and (params['rpr'] > params['adc']) and (np.any(pdot == params['adc']))
+        print (flag, np.sum((pdot - 16) > 0), np.max(pdot))
         if not flag:
             wl_ptr = wl_stride[-1]
             y += pdot_sum - x_offset

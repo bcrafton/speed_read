@@ -55,7 +55,28 @@ where numbers will lots of 1s are 255 or something like this.
 
 ----
 
+> train network based on loss function where loss = count_ones()
+> train network based on loss function that penalizes large positive values and small negative values
 
+----
+
+> might just want to work with lossy neural networks
+> variance will kill us regardless, so might as well get some other values wrong as well.
+
+> only redo it if its large bit/weight value ? 
+> 7/7 or something ? 
+
+----
+
+we need to make batchnorm work I think
+but its hard af in quantized networks.
+
+----
+
+> its better to have a low rpr/adc !!!
+> basically increases length of wl 
+
+----
 
 
 

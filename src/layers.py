@@ -36,7 +36,7 @@ class Conv:
             values = np.array(range(minval, maxval))
             self.w = np.random.choice(a=values, size=self.filter_size, replace=True).astype(int)
             self.b = np.zeros(shape=self.fn).astype(int)
-            self.q = 200 
+            self.q = 200
         else:
             self.w, self.b, self.q = weights
             # check shape
@@ -52,13 +52,16 @@ class Conv:
 
         #########################
 
-        w_offset = self.w + pow(2, params['bpw'] - 1)
+        # w_offset = self.w + pow(2, params['bpw'] - 1)
+        w_offset = self.w + params['offset']
         wb = []
         for bit in range(params['bpw']):
             wb.append(np.bitwise_and(np.right_shift(w_offset, bit), 1))
         self.wb = np.stack(wb, axis=-1)
         
         #########################
+        
+        print ('q=%d' % (self.q))
         
         assert (np.count_nonzero(self.wb) == np.sum(self.wb))
                 
