@@ -75,8 +75,41 @@ but its hard af in quantized networks.
 
 > its better to have a low rpr/adc !!!
 > basically increases length of wl 
+  > nope then increases odds of getting that 8/8.
 
 ----
+
+very interesting idea:
+> quantization value = 100
+> we know what our sums are at each wl.
+> pick speed based on this information
+
+> we go in the wrong order.
+> start with b=7..0
+
+> so u wud want to pass pim_kernel:
+  > room for error
+  > weight of errors for this bit
+
+problem is you will never know room for errors until the very end.
+
+----
+
+the other thing = if you do rail out at 16/16 or w.e.
+it eliminates variance at that high state which is nice.
+
+----
+
+> so we are told what is the number of errors we can tolerate ? 
+> then we control adc read speed.
+
+
+
+
+
+
+
+
 
 
 
