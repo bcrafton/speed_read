@@ -17,9 +17,12 @@ todo
   
 -------
   
-> let y = y_ref instead, dont run actual compute for pim
 > save {x,y1,y2,...} as tb from tensorflow.
 > batchnorm
-> different encoding for weights
+
+> how to hit target variance ? 
+> how to make simulations go faster ? 
+> layer-by-layer, bit-by-bit params
+> variance
 
 -------

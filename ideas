@@ -103,14 +103,17 @@ it eliminates variance at that high state which is nice.
 > so we are told what is the number of errors we can tolerate ? 
 > then we control adc read speed.
 
+> specify normal distribution of variance you can tolerate at each neuron in the CNN.
+> then we will hit that number, given everything else.
+think this is a good idea.
 
+----
 
-
-
-
-
-
-
+> want to use tables for {RRAM/PCM}
+  > where we specify all the parameters of the simulation
+  > like those SNN papers kinda.
+  
+----
 
 
 
