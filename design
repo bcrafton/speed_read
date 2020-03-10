@@ -254,6 +254,16 @@ can see [min, max, mean, std] differences in feature maps.
 
 > y = y + np.random.normal(mean=0, std=params['sigma'] * np.sqrt(y), size=np.shape(y))
 
+------
+
+okay new questions now.
+> how do we compute the correct number of rows to read ? 
+> function(variance, adc, xbit, wbit %)
+
+------
+
+
+
 
 
 
