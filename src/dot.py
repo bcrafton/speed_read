@@ -34,7 +34,7 @@ def dot_ref(x, w, b, q):
     
 ##################################################
     
-def conv(x, f, b, q, stride, pad1, pad2, layer, params):
+def conv(x, f, b, q, stride, pad1, pad2, params):
     Hi, Wi, Ci = np.shape(x)
     Fh, Fw, _, Co, bpw = np.shape(f)
     assert (bpw == params['bpw'])
@@ -50,13 +50,13 @@ def conv(x, f, b, q, stride, pad1, pad2, layer, params):
         for w in range(Wo):
             print ("(%d, %d)" % (h, w))
             patch = np.reshape(x[h*stride:(h*stride+Fh), w*stride:(w*stride+Fw), :], -1)
-            y[h, w, :], p = dot(patch, f_matrix, b, q, layer, params)
+            y[h, w, :], p = dot(patch, f_matrix, b, q, params)
             psum += p
             
     return y, psum
 
-def dot(x, w, b, q, layer, params):
-    y, psum = pim_dot(x, w, layer, params)
+def dot(x, w, b, q, params):
+    y, psum = pim_dot(x, w, params)
     assert(np.all(np.absolute(y) < 2 ** 23))
     y = y + b
     y = y * (y > 0)
@@ -67,7 +67,7 @@ def dot(x, w, b, q, layer, params):
             
 ##################################################
 
-def pim_dot(x, w, layer, params):
+def pim_dot(x, w, params):
     nrow, ncol, nbit = np.shape(w)
     y = np.zeros(shape=ncol)
     psum = 0
@@ -86,7 +86,7 @@ def pim_dot(x, w, layer, params):
                 c2 = min(c1 + params['wpb'], ncol)
                 wrc = wr[:, c1:c2]
         
-                pim, p = pim_kernel(xbr, wrc, b, layer, params)
+                pim, p = pim_kernel(xbr, wrc, b, params)
                 # assert (np.all(pim == (xbr @ wr)))
                 y[c1:c2] += np.left_shift(pim.astype(int), b)
                 psum += p
@@ -95,7 +95,7 @@ def pim_dot(x, w, layer, params):
 
 ##################################################
 
-def pim_kernel(x, w, b, layer, params):
+def pim_kernel(x, w, b, params):
     ishape, oshape, bpw = np.shape(w)
     assert(bpw == params['bpw'])
     w_matrix = np.reshape(w, (ishape, oshape * bpw))

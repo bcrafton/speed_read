@@ -35,7 +35,9 @@ class Conv(Layer):
         self.y_h = (self.h - self.fh + self.s + self.p1 + self.p2) / self.s
         self.y_w = (self.w - self.fw + self.s + self.p1 + self.p2) / self.s
         
-        self.params = params
+        # do something like this so we dont need to pass layer around.
+        self.params = params.copy()
+        # self.params['rpr'] = self.params['rpr'][self.layer_id]
         
         if (self.fh == 1): 
             assert((self.s==1) and (self.p1==0) and (self.p2==0))
@@ -90,7 +92,7 @@ class Conv(Layer):
         # 1) tensorflow to compute y_ref
         # 2) save {x,y1,y2,...} as tb from tensorflow 
         y_ref   = conv_ref(x=x, f=self.w, b=self.b, q=self.q, stride=self.s, pad1=self.p1, pad2=self.p2)
-        y, psum = conv(x=x, f=self.wb, b=self.b, q=self.q, stride=self.s, pad1=self.p1, pad2=self.p2, layer=self.layer_id, params=self.params)
+        y, psum = conv(x=x, f=self.wb, b=self.b, q=self.q, stride=self.s, pad1=self.p1, pad2=self.p2, params=self.params)
         assert (np.all(y == y_ref))
         return y_ref, psum
 
@@ -130,7 +132,7 @@ class Dense(Layer):
     def forward(self, x):
         x = np.reshape(x, self.isize)
         y_ref   = dot_ref(x=x, f=self.w, b=self.b, q=self.q)
-        y, psum = dot(x=x, f=self.wb, b=self.b, q=self.q, layer=self.layer_id, params=self.params)
+        y, psum = dot(x=x, f=self.wb, b=self.b, q=self.q, params=self.params)
         assert (np.all(y == y_ref))
         return y_ref, psum
 
