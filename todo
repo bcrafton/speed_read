@@ -33,6 +33,7 @@ todo
 -------
 
 is there a relationship between the number of rows turned on and the 1s turned on in that row ? 
+store weight density of that row ... or some bit weighted density i.e. 7 more important than 1.
 
 -------
 
