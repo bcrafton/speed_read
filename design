@@ -268,9 +268,16 @@ okay new questions now.
     > means we dont do: samples=128 .. what is max std we shud expect.
   > yeah this sum thing i think is better ...
 
+------
 
+rpr error = binomial
+for range(adc+1, rpr+1): 
+> P(on state == 17 | rpr = 24) * (17 - 16)
+instead of 
+> for range(adc+1, rpr+1): 
+maybe it should be for all states then.
 
-
+------
 
 
 
