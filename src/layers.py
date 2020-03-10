@@ -101,8 +101,12 @@ class Conv(Layer):
         return y_ref, psum
         
     def rpr(self):
+        if not params['skip']:
+            return [self.params['adc']] * self.params['bpa']
+        
+        # counting cards:
         return [self.params['adc']] * self.params['bpa']
-
+        
 #########################
 
 class Dense(Layer):
