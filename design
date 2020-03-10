@@ -258,7 +258,7 @@ can see [min, max, mean, std] differences in feature maps.
 
 okay new questions now.
 > how do we compute the correct number of rows to read ? 
-> function(variance, adc, xbit, wbit %)
+> function(variance, adc, xbit, wbit(%))
 
 ------
 

@@ -4,26 +4,19 @@ done
 > test bench
 > slow conv reference (8 rows at a time)
 > weight statistic dynamic speed
+> variance
+> layer-by-layer, bit-by-bit params
 
 todo
 -------
-> more tests
-  > generate weights with ssdfa.quant branch
-
 > dynamic profiling
-
-> variance
-  > this is worst part, so we should wait.
-  
--------
-  
 > save {x,y1,y2,...} as tb from tensorflow.
 > batchnorm
 
+-------
+
 > how to hit target variance ? 
 > how to make simulations go faster ? 
-> layer-by-layer, bit-by-bit params
-> variance
 
 -------
 
