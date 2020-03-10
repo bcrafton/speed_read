@@ -196,6 +196,51 @@ we wud want to start with b=7 and go down the line.
 
 -----
 
+okay so how do we make this work ? 
+> we are told variance allowance. 
+> we have variance of devices.
+> we have quantization values
+
+then how fast we can go
+> (x_bit, w_bit, w_nonzero, w_var)
+> dynamic stats
+  > temporal, spatial
+  > current y value ? knowing q value.
+
+what can we compute in advance ? 
+> expected error rate with static stats.
+
+-----
+
+we can use (1/4) C interfaces:
+https://scipy-lectures.org/advanced/interfacing_with_c/interfacing_with_c.html
+
+how can we make python code faster ? 
+> parallelize it all.
+> stick to 128x128 arrays.
+
+-----
+
+how do we do variance ? 
+think it would be best.
+to add variance after the fact.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

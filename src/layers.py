@@ -5,10 +5,20 @@ from conv_utils import conv_output_length
 from dot import *
 from defines import *
 
-#########################
+class Layer:
+    layer_id = 0
+    
+    def __init__(self):
+        assert(False)
+        
+    def forward(self, x):   
+        assert(False)
 
-class Conv:
+class Conv(Layer):
     def __init__(self, input_size, filter_size, stride, pad1, pad2, params, weights=None):
+        self.layer_id = Layer.layer_id
+        Layer.layer_id += 1
+
         self.input_size = input_size
         self.h, self.w, self.c = self.input_size
                 
@@ -30,15 +40,17 @@ class Conv:
         if (self.fh == 1): 
             assert((self.s==1) and (self.p1==0) and (self.p2==0))
 
+        maxval = pow(2, params['bpw'] - 1)
+        minval = -1 * (maxval - 1)
         if weights == None:
-            maxval = pow(2, params['bpw'] - 1)
-            minval = -1 * (maxval - 1)
             values = np.array(range(minval, maxval))
             self.w = np.random.choice(a=values, size=self.filter_size, replace=True).astype(int)
             self.b = np.zeros(shape=self.fn).astype(int)
             self.q = 200
         else:
             self.w, self.b, self.q = weights
+            assert (np.all(self.w >= minval))
+            assert (np.all(self.w <= maxval))
             # check shape
             assert(np.shape(self.w) == self.filter_size)
             assert(np.shape(self.b) == (self.fn,))
@@ -78,14 +90,17 @@ class Conv:
         # 1) tensorflow to compute y_ref
         # 2) save {x,y1,y2,...} as tb from tensorflow 
         y_ref   = conv_ref(x=x, f=self.w, b=self.b, q=self.q, stride=self.s, pad1=self.p1, pad2=self.p2)
-        y, psum = conv(x=x, f=self.wb, b=self.b, q=self.q, stride=self.s, pad1=self.p1, pad2=self.p2, params=self.params)
+        y, psum = conv(x=x, f=self.wb, b=self.b, q=self.q, stride=self.s, pad1=self.p1, pad2=self.p2, layer=self.layer_id, params=self.params)
         assert (np.all(y == y_ref))
         return y_ref, psum
 
 #########################
 
-class Dense:
+class Dense(Layer):
     def __init__(self, isize, osize, params, weights=None):
+        self.layer_id = Layer.layer_id
+        Layer.layer_id += 1
+
         self.isize = isize
         self.osize = osize
         assert((self.osize == 32) or (self.osize == 64) or (self.osize == 128))
@@ -115,7 +130,7 @@ class Dense:
     def forward(self, x):
         x = np.reshape(x, self.isize)
         y_ref   = dot_ref(x=x, f=self.w, b=self.b, q=self.q)
-        y, psum = dot(x=x, f=self.wb, b=self.b, q=self.q, params=self.params)
+        y, psum = dot(x=x, f=self.wb, b=self.b, q=self.q, layer=self.layer_id, params=self.params)
         assert (np.all(y == y_ref))
         return y_ref, psum
 

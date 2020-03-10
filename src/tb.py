@@ -31,25 +31,23 @@ def init_x(num_example, input_shape, xlow, xhigh):
 params = {
 'bpa': 8,
 'bpw': 8,
-'rpr': 24,
+'rpr': [24,24,24,24,24,24,24,24],
 'adc': 16,
 'skip': 1,
-'wl': 1024,
-'bl': 128,
+'stall': 0,
+'wl': 256,
+'bl': 256,
 # weights per bank = (bl / bpw)
-'wpb': 16,
-'offset': 132
+'wpb': 32,
+'offset': 128
 }
 
 weights = np.load('../cifar10_weights.npy', allow_pickle=True).item()
-w,b,q = weights[2]
-weights[2] = (w[:,:,:,0:32],b[0:32],q)
 
-# TODO - its looking like we want a pooling operation.
 layers = [
-Conv(input_size=(5,5,3),  filter_size=(3,3,3,32), stride=1, pad1=1, pad2=1, params=params, weights=weights[0]),
-Conv(input_size=(5,5,32), filter_size=(3,3,32,64), stride=1, pad1=1, pad2=1, params=params, weights=weights[1]),
-Conv(input_size=(5,5,64), filter_size=(3,3,64,32), stride=1, pad1=1, pad2=1, params=params, weights=weights[2]),
+Conv(input_size=(5,5,3),  filter_size=(3,3,3,32),  stride=1, pad1=1, pad2=1, params=params, weights=weights[0]),
+Conv(input_size=(5,5,32), filter_size=(3,3,32,32), stride=1, pad1=1, pad2=1, params=params, weights=weights[1]),
+# Conv(input_size=(5,5,32), filter_size=(3,3,32,64), stride=1, pad1=1, pad2=1, params=params, weights=weights[2]),
 ]
 
 # TODO: these have the same name ...
@@ -66,6 +64,7 @@ tests = [
 for test in tests:
     num_example, input_shape, model = test
     x = init_x(num_example, input_shape, 0, 127)
+    assert (np.min(x) >= 0 and np.max(x) <= 127)
     _, psum = model.forward(x=x)
     print (psum)
 
