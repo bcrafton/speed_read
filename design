@@ -239,14 +239,20 @@ can see [min, max, mean, std] differences in feature maps.
 > why is max never positive ? 
 > y - y_ref
 > well we only going faster ... so kinda makes sense.
+  > so we should try using an offset here.
 
+------
 
+> how do we set rpr ? 
+> pdot/adc offset
+> fix quantize with that negative noise thing.
 
+------
 
+> to add variance, cant we just make it a function of the activation value ? 
+> makes sense ... wud really just be function of on-states.
 
-
-
-
+> y = y + np.random.normal(mean=0, std=params['sigma'] * np.sqrt(y), size=np.shape(y))
 
 
 

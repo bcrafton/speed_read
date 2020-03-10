@@ -128,8 +128,12 @@ def pim_kernel(x, w, b, params):
                 wl[ii]        = (x[ii] & (wl_ptr <= ii)) & (ii < (wl_ptr + params['adc']))
                 wl_stride[ii] = wl_ptr + params['adc']
 
-        pdot = np.clip(wl @ w_matrix, -1e9, params['adc'])
+        pdot = wl @ w_matrix
         assert (np.all(pdot >= 0))
+        var = np.random.normal(loc=0., scale=params['sigma'] * np.sqrt(pdot), size=np.shape(pdot))
+        var = var.astype(int)
+        pdot = pdot + var
+        pdot = np.clip(pdot, 0, params['adc'])
         psum += 1
 
         flag = params['stall'] and (not flag) and (params['rpr'][b] > params['adc']) and (np.any(pdot == params['adc']))

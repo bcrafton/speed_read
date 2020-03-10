@@ -26,3 +26,11 @@ todo
 > variance
 
 -------
+
+> if pdot == adc:
+  > pdot will always be larger
+  > so we need to figure out what expected value is, if its larger than 16.
+  > then add that much.
+  > although expected value might be 16... so wudnt need to add in that case.
+  
+-------

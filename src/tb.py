@@ -32,14 +32,15 @@ params = {
 'bpa': 8,
 'bpw': 8,
 'rpr': [28,24,20,16,16,16,16,16],
-'adc': 16,
-'skip': 1,
+'adc': 8,
+'skip': 0,
 'stall': 0,
 'wl': 256,
 'bl': 256,
 # weights per bank = (bl / bpw)
 'wpb': 32,
-'offset': 128
+'offset': 128,
+'sigma': 0.15
 }
 
 weights = np.load('../cifar10_weights.npy', allow_pickle=True).item()
