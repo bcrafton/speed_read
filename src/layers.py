@@ -40,7 +40,7 @@ class Conv(Layer):
         
         # do something like this so we dont need to pass layer around.
         self.params = params.copy()
-        # self.params['rpr'] = self.params['rpr'][self.layer_id]
+        self.params['rpr'] = self.rpr()
         
         if (self.fh == 1): 
             assert((self.s==1) and (self.p1==0) and (self.p2==0))
@@ -101,7 +101,7 @@ class Conv(Layer):
         return y_ref, psum
         
     def rpr(self):
-        return 0
+        return [self.params['adc']] * self.params['bpa']
 
 #########################
 
@@ -114,7 +114,8 @@ class Dense(Layer):
         self.osize = osize
         assert((self.osize == 32) or (self.osize == 64) or (self.osize == 128))
 
-        self.params = params
+        self.params = params.copy()
+        self.params['rpr'] = self.rpr()
 
         if weights == None:
             maxval = pow(2, params['bpw'] - 1)
@@ -144,7 +145,7 @@ class Dense(Layer):
         return y_ref, psum
 
     def rpr(self):
-        return 0
+        return [self.params['adc']] * self.params['bpa']
 
 #########################
         
