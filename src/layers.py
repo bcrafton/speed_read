@@ -14,6 +14,9 @@ class Layer:
     def forward(self, x):   
         assert(False)
 
+    def rpr(self):
+        assert(False)
+
 class Conv(Layer):
     def __init__(self, input_size, filter_size, stride, pad1, pad2, params, weights=None):
         self.layer_id = Layer.layer_id
@@ -96,6 +99,9 @@ class Conv(Layer):
         # assert (np.all(y == y_ref))
         print (np.min(y - y_ref), np.max(y - y_ref), np.mean(y - y_ref), np.std(y - y_ref))
         return y_ref, psum
+        
+    def rpr(self):
+        return 0
 
 #########################
 
@@ -136,6 +142,9 @@ class Dense(Layer):
         y, psum = dot(x=x, f=self.wb, b=self.b, q=self.q, params=self.params)
         assert (np.all(y == y_ref))
         return y_ref, psum
+
+    def rpr(self):
+        return 0
 
 #########################
         
