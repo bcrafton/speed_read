@@ -52,6 +52,7 @@ def conv(x, f, b, q, stride, pad1, pad2, params):
             patch = np.reshape(x[h*stride:(h*stride+Fh), w*stride:(w*stride+Fw), :], -1)
             y[h, w, :], p = dot(patch, f_matrix, b, q, params)
             psum += p
+            # print (y[h, w, :])
             
     return y, psum
 
@@ -123,20 +124,19 @@ def pim_kernel(x, w, b, params):
                 wl_sum[ii]    = (x[ii] & (wl_ptr <= ii)) + wl_sum[ii - 1]
                 wl_stride[ii] = (wl_sum[ii] <= row) + wl_stride[ii - 1]
             else:
-                assert (params['rpr'][b] == params['adc'])
+                # assert (params['rpr'][b] == params['adc'])
                 wl[ii]        = (x[ii] & (wl_ptr <= ii)) & (ii < (wl_ptr + params['adc']))
                 wl_stride[ii] = wl_ptr + params['adc']
 
-        # x_offset = np.sum(wl).astype(int) << (params['bpw'] - 1)
-        x_offset = np.sum(wl).astype(int) * params['offset']
-
-        pdot = wl @ w_matrix
-        pdot_sum = pdot.reshape(oshape, params['bpw']) @ shift
+        pdot = np.clip(wl @ w_matrix, -1e9, params['adc'])
+        assert (np.all(pdot >= 0))
         psum += 1
-                
+
         flag = params['stall'] and (not flag) and (params['rpr'][b] > params['adc']) and (np.any(pdot == params['adc']))
         if not flag:
             wl_ptr = wl_stride[-1]
+            x_offset = np.sum(wl).astype(int) * params['offset']
+            pdot_sum = pdot.reshape(oshape, params['bpw']) @ shift
             y += pdot_sum - x_offset
         
     return y, psum

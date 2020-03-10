@@ -224,9 +224,21 @@ how can we make python code faster ?
 how do we do variance ? 
 think it would be best.
 to add variance after the fact.
+yeah keep things to integers, then multiply by the number of states or w.e.
+we know that any 1s are w.ON & x.ON
 
+-----
 
+something is not right here, we can read at crazy speeds.
+solved it lol.
 
+-----
+
+okay we got a nice little setup here.
+can see [min, max, mean, std] differences in feature maps.
+> why is max never positive ? 
+> y - y_ref
+> well we only going faster ... so kinda makes sense.
 
 
 
