@@ -262,8 +262,11 @@ okay new questions now.
 
 ------
 
-
-
+> given all the col counts 
+  > dont reduce max.
+  > cant we come up with some average error everywhere ? 
+    > means we dont do: samples=128 .. what is max std we shud expect.
+  > yeah this sum thing i think is better ...
 
 
 

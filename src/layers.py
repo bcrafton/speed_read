@@ -37,11 +37,7 @@ class Conv(Layer):
         
         self.y_h = (self.h - self.fh + self.s + self.p1 + self.p2) / self.s
         self.y_w = (self.w - self.fw + self.s + self.p1 + self.p2) / self.s
-        
-        # do something like this so we dont need to pass layer around.
-        self.params = params.copy()
-        self.params['rpr'] = self.rpr()
-        
+                
         if (self.fh == 1): 
             assert((self.s==1) and (self.p1==0) and (self.p2==0))
 
@@ -78,16 +74,9 @@ class Conv(Layer):
         
         #########################
         
-        print ('q=%d' % (self.q))
-        
-        assert (np.count_nonzero(self.wb) == np.sum(self.wb))
-                
-        # nonzero = np.count_nonzero(self.wb) / np.prod(np.shape(self.wb))
-        # print ('nonzero %', nonzero)
-        
-        for bit in range(params['bpw']):
-            max_col_count = np.max(np.sum(self.wb[:,:,:,:,bit], axis=(0, 1, 2)))
-            print ('b=%d | max col count: %d/%d' % (bit, max_col_count, self.fh*self.fw*self.fc))
+        # do something like this so we dont need to pass layer around.
+        self.params = params.copy()
+        self.params['rpr'] = self.rpr()
         
         #########################
 
@@ -106,6 +95,13 @@ class Conv(Layer):
     2) adc
     3) xbit
     4) weight stats
+    5) quantization value
+    6) columns (we only do 256 columns at a time)
+    7) wbit (if we divide up wbit to different arrays)
+    
+    break expected error into:
+    1) error from variance
+    2) error from rpr > adc
     '''
     
     def rpr(self):
@@ -113,7 +109,15 @@ class Conv(Layer):
         if not self.params['skip']:
             return ret
         
-        # counting cards:        
+        # counting cards:
+        # ===============
+        
+        # weight stats        
+        wb_cols = np.reshape(self.wb, (self.fh * self.fw * self.fc, self.fn, self.params['bpw']))
+        col_count = np.sum(wb_cols, axis=0)
+        # really the only column count that matters is col_count[7]
+        col_count = np.max(col_count, axis=0)
+
         for b in range(self.params['bpa']):
             ret[b] = self.params['adc']
 
@@ -129,9 +133,6 @@ class Dense(Layer):
         self.isize = isize
         self.osize = osize
         assert((self.osize == 32) or (self.osize == 64) or (self.osize == 128))
-
-        self.params = params.copy()
-        self.params['rpr'] = self.rpr()
 
         if weights == None:
             maxval = pow(2, params['bpw'] - 1)
@@ -152,6 +153,9 @@ class Dense(Layer):
             self.q = int(self.q)
             # q must be larger than 0
             assert(self.q > 0)
+            
+        self.params = params.copy()
+        self.params['rpr'] = self.rpr()
 
     def forward(self, x):
         x = np.reshape(x, self.isize)
