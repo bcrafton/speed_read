@@ -100,12 +100,24 @@ class Conv(Layer):
         print (np.min(y - y_ref), np.max(y - y_ref), np.mean(y - y_ref), np.std(y - y_ref))
         return y_ref, psum
         
+    '''
+    we are thinking this will be a function of:
+    1) variance
+    2) adc
+    3) xbit
+    4) weight stats
+    '''
+    
     def rpr(self):
-        if not params['skip']:
-            return [self.params['adc']] * self.params['bpa']
+        ret = [self.params['adc']] * self.params['bpa']
+        if not self.params['skip']:
+            return ret
         
-        # counting cards:
-        return [self.params['adc']] * self.params['bpa']
+        # counting cards:        
+        for b in range(self.params['bpa']):
+            ret[b] = self.params['adc']
+
+        return ret 
         
 #########################
 
