@@ -113,9 +113,25 @@ class Conv(Layer):
         
         # counting cards:
         # ===============
-        
-        def e_var(on, ):
+
+        # TODO: need to use rpr and adc.
+        def calc_e_var(adc, var):
+            on = np.array(range(adc + 1)).reshape(1, -1)
+            std = np.sqrt(on * var ** 2)
+
+            x = np.array(range(adc + 1)).reshape(-1, 1)
+            on_a = np.clip(x - 0.5, 0, adc)
+            on_b = np.clip(x + 0.5, 0, adc)
             
+            p = norm.cdf(x=on_b, loc=on, scale=std) - norm.cdf(x=on_a, loc=on, scale=std)
+            p = np.where(np.isnan(p), 0., p)
+            
+            e = p * (x - on) ** 2
+            e = np.sum(e, axis=0)
+            return e
+        
+        # how many rows are we going to do
+        nrow = self.fh * self.fw * self.fc
         
         # weight stats
         wb_cols = np.reshape(self.wb, (self.fh * self.fw * self.fc, self.fn, self.params['bpw']))
@@ -124,15 +140,18 @@ class Conv(Layer):
 
         for rpr in range(self.params['adc'], self.params['adc'] + 4):
             on = np.array(range(0, rpr + 1))
-            p = binom.pmf(on, rpr, col_density)
-            e_var = (on * 
-            e_rpr = (on - self.params['adc']) if (on > self.params['adc']) else 0 
-            # e = p * (e_var + e_rpr)
-
+            p = binom.pmf(on, rpr, col_density.reshape(self.fn, self.params['bpw'], 1))
+            e_var = calc_e_var(rpr, self.params['sigma'])
+            e_rpr = np.where(on > self.params['adc'], on - self.params['adc'], 0)
+            e = p * (e_var + e_rpr)
+            # e = np.sum(e, axis=2)
+            print (np.mean(e, axis=2), np.std(e, axis=2))
+            
+        assert (False)
+            
         for b in range(self.params['bpa']):
             ret[b] = self.params['adc']
         
-        assert (False)
         return ret 
         
 #########################
