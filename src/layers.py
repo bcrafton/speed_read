@@ -114,45 +114,73 @@ class Conv(Layer):
         # counting cards:
         # ===============
 
-        # TODO: need to use rpr and adc.
-        def calc_e_var(adc, var):
-            on = np.array(range(adc + 1)).reshape(1, -1)
-            std = np.sqrt(on * var ** 2)
-
-            x = np.array(range(adc + 1)).reshape(-1, 1)
-            on_a = np.clip(x - 0.5, 0, adc)
-            on_b = np.clip(x + 0.5, 0, adc)
+        '''
+        def prob_err(p, var, adc, rpr, row, samples=10000):
+            w = np.random.choice(a=[0, 1], size=[row, rpr, samples], replace=True, p=[1. - p, p])
             
-            p = norm.cdf(x=on_b, loc=on, scale=std) - norm.cdf(x=on_a, loc=on, scale=std)
-            p = np.where(np.isnan(p), 0., p)
+            y_true = np.sum(w, axis=(0, 1))
             
-            e = p * (x - on) ** 2
-            e = np.sum(e, axis=0)
-            return e
+            y = np.sum(w, axis=1)
+            y_var = np.random.normal(loc=0., scale=var * np.sqrt(y), size=np.shape(y))
+            y = y + y_var
+            y = np.around(y)
+            y = np.clip(y, 0, adc)
+            y = np.sum(y, axis=0)
+            
+            e = y - y_true
+            return np.mean(e), np.std(e)
+        '''
         
+        def prob_err(p, var, adc, rpr, row):
+            def prob_err_help(e, p, var, adc, rpr):
+                psum = 0
+                for s in range(1, rpr + 1):
+                    bin = binom.pmf(s, rpr, p)
+                    psum += ((s + e) < adc) * bin * (norm.cdf(e + 0.5, 0, var * np.sqrt(s)) - norm.cdf(e - 0.5, 0, var * np.sqrt(s)))
+                    psum += ((s + e) == adc) * bin * (1 - norm.cdf(adc - s - 0.5, 0, var * np.sqrt(s)))
+
+                # zero case:
+                psum += ((e - 0.5 < 0) * (0 < e + 0.5)) * binom.pmf(0, rpr, p)
+                return psum
+            
+            s = np.array(range(-rpr, rpr+1))
+            pe = prob_err_help(s, p, var, adc, rpr)
+            mu = np.sum(pe * s)
+            std = np.sqrt(np.sum(pe * (s - mu) ** 2))
+            
+            mu = mu * row
+            std = np.sqrt(std ** 2 * row)
+            return mu, std
+
         # how many rows are we going to do
         nrow = self.fh * self.fw * self.fc
         
         # weight stats
         wb_cols = np.reshape(self.wb, (self.fh * self.fw * self.fc, self.fn, self.params['bpw']))
         col_density = np.mean(wb_cols, axis=0)
-        col_shift = 2 ** np.array(range(self.params['bpw']))
-
-        for rpr in range(self.params['adc'], self.params['adc'] + 4):
-            on = np.array(range(0, rpr + 1))
-            p = binom.pmf(on, rpr, col_density.reshape(self.fn, self.params['bpw'], 1))
-            e_var = calc_e_var(rpr, self.params['sigma'])
-            e_rpr = np.where(on > self.params['adc'], on - self.params['adc'], 0)
-            e = p * (e_var + e_rpr)
-            # e = np.sum(e, axis=2)
-            print (np.mean(e, axis=2), np.std(e, axis=2))
-            
-        assert (False)
-            
-        for b in range(self.params['bpa']):
-            ret[b] = self.params['adc']
         
-        return ret 
+        rpr_lut = {}
+        for wb in range(self.params['bpw']):
+            for xb in range(self.params['bpa']):
+                rpr_low = max(1, self.params['adc'] // 2)
+                rpr_high = 2 * self.params['adc']
+                for rpr in range(rpr_low, rpr_high):
+                    scale = (wb + 1) * (xb + 1)
+                    p = np.max(col_density[:, wb])
+                    mu, std = prob_err(p, self.params['sigma'], self.params['adc'], rpr, nrow // rpr)
+                    e = (scale / self.q) * 2 * std
+                    
+                    if rpr == rpr_low:
+                        rpr_lut[(xb, wb)] = (rpr, e)
+                    if e < 0.125:
+                        rpr_lut[(xb, wb)] = (rpr, e)
+
+                    # print ('(%d %d %d %d) : %f %f %f' % (self.layer_id, wb, xb, rpr, scale, self.q, var))
+        
+        for key in sorted(rpr_lut.keys()):
+            print (key, rpr_lut[key])
+            
+        return ret
         
 #########################
 

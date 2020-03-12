@@ -35,10 +35,10 @@ params = {
 'adc': 8,
 'skip': 1,
 'stall': 0,
-'wl': 256,
-'bl': 256,
+'wl': 128,
+'bl': 128,
 # weights per bank = (bl / bpw)
-'wpb': 32,
+'wpb': 16,
 'offset': 128,
 'sigma': 0.15,
 'err_sigma': 0.,
