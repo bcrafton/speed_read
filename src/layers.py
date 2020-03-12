@@ -177,8 +177,10 @@ class Conv(Layer):
 
                     # print ('(%d %d %d %d) : %f %f %f' % (self.layer_id, wb, xb, rpr, scale, self.q, var))
         
+        '''
         for key in sorted(rpr_lut.keys()):
             print (key, rpr_lut[key])
+        '''
             
         return ret
         
