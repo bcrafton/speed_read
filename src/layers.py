@@ -5,6 +5,8 @@ from conv_utils import conv_output_length
 from dot import *
 from defines import *
 
+from scipy.stats import norm, binom
+
 class Layer:
     layer_id = 0
     
@@ -112,15 +114,25 @@ class Conv(Layer):
         # counting cards:
         # ===============
         
-        # weight stats        
+        def e_var(on, ):
+            
+        
+        # weight stats
         wb_cols = np.reshape(self.wb, (self.fh * self.fw * self.fc, self.fn, self.params['bpw']))
-        col_count = np.sum(wb_cols, axis=0)
-        # really the only column count that matters is col_count[7]
-        col_count = np.max(col_count, axis=0)
+        col_density = np.mean(wb_cols, axis=0)
+        col_shift = 2 ** np.array(range(self.params['bpw']))
+
+        for rpr in range(self.params['adc'], self.params['adc'] + 4):
+            on = np.array(range(0, rpr + 1))
+            p = binom.pmf(on, rpr, col_density)
+            e_var = (on * 
+            e_rpr = (on - self.params['adc']) if (on > self.params['adc']) else 0 
+            # e = p * (e_var + e_rpr)
 
         for b in range(self.params['bpa']):
             ret[b] = self.params['adc']
-
+        
+        assert (False)
         return ret 
         
 #########################
