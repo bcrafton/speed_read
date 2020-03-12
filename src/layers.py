@@ -120,6 +120,8 @@ class Conv(Layer):
         if not (self.params['skip'] and self.params['cards']):
             for key in sorted(rpr_lut.keys()):
                 print (key, rpr_lut[key])
+                
+            # print (np.average(list(rpr_lut.values())))
 
             return rpr_lut
         
@@ -159,8 +161,8 @@ class Conv(Layer):
             for xb in range(self.params['bpa']):
                 # rpr_low = max(1, self.params['adc'] // 2)
                 # rpr_high = 2 * self.params['adc']
-                rpr_low = 4
-                rpr_high = 8
+                rpr_low = 5
+                rpr_high = 16
                 for rpr in range(rpr_low, rpr_high + 1):
                     scale = 2**(wb - 1) * 2**(xb - 1)
                     p = np.max(col_density[:, wb])
@@ -170,13 +172,15 @@ class Conv(Layer):
                     
                     if rpr == rpr_low:
                         rpr_lut[(xb, wb)] = rpr
-                    if e < 1.5:
+                    if e < 1.:
                         rpr_lut[(xb, wb)] = rpr
 
                     # print ('(%d %d %d %d) : %f %f %f' % (self.layer_id, wb, xb, rpr, scale, self.q, var))
   
         for key in sorted(rpr_lut.keys()):
             print (key, rpr_lut[key])
+            
+        # print (np.average(list(rpr_lut.values())))
         
         return rpr_lut
         

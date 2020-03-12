@@ -2,6 +2,8 @@
 import numpy as np
 from conv_utils import conv_output_length
 
+from scipy.stats import norm, binom
+
 ##################################################
 
 def conv_ref(x, f, b, q, stride, pad1, pad2):
@@ -97,8 +99,41 @@ def pim_dot(x, w, params):
     return y, psum
 
 ##################################################
+# subtract 8 here ? 
+'''
+def sat_err(p, var, adc, rpr, sat):
+    def sat_err_help(e, p, var, adc, rpr):
+        psum = 0
+        for s in range(adc, rpr + 1):
+            bin = binom.pmf(s, rpr, p)
+            psum += ((s + e) < adc) * bin * (norm.cdf(e + 0.5, 0, var * np.sqrt(s)) - norm.cdf(e - 0.5, 0, var * np.sqrt(s)))
+            psum += ((s + e) == adc) * bin * (1 - norm.cdf(adc - s - 0.5, 0, var * np.sqrt(s)))
+
+        # zero case:
+        psum += ((e - 0.5 < 0) * (0 < e + 0.5)) * binom.pmf(0, rpr, p)
+        return psum
+    
+    s = np.array(range(-rpr, rpr+1)).reshape(-1, 1)
+    pe = sat_err_help(s, p, var, adc, rpr)
+    mu = np.sum(pe * s, axis=0)
+    mu = mu * sat
+    return mu
+'''
+##################################################
+
+def sat_err(p, var, adc, rpr, sat):
+    s = np.array(range(adc, rpr+1)).reshape(-1, 1)
+    bin = binom.pmf(s, rpr, p)
+    mu = bin * (adc - s)
+    mu = np.sum(mu, axis=0)
+    return mu
+
+##################################################
 
 def pim_kernel(x, w, xb, wb, params):
+    y = 0    
+    psum = 0
+    
     ishape, oshape, bpw = np.shape(w)
     w_matrix = np.reshape(w, (ishape, oshape * bpw))
 
@@ -109,8 +144,8 @@ def pim_kernel(x, w, xb, wb, params):
     wl_sum = np.zeros(len(x))
     wl_stride = np.zeros(len(x))
     
-    y = 0
-    psum = 0
+    sat = 0
+    pdot_sum = 0
     flag = False
     while wl_ptr < len(x):
         # advice = be careful about: (< vs <=), (> vs >=)
@@ -131,21 +166,39 @@ def pim_kernel(x, w, xb, wb, params):
 
         pdot = wl @ w_matrix
         assert (np.all(pdot >= 0))
-        
+                
         var = np.random.normal(loc=0., scale=params['sigma'] * np.sqrt(pdot), size=np.shape(pdot))
+        # TODO: this is wrong i believe.
         var = var.astype(int)
+        
         pdot = pdot + var
         pdot = np.clip(pdot, 0, params['adc'])
-        psum += 1
+        
+        pdot_sum += pdot
+        sat += (pdot == params['adc'])
 
         flag = params['stall'] and (not flag) and (params['rpr'][(xb, wb)] > params['adc']) and (np.any(pdot == params['adc']))
         if not flag:
             wl_ptr = wl_stride[-1]
-            pdot_sum = pdot.reshape(oshape, bpw) @ shift
-            y += pdot_sum
+            y += pdot.reshape(oshape, bpw) @ shift
             if wb == 0:
                 x_offset = np.sum(wl).astype(int) * params['offset']
                 y -= x_offset
+
+        psum += 1
+
+        p = pdot_sum / (psum * params['rpr'][(xb, wb)])
+        mu = np.around(sat_err(p, params['sigma'], params['adc'], params['rpr'][(xb, wb)], sat))
+        
+        '''
+        print (params['rpr'][(xb, wb)])
+        print (p)
+        print (sat)
+        print (mu)
+        print ()
+        '''
+        
+        y -= mu.reshape(oshape, bpw) @ shift
 
     return y, psum
 
