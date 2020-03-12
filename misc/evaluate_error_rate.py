@@ -3,7 +3,7 @@ from scipy.stats import norm, binom
 import matplotlib.pyplot as plt
 
 # Fix parameters:
-Nrpr = 16
+Nrpr = 10
 Nadc = 8
 r = 8
 std = 0.2
@@ -32,6 +32,7 @@ for a in range(-r, r+1):
 ###############
 
 sigma_tot = np.sqrt(sigma_hat * number_reads)
+print (sigma_tot, sigma_hat)
 
 x = np.arange(-number_reads*r, number_reads*r + 1)
 
