@@ -24,8 +24,8 @@ adc = 8
 col_density = 0.8
 sigma = 0.2
 
-p = np.array([0.4, 0.5, 0.6, 0.7, 0.8]).reshape(-1, 1, 1)
-s = np.array(range(-4, 4)).reshape(-1, 1)
+p = np.array([0.4, 0.5, 0.6, 0.7, 0.8]).reshape(-1, 1)
+s = np.array(range(-4, 4))
 e = prob_err(s, p, sigma, adc, rpr)
 
 print (np.shape(p), np.shape(s), np.shape(e))
