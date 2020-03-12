@@ -1,6 +1,8 @@
 
 import math
 import numpy as np
+import matplotlib.pyplot as plt
+
 from conv_utils import conv_output_length
 from dot import *
 from defines import *
@@ -89,6 +91,8 @@ class Conv(Layer):
         y, psum = conv(x=x, f=self.wb, b=self.b, q=self.q, stride=self.s, pad1=self.p1, pad2=self.p2, params=self.params)
         # assert (np.all(y == y_ref))
         print (np.min(y - y_ref), np.max(y - y_ref), np.mean(y - y_ref), np.std(y - y_ref))
+        # plt.hist(np.reshape(y - y_ref, -1), bins=50)
+        # plt.show()
         return y_ref, psum
         
     '''
@@ -107,29 +111,20 @@ class Conv(Layer):
     '''
     
     def rpr(self):
-        ret = [self.params['adc']] * self.params['bpa']
-        if not self.params['skip']:
-            return ret
+        rpr_lut = {}
+    
+        for wb in range(self.params['bpw']):
+            for xb in range(self.params['bpa']):
+                rpr_lut[(xb, wb)] = self.params['adc']
+            
+        if not (self.params['skip'] and self.params['cards']):
+            for key in sorted(rpr_lut.keys()):
+                print (key, rpr_lut[key])
+
+            return rpr_lut
         
         # counting cards:
         # ===============
-
-        '''
-        def prob_err(p, var, adc, rpr, row, samples=10000):
-            w = np.random.choice(a=[0, 1], size=[row, rpr, samples], replace=True, p=[1. - p, p])
-            
-            y_true = np.sum(w, axis=(0, 1))
-            
-            y = np.sum(w, axis=1)
-            y_var = np.random.normal(loc=0., scale=var * np.sqrt(y), size=np.shape(y))
-            y = y + y_var
-            y = np.around(y)
-            y = np.clip(y, 0, adc)
-            y = np.sum(y, axis=0)
-            
-            e = y - y_true
-            return np.mean(e), np.std(e)
-        '''
         
         def prob_err(p, var, adc, rpr, row):
             def prob_err_help(e, p, var, adc, rpr):
@@ -158,31 +153,32 @@ class Conv(Layer):
         # weight stats
         wb_cols = np.reshape(self.wb, (self.fh * self.fw * self.fc, self.fn, self.params['bpw']))
         col_density = np.mean(wb_cols, axis=0)
-        
+
         rpr_lut = {}
         for wb in range(self.params['bpw']):
             for xb in range(self.params['bpa']):
-                rpr_low = max(1, self.params['adc'] // 2)
-                rpr_high = 2 * self.params['adc']
-                for rpr in range(rpr_low, rpr_high):
-                    scale = (wb + 1) * (xb + 1)
+                # rpr_low = max(1, self.params['adc'] // 2)
+                # rpr_high = 2 * self.params['adc']
+                rpr_low = 4
+                rpr_high = 8
+                for rpr in range(rpr_low, rpr_high + 1):
+                    scale = 2**(wb - 1) * 2**(xb - 1)
                     p = np.max(col_density[:, wb])
-                    mu, std = prob_err(p, self.params['sigma'], self.params['adc'], rpr, nrow // rpr)
-                    e = (scale / self.q) * 2 * std
+                    mu, std = prob_err(p, self.params['sigma'], self.params['adc'], rpr, np.ceil(nrow / rpr))
+                    e = (scale / self.q) * 3 * std
+                    # print (wb, xb, rpr, std, e)
                     
                     if rpr == rpr_low:
-                        rpr_lut[(xb, wb)] = (rpr, e)
-                    if e < 0.125:
-                        rpr_lut[(xb, wb)] = (rpr, e)
+                        rpr_lut[(xb, wb)] = rpr
+                    if e < 1.5:
+                        rpr_lut[(xb, wb)] = rpr
 
                     # print ('(%d %d %d %d) : %f %f %f' % (self.layer_id, wb, xb, rpr, scale, self.q, var))
-        
-        '''
+  
         for key in sorted(rpr_lut.keys()):
             print (key, rpr_lut[key])
-        '''
-            
-        return ret
+        
+        return rpr_lut
         
 #########################
 
