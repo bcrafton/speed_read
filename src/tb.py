@@ -31,7 +31,7 @@ def init_x(num_example, input_shape, xlow, xhigh):
 params = {
 'bpa': 8,
 'bpw': 8,
-'rpr': [28,24,20,16,16,16,16,16],
+'rpr': 8,
 'adc': 8,
 'skip': 0,
 'stall': 0,
@@ -40,7 +40,7 @@ params = {
 # weights per bank = (bl / bpw)
 'wpb': 32,
 'offset': 128,
-'sigma': 0.15,
+'sigma': 0.,
 'err_sigma': 0.,
 }
 
