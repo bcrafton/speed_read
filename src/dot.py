@@ -133,7 +133,7 @@ def pim_kernel(x, w, b, params):
     return y, psum
 '''
 ##################################################
-# '''
+'''
 def pim_kernel(x, w, b, params):
     assert (not params['skip'])
     ishape, oshape, bpw = np.shape(w)
@@ -161,7 +161,62 @@ def pim_kernel(x, w, b, params):
         y += pdot_sum - x_offset
         
     return y, psum
-# '''
+'''
 ##################################################
+
+def pim_kernel(x, w, b, params):
+    ishape, oshape, bpw = np.shape(w)
+    assert(bpw == params['bpw'])
+    w_matrix = np.reshape(w, (ishape, oshape * bpw))
+
+    shift = 2 ** np.array(range(params['bpw']))
+
+    wl_ptr = 0
+    y = 0
+    psum = 0
+    while wl_ptr < len(x):
+        wl_sum = 0
+        pdot = np.zeros(params['bl'])
+        # while (wl_ptr < len(x)) and (wl_sum < params['adc']):
+        while (wl_ptr < len(x)) and (wl_sum + x[wl_ptr] <= params['adc']):
+            if (x[wl_ptr]):
+                wl_sum += 1
+                pdot += w_matrix[wl_ptr]
+
+            wl_ptr += 1
+
+        psum += 1
+        x_offset = wl_sum * params['offset']
+        pdot_sum = pdot.reshape(oshape, params['bpw']) @ shift
+        y += pdot_sum - x_offset
+
+    return y, psum
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
