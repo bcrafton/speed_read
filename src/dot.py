@@ -177,7 +177,6 @@ def pim_kernel(x, w, b, params):
     while wl_ptr < len(x):
         wl_sum = 0
         pdot = np.zeros(params['bl'])
-        # while (wl_ptr < len(x)) and (wl_sum < params['adc']):
         while (wl_ptr < len(x)) and (wl_sum + x[wl_ptr] <= params['adc']):
             if (x[wl_ptr]):
                 wl_sum += 1
