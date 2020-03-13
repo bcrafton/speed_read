@@ -143,10 +143,6 @@ def pim_kernel(x, w, b, params):
     shift = 2 ** np.array(range(params['bpw']))
 
     wl_ptr = 0
-    wl = np.zeros(len(x))
-    wl_sum = np.zeros(len(x))
-    wl_stride = np.zeros(len(x))
-    
     y = 0
     psum = 0
     while wl_ptr < len(x):
