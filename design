@@ -279,8 +279,20 @@ maybe it should be for all states then.
 
 ------
 
+https://towardsdatascience.com/use-cython-to-get-more-than-30x-speedup-on-your-python-code-f6cb337919b6
 
+> so the thing im worried about.
+is we cud go even faster
+and have valid c code.
 
+https://cai.tools.sap/blog/how-to-speed-up-python-with-c/
+
+ctypes is an option.
+lets go with cython
+seems like the clear path forward.
+threading wud be my concern.
+
+------
 
 
 
