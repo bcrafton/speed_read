@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 
 from conv_utils import conv_output_length
 from dot import *
+from dot_ref import *
 from defines import *
 
 from scipy.stats import norm, binom
