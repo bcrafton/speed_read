@@ -52,7 +52,7 @@ def conv(x, f, b, q, stride, pad1, pad2, params):
 
     for h in range(Ho):        
         for w in range(Wo):
-            print ("(%d, %d)" % (h, w))
+            # print ("(%d, %d)" % (h, w))
             patch = np.reshape(x[h*stride:(h*stride+Fh), w*stride:(w*stride+Fw), :], -1)
             y[h, w, :], p = dot(patch, f_matrix, b, q, params)
             psum += p
@@ -167,7 +167,7 @@ def pim_kernel(x, w, b, params):
     return y, psum
 '''
 ##################################################
-
+# '''
 def pim_kernel(x, w, b, params):
     ishape, oshape, bpw = np.shape(w)
     assert(bpw == params['bpw'])
@@ -188,13 +188,20 @@ def pim_kernel(x, w, b, params):
 
             wl_ptr += 1
 
+        '''
+        var = np.random.normal(loc=0., scale=params['sigma'] * np.sqrt(pdot), size=np.shape(pdot))
+        var = np.around(var)
+        pdot = pdot + var
+        pdot = np.clip(pdot, 0, params['adc'])
+        '''
+
         psum += 1
         x_offset = wl_sum * params['offset']
         pdot_sum = pdot.reshape(oshape, params['bpw']) @ shift
         y += pdot_sum - x_offset
 
     return y, psum
-
+# '''
 ##################################################
 '''
 def pim_kernel(x, w, b, params):
