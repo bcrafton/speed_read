@@ -161,13 +161,13 @@ class Conv(Layer):
             for xb in range(self.params['bpa']):
                 # rpr_low = max(1, self.params['adc'] // 2)
                 # rpr_high = 2 * self.params['adc']
-                rpr_low = 5
+                rpr_low = 2
                 rpr_high = 16
                 for rpr in range(rpr_low, rpr_high + 1):
                     scale = 2**(wb - 1) * 2**(xb - 1)
                     p = np.max(col_density[:, wb])
                     mu, std = prob_err(p, self.params['sigma'], self.params['adc'], rpr, np.ceil(nrow / rpr))
-                    e = (scale / self.q) * 3 * std
+                    e = (scale / self.q) * 5 * std
                     # print (wb, xb, rpr, std, e)
                     
                     if rpr == rpr_low:

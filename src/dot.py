@@ -169,7 +169,8 @@ def pim_kernel(x, w, xb, wb, params):
                 
         var = np.random.normal(loc=0., scale=params['sigma'] * np.sqrt(pdot), size=np.shape(pdot))
         # TODO: this is wrong i believe.
-        var = var.astype(int)
+        # var = var.astype(int)
+        var = np.around(var)
         
         pdot = pdot + var
         pdot = np.clip(pdot, 0, params['adc'])
@@ -189,6 +190,7 @@ def pim_kernel(x, w, xb, wb, params):
 
         p = pdot_sum / (psum * params['rpr'][(xb, wb)])
         mu = np.around(sat_err(p, params['sigma'], params['adc'], params['rpr'][(xb, wb)], sat))
+        # assert (np.all(np.absolute(mu) <= 0))
         
         '''
         print (params['rpr'][(xb, wb)])
