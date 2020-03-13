@@ -294,5 +294,48 @@ threading wud be my concern.
 
 ------
 
+https://cython.readthedocs.io/en/latest/src/tutorial/numpy.html
+
+this is gonna suck to speedup because:
+> y -= mu.reshape(oshape, bpw) @ shift
+
+maybe we just write the whole thing in ctypes
+really dont think it wud be that bad.
+
+we wud need to just write the c code and a test bench
+and make sure it works.
+
+-----
+
+and it really just needs to be the dot function.
+still cant tell if it is worth the effort.
+mkl gives nothing it seems.
+
+we need to write c functions for:
+> np.random.normal
+> binom.pmf
+
+might be too much effort.
+
+-----
+
+we dont really know how long these things will take anyways...
+> havnt tried parllelizing top level workload.
+
+-----
+
+so we really just need to make this thing run faster.
+so we are gonna re-code it
+and probably use ctypes.
+
+we can see what kind of speedup we can get
+by tossing out variance and that stuff.
+
+using it as an estimate before going further.
+
+
+
+
+
 
 

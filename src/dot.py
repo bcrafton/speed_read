@@ -99,7 +99,7 @@ def sat_err(p, var, adc, rpr, sat):
     return mu
 
 ##################################################
-
+'''
 def pim_kernel(x, w, xb, wb, params):
     y = 0    
     psum = 0
@@ -161,20 +161,52 @@ def pim_kernel(x, w, xb, wb, params):
         p = pdot_sum / (psum * params['rpr'][(xb, wb)])
         mu = np.around(sat_err(p, params['sigma'], params['adc'], params['rpr'][(xb, wb)], sat))
         # assert (np.all(np.absolute(mu) <= 0))
-        
-        '''
-        print (params['rpr'][(xb, wb)])
-        print (p)
-        print (sat)
-        print (mu)
-        print ()
-        '''
-        
+                
         y -= mu.reshape(oshape, bpw) @ shift
 
     return y, psum
-
+'''
 ##################################################
 
+def pim_kernel(x, w, xb, wb, params):
+    y = 0    
+    psum = 0
+    ishape, oshape, bpw = np.shape(w)
+    w_matrix = np.reshape(w, (ishape, oshape * bpw))
 
+    shift = 2 ** np.array(range(wb, wb + bpw))
+
+    sat = 0
+    wl_ptr = 0
+    pdot_sum = 0
+    while wl_ptr < len(x):
+        wl_sum = 0
+        pdot = np.zeros(params['bl'])
+        while (wl_ptr < len(x)) and (wl_sum + x[wl_ptr] <= params['rpr'][(xb, wb)]):
+            if (x[wl_ptr]):
+                wl_sum += 1
+                pdot += w_matrix[wl_ptr]
+
+            wl_ptr += 1
+                
+        var = np.random.normal(loc=0., scale=params['sigma'] * np.sqrt(pdot), size=np.shape(pdot))
+        var = np.around(var)
+        pdot = pdot + var
+        pdot = np.clip(pdot, 0, params['adc'])
+        
+        pdot_sum += pdot
+        sat += (pdot == params['adc'])
+
+        y += pdot.reshape(oshape, bpw) @ shift
+        if wb == 0:
+            x_offset = wl_sum * params['offset']
+            y -= x_offset
+
+        psum += 1
+
+        p = pdot_sum / (psum * params['rpr'][(xb, wb)])
+        mu = np.around(sat_err(p, params['sigma'], params['adc'], params['rpr'][(xb, wb)], sat))                
+        y -= mu.reshape(oshape, bpw) @ shift
+
+    return y, psum
 
