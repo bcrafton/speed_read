@@ -5,6 +5,7 @@ from conv_utils import conv_output_length
 import ctypes
 lib = ctypes.cdll.LoadLibrary('./cdot.so')
 lib.pim_kernel.restype = ctypes.c_int
+lib.conv.restype = ctypes.c_int
 
 ##################################################
 
@@ -15,8 +16,8 @@ def conv_ref(x, f, b, q, stride, pad1, pad2):
     Wo = conv_output_length(Hi, Fw, 'same', stride)
 
     x = np.pad(array=x, pad_width=[[pad1,pad2], [pad1,pad2], [0,0]], mode='constant')
-    y = np.zeros(shape=(Ho, Wo, Co))
     f_matrix = np.reshape(f, (Fh * Fw * Ci, Co))
+    y = np.zeros(shape=(Ho, Wo, Co))
 
     for h in range(Ho):        
         for w in range(Wo):
@@ -25,17 +26,59 @@ def conv_ref(x, f, b, q, stride, pad1, pad2):
             y[h, w, :] = dot_ref(patch, f_matrix, b, q)
 
     return y
-
+    
 def dot_ref(x, w, b, q):
     y = x @ w
+    '''
     assert(np.all(np.absolute(y) < 2 ** 23))
     y = y + b
     y = y * (y > 0)
     y = y.astype(int)
     y = y // q 
     y = np.clip(y, 0, 127)
+    '''
     return y
+
+def conv_ref2(x, f, b, q, stride, pad1, pad2):
+    Hi, Wi, Ci = np.shape(x)
+    Fh, Fw, _, Co = np.shape(f)
+    assert (Hi == Wi)
+    assert (Fh == Fw)
+    X = Hi
+    K = Fh
     
+    X = X + pad1 + pad2
+    Y = X - 2 * (K // 2)
+
+    x = np.pad(array=x, pad_width=[[pad1,pad2], [pad1,pad2], [0,0]], mode='constant')
+    f = np.reshape(f, (Fh * Fw * Ci, Co))
+    y = np.zeros(shape=(Y, Y, Co))
+
+    ############################
+
+    x = np.ascontiguousarray(x, np.int32)
+    f = np.ascontiguousarray(f, np.int32)
+    y = np.ascontiguousarray(y, np.int32)
+    
+    # [2048  256    4]
+    # which is what we want ...
+    # print ('y strides', np.array(y.ctypes.strides))
+    # print ('x strides', np.array(x.ctypes.strides))
+    # print ('f strides', np.array(f.ctypes.strides))
+    
+    lib.conv(
+    ctypes.c_void_p(x.ctypes.data), 
+    ctypes.c_void_p(f.ctypes.data), 
+    ctypes.c_void_p(y.ctypes.data),
+    ctypes.c_int(stride),
+    ctypes.c_int(X),
+    ctypes.c_int(Y),
+    ctypes.c_int(K),
+    ctypes.c_int(Ci),
+    ctypes.c_int(Co))
+
+    return y
+
 ##################################################
     
 def conv(x, f, b, q, stride, pad1, pad2, params):

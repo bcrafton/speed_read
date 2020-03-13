@@ -41,3 +41,36 @@ int pim_kernel(int* x, int* w, int wl, int bl, int* y)
     }
     return psum;
 }
+
+int conv(int* x, int* f, int* y, int S, int X, int Y, int K, int C, int N)
+{
+  for (int yh=0; yh<Y; yh++) {
+    for (int yw=0; yw<Y; yw++) {
+      
+      for (int kh=0; kh<K; kh++) {
+        for (int kw=0; kw<K; kw++) {
+        
+          for (int c=0; c<C; c++) {
+            for (int n=0; n<N; n++) {
+              int x_addr = ((yh + kh) * X * C) + ((yw + kw) * C) + c;
+              int f_addr = (kh * K * C * N) + (kw * C * N) + (c * N) + n;
+              int y_addr = (yh * Y * N) + (yw * N) + n;
+              y[y_addr] += x[x_addr] * f[f_addr];
+            }
+          }
+        
+        }
+      }
+      
+    }
+  }
+  
+}
+
+
+
+
+
+
+
+
