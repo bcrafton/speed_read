@@ -2,6 +2,10 @@
 import numpy as np
 from conv_utils import conv_output_length
 
+import ctypes
+lib = ctypes.cdll.LoadLibrary('./cdot.so')
+lib.pim_kernel.restype = ctypes.c_int
+
 ##################################################
 
 def conv_ref(x, f, b, q, stride, pad1, pad2):
@@ -191,11 +195,25 @@ def pim_kernel(x, w, b, params):
 
     return y, psum
 
+##################################################
+'''
+def pim_kernel(x, w, b, params):
+    assert (np.shape(w) == (27, 32, 8))
+    w = np.reshape(w, (27, 32 * 8))
+    
+    x = x.astype(np.int32)
+    w = w.astype(np.int32)
+    y = np.zeros(shape=32, dtype=np.int32)
 
+    psum = lib.pim_kernel(
+             ctypes.c_void_p(x.ctypes.data), 
+             ctypes.c_void_p(w.ctypes.data), 
+             ctypes.c_int(27),
+             ctypes.c_int(256),
+             ctypes.c_void_p(y.ctypes.data))
 
-
-
-
+    return y, psum
+'''
 
 
 

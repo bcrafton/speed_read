@@ -5,6 +5,7 @@ import argparse
 import numpy as np
 import tensorflow as tf
 import threading
+import time
 
 from layers import Conv
 from layers import Dense
@@ -48,9 +49,9 @@ weights = np.load('../cifar10_weights.npy', allow_pickle=True).item()
 
 layers = [
 Conv(input_size=(5,5,3),  filter_size=(3,3,3,32),  stride=1, pad1=1, pad2=1, params=params, weights=weights[0]),
-Conv(input_size=(5,5,32), filter_size=(3,3,32,32), stride=1, pad1=1, pad2=1, params=params, weights=weights[1]),
-Conv(input_size=(5,5,32), filter_size=(3,3,32,64), stride=1, pad1=1, pad2=1, params=params, weights=weights[2]),
-Conv(input_size=(5,5,64), filter_size=(3,3,64,64), stride=1, pad1=1, pad2=1, params=params, weights=weights[3]),
+# Conv(input_size=(5,5,32), filter_size=(3,3,32,32), stride=1, pad1=1, pad2=1, params=params, weights=weights[1]),
+# Conv(input_size=(5,5,32), filter_size=(3,3,32,64), stride=1, pad1=1, pad2=1, params=params, weights=weights[2]),
+# Conv(input_size=(5,5,64), filter_size=(3,3,64,64), stride=1, pad1=1, pad2=1, params=params, weights=weights[3]),
 ]
 
 # TODO: these have the same name ...
@@ -59,10 +60,12 @@ model = model(layers=layers)
 ####
 
 tests = [
-(1, (5, 5), model)
+(100, (5, 5), model)
 ]
 
 ####
+
+start = time.time()
 
 for test in tests:
     num_example, input_shape, model = test
@@ -70,6 +73,8 @@ for test in tests:
     assert (np.min(x) >= 0 and np.max(x) <= 127)
     _, psum = model.forward(x=x)
     print (psum)
+
+print (time.time() - start)
 
 ####
 
