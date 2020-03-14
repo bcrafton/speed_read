@@ -4,11 +4,6 @@
 #include <string.h>
 #include <assert.h>
 
-// make sure (bl <= 1024), malloc would be too slow.
-// if we just pick a size large enough we will be okay
-#define VECTOR_SIZE 1024
-int pdot[VECTOR_SIZE]; 
-
 #ifndef max
 #define max(a,b)            (((a) > (b)) ? (a) : (b))
 #endif
@@ -19,10 +14,29 @@ int pdot[VECTOR_SIZE];
 
 //////////////////////////////////////////////
 
+// make sure (bl <= 1024), malloc would be too slow.
+// if we just pick a size large enough we will be okay
+#define VECTOR_SIZE 1024
+int pdot[VECTOR_SIZE];
+int pdot_sum[VECTOR_SIZE];
+int sat[VECTOR_SIZE];
+
 void clear_pdot()
 {
     memset(pdot, 0, sizeof(int) * VECTOR_SIZE);
 }
+
+void clear_pdot_sum()
+{
+    memset(pdot_sum, 0, sizeof(int) * VECTOR_SIZE);
+}
+
+void clear_sat()
+{
+    memset(sat, 0, sizeof(int) * VECTOR_SIZE);
+}
+
+//////////////////////////////////////////////
 
 int pim_kernel(int* x, int* w, int wl, int bl, int* y)
 {
@@ -93,6 +107,8 @@ int pim(int* x, int* w, int* y, int* lut, int R, int C, int NWL, int NBL, int WL
       for (int bl=0; bl<NBL; bl++) {
         for (int xb=0; xb<8; xb++) {
         
+          clear_sat();
+          clear_pdot_sum();
           int wl_ptr = 0;
           while (wl_ptr < WL) {
           
@@ -110,6 +126,11 @@ int pim(int* x, int* w, int* y, int* lut, int R, int C, int NWL, int NBL, int WL
             psum += 1;
             
             for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
+              // ordering matters here.
+              // do not put sat/pdot_sum behind any pdot changes.
+              sat[bl_ptr] += (pdot[bl_ptr] == 8); // 8 = adc
+              pdot_sum[bl_ptr] += pdot_sum[bl_ptr];
+
               int c = (bl_ptr + bl * BL) % C;
               int wb = (bl_ptr + bl * BL) / C;
               // comment me out for speed.
