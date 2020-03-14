@@ -29,15 +29,15 @@ def conv_ref(x, f, b, q, stride, pad1, pad2):
     
 def dot_ref(x, w, b, q):
     y = x @ w
-    '''
     assert(np.all(np.absolute(y) < 2 ** 23))
     y = y + b
     y = y * (y > 0)
     y = y.astype(int)
     y = y // q 
     y = np.clip(y, 0, 127)
-    '''
     return y
+
+##################################################
 
 def conv_ref2(x, f, b, q, stride, pad1, pad2):
     Hi, Wi, Ci = np.shape(x)
@@ -142,75 +142,7 @@ def pim_dot(x, w, params):
     return y, psum
 
 ##################################################
-'''
-def pim_kernel(x, w, b, params):
-    assert (not params['skip'])
 
-    ishape, oshape, bpw = np.shape(w)
-    assert(bpw == params['bpw'])
-    w_matrix = np.reshape(w, (ishape, oshape * bpw))
-
-    shift = 2 ** np.array(range(params['bpw']))
-
-    wl_ptr = 0
-    wl = np.zeros(len(x))
-    wl_sum = np.zeros(len(x))
-    wl_stride = np.zeros(len(x))
-    
-    y = 0
-    psum = 0
-    while wl_ptr < len(x):
-        # advice = be careful about: (< vs <=), (> vs >=)
-        wl[0] = x[0] & (wl_ptr <= 0)
-        wl_sum[0] = x[0] & (wl_ptr <= 0)
-        wl_stride[0] = (wl_sum[0] <= params['adc'])
-        
-        for ii in range(1, len(x)):
-            wl[ii]        = (x[ii] & (wl_ptr <= ii)) & (ii < (wl_ptr + params['adc']))
-            wl_stride[ii] = wl_ptr + params['adc']
-
-        pdot = wl @ w_matrix
-        psum += 1
-
-        wl_ptr = wl_stride[-1]
-        x_offset = np.sum(wl).astype(int) * params['offset']
-        pdot_sum = pdot.reshape(oshape, params['bpw']) @ shift
-        y += pdot_sum - x_offset
-        
-    return y, psum
-'''
-##################################################
-'''
-def pim_kernel(x, w, b, params):
-    assert (not params['skip'])
-    ishape, oshape, bpw = np.shape(w)
-    assert(bpw == params['bpw'])
-    w_matrix = np.reshape(w, (ishape, oshape * bpw))
-
-    shift = 2 ** np.array(range(params['bpw']))
-
-    wl_ptr = 0
-    y = 0
-    psum = 0
-    while wl_ptr < len(x):
-        wl_sum = 0
-        pdot = np.zeros(params['bl'])
-        for ii in range(wl_ptr, min(len(x), wl_ptr + params['adc'])):
-            if (x[ii]):
-                wl_sum += 1
-                pdot += w_matrix[ii]
-
-            wl_ptr += 1
-
-        psum += 1
-        x_offset = wl_sum * params['offset']
-        pdot_sum = pdot.reshape(oshape, params['bpw']) @ shift
-        y += pdot_sum - x_offset
-        
-    return y, psum
-'''
-##################################################
-# '''
 def pim_kernel(x, w, b, params):
     ishape, oshape, bpw = np.shape(w)
     assert(bpw == params['bpw'])
@@ -231,21 +163,15 @@ def pim_kernel(x, w, b, params):
 
             wl_ptr += 1
 
-        '''
-        var = np.random.normal(loc=0., scale=params['sigma'] * np.sqrt(pdot), size=np.shape(pdot))
-        var = np.around(var)
-        pdot = pdot + var
-        pdot = np.clip(pdot, 0, params['adc'])
-        '''
-
         psum += 1
         x_offset = wl_sum * params['offset']
         pdot_sum = pdot.reshape(oshape, params['bpw']) @ shift
         y += pdot_sum - x_offset
 
     return y, psum
-# '''
+
 ##################################################
+
 '''
 def pim_kernel(x, w, b, params):
     assert (np.shape(w) == (27, 32, 8))
