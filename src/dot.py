@@ -104,7 +104,7 @@ def conv(x, f, b, q, stride, pad1, pad2, params):
     
     ##################################################
     
-    print (np.shape(patches), np.shape(f))
+    # print (np.shape(patches), np.shape(f))
     
     ##################################################
     
