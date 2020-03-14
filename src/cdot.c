@@ -1,25 +1,27 @@
 
 #include <stdio.h>
+#include <string.h>
 
 // make sure (bl <= 1024), malloc would be too slow.
 // if we just pick a size large enough we will be okay
 #define VECTOR_SIZE 1024
 int pdot[VECTOR_SIZE]; 
 
+void clear_pdot()
+{
+    memset(pdot, 0, sizeof(int) * VECTOR_SIZE);
+}
+
 int pim_kernel(int* x, int* w, int wl, int bl, int* y)
 {
-
     int ncol = bl / 8;
 
     int psum = 0;
     int wl_ptr = 0;
-        
-    for (int bl_ptr=0; bl_ptr<bl; bl_ptr++) { pdot[bl_ptr] = 0; }
-    for (int col=0; col<ncol; col++)        { y[col] = 0; }
-    
+
     while (wl_ptr < wl) {
         int wl_sum = 0;
-        for (int bl_ptr=0; bl_ptr<bl; bl_ptr++) { pdot[bl_ptr] = 0; }
+        clear_pdot();
         
         while ((wl_ptr < wl) && (wl_sum + x[wl_ptr] <= 8)) {
             if (x[wl_ptr]) {
@@ -66,6 +68,77 @@ int conv(int* x, int* f, int* y, int S, int X, int Y, int K, int C, int N)
   }
   
 }
+
+int pim(int* x, int* w, int* y, int R, int NWL, int NBL, int WL, int BL)
+{
+  // x = nrow, nwl, wl, xb
+  // f = nwl, nbl, wl, bl
+  // f = wl, nbl, bl
+  // y = nrow, ncol
+  int psum = 0;
+  
+  for (int r=0; r<R; r++) {
+    for (int wl=0; wl<NWL; wl++) {
+      for (int bl=0; bl<NBL; bl++) {
+        for (int b=0; b<8; b++) {
+        
+          int wl_ptr = 0;
+          while (wl_ptr < WL) {
+          
+            clear_pdot();
+            int wl_sum = 0;
+            while ((wl_ptr < WL) && (wl_sum + x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr * 8) + b] <= 8)) {
+              if (x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr * 8) + b]) {
+                wl_sum += 1;
+                for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
+                  pdot[bl_ptr] += w[(wl_ptr * NBL * BL) + (bl * NBL) + bl_ptr];
+                }
+              }
+              wl_ptr += 1;
+            }
+            psum += 1;
+            
+            for (int col=0; col<32; col++) {
+              for (int wb=0; wb<8; wb++) {
+                y[r * 32 + col] += (pdot[wb * 32 + col] << wb);
+              }
+              y[r * 32 + col] -= wl_sum * 128;
+            }
+
+          } // while (wl_ptr < wl) {
+        
+        } // for (int b=0; b<8; b++) {
+      } // for (int bl=0; bl<BL; bl++) {
+    } // for (int wl=0; wl<WL; wl++) {
+  } // for (int r=0; r<R; r++) {
+  
+  return psum;  
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

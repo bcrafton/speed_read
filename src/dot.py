@@ -6,6 +6,7 @@ import ctypes
 lib = ctypes.cdll.LoadLibrary('./cdot.so')
 lib.pim_kernel.restype = ctypes.c_int
 lib.conv.restype = ctypes.c_int
+lib.pim.restype = ctypes.c_int
 
 ##################################################
 
@@ -155,7 +156,7 @@ def conv(x, f, b, q, stride, pad1, pad2, params):
     return y, psum
             
 ##################################################
-
+'''
 def pim(x, w, params):
     nrow, nwl, wl, xb = np.shape(x)
     wl, nbl, bl = np.shape(w) # nwl, nbl, wl, bl
@@ -171,8 +172,6 @@ def pim(x, w, params):
                     y[row] += np.left_shift(pim.astype(int), b)
 
     return y, psum
-    
-##################################################
 
 def pim_kernel(x, w, params):
     shift = 2 ** np.array(range(params['bpw']))
@@ -196,9 +195,32 @@ def pim_kernel(x, w, params):
         y += pdot_sum - x_offset
 
     return y, psum
-
+'''
 ##################################################
 
+def pim(x, w, params):
+    nrow, nwl, wl, xb = np.shape(x)
+    wl, nbl, bl = np.shape(w) # nwl, nbl, wl, bl
+        
+    y = np.zeros(shape=(1024, 32))
+    
+    x = np.ascontiguousarray(x, np.int32)
+    w = np.ascontiguousarray(w, np.int32)
+    y = np.ascontiguousarray(y, np.int32)
+
+    psum = lib.pim(
+    ctypes.c_void_p(x.ctypes.data), 
+    ctypes.c_void_p(w.ctypes.data), 
+    ctypes.c_void_p(y.ctypes.data), 
+    ctypes.c_int(nrow),
+    ctypes.c_int(nwl),
+    ctypes.c_int(nbl),
+    ctypes.c_int(wl),
+    ctypes.c_int(bl))
+
+    return y, psum
+
+##################################################
 '''
 def pim_kernel(x, w, b, params):
     ishape, oshape, bpw = np.shape(w)
@@ -248,7 +270,7 @@ def pim_kernel(x, w, b, params):
 
     return y, psum
 '''
-
+##################################################
 
 
 
