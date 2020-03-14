@@ -104,7 +104,7 @@ def conv(x, f, b, q, stride, pad1, pad2, params):
     
     ##################################################
     
-    # print (np.shape(patches), np.shape(f))
+    print (np.shape(patches), np.shape(f))
     
     ##################################################
     
@@ -134,16 +134,17 @@ def pim(x, w, y_shape, params):
         for b in range(params['bpa']):
             for wl in range(nwl):
                 for bl in range(nbl):
-                    # print (row, nrow, b, params['bpa'], wl, nwl, bl, nbl)
-                    pim, _ = pim_kernel(x[row, wl, :, b], w[wl, :, bl, :], y_shape, params)
+                    pim, _ = pim_kernel(x[row, wl, :, b], w[wl, :, bl, :], y_shape, bl, params)
                     y[row] += np.left_shift(pim.astype(int), b)
 
     return y, psum
 
-def pim_kernel(x, w, y_shape, params):
+def pim_kernel(x, w, y_shape, bl, params):
     nrow, ncol = y_shape
 
-    shift = 2 ** np.array(range(params['bpw']))
+    wb0 = bl * (params['bl'] // ncol)
+    wb1 = (bl + 1) * (params['bl'] // ncol)
+    shift = 2 ** np.array(range(wb0, wb1))
 
     wl_ptr = 0
     y = 0
@@ -160,8 +161,10 @@ def pim_kernel(x, w, y_shape, params):
 
         psum += 1
         x_offset = wl_sum * params['offset']
-        pdot_sum = pdot.reshape(8, ncol).transpose(1, 0) @ shift
-        y += pdot_sum - x_offset
+        pdot_sum = pdot.reshape(params['bl'] // ncol, ncol).transpose(1, 0) @ shift
+        y += pdot_sum 
+        if (bl == 0):
+            y -= x_offset
 
     return y, psum
 '''

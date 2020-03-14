@@ -1,6 +1,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
 // make sure (bl <= 1024), malloc would be too slow.
 // if we just pick a size large enough we will be okay
@@ -72,7 +73,7 @@ int conv(int* x, int* f, int* y, int S, int X, int Y, int K, int C, int N)
 int pim(int* x, int* w, int* y, int R, int C, int NWL, int NBL, int WL, int BL)
 {
   // x = nrow, nwl, wl, xb
-  // f = nwl, nbl, wl, bl
+  // f = nwl, wl, nbl, bl
   // y = nrow, ncol
   int psum = 0;
   
@@ -90,7 +91,7 @@ int pim(int* x, int* w, int* y, int R, int C, int NWL, int NBL, int WL, int BL)
               if (x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr * 8) + xb]) {
                 wl_sum += 1;
                 for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
-                  pdot[bl_ptr] += w[(wl * WL * NBL * BL) + (wl_ptr * NBL * BL) + (bl * NBL) + bl_ptr];
+                  pdot[bl_ptr] += w[(wl * WL * NBL * BL) + (wl_ptr * NBL * BL) + (bl * BL) + bl_ptr];
                 }
               }
               wl_ptr += 1;
@@ -98,12 +99,15 @@ int pim(int* x, int* w, int* y, int R, int C, int NWL, int NBL, int WL, int BL)
             psum += 1;
             
             for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
-              int c = bl_ptr % C;
-              int wb = bl_ptr / C;
-              y[r * C + c] += (pdot[wb * C + c] << (wb + xb));
+              int c = (bl_ptr + bl * BL) % C;
+              int wb = (bl_ptr + bl * BL) / C;
+              // TODO: comment me out for speed.
+              // if ((wl_ptr == 0) && (wl == 0) && (xb == 0) && (wb == 0)) { assert(y[r * C + c] == 0); }
+
               if (wb == 0) {
                 y[r * C + c] -= ((wl_sum * 128) << xb);
               }
+              y[r * C + c] += (pdot[bl_ptr] << (wb + xb));
             }
 
           } // while (wl_ptr < wl) {
