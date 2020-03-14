@@ -91,7 +91,7 @@ int pim(int* x, int* w, int* y, int R, int NWL, int NBL, int WL, int BL)
               if (x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr * 8) + xb]) {
                 wl_sum += 1;
                 for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
-                  pdot[bl_ptr] += w[(wl_ptr * NBL * BL) + (bl * NBL) + bl_ptr];
+                  pdot[bl_ptr] += w[(wl * WL * NBL * BL) + (wl_ptr * NBL * BL) + (bl * NBL) + bl_ptr];
                 }
               }
               wl_ptr += 1;

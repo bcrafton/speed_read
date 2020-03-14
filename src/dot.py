@@ -112,7 +112,7 @@ def conv(x, f, b, q, stride, pad1, pad2, params):
         zeros = np.zeros(shape=(npatch, 256 - (nrow % 256), nbit))
         patches = np.concatenate((patches, zeros), axis=1)
         
-    patches = np.reshape(patches, (npatch, 1, 256, nbit))
+    patches = np.reshape(patches, (npatch, -1, 256, nbit))
 
     ##################################################
     
@@ -131,15 +131,22 @@ def conv(x, f, b, q, stride, pad1, pad2, params):
         f = np.concatenate((f, zeros), axis=0)
 
     nrow, ncol, nbit = np.shape(f)
-    f = np.transpose(f, (0, 2, 1))
-    f = np.reshape(f, (nrow, nbit * ncol))
+    f = np.reshape(f, (-1, 256, ncol, nbit))
+
+    nwl, wl, ncol, nbit = np.shape(f)
+    f = np.transpose(f, (0, 1, 3, 2))
+    f = np.reshape(f, (nwl, wl, nbit * ncol))
     
-    nrow, ncol = np.shape(f)
+    nwl, wl, ncol = np.shape(f)
     if (ncol % 256):
-        zeros = np.zeros(shape=(nrow, 256 - (ncol % 256)))
+        zeros = np.zeros(shape=(nwl, wl, 256 - (ncol % 256)))
         f = np.concatenate((f, zeros), axis=1)
 
-    f = np.reshape(f, (256, -1, 256))
+    f = np.reshape(f, (nwl, wl, -1, 256))
+    
+    ##################################################
+    
+    # print (np.shape(patches), np.shape(f))
     
     ##################################################
     
@@ -156,10 +163,10 @@ def conv(x, f, b, q, stride, pad1, pad2, params):
     return y, psum
             
 ##################################################
-'''
+# '''
 def pim(x, w, params):
     nrow, nwl, wl, xb = np.shape(x)
-    wl, nbl, bl = np.shape(w) # nwl, nbl, wl, bl
+    nwl, wl, nbl, bl = np.shape(w) # nwl, nbl, wl, bl
         
     y = np.zeros(shape=(1024, 32))
     psum = 0
@@ -168,7 +175,7 @@ def pim(x, w, params):
         for b in range(params['bpa']):
             for wl in range(nwl):
                 for bl in range(nbl):
-                    pim, _ = pim_kernel(x[row, wl, :, b], w[:, bl, :], params)
+                    pim, _ = pim_kernel(x[row, wl, :, b], w[wl, :, bl, :], params)
                     y[row] += np.left_shift(pim.astype(int), b)
 
     return y, psum
@@ -195,12 +202,12 @@ def pim_kernel(x, w, params):
         y += pdot_sum - x_offset
 
     return y, psum
-'''
+# '''
 ##################################################
-
+'''
 def pim(x, w, params):
     nrow, nwl, wl, xb = np.shape(x)
-    wl, nbl, bl = np.shape(w) # nwl, nbl, wl, bl
+    nwl, wl, nbl, bl = np.shape(w) # nwl, nbl, wl, bl
         
     y = np.zeros(shape=(1024, 32))
     
@@ -219,7 +226,7 @@ def pim(x, w, params):
     ctypes.c_int(bl))
 
     return y, psum
-
+'''
 ##################################################
 '''
 def pim_kernel(x, w, b, params):
