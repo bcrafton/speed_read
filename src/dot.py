@@ -83,66 +83,123 @@ def conv_ref2(x, f, b, q, stride, pad1, pad2):
     
 def conv(x, f, b, q, stride, pad1, pad2, params):
     Hi, Wi, Ci = np.shape(x)
-    Fh, Fw, _, Co, bpw = np.shape(f)
-    assert (bpw == params['bpw'])
+    Fh, Fw, _, Co = np.shape(f)
     Ho = conv_output_length(Hi, Fh, 'same', stride)
     Wo = conv_output_length(Hi, Fw, 'same', stride)
 
-    x = np.pad(array=x, pad_width=[[pad1,pad2], [pad1,pad2], [0,0]], mode='constant')
-    f_matrix = np.reshape(f, (Fh * Fw * Ci, Co, params['bpw']))
     y = np.zeros(shape=(Ho, Wo, Co))
     psum = 0
 
+    x = np.pad(array=x, pad_width=[[pad1,pad2], [pad1,pad2], [0,0]], mode='constant')
+    patches = []
     for h in range(Ho):        
         for w in range(Wo):
-            # print ("(%d, %d)" % (h, w))
             patch = np.reshape(x[h*stride:(h*stride+Fh), w*stride:(w*stride+Fw), :], -1)
-            y[h, w, :], p = dot(patch, f_matrix, b, q, params)
-            psum += p
-            # print (y[h, w, :])
+            patches.append(patch)
             
-    return y, psum
+    ##################################################
 
-def dot(x, w, b, q, params):
-    y, psum = pim_dot(x, w, params)
+    patches = np.stack(patches, axis=0)
+    pb = []
+    for xb in range(params['bpa']):
+        pb.append(np.bitwise_and(np.right_shift(patches.astype(int), xb), 1))
+    
+    patches = np.stack(pb, axis=-1)
+    npatch, nrow, nbit = np.shape(patches)
+    
+    if (nrow % 256):
+        zeros = np.zeros(shape=(npatch, 256 - (nrow % 256), nbit))
+        patches = np.concatenate((patches, zeros), axis=1)
+        
+    patches = np.reshape(patches, (npatch, 1, 256, nbit))
+
+    ##################################################
+    
+    f = f + 128
+
+    f = np.reshape(f, (Fh * Fw * Ci, Co))
+    fb = []
+    for wb in range(params['bpw']):
+        fb.append(np.bitwise_and(np.right_shift(f.astype(int), wb), 1))
+        
+    f = np.stack(fb, axis=-1)
+    
+    nrow, ncol, nbit = np.shape(f)
+    if (nrow % 256):
+        zeros = np.zeros(shape=(256 - (nrow % 256), ncol, nbit))
+        f = np.concatenate((f, zeros), axis=0)
+
+    nrow, ncol, nbit = np.shape(f)
+    f = np.transpose(f, (0, 2, 1))
+    f = np.reshape(f, (nrow, nbit * ncol))
+    
+    nrow, ncol = np.shape(f)
+    if (ncol % 256):
+        zeros = np.zeros(shape=(nrow, 256 - (ncol % 256)))
+        f = np.concatenate((f, zeros), axis=1)
+
+    f = np.reshape(f, (256, -1, 256))
+    
+    ##################################################
+    
+    y, psum = pim(patches, f, params)
+    y = np.reshape(y, (32, 32, 32))
+    
     assert(np.all(np.absolute(y) < 2 ** 23))
     y = y + b
     y = y * (y > 0)
     y = y.astype(int)
     y = y // q 
     y = np.clip(y, 0, 127)
+
     return y, psum
             
 ##################################################
 
-def pim_dot(x, w, params):
-    nrow, ncol, nbit = np.shape(w)
-    y = np.zeros(shape=ncol)
+def pim(x, w, params):
+    nrow, nwl, wl, xb = np.shape(x)
+    wl, nbl, bl = np.shape(w) # nwl, nbl, wl, bl
+        
+    y = np.zeros(shape=(1024, 32))
     psum = 0
-    
-    for b in range(params['bpa']):
-        xb = np.bitwise_and(np.right_shift(x.astype(int), b), 1)
-        # print ("%d | %d/%d" % (b, np.sum(xb), np.shape(xb)[0]))
 
-        for r1 in range(0, len(xb), params['wl']):
-            r2 = min(r1 + params['wl'], len(xb))
-            xbr = xb[r1:r2]
-            wr = w[r1:r2]
-        
-            assert (params['wpb'] == (params['bl'] // params['bpw']))
-            for c1 in range(0, ncol, params['wpb']):
-                c2 = min(c1 + params['wpb'], ncol)
-                wrc = wr[:, c1:c2]
-        
-                pim, p = pim_kernel(xbr, wrc, b, params)
-                # assert (np.all(pim == (xbr @ wr)))
-                y[c1:c2] += np.left_shift(pim.astype(int), b)
-                psum += p
-            
+    for row in range(nrow):
+        for b in range(params['bpa']):
+            for wl in range(nwl):
+                for bl in range(nbl):
+                    pim, _ = pim_kernel(x[row, wl, :, b], w[:, bl, :], params)
+                    y[row] += np.left_shift(pim.astype(int), b)
+
+    return y, psum
+    
+##################################################
+
+def pim_kernel(x, w, params):
+    shift = 2 ** np.array(range(params['bpw']))
+
+    wl_ptr = 0
+    y = 0
+    psum = 0
+    while wl_ptr < len(x):
+        wl_sum = 0
+        pdot = np.zeros(params['bl'])
+        while (wl_ptr < len(x)) and (wl_sum + x[wl_ptr] <= params['adc']):
+            if (x[wl_ptr]):
+                wl_sum += 1
+                pdot += w[wl_ptr]
+
+            wl_ptr += 1
+
+        psum += 1
+        x_offset = wl_sum * params['offset']
+        pdot_sum = pdot.reshape(8, 32).transpose(1, 0) @ shift
+        y += pdot_sum - x_offset
+
     return y, psum
 
 ##################################################
 
+'''
 def pim_kernel(x, w, b, params):
     ishape, oshape, bpw = np.shape(w)
     assert(bpw == params['bpw'])
@@ -169,6 +226,7 @@ def pim_kernel(x, w, b, params):
         y += pdot_sum - x_offset
 
     return y, psum
+'''
 
 ##################################################
 

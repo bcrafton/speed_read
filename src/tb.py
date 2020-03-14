@@ -72,9 +72,9 @@ for test in tests:
     x = init_x(num_example, input_shape, 0, 127)
     assert (np.min(x) >= 0 and np.max(x) <= 127)
     _, psum = model.forward(x=x)
-    print (psum)
+    # print (psum)
 
-print (time.time() - start)
+print ('time taken:', time.time() - start)
 
 ####
 
