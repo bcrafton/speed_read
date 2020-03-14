@@ -1,6 +1,7 @@
 
 import numpy as np
 from conv_utils import conv_output_length
+from scipy.stats import norm
 
 import ctypes
 lib = ctypes.cdll.LoadLibrary('./cdot.so')
@@ -40,6 +41,34 @@ def dot_ref(x, w, b, q):
 
 ##################################################
 
+def lut_var(var, rpr):
+    lut = np.zeros(shape=(rpr + 1, 1000), dtype=np.int32)
+    for s in range(1, rpr + 1):
+        
+        std = var * np.sqrt(s)
+        
+        p5 = norm.cdf( 5.5, 0, std) - norm.cdf( 4.5, 0, std)
+        p4 = norm.cdf( 4.5, 0, std) - norm.cdf( 3.5, 0, std)
+        p3 = norm.cdf( 3.5, 0, std) - norm.cdf( 2.5, 0, std)
+        p2 = norm.cdf( 2.5, 0, std) - norm.cdf( 1.5, 0, std)
+        p1 = norm.cdf( 1.5, 0, std) - norm.cdf( 0.5, 0, std)
+
+        p5 = int(round(p5, 3) * 1000)
+        p4 = int(round(p4, 3) * 1000)
+        p3 = int(round(p3, 3) * 1000)
+        p2 = int(round(p2, 3) * 1000)
+        p1 = int(round(p1, 3) * 1000)
+        p0 = 1000 - 2 * (p5 + p4 + p3 + p2 + p1)
+        
+        pos = [5]*p5 + [4]*p4 + [3]*p3 + [2]*p2 + [1]*p1
+        neg = [-5]*p5 + [-4]*p4 + [-3]*p3 + [-2]*p2 + [-1]*p1
+        e = pos + neg + [0]*p0
+        lut[s, :] = e
+        
+    return lut
+
+###########################
+
 def conv(x, f, b, q, stride, pad1, pad2, params):
     Hi, Wi, Ci = np.shape(x)
     Fh, Fw, _, Co = np.shape(f)
@@ -48,6 +77,12 @@ def conv(x, f, b, q, stride, pad1, pad2, params):
 
     y = np.zeros(shape=(Ho, Wo, Co))
     psum = 0
+    
+    ##################################################
+    
+    lut = lut_var(params['sigma'], params['adc'])
+    
+    ##################################################
 
     x = np.pad(array=x, pad_width=[[pad1,pad2], [pad1,pad2], [0,0]], mode='constant')
     patches = []
@@ -108,7 +143,7 @@ def conv(x, f, b, q, stride, pad1, pad2, params):
     
     ##################################################
     
-    y, psum = pim(patches, f, (Ho * Wo, Co), params)
+    y, psum = pim(patches, f, (Ho * Wo, Co), lut, params)
     y = np.reshape(y, (Ho, Wo, Co))
     
     assert(np.all(np.absolute(y) < 2 ** 23))
@@ -122,7 +157,7 @@ def conv(x, f, b, q, stride, pad1, pad2, params):
             
 ##################################################
 '''
-def pim(x, w, y_shape, params):
+def pim(x, w, y_shape, lut, params):
     nrow, nwl, wl, xb = np.shape(x)
     nwl, wl, nbl, bl = np.shape(w) # nwl, nbl, wl, bl
     nrow, ncol = y_shape
@@ -158,6 +193,11 @@ def pim_kernel(x, w, y_shape, bl, params):
                 pdot += w[wl_ptr]
 
             wl_ptr += 1
+            
+        var = np.random.normal(loc=0., scale=params['sigma'] * np.sqrt(pdot), size=np.shape(pdot))
+        var = np.around(var)
+        pdot = pdot + var
+        pdot = np.clip(pdot, 0, params['adc'])
 
         psum += 1
         x_offset = wl_sum * params['offset']
@@ -170,7 +210,7 @@ def pim_kernel(x, w, y_shape, bl, params):
 '''
 ##################################################
 # '''
-def pim(x, w, y_shape, params):
+def pim(x, w, y_shape, lut, params):
     nrow, nwl, wl, xb = np.shape(x)
     nwl, wl, nbl, bl = np.shape(w) # nwl, nbl, wl, bl
     nrow, ncol = y_shape
@@ -180,11 +220,13 @@ def pim(x, w, y_shape, params):
     x = np.ascontiguousarray(x, np.int32)
     w = np.ascontiguousarray(w, np.int32)
     y = np.ascontiguousarray(y, np.int32)
+    lut = np.ascontiguousarray(lut, np.int32)
 
     psum = lib.pim(
     ctypes.c_void_p(x.ctypes.data), 
     ctypes.c_void_p(w.ctypes.data), 
     ctypes.c_void_p(y.ctypes.data), 
+    ctypes.c_void_p(lut.ctypes.data), 
     ctypes.c_int(nrow),
     ctypes.c_int(ncol),
     ctypes.c_int(nwl),

@@ -39,7 +39,7 @@ params = {
 'wl': 128,
 'bl': 128,
 'offset': 128,
-'sigma': 0.,
+'sigma': 0.1,
 'err_sigma': 0.,
 }
 
@@ -58,7 +58,7 @@ model = model(layers=layers)
 ####
 
 tests = [
-(10, (32, 32), model)
+(1, (32, 32), model)
 ]
 
 ####

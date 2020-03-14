@@ -1,5 +1,6 @@
 
 #include <stdio.h>
+#include <stdlib.h> 
 #include <string.h>
 #include <assert.h>
 
@@ -70,7 +71,7 @@ int conv(int* x, int* f, int* y, int S, int X, int Y, int K, int C, int N)
   
 }
 
-int pim(int* x, int* w, int* y, int R, int C, int NWL, int NBL, int WL, int BL)
+int pim(int* x, int* w, int* y, int* lut, int R, int C, int NWL, int NBL, int WL, int BL)
 {
   // x = nrow, nwl, wl, xb
   // f = nwl, wl, nbl, bl
@@ -107,7 +108,13 @@ int pim(int* x, int* w, int* y, int R, int C, int NWL, int NBL, int WL, int BL)
               if (wb == 0) {
                 y[r * C + c] -= ((wl_sum * 128) << xb);
               }
-              y[r * C + c] += (pdot[bl_ptr] << (wb + xb));
+              
+              int key = rand() % 1000;
+              int var_addr = pdot[bl_ptr] * 1000 + key;
+              int var = lut[var_addr];
+              assert ((var > -3) && (var < 3));
+              // add and clip var to pdot.
+              y[r * C + c] += ((pdot[bl_ptr] + var) << (wb + xb));
             }
 
           } // while (wl_ptr < wl) {
