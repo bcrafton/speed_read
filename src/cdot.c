@@ -97,11 +97,13 @@ int pim(int* x, int* w, int* y, int R, int C, int NWL, int NBL, int WL, int BL)
             }
             psum += 1;
             
-            for (int c=0; c<C; c++) {
-              for (int wb=0; wb<8; wb++) {
-                y[r * C + c] += (pdot[wb * C + c] << (wb + xb));
+            for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
+              int c = bl_ptr % C;
+              int wb = bl_ptr / C;
+              y[r * C + c] += (pdot[wb * C + c] << (wb + xb));
+              if (wb == 0) {
+                y[r * C + c] -= ((wl_sum * 128) << xb);
               }
-              y[r * C + c] -= ((wl_sum * 128) << xb);
             }
 
           } // while (wl_ptr < wl) {
