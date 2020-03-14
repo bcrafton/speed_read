@@ -66,11 +66,11 @@ def conv(x, f, b, q, stride, pad1, pad2, params):
     patches = np.stack(pb, axis=-1)
     npatch, nrow, nbit = np.shape(patches)
     
-    if (nrow % 256):
-        zeros = np.zeros(shape=(npatch, 256 - (nrow % 256), nbit))
+    if (nrow % params['wl']):
+        zeros = np.zeros(shape=(npatch, params['wl'] - (nrow % params['wl']), params['bpa']))
         patches = np.concatenate((patches, zeros), axis=1)
         
-    patches = np.reshape(patches, (npatch, -1, 256, nbit))
+    patches = np.reshape(patches, (npatch, -1, params['wl'], params['bpa']))
 
     ##################################################
     
@@ -84,23 +84,23 @@ def conv(x, f, b, q, stride, pad1, pad2, params):
     f = np.stack(fb, axis=-1)
     
     nrow, ncol, nbit = np.shape(f)
-    if (nrow % 256):
-        zeros = np.zeros(shape=(256 - (nrow % 256), ncol, nbit))
+    if (nrow % params['wl']):
+        zeros = np.zeros(shape=(params['wl'] - (nrow % params['wl']), ncol, nbit))
         f = np.concatenate((f, zeros), axis=0)
 
     nrow, ncol, nbit = np.shape(f)
-    f = np.reshape(f, (-1, 256, ncol, nbit))
+    f = np.reshape(f, (-1, params['wl'], ncol, nbit))
 
     nwl, wl, ncol, nbit = np.shape(f)
     f = np.transpose(f, (0, 1, 3, 2))
-    f = np.reshape(f, (nwl, wl, nbit * ncol))
+    f = np.reshape(f, (nwl, params['wl'], nbit * ncol))
     
     nwl, wl, ncol = np.shape(f)
-    if (ncol % 256):
-        zeros = np.zeros(shape=(nwl, wl, 256 - (ncol % 256)))
+    if (ncol % params['bl']):
+        zeros = np.zeros(shape=(nwl, params['wl'], params['bl'] - (ncol % params['bl'])))
         f = np.concatenate((f, zeros), axis=1)
 
-    f = np.reshape(f, (nwl, wl, -1, 256))
+    f = np.reshape(f, (nwl, params['wl'], -1, params['bl']))
     
     ##################################################
     
