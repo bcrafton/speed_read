@@ -108,7 +108,7 @@ def conv(x, f, b, q, stride, pad1, pad2, params):
     
     ##################################################
     
-    y, psum = pim(patches, f, params)
+    y, psum = pim(patches, f, (1024, 32), params)
     y = np.reshape(y, (32, 32, 32))
     
     assert(np.all(np.absolute(y) < 2 ** 23))
@@ -121,12 +121,13 @@ def conv(x, f, b, q, stride, pad1, pad2, params):
     return y, psum
             
 ##################################################
-# '''
-def pim(x, w, params):
+'''
+def pim(x, w, y_shape, params):
     nrow, nwl, wl, xb = np.shape(x)
     nwl, wl, nbl, bl = np.shape(w) # nwl, nbl, wl, bl
+    nrow, ncol = y_shape
         
-    y = np.zeros(shape=(1024, 32))
+    y = np.zeros(shape=y_shape)
     psum = 0
 
     for row in range(nrow):
@@ -160,14 +161,15 @@ def pim_kernel(x, w, params):
         y += pdot_sum - x_offset
 
     return y, psum
-# '''
-##################################################
 '''
-def pim(x, w, params):
+##################################################
+
+def pim(x, w, y_shape, params):
     nrow, nwl, wl, xb = np.shape(x)
     nwl, wl, nbl, bl = np.shape(w) # nwl, nbl, wl, bl
+    nrow, ncol = y_shape
         
-    y = np.zeros(shape=(1024, 32))
+    y = np.zeros(shape=y_shape)
     
     x = np.ascontiguousarray(x, np.int32)
     w = np.ascontiguousarray(w, np.int32)
@@ -178,13 +180,14 @@ def pim(x, w, params):
     ctypes.c_void_p(w.ctypes.data), 
     ctypes.c_void_p(y.ctypes.data), 
     ctypes.c_int(nrow),
+    ctypes.c_int(ncol),
     ctypes.c_int(nwl),
     ctypes.c_int(nbl),
     ctypes.c_int(wl),
     ctypes.c_int(bl))
 
     return y, psum
-'''
+
 ##################################################
 
 

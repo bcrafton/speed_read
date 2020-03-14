@@ -69,11 +69,10 @@ int conv(int* x, int* f, int* y, int S, int X, int Y, int K, int C, int N)
   
 }
 
-int pim(int* x, int* w, int* y, int R, int NWL, int NBL, int WL, int BL)
+int pim(int* x, int* w, int* y, int R, int C, int NWL, int NBL, int WL, int BL)
 {
   // x = nrow, nwl, wl, xb
   // f = nwl, nbl, wl, bl
-  // f = wl, nbl, bl
   // y = nrow, ncol
   int psum = 0;
   
@@ -98,11 +97,11 @@ int pim(int* x, int* w, int* y, int R, int NWL, int NBL, int WL, int BL)
             }
             psum += 1;
             
-            for (int col=0; col<32; col++) {
+            for (int c=0; c<C; c++) {
               for (int wb=0; wb<8; wb++) {
-                y[r * 32 + col] += (pdot[wb * 32 + col] << (wb + xb));
+                y[r * C + c] += (pdot[wb * C + c] << (wb + xb));
               }
-              y[r * 32 + col] -= ((wl_sum * 128) << xb);
+              y[r * C + c] -= ((wl_sum * 128) << xb);
             }
 
           } // while (wl_ptr < wl) {
