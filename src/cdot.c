@@ -101,7 +101,7 @@ int pim(int* x, int* w, int* y, int R, int C, int NWL, int NBL, int WL, int BL)
             for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
               int c = (bl_ptr + bl * BL) % C;
               int wb = (bl_ptr + bl * BL) / C;
-              // TODO: comment me out for speed.
+              // comment me out for speed.
               // if ((wl_ptr == 0) && (wl == 0) && (xb == 0) && (wb == 0)) { assert(y[r * C + c] == 0); }
 
               if (wb == 0) {
