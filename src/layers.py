@@ -20,15 +20,18 @@ class Model:
         num_layers = len(self.layers)
 
         y = [None] * num_examples
-        metrics = {}
+        results = {}
 
         for example in range(num_examples):
             y[example] = x[example]
             for layer in range(num_layers):
-                y[example], metric = self.layers[layer].forward(x=y[example])
-                metrics[(example, layer)] = metric
+                y[example], result = self.layers[layer].forward(x=y[example])
+                if (layer in results.keys()):
+                    results[layer].append(result)
+                else:
+                    results[layer] = [result]
 
-        return y, metrics
+        return y, results
 
 class Layer:
     layer_id = 0
@@ -117,7 +120,7 @@ class Conv(Layer):
         y_mean = np.mean(y - y_ref)
         y_std = np.std(y - y_ref)
 
-        return y_ref, {'psum': psum, 'y_min': y_min, 'y_max': y_max, 'y_mean': y_mean, 'y_std': y_std}
+        return y_ref, [psum, y_mean, y_std]
         
     '''
     we are thinking this will be a function of:
@@ -142,9 +145,10 @@ class Conv(Layer):
                 rpr_lut[(xb, wb)] = self.params['adc']
             
         if not (self.params['skip'] and self.params['cards']):
+            '''
             for key in sorted(rpr_lut.keys()):
                 print (key, rpr_lut[key])
-                
+            '''
             # print (np.average(list(rpr_lut.values())))
 
             return rpr_lut

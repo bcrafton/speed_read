@@ -90,15 +90,18 @@ def create_model(params):
 ####
 
 start = time.time()
+results = {}
 
 # add threads.
 for params in param_sweep:
+    print (params)
     model = create_model(params)
     x = init_x(10, (32, 32), 0, 127)
     assert (np.min(x) >= 0 and np.max(x) <= 127)
-    _, metrics = model.forward(x=x)
-    # np.save(name, metrics)
+    _, result = model.forward(x=x)
+    results[(params['cards'], params['sigma'])] = result
 
+np.save('results', results)
 print (time.time() - start)
 
 ####

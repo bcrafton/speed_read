@@ -344,9 +344,10 @@ count = 0
 
 -----
 
+how do we want this table structured ? 
+> [examples] * layer * (var, cards)
 
-
-
+can we plot all the layers on same graph ? 
 
 
 
