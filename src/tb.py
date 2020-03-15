@@ -8,6 +8,10 @@ import threading
 import time
 import copy
 
+import multiprocessing
+from multiprocessing import Process
+from multiprocessing import Pool
+
 cmd = "gcc pim.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o pim.so"
 os.system(cmd)
 
@@ -69,9 +73,7 @@ param_sweep = perms(param_sweep)
 
 ####
 
-def create_model(params):
-    weights = np.load('../cifar10_weights.npy', allow_pickle=True).item()
-
+def create_model(weights, params):
     # dont think this padding is right.
     layers = [
     Conv(input_size=(32,32,3),  filter_size=(3,3,3,32),  stride=1, pad1=1, pad2=1, params=params, weights=weights[0]),
@@ -89,33 +91,35 @@ def create_model(params):
 
 ####
 
-def run_command(x, params):
+def run_command(x, weights, params, return_dict):
     print (params)
-    model = create_model(params)
+    model = create_model(weights, params)
     _, result = model.forward(x=x)
-    results[(params['cards'], params['sigma'])] = result
-    return
+    return_dict[(params['cards'], params['sigma'])] = result
 
 ####
 
-start = time.time()
-
 results = {}
 
-x = init_x(10, (32, 32), 0, 127)
-assert (np.min(x) >= 0 and np.max(x) <= 127)
+start = time.time()
+x = init_x(1, (32, 32), 0, 127)
+weights = np.load('../cifar10_weights.npy', allow_pickle=True).item()
 
 num_runs = len(param_sweep)
 parallel_runs = 12
 for run in range(0, num_runs, parallel_runs):
     threads = []
-    for parallel_run in range( min(parallel_runs, num_runs - run)):
-        args = (np.copy(x), param_sweep[run + parallel_run])
-        t = threading.Thread(target=run_command, args=args)
+    manager = multiprocessing.Manager()
+    return_dict = manager.dict()
+    for parallel_run in range(min(parallel_runs, num_runs - run)):
+        args = (np.copy(x), copy.copy(weights), param_sweep[run + parallel_run], return_dict)
+        t = multiprocessing.Process(target=run_command, args=args)
         threads.append(t)
         t.start()
     for t in threads:
         t.join()
+
+    results.update(return_dict)
 
 np.save('results', results)
 print (time.time() - start)
