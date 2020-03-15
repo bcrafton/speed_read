@@ -37,9 +37,9 @@ params = {
 'cards': 1,
 'stall': 0,
 'wl': 128,
-'bl': 128,
+'bl': 64,
 'offset': 128,
-'sigma': 0.1,
+'sigma': 0.07,
 'err_sigma': 0.,
 }
 

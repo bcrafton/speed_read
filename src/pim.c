@@ -82,6 +82,8 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int adc, int R, int 
         for (int xb=0; xb<8; xb++) {
         
           int rpr_addr = (xb * 8) + ((bl + 1) * (BL / C)) - 1;
+          // printf("%d %d %d %d: %d\n", xb, bl, BL, C, rpr_addr);
+          assert ((rpr_addr >= 0) && (rpr_addr < 64));
           int rpr = lut_rpr[rpr_addr];
           
           clear_sat();
