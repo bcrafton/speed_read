@@ -6,35 +6,25 @@ done
 > weight statistic dynamic speed
 > variance
 > layer-by-layer, bit-by-bit params
-
-todo
--------
-> dynamic profiling
-> save {x,y1,y2,...} as tb from tensorflow.
-> batchnorm
-
--------
-
 > how to hit target variance ? 
-> how to make simulations go faster ? 
-
--------
-
+> how to make simulations go faster ?
 > if pdot == adc:
   > pdot will always be larger
   > so we need to figure out what expected value is, if its larger than 16.
   > then add that much.
   > although expected value might be 16... so wudnt need to add in that case.
   
+todo
 -------
-
+> dynamic profiling
+> save {x,y1,y2,...} as tb from tensorflow.
+> batchnorm
 > is pooling necessary ?
+> is there a relationship between the number of rows turned on and the 1s turned on in that row ? 
+  store weight density of that row ... or some bit weighted density i.e. 7 more important than 1.
 
 -------
 
-is there a relationship between the number of rows turned on and the 1s turned on in that row ? 
-store weight density of that row ... or some bit weighted density i.e. 7 more important than 1.
-
--------
-
-
+> collection scripts
+> bias centering
+> cconv cleanup 
