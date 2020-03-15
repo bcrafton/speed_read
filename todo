@@ -38,6 +38,12 @@ todo
 > sweep no skip as well
 
 > why this so slow ?  
+  > https://stackoverflow.com/questions/10789042/python-multi-threading-slower-than-serial
+  > apparently python has real issues with this ...
 
 > better performance metric.
+
+> move rpr out of conv.
+
+-------
 
