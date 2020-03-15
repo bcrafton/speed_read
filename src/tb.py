@@ -39,17 +39,18 @@ params = {
 'wl': 128,
 'bl': 128,
 'offset': 128,
-'sigma': 0.07,
+'sigma': 0.1,
 'err_sigma': 0.,
 }
 
 weights = np.load('../cifar10_weights.npy', allow_pickle=True).item()
 
+# dont think this padding is right.
 layers = [
 Conv(input_size=(32,32,3),  filter_size=(3,3,3,32),  stride=1, pad1=1, pad2=1, params=params, weights=weights[0]),
 Conv(input_size=(32,32,32), filter_size=(3,3,32,32), stride=2, pad1=1, pad2=1, params=params, weights=weights[1]),
-# Conv(input_size=(16,16,32), filter_size=(3,3,32,64), stride=1, pad1=1, pad2=1, params=params, weights=weights[2]),
-# Conv(input_size=(16,16,64), filter_size=(3,3,64,64), stride=2, pad1=1, pad2=1, params=params, weights=weights[3]),
+Conv(input_size=(16,16,32), filter_size=(3,3,32,64), stride=1, pad1=1, pad2=1, params=params, weights=weights[2]),
+Conv(input_size=(16,16,64), filter_size=(3,3,64,64), stride=2, pad1=1, pad2=1, params=params, weights=weights[3]),
 ]
 
 # TODO: these have the same name ...
@@ -58,7 +59,7 @@ model = model(layers=layers)
 ####
 
 tests = [
-(5, (8, 8), model)
+(1, (32, 32), model)
 ]
 
 ####
