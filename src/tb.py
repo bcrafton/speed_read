@@ -89,17 +89,33 @@ def create_model(params):
 
 ####
 
-start = time.time()
-results = {}
-
-# add threads.
-for params in param_sweep:
+def run_command(params):
     print (params)
     model = create_model(params)
-    x = init_x(10, (32, 32), 0, 127)
-    assert (np.min(x) >= 0 and np.max(x) <= 127)
     _, result = model.forward(x=x)
     results[(params['cards'], params['sigma'])] = result
+    return
+
+####
+
+start = time.time()
+
+results = {}
+
+x = init_x(10, (32, 32), 0, 127)
+assert (np.min(x) >= 0 and np.max(x) <= 127)
+
+num_runs = len(param_sweep)
+parallel_runs = 12
+for run in range(0, num_runs, parallel_runs):
+    threads = []
+    for parallel_run in range( min(parallel_runs, num_runs - run)):
+        args = param_sweep[run + parallel_run]
+        t = threading.Thread(target=run_command, args=(args,))
+        threads.append(t)
+        t.start()
+    for t in threads:
+        t.join()
 
 np.save('results', results)
 print (time.time() - start)

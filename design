@@ -349,7 +349,10 @@ how do we want this table structured ?
 
 can we plot all the layers on same graph ? 
 
+-----
 
+> threads still very slow. seems like python overhead (create_model, rpr, x/f transform) has huge overhead. 
+> might want to copy x and send to each thread.
 
 
 

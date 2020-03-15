@@ -18,23 +18,10 @@
 // make sure (bl <= 1024), malloc would be too slow.
 // if we just pick a size large enough we will be okay
 #define VECTOR_SIZE 1024
-int pdot[VECTOR_SIZE];
-int pdot_sum[VECTOR_SIZE];
-int sat[VECTOR_SIZE];
 
-void clear_pdot()
+void clear(int* v)
 {
-    memset(pdot, 0, sizeof(int) * VECTOR_SIZE);
-}
-
-void clear_pdot_sum()
-{
-    memset(pdot_sum, 0, sizeof(int) * VECTOR_SIZE);
-}
-
-void clear_sat()
-{
-    memset(sat, 0, sizeof(int) * VECTOR_SIZE);
+    memset(v, 0, sizeof(int) * VECTOR_SIZE);
 }
 
 //////////////////////////////////////////////
@@ -68,6 +55,10 @@ int sat_error(float p, int adc, int rpr)
 
 int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int adc, int R, int C, int NWL, int NBL, int WL, int BL)
 {
+  int pdot[VECTOR_SIZE];
+  int pdot_sum[VECTOR_SIZE];
+  int sat[VECTOR_SIZE];
+
   // x = nrow, nwl, wl, xb
   // f = nwl, wl, nbl, bl
   // y = nrow, ncol
@@ -88,13 +79,13 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int adc, int R, int 
           }
           int rpr = lut_rpr[rpr_addr];
           
-          clear_sat();
-          clear_pdot_sum();
+          clear(sat);
+          clear(pdot_sum);
           int wl_total = 0;
           int wl_ptr = 0;
           while (wl_ptr < WL) {
           
-            clear_pdot();
+            clear(pdot);
             int wl_sum = 0;
             while ((wl_ptr < WL) && (wl_sum + x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr * 8) + xb] <= rpr)) { // adc -> rpr
               if (x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr * 8) + xb]) {
@@ -121,8 +112,12 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int adc, int R, int 
               int key = rand() % 1000;
               int var_addr = pdot[bl_ptr] * 1000 + key;
               int var = lut_var[var_addr];
-              assert ((var > -3) && (var < 3));
-              
+
+              if (!((var >= -3) && (var <= 3))) {
+                printf("%d\n", var);
+                assert ((var >= -3) && (var <= 3));
+              }              
+
               pdot[bl_ptr] = min(max(pdot[bl_ptr] + var, 0), adc);
               y[r * C + c] += (pdot[bl_ptr] << (wb + xb));
               
