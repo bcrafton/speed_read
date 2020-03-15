@@ -6,13 +6,13 @@ import numpy as np
 import tensorflow as tf
 import threading
 import time
+import copy
 
 cmd = "gcc pim.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o pim.so"
 os.system(cmd)
 
 from layers import Model
 from layers import Conv
-from layers import Dense
 from defines import *
 
 ####
@@ -69,38 +69,35 @@ param_sweep = perms(param_sweep)
 
 ####
 
-weights = np.load('../cifar10_weights.npy', allow_pickle=True).item()
+def create_model(params):
+    weights = np.load('../cifar10_weights.npy', allow_pickle=True).item()
 
-# dont think this padding is right.
-layers = [
-Conv(input_size=(32,32,3),  filter_size=(3,3,3,32),  stride=1, pad1=1, pad2=1, params=params, weights=weights[0]),
-Conv(input_size=(32,32,32), filter_size=(3,3,32,32), stride=2, pad1=1, pad2=1, params=params, weights=weights[1]),
+    # dont think this padding is right.
+    layers = [
+    Conv(input_size=(32,32,3),  filter_size=(3,3,3,32),  stride=1, pad1=1, pad2=1, params=params, weights=weights[0]),
+    Conv(input_size=(32,32,32), filter_size=(3,3,32,32), stride=2, pad1=1, pad2=1, params=params, weights=weights[1]),
 
-Conv(input_size=(16,16,32), filter_size=(3,3,32,64), stride=1, pad1=1, pad2=1, params=params, weights=weights[2]),
-Conv(input_size=(16,16,64), filter_size=(3,3,64,64), stride=2, pad1=1, pad2=1, params=params, weights=weights[3]),
+    Conv(input_size=(16,16,32), filter_size=(3,3,32,64), stride=1, pad1=1, pad2=1, params=params, weights=weights[2]),
+    Conv(input_size=(16,16,64), filter_size=(3,3,64,64), stride=2, pad1=1, pad2=1, params=params, weights=weights[3]),
 
-Conv(input_size=(8,8,64), filter_size=(3,3,64,128), stride=1, pad1=1, pad2=1, params=params, weights=weights[4]),
-Conv(input_size=(8,8,128), filter_size=(3,3,128,128), stride=2, pad1=1, pad2=1, params=params, weights=weights[5]),
-]
+    Conv(input_size=(8,8,64), filter_size=(3,3,64,128), stride=1, pad1=1, pad2=1, params=params, weights=weights[4]),
+    Conv(input_size=(8,8,128), filter_size=(3,3,128,128), stride=2, pad1=1, pad2=1, params=params, weights=weights[5]),
+    ]
 
-model = Model(layers=layers)
-
-####
-
-tests = [
-('cnn1', 10, (32, 32), model)
-]
+    model = Model(layers=layers)
+    return model
 
 ####
 
 start = time.time()
 
-for test in tests:
-    name, num_example, input_shape, model = test
-    x = init_x(num_example, input_shape, 0, 127)
+# add threads.
+for params in param_sweep:
+    model = create_model(params)
+    x = init_x(10, (32, 32), 0, 127)
     assert (np.min(x) >= 0 and np.max(x) <= 127)
     _, metrics = model.forward(x=x)
-    np.save(name, metrics)
+    # np.save(name, metrics)
 
 print (time.time() - start)
 
