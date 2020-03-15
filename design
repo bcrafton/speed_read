@@ -333,6 +333,25 @@ by tossing out variance and that stuff.
 
 using it as an estimate before going further.
 
+-----
+
+> so basically we want speed vs variance plot.
+> two different kinds of those plots but thats not important
+
+we need to run 10 different variance for:
+count = 1
+count = 0
+
+-----
+
+
+
+
+
+
+
+
+
 
 
 
