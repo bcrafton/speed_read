@@ -165,7 +165,7 @@ class Conv(Layer):
                 # rpr_low = max(1, self.params['adc'] // 2)
                 # rpr_high = 2 * self.params['adc']
                 rpr_low = 2
-                rpr_high = 16
+                rpr_high = 12
                 for rpr in range(rpr_low, rpr_high + 1):
                     scale = 2**(wb - 1) * 2**(xb - 1)
                     p = np.max(col_density[:, wb])

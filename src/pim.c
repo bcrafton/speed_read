@@ -21,7 +21,6 @@
 int pdot[VECTOR_SIZE];
 int pdot_sum[VECTOR_SIZE];
 int sat[VECTOR_SIZE];
-int sat_err[VECTOR_SIZE];
 
 void clear_pdot()
 {
@@ -57,16 +56,14 @@ float binomial_pmf(int k, int n, float p)
   return nCk * success * fail;
 }
 
-void calc_sat_error(float* p, int* sat, int* e, int len, int adc, int rpr)
+int sat_error(float p, int adc, int rpr)
 {
-  for (int i=0; i<len; i++) {
-    float mu;
-    for (int s=adc; s<rpr; s++) {
-      float bin = binomial_pmf(s, rpr, p[i]);
-      mu += bin * (adc - s);
-    }
-    e[i] = sat[i] * round(mu);
+  float e = 0.;
+  for (int s=adc; s<rpr; s++) {
+    float bin = binomial_pmf(s, rpr, p);
+    e += bin * (adc - s);
   }
+  return e;
 }
 
 int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int adc, int R, int C, int NWL, int NBL, int WL, int BL)
@@ -88,6 +85,7 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int adc, int R, int 
           
           clear_sat();
           clear_pdot_sum();
+          int wl_total = 0;
           int wl_ptr = 0;
           while (wl_ptr < WL) {
           
@@ -96,6 +94,7 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int adc, int R, int 
             while ((wl_ptr < WL) && (wl_sum + x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr * 8) + xb] <= rpr)) { // adc -> rpr
               if (x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr * 8) + xb]) {
                 wl_sum += 1;
+                wl_total += 1;
                 for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
                   pdot[bl_ptr] += w[(wl * WL * NBL * BL) + (wl_ptr * NBL * BL) + (bl * BL) + bl_ptr];
                 }
@@ -125,17 +124,26 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int adc, int R, int 
               // ordering matters here.
               // do not put sat/pdot_sum before any pdot changes.
               sat[bl_ptr] += (pdot[bl_ptr] == adc); 
-              pdot_sum[bl_ptr] += pdot_sum[bl_ptr];
+              pdot_sum[bl_ptr] += pdot[bl_ptr];
             }
 
           } // while (wl_ptr < wl) {
-          
-          /*
-          calc_sat_error();
-          for (int c=0; c<C; c++) {
-            y[r * C + c] -= sat_error();
+
+          for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
+            int c = (bl_ptr + bl * BL) % C;
+            int wb = (bl_ptr + bl * BL) / C;
+            if (wl_total) {
+              float p = ((float) pdot_sum[bl_ptr]) / ((float) wl_total);
+              p = min(max(p, 0.), 1.);
+              assert (p <= 1.);
+              int e = (int) round(sat_error(p, adc, rpr));
+              assert ((e >= -1) && (e <= 0));
+              // assert(sat[bl_ptr] * e == 0);
+              // if (sat[bl_ptr] * e) printf ("%d\n", sat[bl_ptr] * e);
+              // printf("(%d %d: %f) (%d %d: %d %d)\n", pdot_sum[bl_ptr], wl_total, p, adc, rpr, e, sat[bl_ptr]);
+              y[r * C + c] -= ((sat[bl_ptr] * e) << (wb + xb));
+            }
           }
-          */
         
         } // for (int xb=0; xb<8; xb++) {
       } // for (int bl=0; bl<BL; bl++) {
