@@ -21,3 +21,11 @@ def binomial_pmf(k, n, p):
     return nCk * success * fail
     
 print (binomial_pmf(5, 10, 0.5))
+
+def power(b, p):
+  ret = 1
+  for i in range(p):
+    ret = ret * b
+  return ret
+  
+print (power(3, 3))

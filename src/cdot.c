@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h> 
 #include <string.h>
+#include <math.h>
 #include <assert.h>
 
 #ifndef max
@@ -20,6 +21,7 @@
 int pdot[VECTOR_SIZE];
 int pdot_sum[VECTOR_SIZE];
 int sat[VECTOR_SIZE];
+int sat_err[VECTOR_SIZE];
 
 void clear_pdot()
 {
@@ -38,61 +40,33 @@ void clear_sat()
 
 //////////////////////////////////////////////
 
-int pim_kernel(int* x, int* w, int wl, int bl, int* y)
+int factorial(int n)
 {
-    int ncol = bl / 8;
-
-    int psum = 0;
-    int wl_ptr = 0;
-
-    while (wl_ptr < wl) {
-        int wl_sum = 0;
-        clear_pdot();
-        
-        while ((wl_ptr < wl) && (wl_sum + x[wl_ptr] <= 8)) {
-            if (x[wl_ptr]) {
-                wl_sum += 1;
-                for (int bl_ptr=0; bl_ptr<bl; bl_ptr++) {
-                    pdot[bl_ptr] += w[wl_ptr * bl + bl_ptr];
-                }
-            }
-            wl_ptr += 1;
-        }
-        psum += 1;
-
-        for (int col=0; col<ncol; col++) {
-            for (int wb=0; wb<8; wb++) {
-                y[col] += (pdot[col * 8 + wb] << wb);
-            }
-            y[col] -= wl_sum * 128;
-        }
-    }
-    return psum;
+  int fact = 1;
+  for (int i=1; i<(n+1); i++) {
+    fact = fact * i;
+  }
+  return fact;
 }
 
-int conv(int* x, int* f, int* y, int S, int X, int Y, int K, int C, int N)
+float binomial_pmf(int k, int n, float p)
 {
-  for (int yh=0; yh<Y; yh++) {
-    for (int yw=0; yw<Y; yw++) {
-      
-      for (int kh=0; kh<K; kh++) {
-        for (int kw=0; kw<K; kw++) {
-        
-          for (int c=0; c<C; c++) {
-            for (int n=0; n<N; n++) {
-              int x_addr = ((yh + kh) * X * C) + ((yw + kw) * C) + c;
-              int f_addr = (kh * K * C * N) + (kw * C * N) + (c * N) + n;
-              int y_addr = (yh * Y * N) + (yw * N) + n;
-              y[y_addr] += x[x_addr] * f[f_addr];
-            }
-          }
-        
-        }
-      }
-      
+  int nCk = factorial(n) / (factorial(k) * factorial(n - k));
+  float success = pow(p, k);
+  float fail = pow(1 - p, n - k);
+  return nCk * success * fail;
+}
+
+void calc_sat_error(float* p, int* sat, int* e, int len, int adc, int rpr)
+{
+  for (int i=0; i<len; i++) {
+    float mu;
+    for (int s=adc; s<rpr; s++) {
+      float bin = binomial_pmf(s, rpr, p[i]);
+      mu += bin * (adc - s);
     }
+    e[i] = sat[i] * round(mu);
   }
-  
 }
 
 int pim(int* x, int* w, int* y, int* lut, int R, int C, int NWL, int NBL, int WL, int BL)
@@ -149,6 +123,13 @@ int pim(int* x, int* w, int* y, int* lut, int R, int C, int NWL, int NBL, int WL
             }
 
           } // while (wl_ptr < wl) {
+          
+          /*
+          calc_sat_error();
+          for (int c=0; c<C; c++) {
+            y[r * C + c] -= sat_error();
+          }
+          */
         
         } // for (int xb=0; xb<8; xb++) {
       } // for (int bl=0; bl<BL; bl++) {

@@ -5,8 +5,6 @@ from scipy.stats import norm
 
 import ctypes
 lib = ctypes.cdll.LoadLibrary('./cdot.so')
-lib.pim_kernel.restype = ctypes.c_int
-lib.conv.restype = ctypes.c_int
 lib.pim.restype = ctypes.c_int
 
 ##################################################
