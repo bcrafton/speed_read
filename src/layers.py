@@ -133,7 +133,7 @@ class Conv(Layer):
     1) error from variance
     2) error from rpr > adc
     '''
-    
+    # TODO: move me into my own file, dont make me belong to Conv class.
     def rpr(self):
         rpr_lut = {}
     
@@ -201,56 +201,12 @@ class Conv(Layer):
 
                     # print ('(%d %d %d %d) : %f %f %f' % (self.layer_id, wb, xb, rpr, scale, self.q, var))
   
+        '''
         for key in sorted(rpr_lut.keys()):
             print (key, rpr_lut[key])
-            
-        # print (np.average(list(rpr_lut.values())))
+        '''
         
         return rpr_lut
-        
-#########################
-
-class Dense(Layer):
-    def __init__(self, isize, osize, params, weights=None):
-        self.layer_id = Layer.layer_id
-        Layer.layer_id += 1
-
-        self.isize = isize
-        self.osize = osize
-        assert((self.osize == 32) or (self.osize == 64) or (self.osize == 128))
-
-        if weights == None:
-            maxval = pow(2, params['bpw'] - 1)
-            minval = -1 * (maxval - 1)
-            values = np.array(range(minval, maxval))
-            self.w = np.random.choice(a=values, size=(self.isize, self.osize), replace=True).astype(int)
-            self.b = np.zeros(shape=self.osize).astype(int) 
-            self.q = 200
-        else:
-            self.w, self.b, self.q = weights
-            # check shape
-            assert(np.shape(self.w) == (self.isize, self.osize))
-            assert(np.shape(self.b) == (self.osize,))
-            assert(np.shape(self.q) == ())
-            # cast as int
-            self.w = self.w.astype(int)
-            self.b = self.b.astype(int)
-            self.q = int(self.q)
-            # q must be larger than 0
-            assert(self.q > 0)
-            
-        self.params = params.copy()
-        self.params['rpr'] = self.rpr()
-
-    def forward(self, x):
-        x = np.reshape(x, self.isize)
-        y_ref   = dot_ref(x=x, f=self.w, b=self.b, q=self.q)
-        y, psum = dot(x=x, f=self.wb, b=self.b, q=self.q, params=self.params)
-        assert (np.all(y == y_ref))
-        return y_ref, psum
-
-    def rpr(self):
-        return [self.params['adc']] * self.params['bpa']
 
 #########################
         
