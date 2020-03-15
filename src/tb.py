@@ -7,6 +7,9 @@ import tensorflow as tf
 import threading
 import time
 
+cmd = "gcc pim.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o pim.so"
+os.system(cmd)
+
 from layers import Model
 from layers import Conv
 from layers import Dense
@@ -62,21 +65,19 @@ model = Model(layers=layers)
 ####
 
 tests = [
-(10, (32, 32), model)
+('cnn1', 10, (32, 32), model)
 ]
 
 ####
 
 start = time.time()
 
-metrics = {}
 for test in tests:
-    num_example, input_shape, model = test
+    name, num_example, input_shape, model = test
     x = init_x(num_example, input_shape, 0, 127)
     assert (np.min(x) >= 0 and np.max(x) <= 127)
-    _, metric = model.forward(x=x)
-
-print (metric)
+    _, metrics = model.forward(x=x)
+    np.save(name, metrics)
 
 print (time.time() - start)
 
