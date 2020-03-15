@@ -11,6 +11,25 @@ from defines import *
 
 from scipy.stats import norm, binom
 
+class Model:
+    def __init__(self, layers):
+        self.layers = layers
+
+    def forward(self, x):
+        num_examples, _, _, _ = np.shape(x)
+        num_layers = len(self.layers)
+
+        y = [None] * num_examples
+        metrics = {}
+
+        for example in range(num_examples):
+            y[example] = x[example]
+            for layer in range(num_layers):
+                y[example], metric = self.layers[layer].forward(x=y[example])
+                metrics[(example, layer)] = metric
+
+        return y, metrics
+
 class Layer:
     layer_id = 0
     
@@ -92,11 +111,13 @@ class Conv(Layer):
         y_ref   = conv_ref(x=x, f=self.w, b=self.b, q=self.q, stride=self.s, pad1=self.p1, pad2=self.p2)
         # y, psum = conv(x=x, f=self.wb, b=self.b, q=self.q, stride=self.s, pad1=self.p1, pad2=self.p2, params=self.params)
         y, psum = cconv(x=x, f=self.w, b=self.b, q=self.q, stride=self.s, pad1=self.p1, pad2=self.p2, params=self.params)
-        # assert (np.all(y == y_ref))
-        print (np.min(y - y_ref), np.max(y - y_ref), np.mean(y - y_ref), np.std(y - y_ref))
-        # plt.hist(np.reshape(y - y_ref, -1), bins=50)
-        # plt.show()
-        return y_ref, psum
+
+        y_min = np.min(y - y_ref)
+        y_max = np.max(y - y_ref)
+        y_mean = np.mean(y - y_ref)
+        y_std = np.std(y - y_ref)
+
+        return y_ref, {'psum': psum, 'y_min': y_min, 'y_max': y_max, 'y_mean': y_mean, 'y_std': y_std}
         
     '''
     we are thinking this will be a function of:
@@ -165,7 +186,7 @@ class Conv(Layer):
                 # rpr_low = max(1, self.params['adc'] // 2)
                 # rpr_high = 2 * self.params['adc']
                 rpr_low = 2
-                rpr_high = 12
+                rpr_high = 16
                 for rpr in range(rpr_low, rpr_high + 1):
                     scale = 2**(wb - 1) * 2**(xb - 1)
                     p = np.max(col_density[:, wb])
