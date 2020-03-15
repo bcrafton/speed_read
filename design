@@ -354,6 +354,24 @@ can we plot all the layers on same graph ?
 > threads still very slow. seems like python overhead (create_model, rpr, x/f transform) has huge overhead. 
 > might want to copy x and send to each thread.
 
+> why is std so high instantly ? 
+  > def because we are using wrong var/rpr lut.
+
+so its layer #3 we can see this issue occuring at var = 0.1
+> then it starts to derail.
+> hmmm ...
+> well its actually the point after var=0.1 ... var=0.11.
+> it dosnt look specific to layer 3 actuallly.
+> what would this be then ???
+  > so, the first wave = [5,6,7,8,9,10] * [0, 1]
+  > 11 is just outside of that wave.
+  > but we saw that before (1 at a time) anyways.
+
+
+
+
+
+
 
 
 

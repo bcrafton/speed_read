@@ -59,7 +59,7 @@ param_sweep = {
 'cards': [0, 1],
 'stall': 0,
 'wl': 128,
-'bl': 64,
+'bl': 128,
 'offset': 128,
 'sigma': [0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15],
 'err_sigma': 0.,
@@ -89,7 +89,7 @@ def create_model(params):
 
 ####
 
-def run_command(params):
+def run_command(x, params):
     print (params)
     model = create_model(params)
     _, result = model.forward(x=x)
@@ -110,8 +110,8 @@ parallel_runs = 12
 for run in range(0, num_runs, parallel_runs):
     threads = []
     for parallel_run in range( min(parallel_runs, num_runs - run)):
-        args = param_sweep[run + parallel_run]
-        t = threading.Thread(target=run_command, args=(args,))
+        args = (np.copy(x), param_sweep[run + parallel_run])
+        t = threading.Thread(target=run_command, args=args)
         threads.append(t)
         t.start()
     for t in threads:

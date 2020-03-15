@@ -28,3 +28,16 @@ todo
 > collection scripts
 > bias centering
 > cconv cleanup 
+
+-------
+
+> we dont do variance by cell.
+  > we do read-to-read variance basically
+  > wudnt really be useful for bias centering anyways.
+
+> sweep no skip as well
+
+> why this so slow ?  
+
+> better performance metric.
+

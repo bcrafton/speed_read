@@ -59,7 +59,8 @@ def cconv(x, f, b, q, stride, pad1, pad2, params):
     ##################################################
     
     lut_rpr = get_lut_rpr(params['rpr'])
-    lut_var = get_lut_var(params['sigma'], np.max(lut_rpr))
+    # lut_var = get_lut_var(params['sigma'], np.max(lut_rpr))
+    lut_var = get_lut_var(params['sigma'], 32)
     
     ##################################################
 
@@ -146,6 +147,10 @@ def pim(x, w, y_shape, lut_var, lut_rpr, params):
     y = np.ascontiguousarray(y, np.int32)
     lut_var = np.ascontiguousarray(lut_var, np.int32)
     lut_rpr = np.ascontiguousarray(lut_rpr, np.int32)
+
+    # print (lut_rpr)
+    # print (np.array(lut_rpr.ctypes.strides))
+    # assert (False)
 
     psum = lib.pim(
     ctypes.c_void_p(x.ctypes.data), 

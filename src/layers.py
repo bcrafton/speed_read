@@ -189,7 +189,7 @@ class Conv(Layer):
             for xb in range(self.params['bpa']):
                 # rpr_low = max(1, self.params['adc'] // 2)
                 # rpr_high = 2 * self.params['adc']
-                rpr_low = 2
+                rpr_low = 1
                 rpr_high = 16
                 for rpr in range(rpr_low, rpr_high + 1):
                     scale = 2**(wb - 1) * 2**(xb - 1)

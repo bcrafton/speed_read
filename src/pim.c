@@ -21,7 +21,7 @@
 
 void clear(int* v)
 {
-    memset(v, 0, sizeof(int) * VECTOR_SIZE);
+  memset(v, 0, sizeof(int) * VECTOR_SIZE);
 }
 
 //////////////////////////////////////////////
@@ -70,9 +70,14 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int adc, int R, int 
         for (int xb=0; xb<8; xb++) {
 
           // TODO: dont want to clip -> get this function right.
-          int rpr_addr = (xb * 8) + ((bl + 1) * (BL / C)) - 1;
-          if (rpr_addr == -1) rpr_addr = 0;
-
+          int rpr_addr;
+          if (BL >= C) {
+            rpr_addr = (xb * 8) + ((bl + 1) * (BL / C)) - 1;
+          }
+          else {
+            assert (BL >= C);
+          }
+          
           if (!((rpr_addr >= 0) && (rpr_addr < 64))) {
             printf("%d %d %d %d: %d\n", xb, bl, BL, C, rpr_addr);
             assert ((rpr_addr >= 0) && (rpr_addr < 64));
