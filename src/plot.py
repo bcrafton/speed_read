@@ -31,15 +31,28 @@ print (y_std[1])
 fig, ax1 = plt.subplots()
 ax2 = ax1.twinx()
 
-ax1.plot(x, y_psum[0, :, 3], color='red', linestyle='--', label='skip performance')
-ax1.plot(x, y_psum[1, :, 3], color='green', linestyle='--', label='cards performance')
+ax1.plot(x, y_psum[0, :, 3], color='red', linestyle='--', label='skip')
+ax1.plot(x, y_psum[1, :, 3], color='green', linestyle='--', label='cards')
 
-ax2.plot(x, y_std[0, :, 3], color='red', label='skip std')
-ax2.plot(x, y_std[1, :, 3], color='green', label='cards std')
+ax2.plot(x, y_std[0, :, 3], color='red', label='skip')
+ax2.plot(x, y_std[1, :, 3], color='green', label='cards')
 
-ax1.legend(loc="upper left")
-ax2.legend(loc="upper right")
-plt.show()
+ax1.set_ylim(bottom=0)
+ax2.set_ylim(bottom=0)
+
+ax1.legend(loc='center left')
+ax2.legend(loc='center right')
+
+ax1.set_ylabel("MAC / Cycle")
+ax2.set_ylabel("Average STD from Truth")
+plt.xticks(x)
+
+ax1.set_xlabel('Cell to Cell Variance')
+
+fig = plt.gcf()
+fig.set_size_inches(6, 4)
+fig.savefig('cards.png', dpi=300)
+# plt.show()
 
 ####################
 

@@ -63,8 +63,8 @@ class Conv(Layer):
         self.p1 = pad1
         self.p2 = pad2
         
-        self.y_h = (self.h - self.fh + self.s + self.p1 + self.p2) / self.s
-        self.y_w = (self.w - self.fw + self.s + self.p1 + self.p2) / self.s
+        self.yh = (self.h - self.fh + self.s + self.p1 + self.p2) / self.s
+        self.yw = (self.w - self.fw + self.s + self.p1 + self.p2) / self.s
                 
         if (self.fh == 1): 
             assert((self.s==1) and (self.p1==0) and (self.p2==0))
@@ -120,7 +120,9 @@ class Conv(Layer):
         y_mean = np.mean(y - y_ref)
         y_std = np.std(y - y_ref)
 
-        return y_ref, [psum, y_mean, y_std]
+        nmac = (self.yh * self.yw) * (self.fh * self.fw * self.fc * self.fn)
+
+        return y_ref, [nmac / psum, y_mean, y_std]
         
     '''
     we are thinking this will be a function of:
