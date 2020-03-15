@@ -179,6 +179,7 @@ def pim_kernel(x, w, xb, wb, params):
     sat = 0
     wl_ptr = 0
     pdot_sum = 0
+    wl_sums = 0
     while wl_ptr < len(x):
         wl_sum = 0
         pdot = np.zeros(params['bl'])
@@ -203,10 +204,22 @@ def pim_kernel(x, w, xb, wb, params):
             y -= x_offset
 
         psum += 1
+        wl_sums += wl_sum
+
+        # okay we figured out the problem here.
+        # using (psum * params['rpr'][(xb, wb)])
+        # is bad because brings down the average a lot.
 
         p = pdot_sum / (psum * params['rpr'][(xb, wb)])
         mu = np.around(sat_err(p, params['sigma'], params['adc'], params['rpr'][(xb, wb)], sat))                
         y -= mu.reshape(oshape, bpw) @ shift
+    '''
+    if wl_sums > 0:
+        p = pdot_sum / wl_sums
+        mu = sat * np.around(sat_err(p, params['sigma'], params['adc'], params['rpr'][(xb, wb)], sat))
+        mu = mu.reshape(oshape, bpw) @ shift
+        y -= mu
+    '''
 
     return y, psum
 
