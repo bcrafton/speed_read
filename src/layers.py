@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 
 from conv_utils import conv_output_length
 from dot import *
+from cdot import *
 from dot_ref import *
 from defines import *
 
@@ -89,7 +90,8 @@ class Conv(Layer):
         # 1) tensorflow to compute y_ref
         # 2) save {x,y1,y2,...} as tb from tensorflow 
         y_ref   = conv_ref(x=x, f=self.w, b=self.b, q=self.q, stride=self.s, pad1=self.p1, pad2=self.p2)
-        y, psum = conv(x=x, f=self.wb, b=self.b, q=self.q, stride=self.s, pad1=self.p1, pad2=self.p2, params=self.params)
+        # y, psum = conv(x=x, f=self.wb, b=self.b, q=self.q, stride=self.s, pad1=self.p1, pad2=self.p2, params=self.params)
+        y, psum = cconv(x=x, f=self.w, b=self.b, q=self.q, stride=self.s, pad1=self.p1, pad2=self.p2, params=self.params)
         # assert (np.all(y == y_ref))
         print (np.min(y - y_ref), np.max(y - y_ref), np.mean(y - y_ref), np.std(y - y_ref))
         # plt.hist(np.reshape(y - y_ref, -1), bins=50)
@@ -163,7 +165,7 @@ class Conv(Layer):
                 # rpr_low = max(1, self.params['adc'] // 2)
                 # rpr_high = 2 * self.params['adc']
                 rpr_low = 2
-                rpr_high = 16
+                rpr_high = 8
                 for rpr in range(rpr_low, rpr_high + 1):
                     scale = 2**(wb - 1) * 2**(xb - 1)
                     p = np.max(col_density[:, wb])
