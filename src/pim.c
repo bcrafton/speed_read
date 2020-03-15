@@ -121,8 +121,9 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int adc, int R, int 
               int var_addr = pdot[bl_ptr] * 1000 + key;
               int var = lut_var[var_addr];
               assert ((var > -3) && (var < 3));
-              // add and clip var to pdot.
-              y[r * C + c] += ((pdot[bl_ptr] + var) << (wb + xb));
+              
+              pdot[bl_ptr] = min(max(pdot[bl_ptr] + var, 0), adc);
+              y[r * C + c] += (pdot[bl_ptr] << (wb + xb));
             }
 
           } // while (wl_ptr < wl) {
