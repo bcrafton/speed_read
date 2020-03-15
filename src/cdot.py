@@ -58,8 +58,8 @@ def cconv(x, f, b, q, stride, pad1, pad2, params):
     
     ##################################################
     
-    lut_var = get_lut_var(params['sigma'], params['adc'])
     lut_rpr = get_lut_rpr(params['rpr'])
+    lut_var = get_lut_var(params['sigma'], np.max(lut_rpr))
     
     ##################################################
 

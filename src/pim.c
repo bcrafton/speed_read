@@ -103,11 +103,6 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int adc, int R, int 
             psum += 1;
             
             for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
-              // ordering matters here.
-              // do not put sat/pdot_sum behind any pdot changes.
-              sat[bl_ptr] += (pdot[bl_ptr] == adc); 
-              pdot_sum[bl_ptr] += pdot_sum[bl_ptr];
-
               int c = (bl_ptr + bl * BL) % C;
               int wb = (bl_ptr + bl * BL) / C;
               // comment me out for speed.
@@ -124,6 +119,11 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int adc, int R, int 
               
               pdot[bl_ptr] = min(max(pdot[bl_ptr] + var, 0), adc);
               y[r * C + c] += (pdot[bl_ptr] << (wb + xb));
+              
+              // ordering matters here.
+              // do not put sat/pdot_sum before any pdot changes.
+              sat[bl_ptr] += (pdot[bl_ptr] == adc); 
+              pdot_sum[bl_ptr] += pdot_sum[bl_ptr];
             }
 
           } // while (wl_ptr < wl) {
