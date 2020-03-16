@@ -13,7 +13,18 @@ done
   > so we need to figure out what expected value is, if its larger than 16.
   > then add that much.
   > although expected value might be 16... so wudnt need to add in that case.
+
+> why this so slow ?  
+  > https://stackoverflow.com/questions/10789042/python-multi-threading-slower-than-serial
+  > apparently python has real issues with this ...
+  > multiprocessing is a package that supports spawning processes using an API similar to the threading module. The multiprocessing package offers both local and remote concurrency, effectively side-stepping the Global Interpreter Lock by using subprocesses instead of threads. Due to this, the multiprocessing module allows the programmer to fully leverage multiple processors on a given machine. It runs on both Unix and Windows.
   
+> better performance metric.
+  > nmac = (Hi * Wi) * (Fh * Fw * Ci * Co)
+  > mwl = (Hi * Wi) * 8 * ((Fh * Fw * Ci) / WL) * (Co / BL)
+
+> collection scripts
+
 todo
 -------
 > dynamic profiling
@@ -22,29 +33,14 @@ todo
 > is pooling necessary ?
 > is there a relationship between the number of rows turned on and the 1s turned on in that row ? 
   store weight density of that row ... or some bit weighted density i.e. 7 more important than 1.
-
--------
-
-> collection scripts
 > bias centering
 > cconv cleanup 
-
--------
 
 > we dont do variance by cell.
   > we do read-to-read variance basically
   > wudnt really be useful for bias centering anyways.
 
 > sweep no skip as well
-
-> why this so slow ?  
-  > https://stackoverflow.com/questions/10789042/python-multi-threading-slower-than-serial
-  > apparently python has real issues with this ...
-  > multiprocessing is a package that supports spawning processes using an API similar to the threading module. The multiprocessing package offers both local and remote concurrency, effectively side-stepping the Global Interpreter Lock by using subprocesses instead of threads. Due to this, the multiprocessing module allows the programmer to fully leverage multiple processors on a given machine. It runs on both Unix and Windows.
-
-> better performance metric.
-  > nmac = (Hi * Wi) * (Fh * Fw * Ci * Co)
-  > mwl = (Hi * Wi) * 8 * ((Fh * Fw * Ci) / WL) * (Co / BL)
 
 > move rpr out of conv.
 
