@@ -159,6 +159,7 @@ def pim(x, w, y_shape, lut_var, lut_rpr, params):
     ctypes.c_void_p(lut_var.ctypes.data), 
     ctypes.c_void_p(lut_rpr.ctypes.data), 
     ctypes.c_int(params['adc']),
+    ctypes.c_int(params['skip']),
     ctypes.c_int(nrow),
     ctypes.c_int(ncol),
     ctypes.c_int(nwl),

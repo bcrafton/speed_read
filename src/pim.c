@@ -53,7 +53,7 @@ int sat_error(float p, int adc, int rpr)
   return e;
 }
 
-int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int adc, int R, int C, int NWL, int NBL, int WL, int BL)
+int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int adc, int skip, int R, int C, int NWL, int NBL, int WL, int BL)
 {
   int pdot[VECTOR_SIZE];
   int pdot_sum[VECTOR_SIZE];
@@ -89,18 +89,33 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int adc, int R, int 
           int wl_total = 0;
           int wl_ptr = 0;
           while (wl_ptr < WL) {
-          
+
             clear(pdot);
             int wl_sum = 0;
-            while ((wl_ptr < WL) && (wl_sum + x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr * 8) + xb] <= rpr)) { // adc -> rpr
-              if (x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr * 8) + xb]) {
-                wl_sum += 1;
-                wl_total += 1;
-                for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
-                  pdot[bl_ptr] += w[(wl * WL * NBL * BL) + (wl_ptr * NBL * BL) + (bl * BL) + bl_ptr];
+            if (skip) {              
+              while ((wl_ptr < WL) && (wl_sum + x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr * 8) + xb] <= rpr)) {
+                if (x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr * 8) + xb]) {
+                  wl_sum += 1;
+                  wl_total += 1;
+                  for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
+                    pdot[bl_ptr] += w[(wl * WL * NBL * BL) + (wl_ptr * NBL * BL) + (bl * BL) + bl_ptr];
+                  }
                 }
+                wl_ptr += 1;
               }
-              wl_ptr += 1;
+            }
+            else {
+              int start = wl_ptr;
+              while ((wl_ptr < WL) && (wl_ptr < (start + adc))) {
+                if (x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr * 8) + xb]) {
+                  wl_sum += 1;
+                  wl_total += 1;
+                  for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
+                    pdot[bl_ptr] += w[(wl * WL * NBL * BL) + (wl_ptr * NBL * BL) + (bl * BL) + bl_ptr];
+                  }
+                }
+                wl_ptr += 1;
+              }
             }
             psum += 1;
             

@@ -59,7 +59,7 @@ param_sweep = {
 'bpa': 8,
 'bpw': 8,
 'adc': 8,
-'skip': 1,
+'skip': [0, 1],
 'cards': [0, 1],
 'stall': 0,
 'wl': 128,
@@ -95,7 +95,7 @@ def run_command(x, weights, params, return_dict):
     print (params)
     model = create_model(weights, params)
     _, result = model.forward(x=x)
-    return_dict[(params['cards'], params['sigma'])] = result
+    return_dict[(params['skip'], params['cards'], params['sigma'])] = result
 
 ####
 
