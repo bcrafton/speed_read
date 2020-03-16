@@ -39,14 +39,14 @@ todo
 > we dont do variance by cell.
   > we do read-to-read variance basically
   > wudnt really be useful for bias centering anyways.
-> sweep no skip as well
 > move rpr out of conv.
+> no skip only go length of x ? 
+  > currently it goes whole wl ...
 
 -------
 
 priority:
 > imagenet64
-> sweep no skip as well
 > move rpr out of conv
 
 
