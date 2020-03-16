@@ -75,7 +75,7 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int adc, int skip, i
             rpr_addr = (xb * 8) + ((bl + 1) * (BL / C)) - 1;
           }
           else {
-            assert (BL >= C);
+            rpr_addr = (xb * 8) + (bl / (C / BL)); 
           }
           
           if (!((rpr_addr >= 0) && (rpr_addr < 64))) {
