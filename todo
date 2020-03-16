@@ -33,20 +33,21 @@ todo
 > is pooling necessary ?
 > is there a relationship between the number of rows turned on and the 1s turned on in that row ? 
   store weight density of that row ... or some bit weighted density i.e. 7 more important than 1.
+
 > bias centering
 > cconv cleanup 
-
 > we dont do variance by cell.
   > we do read-to-read variance basically
   > wudnt really be useful for bias centering anyways.
-
 > sweep no skip as well
-
 > move rpr out of conv.
 
 -------
 
-
+priority:
+> imagenet64
+> sweep no skip as well
+> move rpr out of conv
 
 
 
