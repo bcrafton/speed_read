@@ -26,30 +26,51 @@ void clear(int* v)
 
 //////////////////////////////////////////////
 
-int factorial(int n)
+long unsigned int factorial(int n)
 {
-  int fact = 1;
+  long unsigned int fact = 1;
   for (int i=1; i<(n+1); i++) {
     fact = fact * i;
   }
   return fact;
 }
 
+long unsigned int nChoosek(int n, int k)
+{
+  long unsigned int t = factorial(n);
+  long unsigned int b = factorial(k) * factorial(n - k);
+  long unsigned int nCk = t / b;
+  assert (nCk > 0);
+  return nCk;
+}
+
 float binomial_pmf(int k, int n, float p)
 {
-  int nCk = factorial(n) / (factorial(k) * factorial(n - k));
+  long unsigned int nCk = nChoosek(n, k);
   float success = pow(p, k);
   float fail = pow(1 - p, n - k);
-  return nCk * success * fail;
+  float pmf = nCk * success * fail;
+  assert (pmf >= 0.);
+  return pmf;
 }
 
 int sat_error(float p, int adc, int rpr)
 {
+  if (rpr <= adc) {
+    return 0;
+  }
   float e = 0.;
+  float bin_sum = 0.;
   for (int s=adc; s<rpr; s++) {
     float bin = binomial_pmf(s, rpr, p);
+    bin_sum += bin;
     e += bin * (adc - s);
   }
+  assert (bin_sum >= 0.);
+  if (bin_sum > 0.) {
+    e /= bin_sum;
+  }
+  assert (e <= 0);
   return e;
 }
 
@@ -156,8 +177,7 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int adc, int skip, i
               float p = ((float) pdot_sum[bl_ptr]) / ((float) wl_total);
               p = min(max(p, 0.), 1.);
               assert (p <= 1.);
-              int e = (int) round(sat_error(p, adc, rpr));
-              assert ((e >= -1) && (e <= 0));
+              int e = sat_error(p, adc, rpr);
               // assert(sat[bl_ptr] * e == 0);
               // if (sat[bl_ptr] * e) printf ("%d\n", sat[bl_ptr] * e);
               // printf("(%d %d: %f) (%d %d: %d %d)\n", pdot_sum[bl_ptr], wl_total, p, adc, rpr, e, sat[bl_ptr]);
