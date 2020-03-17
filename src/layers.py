@@ -52,7 +52,7 @@ class Conv(Layer):
         Layer.layer_id += 1
 
         self.input_size = input_size
-        self.h, self.w, self.c = self.input_size
+        self.xh, self.xw, self.c = self.input_size
                 
         self.filter_size = filter_size
         self.fh, self.fw, self.fc, self.fn = self.filter_size
@@ -64,8 +64,8 @@ class Conv(Layer):
         self.p1 = pad1
         self.p2 = pad2
         
-        self.yh = (self.h - self.fh + self.s + self.p1 + self.p2) / self.s
-        self.yw = (self.w - self.fw + self.s + self.p1 + self.p2) / self.s
+        self.yh = (self.xh - self.fh + self.s + self.p1 + self.p2) // self.s
+        self.yw = (self.xw - self.fw + self.s + self.p1 + self.p2) // self.s
                 
         if (self.fh == 1): 
             assert((self.s==1) and (self.p1==0) and (self.p2==0))
@@ -133,6 +133,10 @@ class Conv(Layer):
         y_std = np.std(y - y_ref)
 
         nmac = (self.yh * self.yw) * (self.fh * self.fw * self.fc * self.fn)
+
+        # print (np.mean(y_ref), np.std(y_ref))
+        # print (np.mean(y), np.std(y))
+        # print (self.params['cards'], (self.yh, self.yh), (self.fh, self.fw, self.fc, self.fn), 'mac / cycle', nmac / psum, np.mean(y_ref), np.std(y_ref))
 
         return y_ref, [nmac / psum, y_mean, y_std]
         

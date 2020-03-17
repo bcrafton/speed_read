@@ -20,9 +20,15 @@ for key in sorted(results.keys()):
 
 ####################
 
-print (y_std[0, 0])
-print (y_std[1, 0])
-print (y_std[1, 1])
+print (y_psum[0, 0])
+print (y_psum[1, 0])
+print (y_psum[1, 1])
+
+print ()
+
+# print (y_std[0, 0])
+# print (y_std[1, 0])
+# print (y_std[1, 1])
 
 ####################
 

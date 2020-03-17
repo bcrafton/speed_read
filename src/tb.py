@@ -80,10 +80,10 @@ def create_model(weights, params):
     layers = [
     Conv(input_size=(64,64,3),   filter_size=(3,3,3,64),     stride=1, pad1=1, pad2=1, params=params, weights=weights[0]),
     Conv(input_size=(64,64,64),  filter_size=(3,3,64,64),    stride=2, pad1=1, pad2=1, params=params, weights=weights[1]),
-    Conv(input_size=(32,32,64),  filter_size=(3,3,64,128),   stride=1, pad1=1, pad2=1, params=params, weights=weights[2]),
+    Conv(input_size=(32,32,64),  filter_size=(3,3,64,128),   stride=2, pad1=1, pad2=1, params=params, weights=weights[2]),
     Conv(input_size=(16,16,128), filter_size=(3,3,128,256),  stride=2, pad1=1, pad2=1, params=params, weights=weights[3]),
     Conv(input_size=(8,8,256),   filter_size=(3,3,256,512),  stride=2, pad1=1, pad2=1, params=params, weights=weights[4]),
-    Conv(input_size=(4,4,512),   filter_size=(3,3,512,1024), stride=2, pad1=1, pad2=1, params=params, weights=weights[5]),
+    Conv(input_size=(4,4,512),   filter_size=(3,3,512,1024), stride=1, pad1=1, pad2=1, params=params, weights=weights[5]),
     ]
 
     model = Model(layers=layers)

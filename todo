@@ -25,29 +25,68 @@ done
 
 > collection scripts
 
+> move rpr out of conv
+
+> is pooling necessary ?
+  > yes.
+
+future / not doing:
+-------
+> is there a relationship between the number of rows turned on and the 1s turned on in that row ? 
+  store weight density of that row ... or some bit weighted density i.e. 7 more important than 1.
+
 todo
 -------
 > dynamic profiling
 > save {x,y1,y2,...} as tb from tensorflow.
 > batchnorm
-> is pooling necessary ?
-> is there a relationship between the number of rows turned on and the 1s turned on in that row ? 
-  store weight density of that row ... or some bit weighted density i.e. 7 more important than 1.
 
 > bias centering
 > cconv cleanup 
 > we dont do variance by cell.
   > we do read-to-read variance basically
   > wudnt really be useful for bias centering anyways.
-> move rpr out of conv.
 > no skip only go length of x ? 
   > currently it goes whole wl ...
+
+> imagenet64
 
 -------
 
 priority:
 > imagenet64
-> move rpr out of conv
+
+-------
+
+model was wrong -> messed everything up.
+> make sure Ho/Wo and yh/yw are correct.
+
+as mean/std of activations/weights goes down, performance skyrockets.
+
+-------
+
+will we be able to support resnet/densenet/mobilenet ? 
+> depthwise convolutions are bad for compute in memory.
+> pointwise are just fine.
+
+can we find online where state of the art is for 8 bit networks ? 
+> what models are people using ? 
+> what do accuracy numbers look like ? 
+
+so it seems like everyone respects resnet.
+which will be a giant pain to train.
+
+> ResNet ? 
+> BatchNorm
+> Intermediate Accuracy #s would also be good.
+> Parallelize over the 5 GPUs
+
+-------
+
+
+
+
+
 
 
 

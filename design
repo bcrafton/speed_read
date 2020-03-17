@@ -367,9 +367,18 @@ so its layer #3 we can see this issue occuring at var = 0.1
   > 11 is just outside of that wave.
   > but we saw that before (1 at a time) anyways.
 
+-----
 
+author of that paper makes it pretty clear.
+for training:
+batch mean/std
 
+for inference:
+moving averages from training of mean/std.
 
+so really it should not be that hard to come up with this ...
+
+-----
 
 
 
