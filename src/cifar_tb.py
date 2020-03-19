@@ -79,7 +79,6 @@ param_sweep = perms(param_sweep)
 ####
 
 def create_model(weights, params):
-    # dont think this padding is right.
     layers = [
     Conv(input_size=(32,32,3),  filter_size=(3,3,3,32),   pool=1, stride=1, pad1=1, pad2=1, params=params, weights=weights[0]),
     Conv(input_size=(32,32,32), filter_size=(3,3,32,32),  pool=2, stride=1, pad1=1, pad2=1, params=params, weights=weights[1]),

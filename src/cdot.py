@@ -206,8 +206,6 @@ def cdot(x, w, b, q, params):
     y = np.reshape(y, W)
         
     assert(np.all(np.absolute(y) < 2 ** 23))
-    y = y + b
-    y = relu(y)
     y = y / q
     y = np.floor(y)
     y = np.clip(y, -128, 127)
