@@ -56,7 +56,6 @@ def cconv(x, f, b, q, pool, stride, pad1, pad2, params):
     Wo = conv_output_length(Hi, Fw, 'same', stride)
 
     y = np.zeros(shape=(Ho, Wo, Co))
-    psum = 0
     
     ##################################################
     
@@ -125,7 +124,7 @@ def cconv(x, f, b, q, pool, stride, pad1, pad2, params):
     
     ##################################################
     
-    y, psum, metrics = pim(patches, f, (Ho * Wo, Co), lut_var, lut_rpr, params)
+    y, metrics = pim(patches, f, (Ho * Wo, Co), lut_var, lut_rpr, params)
     y = np.reshape(y, (Ho, Wo, Co))
     
     assert(np.all(np.absolute(y) < 2 ** 23))
@@ -135,7 +134,7 @@ def cconv(x, f, b, q, pool, stride, pad1, pad2, params):
     y = np.floor(y)
     y = np.clip(y, -128, 127)
 
-    return y, psum, metrics
+    return y, metrics
 
 ##################################################
 
@@ -144,7 +143,6 @@ def cdot(x, w, b, q, params):
     assert (len(x) == H)
 
     y = np.zeros(shape=(W, 1))
-    psum = 0
     
     ##################################################
     
@@ -202,7 +200,7 @@ def cdot(x, w, b, q, params):
     
     ##################################################
     
-    y, psum, metrics = pim(x, w, (1, W), lut_var, lut_rpr, params)
+    y, metrics = pim(x, w, (1, W), lut_var, lut_rpr, params)
     y = np.reshape(y, W)
         
     assert(np.all(np.absolute(y) < 2 ** 23))
@@ -210,7 +208,7 @@ def cdot(x, w, b, q, params):
     y = np.floor(y)
     y = np.clip(y, -128, 127)
 
-    return y, psum, metrics
+    return y, metrics
 
 def pim(x, w, y_shape, lut_var, lut_rpr, params):
     nrow, nwl, wl, xb = np.shape(x)
@@ -219,8 +217,8 @@ def pim(x, w, y_shape, lut_var, lut_rpr, params):
         
     y = np.zeros(shape=y_shape)
 
-    # metrics = adc {1,2,3,4,5,6,7,8}, ron, roff, wl_drv
-    metrics = np.zeros(shape=11)
+    # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
+    metrics = np.zeros(shape=12)
     
     x = np.ascontiguousarray(x, np.int32)
     w = np.ascontiguousarray(w, np.int32)
@@ -249,7 +247,7 @@ def pim(x, w, y_shape, lut_var, lut_rpr, params):
     ctypes.c_int(wl),
     ctypes.c_int(bl))
     
-    return y, psum, metrics
+    return y, metrics
     
     
     

@@ -85,14 +85,16 @@ adc.5
 adc.6
 adc.7
 adc.8
+cycle
 ron
 roff
-wl_drv
+wl
 */
 
-#define METRIC_RON  8
-#define METRIC_ROFF 9
-#define METRIC_WL   10
+#define METRIC_CYCLE  8
+#define METRIC_RON    9
+#define METRIC_ROFF  10
+#define METRIC_WL    11
 
 int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int adc, int skip, int R, int C, int NWL, int NBL, int WL, int BL)
 {
@@ -225,6 +227,8 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
       } // for (int bl=0; bl<BL; bl++) {
     } // for (int wl=0; wl<WL; wl++) {
   } // for (int r=0; r<R; r++) {
+  
+  metrics[METRIC_CYCLE] = psum;
   
   return psum;  
 }

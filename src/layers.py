@@ -133,17 +133,26 @@ class Conv(Layer):
         # 1) tensorflow to compute y_ref
         # 2) save {x,y1,y2,...} as tb from tensorflow 
         y_ref   = conv_ref(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2)
-        y, psum, metrics = cconv(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2, params=self.params)
+        y, metrics = cconv(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2, params=self.params)
 
         y_min = np.min(y - y_ref)
         y_max = np.max(y - y_ref)
         y_mean = np.mean(y - y_ref)
         y_std = np.std(y - y_ref)
         nmac = (self.yh * self.yw) * (self.fh * self.fw * self.fc * self.fn)
+        
+        # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
+        results = {}
+        results['nmac']  = nmac
+        results['adc']   = metrics[0:8]
+        results['cycle'] = metrics[8]
+        results['ron']   = metrics[9]
+        results['roff']  = metrics[10]
+        results['wl']    = metrics[11]
+        results['std']   = y_std
+        results['mean']  = y_mean
 
-        print (y_mean, y_std)
-
-        return y, [nmac / psum, y_mean, y_std]
+        return y, results
         
 #########################
         
@@ -206,7 +215,7 @@ class Dense(Layer):
         x = np.mean(x, axis=(0, 1))
         x = np.reshape(x, self.isize)
         y_ref = dot_ref(x=x, w=self.w, b=self.b, q=self.q)
-        y, psum, metrics = cdot(x=x, w=self.w, b=self.b, q=self.q, params=self.params)
+        y, metrics = cdot(x=x, w=self.w, b=self.b, q=self.q, params=self.params)
         
         y_min = np.min(y - y_ref)
         y_max = np.max(y - y_ref)
@@ -214,9 +223,18 @@ class Dense(Layer):
         y_std = np.std(y - y_ref)
         nmac = self.isize * self.osize
         
-        print (y_mean, y_std)
-        
-        return y, [nmac / psum, y_mean, y_std]
+        # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
+        results = {}
+        results['nmac']  = nmac
+        results['adc']   = metrics[0:8]
+        results['cycle'] = metrics[8]
+        results['ron']   = metrics[9]
+        results['roff']  = metrics[10]
+        results['wl']    = metrics[11]
+        results['std']   = y_std
+        results['mean']  = y_mean
+
+        return y, results
         
 #########################
 
