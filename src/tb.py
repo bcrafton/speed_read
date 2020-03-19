@@ -64,13 +64,13 @@ param_sweep = {
 'bpa': 8,
 'bpw': 8,
 'adc': 8,
-'skip': [0],
-'cards': [0],
+'skip': [1],
+'cards': [1],
 'stall': 0,
 'wl': 128,
 'bl': 128,
 'offset': 128,
-'sigma': [0.001],
+'sigma': [0.05],
 'err_sigma': 0.,
 }
 

@@ -62,7 +62,7 @@ def cconv(x, f, b, q, pool, stride, pad1, pad2, params):
     
     lut_rpr = get_lut_rpr(params['rpr'])
     lut_var = get_lut_var(params['sigma'], 32)
-    print (lut_rpr)
+    # print (lut_rpr)
 
     ##################################################
 
@@ -121,7 +121,7 @@ def cconv(x, f, b, q, pool, stride, pad1, pad2, params):
     
     ##################################################
     
-    print (np.shape(patches), np.shape(f))
+    # print (np.shape(patches), np.shape(f))
     
     ##################################################
     
@@ -150,7 +150,7 @@ def cdot(x, w, b, q, params):
     
     lut_rpr = get_lut_rpr(params['rpr'])
     lut_var = get_lut_var(params['sigma'], 32)
-    print (lut_rpr)
+    # print (lut_rpr)
 
     ##################################################
 
@@ -198,7 +198,7 @@ def cdot(x, w, b, q, params):
     
     ##################################################
     
-    print (np.shape(x), np.shape(w))
+    # print (np.shape(x), np.shape(w))
     
     ##################################################
     
