@@ -12,6 +12,8 @@ from defines import *
 from scipy.stats import norm, binom
 from rpr import rpr
 
+#########################
+
 class Model:
     def __init__(self, layers):
         self.layers = layers
@@ -32,10 +34,12 @@ class Model:
                 else:
                     results[layer] = [result]
 
-        acc = np.mean(np.argmax(y, axis=1) == np.argmax(pred, axis=1))
-        print (acc)
+        acc = np.mean(y == np.argmax(pred, axis=1))
+        print ('acc', acc)
 
         return pred, results
+
+#########################
 
 class Layer:
     layer_id = 0
@@ -48,9 +52,11 @@ class Layer:
 
     def rpr(self):
         assert(False)
+        
+#########################
 
 class Conv(Layer):
-    def __init__(self, input_size, filter_size, stride, pad1, pad2, params, weights=None):
+    def __init__(self, input_size, filter_size, pool, stride, pad1, pad2, params, weights=None):
         self.layer_id = Layer.layer_id
         Layer.layer_id += 1
 
@@ -63,15 +69,14 @@ class Conv(Layer):
         assert(self.c == self.fc)
         assert(self.fh == self.fw)
 
+        self.p = pool
         self.s = stride
         self.p1 = pad1
         self.p2 = pad2
+        assert (self.s == 1)
         
-        self.yh = (self.xh - self.fh + self.s + self.p1 + self.p2) // self.s
-        self.yw = (self.xw - self.fw + self.s + self.p1 + self.p2) // self.s
-                
-        if (self.fh == 1): 
-            assert((self.s==1) and (self.p1==0) and (self.p2==0))
+        self.yh = (self.xh - self.fh + self.p + self.p1 + self.p2) // self.p
+        self.yw = (self.xw - self.fw + self.p + self.p1 + self.p2) // self.p
 
         maxval = pow(2, params['bpw'] - 1)
         minval = -1 * maxval
@@ -126,9 +131,9 @@ class Conv(Layer):
     def forward(self, x):
         # 1) tensorflow to compute y_ref
         # 2) save {x,y1,y2,...} as tb from tensorflow 
-        y_ref   = conv_ref(x=x, f=self.w, b=self.b, q=self.q, stride=self.s, pad1=self.p1, pad2=self.p2)
+        y_ref   = conv_ref(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2)
         # y, psum = conv(x=x, f=self.wb, b=self.b, q=self.q, stride=self.s, pad1=self.p1, pad2=self.p2, params=self.params)
-        y, psum = cconv(x=x, f=self.w, b=self.b, q=self.q, stride=self.s, pad1=self.p1, pad2=self.p2, params=self.params)
+        y, psum = cconv(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2, params=self.params)
 
         y_min = np.min(y - y_ref)
         y_max = np.max(y - y_ref)
@@ -186,10 +191,8 @@ class Dense(Layer):
     def forward(self, x):
         assert (np.shape(x) == (4,4,128))
         x = np.mean(x, axis=(0, 1))
-        x = np.around(x)
-        assert (np.all(x < 256))
         x = np.reshape(x, self.isize)
-        y_ref   = dot_ref(x=x, w=self.w, b=self.b, q=self.q)
+        y_ref = dot_ref(x=x, w=self.w, b=self.b, q=self.q)
         # y, psum = cdot(x=x, w=self.w, b=self.b, q=self.q, params=self.params)
         return y_ref, 0
 
@@ -197,33 +200,7 @@ class Dense(Layer):
         return 0
         
 #########################
-        
-class avg_pool(layer):
-    def __init__(self, s, p, q):
-        self.layer_id = layer.layer_id
-        layer.layer_id += 1
-    
-        self.s = s
-        self.p = p
-        
-    def train(self, x):        
-        pool = tf.nn.avg_pool(x, ksize=self.p, strides=self.s, padding="SAME")
-        qpool = tf.quantization.quantize_and_dequantize(input=pool, input_min=0, input_max=0, signed_input=True, num_bits=8, range_given=False)
-        return qpool, {}
-    
-    def collect(self, x):
-        pool = tf.nn.avg_pool(x, ksize=self.p, strides=self.s, padding="SAME")
-        qpool, spool = quantize(pool, -128, 127)
-        return qpool, spool
 
-    def predict(self, x, scale):
-        pool = tf.nn.avg_pool(x, ksize=self.p, strides=self.s, padding="SAME")
-        qpool = quantize_predict(pool, scale, -128, 127) # this only works because we use np.ceil(scales)
-        return qpool
-        
-    def get_weights(self):    
-        weights_dict = {}
-        return weights_dict
         
         
         

@@ -25,15 +25,19 @@ from defines import *
 def init_x(num_example, input_shape, xlow, xhigh):
     h, w = input_shape
     (_, _), (x_test, y_test) = tf.keras.datasets.cifar10.load_data()
-    x_test = x_test[0:num_example, 0:h, 0:w, :]
     
     scale = (np.max(x_test) - np.min(x_test)) / (xhigh - xlow)
+
+    x_test = x_test[0:num_example, 0:h, 0:w, :]
     x_test = x_test / scale
     x_test = np.floor(x_test)
     x_test = np.clip(x_test, xlow, xhigh)
     
     x_test = x_test.astype(int)
-    return x_test, y_test[0:num_example]
+    
+    y_test = y_test[0:num_example].reshape(-1)
+    
+    return x_test, y_test
 
 ####
 
@@ -60,13 +64,13 @@ param_sweep = {
 'bpa': 8,
 'bpw': 8,
 'adc': 8,
-'skip': [0, 1],
-'cards': [0, 1],
+'skip': [0],
+'cards': [0],
 'stall': 0,
 'wl': 128,
 'bl': 128,
 'offset': 128,
-'sigma': [0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15],
+'sigma': [0.05],
 'err_sigma': 0.,
 }
 
@@ -77,14 +81,14 @@ param_sweep = perms(param_sweep)
 def create_model(weights, params):
     # dont think this padding is right.
     layers = [
-    Conv(input_size=(32,32,3),  filter_size=(3,3,3,32),  stride=1, pad1=1, pad2=1, params=params, weights=weights[0]),
-    Conv(input_size=(32,32,32), filter_size=(3,3,32,32), stride=2, pad1=1, pad2=1, params=params, weights=weights[1]),
+    Conv(input_size=(32,32,3),  filter_size=(3,3,3,32),   pool=1, stride=1, pad1=1, pad2=1, params=params, weights=weights[0]),
+    Conv(input_size=(32,32,32), filter_size=(3,3,32,32),  pool=2, stride=1, pad1=1, pad2=1, params=params, weights=weights[1]),
 
-    Conv(input_size=(16,16,32), filter_size=(3,3,32,64), stride=1, pad1=1, pad2=1, params=params, weights=weights[2]),
-    Conv(input_size=(16,16,64), filter_size=(3,3,64,64), stride=2, pad1=1, pad2=1, params=params, weights=weights[3]),
+    Conv(input_size=(16,16,32), filter_size=(3,3,32,64),  pool=1, stride=1, pad1=1, pad2=1, params=params, weights=weights[2]),
+    Conv(input_size=(16,16,64), filter_size=(3,3,64,64),  pool=2, stride=1, pad1=1, pad2=1, params=params, weights=weights[3]),
 
-    Conv(input_size=(8,8,64), filter_size=(3,3,64,128), stride=1, pad1=1, pad2=1, params=params, weights=weights[4]),
-    Conv(input_size=(8,8,128), filter_size=(3,3,128,128), stride=2, pad1=1, pad2=1, params=params, weights=weights[5]),
+    Conv(input_size=(8,8,64), filter_size=(3,3,64,128),   pool=1, stride=1, pad1=1, pad2=1, params=params, weights=weights[4]),
+    Conv(input_size=(8,8,128), filter_size=(3,3,128,128), pool=2, stride=1, pad1=1, pad2=1, params=params, weights=weights[5]),
 
     Dense(size=(128, 10), params=params, weights=weights[7])
     ]

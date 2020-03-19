@@ -6,7 +6,17 @@ from scipy.stats import norm, binom
 
 ##################################################
 
-def conv_ref(x, f, b, q, stride, pad1, pad2):
+def relu(x):
+    return x * (x > 0)
+    
+def avg_pool(x, p):
+  H, W, C = np.shape(x)
+  x = np.reshape(x, (H // p, p, W // p, p, C))
+  x = np.transpose(x, (0, 2, 1, 3, 4))
+  x = np.mean(x, axis=(2, 3))
+  return x
+
+def conv_ref(x, f, b, q, pool, stride, pad1, pad2):
     Hi, Wi, Ci = np.shape(x)
     Fh, Fw, _, Co = np.shape(f)
     Ho = conv_output_length(Hi, Fh, 'same', stride)
@@ -20,18 +30,20 @@ def conv_ref(x, f, b, q, stride, pad1, pad2):
         for w in range(Wo):
             patch = np.reshape(x[h*stride:(h*stride+Fh), w*stride:(w*stride+Fw), :], -1)
             assert(np.prod(np.shape(patch)) == np.shape(f_matrix)[0])
-            y[h, w, :] = dot_ref(patch, f_matrix, b, q)
+            y[h, w, :] = relu(patch @ f_matrix)
 
+    y = avg_pool(y, pool)
+    y = y / q
+    y = np.floor(y)
+    y = np.clip(y, -128, 127)
+    
     return y
 
 def dot_ref(x, w, b, q):
     y = x @ w
-    assert(np.all(np.absolute(y) < 2 ** 23))
-    y = y + b
-    y = y * (y > 0)
-    y = y.astype(int)
-    y = y // q 
-    y = np.clip(y, 0, 127)
+    y = y / q
+    y = np.floor(y)
+    y = np.clip(y, -128, 127)
     return y
     
 ##################################################

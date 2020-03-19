@@ -380,11 +380,15 @@ so really it should not be that hard to come up with this ...
 
 -----
 
+we do this in quantize
+> tf.clip_by_value(x, low, high)
 
+feel like there shud not be a need for clip by value.
 
-
-
-
+cifar10 accuracy.
+fill in these damn sections with stuff.
+pdlsyn figures, this we can do
+batch norm was impossible.
 
 
 
