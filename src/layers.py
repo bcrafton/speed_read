@@ -36,7 +36,6 @@ class Model:
 
         acc = np.mean(y == np.argmax(pred, axis=1))
         results['acc'] = acc
-        print ('acc', acc)
 
         return pred, results
 

@@ -108,7 +108,7 @@ def run_command(x, y, weights, params, return_dict):
 results = {}
 
 start = time.time()
-x, y = init_x(1, (32, 32), 0, 127)
+x, y = init_x(5, (32, 32), 0, 127)
 weights = np.load('../cifar10_weights.npy', allow_pickle=True).item()
 
 num_runs = len(param_sweep)
