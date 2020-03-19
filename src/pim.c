@@ -61,7 +61,7 @@ int sat_error(float p, int adc, int rpr)
   }
   float e = 0.;
   float bin_sum = 0.;
-  for (int s=adc; s<rpr; s++) {
+  for (int s=adc; s<(rpr+1); s++) {
     float bin = binomial_pmf(s, rpr, p);
     bin_sum += bin;
     e += bin * (adc - s);
@@ -117,7 +117,6 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int adc, int skip, i
               while ((wl_ptr < WL) && (wl_sum + x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr * 8) + xb] <= rpr)) {
                 if (x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr * 8) + xb]) {
                   wl_sum += 1;
-                  wl_total += 1;
                   for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
                     pdot[bl_ptr] += w[(wl * WL * NBL * BL) + (wl_ptr * NBL * BL) + (bl * BL) + bl_ptr];
                   }
@@ -130,7 +129,6 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int adc, int skip, i
               while ((wl_ptr < WL) && (wl_ptr < (start + adc))) {
                 if (x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr * 8) + xb]) {
                   wl_sum += 1;
-                  wl_total += 1;
                   for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
                     pdot[bl_ptr] += w[(wl * WL * NBL * BL) + (wl_ptr * NBL * BL) + (bl * BL) + bl_ptr];
                   }
@@ -139,7 +137,10 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int adc, int skip, i
               }
             }
             psum += 1;
-            
+            if (wl_sum >= adc) {
+              wl_total += wl_sum;
+            }
+
             for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
               int c = (bl_ptr + bl * BL) % C;
               int wb = (bl_ptr + bl * BL) / C;
@@ -164,8 +165,10 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int adc, int skip, i
               
               // ordering matters here.
               // do not put sat/pdot_sum before any pdot changes.
-              sat[bl_ptr] += (pdot[bl_ptr] == adc); 
-              pdot_sum[bl_ptr] += pdot[bl_ptr];
+              if (wl_sum >= adc) {
+                sat[bl_ptr] += (pdot[bl_ptr] == adc);
+                pdot_sum[bl_ptr] += pdot[bl_ptr];
+              }
             }
 
           } // while (wl_ptr < wl) {

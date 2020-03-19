@@ -62,6 +62,8 @@ def cconv(x, f, b, q, stride, pad1, pad2, params):
     # lut_var = get_lut_var(params['sigma'], np.max(lut_rpr))
     lut_var = get_lut_var(params['sigma'], 32)
     
+    # print (lut_rpr)
+
     ##################################################
 
     x = np.pad(array=x, pad_width=[[pad1,pad2], [pad1,pad2], [0,0]], mode='constant')

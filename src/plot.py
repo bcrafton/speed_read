@@ -22,9 +22,10 @@ for key in sorted(results.keys()):
 
 ####################
 
-# print (y_psum[0, 0])
-# print (y_psum[1, 0])
-# print (y_psum[1, 1])
+'''
+print (y_psum[0, 0])
+print (y_psum[1, 0])
+print (y_psum[1, 1])
 
 print ()
 
@@ -36,9 +37,19 @@ print (np.around(y_mean[1, 1],  3))
 
 print ()
 
-# print (y_std[0, 0])
-# print (y_std[1, 0])
-# print (y_std[1, 1])
+print (np.around(y_std[0, 0],  3))
+print ()
+print (np.around(y_std[1, 0],  3))
+print ()
+print (np.around(y_std[1, 1],  3))
+'''
+
+# print (np.around(y_mean[1, 0],  3))
+# print (np.around(y_std[1, 0],  3))
+# print ()
+print (np.around(y_psum[1, 1], 1))
+print (np.around(y_mean[1, 1],  3))
+print (np.around(y_std[1, 1],  3))
 
 ####################
 

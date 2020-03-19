@@ -134,9 +134,18 @@ class Conv(Layer):
 
         nmac = (self.yh * self.yw) * (self.fh * self.fw * self.fc * self.fn)
 
-        # print (np.mean(y_ref), np.std(y_ref))
+        '''
+        print (np.mean(y_ref), np.std(y_ref))
+        print (np.mean(self.w), np.std(self.w))
+        print (self.q)
+        print ()
+        '''
+
         # print (np.mean(y), np.std(y))
         # print (self.params['cards'], (self.yh, self.yh), (self.fh, self.fw, self.fc, self.fn), 'mac / cycle', nmac / psum, np.mean(y_ref), np.std(y_ref))
+
+        # plt.hist(y_ref.flatten(), bins=128)
+        # plt.show()
 
         return y_ref, [nmac / psum, y_mean, y_std]
         
