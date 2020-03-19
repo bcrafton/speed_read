@@ -17,27 +17,24 @@ os.system(cmd)
 
 from layers import Model
 from layers import Conv
-from layers import Dense
 from defines import *
 
 ####
 
 def init_x(num_example, input_shape, xlow, xhigh):
     h, w = input_shape
-    (_, _), (x_test, y_test) = tf.keras.datasets.cifar10.load_data()
+    # (_, _), (x_test, _) = tf.keras.datasets.cifar10.load_data()
+    x_test = np.load('../imagenet.npy').item()['data']
+    x_test = np.reshape(x_test, (100, 64, 64, 3))
+    x_test = x_test[0:num_example, 0:h, 0:w, :]
     
     scale = (np.max(x_test) - np.min(x_test)) / (xhigh - xlow)
-
-    x_test = x_test[0:num_example, 0:h, 0:w, :]
     x_test = x_test / scale
     x_test = np.floor(x_test)
     x_test = np.clip(x_test, xlow, xhigh)
     
     x_test = x_test.astype(int)
-    
-    y_test = y_test[0:num_example].reshape(-1)
-    
-    return x_test, y_test
+    return x_test
 
 ####
 
@@ -64,13 +61,13 @@ param_sweep = {
 'bpa': 8,
 'bpw': 8,
 'adc': 8,
-'skip': [0],
-'cards': [0],
+'skip': [0, 1],
+'cards': [0, 1],
 'stall': 0,
 'wl': 128,
 'bl': 128,
 'offset': 128,
-'sigma': [0.001],
+'sigma': [0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15],
 'err_sigma': 0.,
 }
 
@@ -79,17 +76,14 @@ param_sweep = perms(param_sweep)
 ####
 
 def create_model(weights, params):
+    # dont think this padding is right.
     layers = [
-    Conv(input_size=(32,32,3),  filter_size=(3,3,3,32),   pool=1, stride=1, pad1=1, pad2=1, params=params, weights=weights[0]),
-    Conv(input_size=(32,32,32), filter_size=(3,3,32,32),  pool=2, stride=1, pad1=1, pad2=1, params=params, weights=weights[1]),
-
-    Conv(input_size=(16,16,32), filter_size=(3,3,32,64),  pool=1, stride=1, pad1=1, pad2=1, params=params, weights=weights[2]),
-    Conv(input_size=(16,16,64), filter_size=(3,3,64,64),  pool=2, stride=1, pad1=1, pad2=1, params=params, weights=weights[3]),
-
-    Conv(input_size=(8,8,64), filter_size=(3,3,64,128),   pool=1, stride=1, pad1=1, pad2=1, params=params, weights=weights[4]),
-    Conv(input_size=(8,8,128), filter_size=(3,3,128,128), pool=2, stride=1, pad1=1, pad2=1, params=params, weights=weights[5]),
-
-    Dense(size=(128, 10), params=params, weights=weights[7])
+    Conv(input_size=(64,64,3),   filter_size=(3,3,3,64),     stride=1, pad1=1, pad2=1, params=params, weights=weights[0]),
+    Conv(input_size=(64,64,64),  filter_size=(3,3,64,64),    stride=2, pad1=1, pad2=1, params=params, weights=weights[1]),
+    Conv(input_size=(32,32,64),  filter_size=(3,3,64,128),   stride=2, pad1=1, pad2=1, params=params, weights=weights[2]),
+    Conv(input_size=(16,16,128), filter_size=(3,3,128,256),  stride=2, pad1=1, pad2=1, params=params, weights=weights[3]),
+    Conv(input_size=(8,8,256),   filter_size=(3,3,256,512),  stride=2, pad1=1, pad2=1, params=params, weights=weights[4]),
+    Conv(input_size=(4,4,512),   filter_size=(3,3,512,1024), stride=1, pad1=1, pad2=1, params=params, weights=weights[5]),
     ]
 
     model = Model(layers=layers)
@@ -97,10 +91,10 @@ def create_model(weights, params):
 
 ####
 
-def run_command(x, y, weights, params, return_dict):
+def run_command(x, weights, params, return_dict):
     print (params)
     model = create_model(weights, params)
-    _, result = model.forward(x=x, y=y)
+    _, result = model.forward(x=x)
     return_dict[(params['skip'], params['cards'], params['sigma'])] = result
 
 ####
@@ -108,8 +102,8 @@ def run_command(x, y, weights, params, return_dict):
 results = {}
 
 start = time.time()
-x, y = init_x(1, (32, 32), 0, 127)
-weights = np.load('../cifar10_weights.npy', allow_pickle=True).item()
+x = init_x(3, (64, 64), 0, 127)
+weights = np.load('../imagenet_weights.npy', allow_pickle=True).item()
 
 num_runs = len(param_sweep)
 parallel_runs = 12
@@ -118,7 +112,7 @@ for run in range(0, num_runs, parallel_runs):
     manager = multiprocessing.Manager()
     return_dict = manager.dict()
     for parallel_run in range(min(parallel_runs, num_runs - run)):
-        args = (np.copy(x), np.copy(y), copy.copy(weights), param_sweep[run + parallel_run], return_dict)
+        args = (np.copy(x), copy.copy(weights), param_sweep[run + parallel_run], return_dict)
         t = multiprocessing.Process(target=run_command, args=args)
         threads.append(t)
         t.start()
