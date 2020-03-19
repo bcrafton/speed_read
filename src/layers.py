@@ -142,7 +142,7 @@ class Conv(Layer):
 
         print (y_mean, y_std)
 
-        return y_ref, [nmac / psum, y_mean, y_std]
+        return y, [nmac / psum, y_mean, y_std]
         
 #########################
         
@@ -215,7 +215,7 @@ class Dense(Layer):
         
         print (y_mean, y_std)
         
-        return y_ref, [nmac / psum, y_mean, y_std]
+        return y, [nmac / psum, y_mean, y_std]
         
 #########################
 
