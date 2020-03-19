@@ -70,7 +70,7 @@ param_sweep = {
 'wl': 128,
 'bl': 128,
 'offset': 128,
-'sigma': [0.05],
+'sigma': [0.001],
 'err_sigma': 0.,
 }
 
@@ -109,7 +109,7 @@ def run_command(x, y, weights, params, return_dict):
 results = {}
 
 start = time.time()
-x, y = init_x(50, (32, 32), 0, 127)
+x, y = init_x(1, (32, 32), 0, 127)
 weights = np.load('../cifar10_weights.npy', allow_pickle=True).item()
 
 num_runs = len(param_sweep)

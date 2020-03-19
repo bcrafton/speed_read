@@ -1,6 +1,6 @@
 
 import numpy as np
-from conv_utils import conv_output_length
+from conv_utils import *
 from scipy.stats import norm
 
 import ctypes
@@ -47,7 +47,9 @@ def get_lut_rpr(rpr_dict):
 
 ###########################
 
-def cconv(x, f, b, q, stride, pad1, pad2, params):
+def cconv(x, f, b, q, pool, stride, pad1, pad2, params):
+    assert (stride == 1)
+
     Hi, Wi, Ci = np.shape(x)
     Fh, Fw, _, Co = np.shape(f)
     Ho = conv_output_length(Hi, Fh, 'same', stride)
@@ -59,10 +61,8 @@ def cconv(x, f, b, q, stride, pad1, pad2, params):
     ##################################################
     
     lut_rpr = get_lut_rpr(params['rpr'])
-    # lut_var = get_lut_var(params['sigma'], np.max(lut_rpr))
     lut_var = get_lut_var(params['sigma'], 32)
-    
-    # print (lut_rpr)
+    print (lut_rpr)
 
     ##################################################
 
@@ -91,7 +91,7 @@ def cconv(x, f, b, q, stride, pad1, pad2, params):
 
     ##################################################
     
-    f = f + 128
+    f = f + params['offset']
 
     f = np.reshape(f, (Fh * Fw * Ci, Co))
     fb = []
@@ -115,13 +115,13 @@ def cconv(x, f, b, q, stride, pad1, pad2, params):
     nwl, wl, ncol = np.shape(f)
     if (ncol % params['bl']):
         zeros = np.zeros(shape=(nwl, params['wl'], params['bl'] - (ncol % params['bl'])))
-        f = np.concatenate((f, zeros), axis=1)
+        f = np.concatenate((f, zeros), axis=2)
 
     f = np.reshape(f, (nwl, params['wl'], -1, params['bl']))
     
     ##################################################
     
-    # print (np.shape(patches), np.shape(f))
+    print (np.shape(patches), np.shape(f))
     
     ##################################################
     
@@ -129,11 +129,11 @@ def cconv(x, f, b, q, stride, pad1, pad2, params):
     y = np.reshape(y, (Ho, Wo, Co))
     
     assert(np.all(np.absolute(y) < 2 ** 23))
-    y = y + b
-    y = y * (y > 0)
-    y = y.astype(int)
-    y = y // q 
-    y = np.clip(y, 0, 127)
+    y = relu(y)
+    y = avg_pool(y, pool)
+    y = y / q
+    y = np.floor(y)
+    y = np.clip(y, -128, 127)
 
     return y, psum
 
@@ -150,7 +150,8 @@ def cdot(x, w, b, q, params):
     
     lut_rpr = get_lut_rpr(params['rpr'])
     lut_var = get_lut_var(params['sigma'], 32)
-            
+    print (lut_rpr)
+
     ##################################################
 
     pb = []
@@ -164,11 +165,11 @@ def cdot(x, w, b, q, params):
         zeros = np.zeros(shape=(params['wl'] - (nrow % params['wl']), params['bpa']))
         x = np.concatenate((x, zeros), axis=1)
         
-    x = np.reshape(x, (-1, params['wl'], params['bpa']))
+    x = np.reshape(x, (1, -1, params['wl'], params['bpa']))
 
     ##################################################
     
-    w = w + 128
+    w = w + params['offset']
 
     fb = []
     for wb in range(params['bpw']):
@@ -191,7 +192,7 @@ def cdot(x, w, b, q, params):
     nwl, wl, ncol = np.shape(w)
     if (ncol % params['bl']):
         zeros = np.zeros(shape=(nwl, params['wl'], params['bl'] - (ncol % params['bl'])))
-        w = np.concatenate((w, zeros), axis=1)
+        w = np.concatenate((w, zeros), axis=2)
 
     w = np.reshape(w, (nwl, params['wl'], -1, params['bl']))
     
@@ -201,15 +202,15 @@ def cdot(x, w, b, q, params):
     
     ##################################################
     
-    y, psum = pim(x, f, (W, 1), lut_var, lut_rpr, params)
+    y, psum = pim(x, w, (1, W), lut_var, lut_rpr, params)
     y = np.reshape(y, W)
-    
+        
     assert(np.all(np.absolute(y) < 2 ** 23))
     y = y + b
-    y = y * (y > 0)
-    y = y.astype(int)
-    y = y // q 
-    y = np.clip(y, 0, 127)
+    y = relu(y)
+    y = y / q
+    y = np.floor(y)
+    y = np.clip(y, -128, 127)
 
     return y, psum
 

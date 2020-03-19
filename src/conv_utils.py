@@ -1,6 +1,16 @@
 
 import numpy as np
 
+def relu(x):
+  return x * (x > 0)
+    
+def avg_pool(x, p):
+  H, W, C = np.shape(x)
+  x = np.reshape(x, (H // p, p, W // p, p, C))
+  x = np.transpose(x, (0, 2, 1, 3, 4))
+  x = np.mean(x, axis=(2, 3))
+  return x
+
 def conv_output_length(input_length, filter_size, padding, stride, dilation=1):
   """Determines output length of a convolution given input length.
 

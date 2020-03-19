@@ -1,20 +1,10 @@
 
 import numpy as np
-from conv_utils import conv_output_length
+from conv_utils import *
 
 from scipy.stats import norm, binom
 
 ##################################################
-
-def relu(x):
-    return x * (x > 0)
-    
-def avg_pool(x, p):
-  H, W, C = np.shape(x)
-  x = np.reshape(x, (H // p, p, W // p, p, C))
-  x = np.transpose(x, (0, 2, 1, 3, 4))
-  x = np.mean(x, axis=(2, 3))
-  return x
 
 def conv_ref(x, f, b, q, pool, stride, pad1, pad2):
     Hi, Wi, Ci = np.shape(x)

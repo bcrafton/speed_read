@@ -93,14 +93,18 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int adc, int skip, i
           // TODO: dont want to clip -> get this function right.
           int rpr_addr;
           if (BL >= C) {
-            rpr_addr = (xb * 8) + ((bl + 1) * (BL / C)) - 1;
+            int x_addr = (xb * 8);
+            int w_addr = ((bl + 1) * (BL / C)) - 1;
+            // for dense:
+            w_addr = min(w_addr, 7);
+            rpr_addr = x_addr + w_addr;
           }
           else {
             rpr_addr = (xb * 8) + (bl / (C / BL)); 
           }
           
           if (!((rpr_addr >= 0) && (rpr_addr < 64))) {
-            printf("%d %d %d %d: %d\n", xb, bl, BL, C, rpr_addr);
+            printf("xb: %d bl: %d BL: %d C: %d: rpr_addr: %d\n", xb, bl, BL, C, rpr_addr);
             assert ((rpr_addr >= 0) && (rpr_addr < 64));
           }
           int rpr = lut_rpr[rpr_addr];

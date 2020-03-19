@@ -132,28 +132,15 @@ class Conv(Layer):
         # 1) tensorflow to compute y_ref
         # 2) save {x,y1,y2,...} as tb from tensorflow 
         y_ref   = conv_ref(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2)
-        # y, psum = conv(x=x, f=self.wb, b=self.b, q=self.q, stride=self.s, pad1=self.p1, pad2=self.p2, params=self.params)
         y, psum = cconv(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2, params=self.params)
 
         y_min = np.min(y - y_ref)
         y_max = np.max(y - y_ref)
         y_mean = np.mean(y - y_ref)
         y_std = np.std(y - y_ref)
-
         nmac = (self.yh * self.yw) * (self.fh * self.fw * self.fc * self.fn)
 
-        '''
-        print (np.mean(y_ref), np.std(y_ref))
-        print (np.mean(self.w), np.std(self.w))
-        print (self.q)
-        print ()
-        '''
-
-        # print (np.mean(y), np.std(y))
-        # print (self.params['cards'], (self.yh, self.yh), (self.fh, self.fw, self.fc, self.fn), 'mac / cycle', nmac / psum, np.mean(y_ref), np.std(y_ref))
-
-        # plt.hist(y_ref.flatten(), bins=128)
-        # plt.show()
+        print (y_mean, y_std)
 
         return y_ref, [nmac / psum, y_mean, y_std]
         
@@ -187,17 +174,48 @@ class Dense(Layer):
             self.q = int(self.q)
             # q must be larger than 0
             assert(self.q > 0)
+            
+        #########################
+            
+        w_offset = self.w + params['offset']
+        wb = []
+        for bit in range(params['bpw']):
+            wb.append(np.bitwise_and(np.right_shift(w_offset, bit), 1))
+        self.wb = np.stack(wb, axis=-1)
+        
+        #########################
+        
+        self.params = params.copy()
+
+        w_offset = self.w + params['offset']
+        wb = []
+        for bit in range(params['bpw']):
+            wb.append(np.bitwise_and(np.right_shift(w_offset, bit), 1))
+        wb = np.stack(wb, axis=-1)
+
+        wb_cols = np.reshape(self.wb, (self.isize, self.osize, params['bpw']))
+        col_density = np.mean(wb_cols, axis=0)
+
+        nrow = self.isize
+        p = np.max(col_density, axis=0)
+        self.params['rpr'] = rpr(nrow=nrow, p=p, q=self.q, params=self.params)
 
     def forward(self, x):
         assert (np.shape(x) == (4,4,128))
         x = np.mean(x, axis=(0, 1))
         x = np.reshape(x, self.isize)
         y_ref = dot_ref(x=x, w=self.w, b=self.b, q=self.q)
-        # y, psum = cdot(x=x, w=self.w, b=self.b, q=self.q, params=self.params)
-        return y_ref, 0
-
-    def rpr(self):
-        return 0
+        y, psum = cdot(x=x, w=self.w, b=self.b, q=self.q, params=self.params)
+        
+        y_min = np.min(y - y_ref)
+        y_max = np.max(y - y_ref)
+        y_mean = np.mean(y - y_ref)
+        y_std = np.std(y - y_ref)
+        nmac = self.isize * self.osize
+        
+        print (y_mean, y_std)
+        
+        return y_ref, [nmac / psum, y_mean, y_std]
         
 #########################
 
