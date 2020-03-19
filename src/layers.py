@@ -16,23 +16,26 @@ class Model:
     def __init__(self, layers):
         self.layers = layers
 
-    def forward(self, x):
+    def forward(self, x, y):
         num_examples, _, _, _ = np.shape(x)
         num_layers = len(self.layers)
 
-        y = [None] * num_examples
+        pred = [None] * num_examples
         results = {}
 
         for example in range(num_examples):
-            y[example] = x[example]
+            pred[example] = x[example]
             for layer in range(num_layers):
-                y[example], result = self.layers[layer].forward(x=y[example])
+                pred[example], result = self.layers[layer].forward(x=pred[example])
                 if (layer in results.keys()):
                     results[layer].append(result)
                 else:
                     results[layer] = [result]
 
-        return y, results
+        acc = np.mean(np.argmax(y, axis=1) == np.argmax(pred, axis=1))
+        print (acc)
+
+        return pred, results
 
 class Layer:
     layer_id = 0
@@ -151,11 +154,76 @@ class Conv(Layer):
         
 #########################
         
+class Dense(Layer):
+    def __init__(self, size, params, weights=None):
+        self.layer_id = Layer.layer_id
+        Layer.layer_id += 1
+
+        self.size = size
+        self.isize, self.osize = self.size
+        self.params = params
+
+        maxval = pow(2, params['bpw'] - 1)
+        minval = -1 * maxval
+        if weights == None:
+            values = np.array(range(minval + 1, maxval))
+            self.w = np.random.choice(a=values, size=(self.isize, self.osize), replace=True).astype(int)
+            self.b = np.zeros(shape=self.osize).astype(int) 
+            self.q = 200
+        else:
+            self.w, self.b, self.q = weights
+            # check shape
+            assert(np.shape(self.w) == (self.isize, self.osize))
+            assert(np.shape(self.b) == (self.osize,))
+            assert(np.shape(self.q) == ())
+            # cast as int
+            self.w = self.w.astype(int)
+            self.b = self.b.astype(int)
+            self.q = int(self.q)
+            # q must be larger than 0
+            assert(self.q > 0)
+
+    def forward(self, x):
+        assert (np.shape(x) == (4,4,128))
+        x = np.mean(x, axis=(0, 1))
+        x = np.around(x)
+        assert (np.all(x < 256))
+        x = np.reshape(x, self.isize)
+        y_ref   = dot_ref(x=x, w=self.w, b=self.b, q=self.q)
+        # y, psum = cdot(x=x, w=self.w, b=self.b, q=self.q, params=self.params)
+        return y_ref, 0
+
+    def rpr(self):
+        return 0
         
+#########################
         
+class avg_pool(layer):
+    def __init__(self, s, p, q):
+        self.layer_id = layer.layer_id
+        layer.layer_id += 1
+    
+        self.s = s
+        self.p = p
         
+    def train(self, x):        
+        pool = tf.nn.avg_pool(x, ksize=self.p, strides=self.s, padding="SAME")
+        qpool = tf.quantization.quantize_and_dequantize(input=pool, input_min=0, input_max=0, signed_input=True, num_bits=8, range_given=False)
+        return qpool, {}
+    
+    def collect(self, x):
+        pool = tf.nn.avg_pool(x, ksize=self.p, strides=self.s, padding="SAME")
+        qpool, spool = quantize(pool, -128, 127)
+        return qpool, spool
+
+    def predict(self, x, scale):
+        pool = tf.nn.avg_pool(x, ksize=self.p, strides=self.s, padding="SAME")
+        qpool = quantize_predict(pool, scale, -128, 127) # this only works because we use np.ceil(scales)
+        return qpool
         
-        
+    def get_weights(self):    
+        weights_dict = {}
+        return weights_dict
         
         
         

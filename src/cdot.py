@@ -137,6 +137,82 @@ def cconv(x, f, b, q, stride, pad1, pad2, params):
 
     return y, psum
 
+##################################################
+
+def cdot(x, w, b, q, params):
+    H, W = np.shape(w)
+    assert (len(x) == H)
+
+    y = np.zeros(shape=(W, 1))
+    psum = 0
+    
+    ##################################################
+    
+    lut_rpr = get_lut_rpr(params['rpr'])
+    lut_var = get_lut_var(params['sigma'], 32)
+            
+    ##################################################
+
+    pb = []
+    for xb in range(params['bpa']):
+        pb.append(np.bitwise_and(np.right_shift(x.astype(int), xb), 1))
+    
+    x = np.stack(pb, axis=-1)
+    nrow, nbit = np.shape(x)
+    
+    if (nrow % params['wl']):
+        zeros = np.zeros(shape=(params['wl'] - (nrow % params['wl']), params['bpa']))
+        x = np.concatenate((x, zeros), axis=1)
+        
+    x = np.reshape(x, (-1, params['wl'], params['bpa']))
+
+    ##################################################
+    
+    w = w + 128
+
+    fb = []
+    for wb in range(params['bpw']):
+        fb.append(np.bitwise_and(np.right_shift(w.astype(int), wb), 1))
+        
+    w = np.stack(fb, axis=-1)
+    
+    nrow, ncol, nbit = np.shape(w)
+    if (nrow % params['wl']):
+        zeros = np.zeros(shape=(params['wl'] - (nrow % params['wl']), ncol, nbit))
+        w = np.concatenate((w, zeros), axis=0)
+
+    nrow, ncol, nbit = np.shape(w)
+    w = np.reshape(w, (-1, params['wl'], ncol, nbit))
+
+    nwl, wl, ncol, nbit = np.shape(w)
+    w = np.transpose(w, (0, 1, 3, 2))
+    w = np.reshape(w, (nwl, params['wl'], nbit * ncol))
+    
+    nwl, wl, ncol = np.shape(w)
+    if (ncol % params['bl']):
+        zeros = np.zeros(shape=(nwl, params['wl'], params['bl'] - (ncol % params['bl'])))
+        w = np.concatenate((w, zeros), axis=1)
+
+    w = np.reshape(w, (nwl, params['wl'], -1, params['bl']))
+    
+    ##################################################
+    
+    print (np.shape(x), np.shape(w))
+    
+    ##################################################
+    
+    y, psum = pim(x, f, (W, 1), lut_var, lut_rpr, params)
+    y = np.reshape(y, W)
+    
+    assert(np.all(np.absolute(y) < 2 ** 23))
+    y = y + b
+    y = y * (y > 0)
+    y = y.astype(int)
+    y = y // q 
+    y = np.clip(y, 0, 127)
+
+    return y, psum
+
 def pim(x, w, y_shape, lut_var, lut_rpr, params):
     nrow, nwl, wl, xb = np.shape(x)
     nwl, wl, nbl, bl = np.shape(w) # nwl, nbl, wl, bl

@@ -17,13 +17,14 @@ os.system(cmd)
 
 from layers import Model
 from layers import Conv
+from layers import Dense
 from defines import *
 
 ####
 
 def init_x(num_example, input_shape, xlow, xhigh):
     h, w = input_shape
-    (_, _), (x_test, _) = tf.keras.datasets.cifar10.load_data()
+    (_, _), (x_test, y_test) = tf.keras.datasets.cifar10.load_data()
     x_test = x_test[0:num_example, 0:h, 0:w, :]
     
     scale = (np.max(x_test) - np.min(x_test)) / (xhigh - xlow)
@@ -32,7 +33,7 @@ def init_x(num_example, input_shape, xlow, xhigh):
     x_test = np.clip(x_test, xlow, xhigh)
     
     x_test = x_test.astype(int)
-    return x_test
+    return x_test, y_test[0:num_example]
 
 ####
 
@@ -84,6 +85,8 @@ def create_model(weights, params):
 
     Conv(input_size=(8,8,64), filter_size=(3,3,64,128), stride=1, pad1=1, pad2=1, params=params, weights=weights[4]),
     Conv(input_size=(8,8,128), filter_size=(3,3,128,128), stride=2, pad1=1, pad2=1, params=params, weights=weights[5]),
+
+    Dense(size=(128, 10), params=params, weights=weights[7])
     ]
 
     model = Model(layers=layers)
@@ -91,10 +94,10 @@ def create_model(weights, params):
 
 ####
 
-def run_command(x, weights, params, return_dict):
+def run_command(x, y, weights, params, return_dict):
     print (params)
     model = create_model(weights, params)
-    _, result = model.forward(x=x)
+    _, result = model.forward(x=x, y=y)
     return_dict[(params['skip'], params['cards'], params['sigma'])] = result
 
 ####
@@ -102,7 +105,7 @@ def run_command(x, weights, params, return_dict):
 results = {}
 
 start = time.time()
-x = init_x(5, (32, 32), 0, 127)
+x, y = init_x(50, (32, 32), 0, 127)
 weights = np.load('../cifar10_weights.npy', allow_pickle=True).item()
 
 num_runs = len(param_sweep)
@@ -112,7 +115,7 @@ for run in range(0, num_runs, parallel_runs):
     manager = multiprocessing.Manager()
     return_dict = manager.dict()
     for parallel_run in range(min(parallel_runs, num_runs - run)):
-        args = (np.copy(x), copy.copy(weights), param_sweep[run + parallel_run], return_dict)
+        args = (np.copy(x), np.copy(y), copy.copy(weights), param_sweep[run + parallel_run], return_dict)
         t = multiprocessing.Process(target=run_command, args=args)
         threads.append(t)
         t.start()
