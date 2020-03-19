@@ -133,7 +133,7 @@ class Conv(Layer):
         # 1) tensorflow to compute y_ref
         # 2) save {x,y1,y2,...} as tb from tensorflow 
         y_ref   = conv_ref(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2)
-        y, psum = cconv(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2, params=self.params)
+        y, psum, metrics = cconv(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2, params=self.params)
 
         y_min = np.min(y - y_ref)
         y_max = np.max(y - y_ref)
@@ -206,7 +206,7 @@ class Dense(Layer):
         x = np.mean(x, axis=(0, 1))
         x = np.reshape(x, self.isize)
         y_ref = dot_ref(x=x, w=self.w, b=self.b, q=self.q)
-        y, psum = cdot(x=x, w=self.w, b=self.b, q=self.q, params=self.params)
+        y, psum, metrics = cdot(x=x, w=self.w, b=self.b, q=self.q, params=self.params)
         
         y_min = np.min(y - y_ref)
         y_max = np.max(y - y_ref)

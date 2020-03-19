@@ -125,7 +125,7 @@ def cconv(x, f, b, q, pool, stride, pad1, pad2, params):
     
     ##################################################
     
-    y, psum = pim(patches, f, (Ho * Wo, Co), lut_var, lut_rpr, params)
+    y, psum, metrics = pim(patches, f, (Ho * Wo, Co), lut_var, lut_rpr, params)
     y = np.reshape(y, (Ho, Wo, Co))
     
     assert(np.all(np.absolute(y) < 2 ** 23))
@@ -135,7 +135,7 @@ def cconv(x, f, b, q, pool, stride, pad1, pad2, params):
     y = np.floor(y)
     y = np.clip(y, -128, 127)
 
-    return y, psum
+    return y, psum, metrics
 
 ##################################################
 
@@ -202,7 +202,7 @@ def cdot(x, w, b, q, params):
     
     ##################################################
     
-    y, psum = pim(x, w, (1, W), lut_var, lut_rpr, params)
+    y, psum, metrics = pim(x, w, (1, W), lut_var, lut_rpr, params)
     y = np.reshape(y, W)
         
     assert(np.all(np.absolute(y) < 2 ** 23))
@@ -210,7 +210,7 @@ def cdot(x, w, b, q, params):
     y = np.floor(y)
     y = np.clip(y, -128, 127)
 
-    return y, psum
+    return y, psum, metrics
 
 def pim(x, w, y_shape, lut_var, lut_rpr, params):
     nrow, nwl, wl, xb = np.shape(x)
@@ -218,12 +218,16 @@ def pim(x, w, y_shape, lut_var, lut_rpr, params):
     nrow, ncol = y_shape
         
     y = np.zeros(shape=y_shape)
+
+    # metrics = adc {1,2,3,4,5,6,7,8}, ron, roff, wl_drv
+    metrics = np.zeros(shape=11)
     
     x = np.ascontiguousarray(x, np.int32)
     w = np.ascontiguousarray(w, np.int32)
     y = np.ascontiguousarray(y, np.int32)
     lut_var = np.ascontiguousarray(lut_var, np.int32)
     lut_rpr = np.ascontiguousarray(lut_rpr, np.int32)
+    metrics = np.ascontiguousarray(metrics, np.int32)
 
     # print (lut_rpr)
     # print (np.array(lut_rpr.ctypes.strides))
@@ -235,6 +239,7 @@ def pim(x, w, y_shape, lut_var, lut_rpr, params):
     ctypes.c_void_p(y.ctypes.data), 
     ctypes.c_void_p(lut_var.ctypes.data), 
     ctypes.c_void_p(lut_rpr.ctypes.data), 
+    ctypes.c_void_p(metrics.ctypes.data), 
     ctypes.c_int(params['adc']),
     ctypes.c_int(params['skip']),
     ctypes.c_int(nrow),
@@ -243,8 +248,8 @@ def pim(x, w, y_shape, lut_var, lut_rpr, params):
     ctypes.c_int(nbl),
     ctypes.c_int(wl),
     ctypes.c_int(bl))
-
-    return y, psum
+    
+    return y, psum, metrics
     
     
     

@@ -74,7 +74,27 @@ int sat_error(float p, int adc, int rpr)
   return e;
 }
 
-int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int adc, int skip, int R, int C, int NWL, int NBL, int WL, int BL)
+/*
+metrics
+------
+adc.1
+adc.2
+adc.3
+adc.4
+adc.5
+adc.6
+adc.7
+adc.8
+ron
+roff
+wl_drv
+*/
+
+#define METRIC_RON  8
+#define METRIC_ROFF 9
+#define METRIC_WL   10
+
+int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int adc, int skip, int R, int C, int NWL, int NBL, int WL, int BL)
 {
   int pdot[VECTOR_SIZE];
   int pdot_sum[VECTOR_SIZE];
@@ -108,6 +128,10 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int adc, int skip, i
             assert ((rpr_addr >= 0) && (rpr_addr < 64));
           }
           int rpr = lut_rpr[rpr_addr];
+
+          assert (rpr >= 1);
+          int comps = min(rpr, adc) - 1;
+          metrics[comps] += BL;
           
           clear(sat);
           clear(pdot_sum);
@@ -162,7 +186,10 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int adc, int skip, i
               if (!((var >= -3) && (var <= 3))) {
                 printf("%d\n", var);
                 assert ((var >= -3) && (var <= 3));
-              }              
+              }
+
+              metrics[METRIC_RON] += pdot[bl_ptr];
+              metrics[METRIC_ROFF] += rpr - pdot[bl_ptr];
 
               pdot[bl_ptr] = min(max(pdot[bl_ptr] + var, 0), adc);
               y[r * C + c] += (pdot[bl_ptr] << (wb + xb));
@@ -175,8 +202,10 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int adc, int skip, i
               }
             }
 
-          } // while (wl_ptr < wl) {
+            metrics[METRIC_WL] += wl_sum;
 
+          } // while (wl_ptr < wl) {
+          
           for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
             int c = (bl_ptr + bl * BL) % C;
             int wb = (bl_ptr + bl * BL) / C;
