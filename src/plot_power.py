@@ -17,6 +17,8 @@ def merge_dicts(list_of_dicts):
 
 ####################
 
+adc_pJ = 22. * 1e-12 * (8. / 32.) / 16.
+
 num_layers = 7
 num_comparator = 8
 results = np.load('results.npy', allow_pickle=True).item()
@@ -60,9 +62,9 @@ for key in sorted(results.keys()):
         y_roff[skip][cards][sigma_index][layer] = np.mean(example_results['roff'])
         y_adc[skip][cards][sigma_index][layer] = np.mean(example_results['adc'], axis=0)
         
-        y_energy[skip][cards][sigma_index][layer] += y_ron[skip][cards][sigma_index][layer] * 1e-12
-        y_energy[skip][cards][sigma_index][layer] += y_roff[skip][cards][sigma_index][layer] * 1e-13
-        y_energy[skip][cards][sigma_index][layer] += np.sum(y_adc[skip][cards][sigma_index][layer] * np.array([1,2,3,4,5,6,7,8]) * 20e-12)
+        y_energy[skip][cards][sigma_index][layer] += y_ron[skip][cards][sigma_index][layer] * 1e-13
+        y_energy[skip][cards][sigma_index][layer] += y_roff[skip][cards][sigma_index][layer] * 1e-14
+        y_energy[skip][cards][sigma_index][layer] += np.sum(y_adc[skip][cards][sigma_index][layer] * np.array([1,2,3,4,5,6,7,8]) * adc_pJ)
         # print (skip, cards, y_adc[skip][cards][sigma_index][layer] * np.array([1,2,3,4,5,6,7,8]))
 
         y_mac_per_pJ[skip][cards][sigma_index][layer] = np.sum(example_results['nmac']) / np.sum(y_energy[skip][cards][sigma_index][layer]) * 1e-12

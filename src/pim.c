@@ -131,17 +131,18 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
           }
           int rpr = lut_rpr[rpr_addr];
           assert (rpr >= 1);
-          int comps = min(rpr, adc) - 1;
           
           clear(sat);
           clear(pdot_sum);
           int wl_total = 0;
           int wl_ptr = 0;
           while (wl_ptr < WL) {
+            int rows = min(rpr, WL - wl_ptr);
+
             clear(pdot);
             int wl_sum = 0;
             if (skip) {              
-              while ((wl_ptr < WL) && (wl_sum + x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr * 8) + xb] <= rpr)) {
+              while ((wl_ptr < WL) && (wl_sum + x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr * 8) + xb] <= rows)) {
                 if (x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr * 8) + xb]) {
                   wl_sum += 1;
                   for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
@@ -188,7 +189,7 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
               }
 
               metrics[METRIC_RON] += pdot[bl_ptr];
-              metrics[METRIC_ROFF] += rpr - pdot[bl_ptr];
+              metrics[METRIC_ROFF] += rows - pdot[bl_ptr];
 
               pdot[bl_ptr] = min(max(pdot[bl_ptr] + var, 0), adc);
               y[r * C + c] += (pdot[bl_ptr] << (wb + xb));
@@ -201,6 +202,7 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
               }
             }
 
+            int comps = min(rows, adc) - 1;
             metrics[comps] += BL;
             metrics[METRIC_WL] += wl_sum;
 
