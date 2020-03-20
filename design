@@ -390,6 +390,26 @@ fill in these damn sections with stuff.
 pdlsyn figures, this we can do
 batch norm was impossible.
 
+-----
+
+alright how do we use this quantize setup now ? 
+> we want to put in a variance, and get the accuracy result right ? 
+> so train a network, then see what accuracy it gets.
+> the thing I would worry about is the floor function fucking things up.
+  > how do we get true variance = 5 if it floors everything ? 
+  > i suppose just put in 6? 
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
