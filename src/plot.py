@@ -25,6 +25,7 @@ x = np.array([0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15])
 y_perf = np.zeros(shape=(2, 2, len(x), num_layers))
 y_mean = np.zeros(shape=(2, 2, len(x), num_layers))
 y_std = np.zeros(shape=(2, 2, len(x), num_layers))
+acc = np.zeros(shape=(2, 2, len(x)))
 
 for key in sorted(results.keys()):
     (skip, cards, sigma) = key
@@ -36,28 +37,45 @@ for key in sorted(results.keys()):
         y_perf[skip][cards][sigma_index][layer] = np.sum(example_results['nmac']) / np.sum(example_results['cycle'])
         y_mean[skip][cards][sigma_index][layer] = np.mean(example_results['mean'])
         y_std[skip][cards][sigma_index][layer] = np.mean(example_results['std'])
+        acc[skip][cards][sigma_index] = layer_results['acc']
 
 ####################
-'''
+
+print (np.around(y_perf[0, 0], 1))
+print (np.around(y_perf[1, 0], 1))
 print (np.around(y_perf[1, 1], 1))
-print (np.around(y_mean[1, 1],  3))
-print (np.around(y_std[1, 1],  3))
-'''
+
+# print (np.around(y_mean[1, 1],  3))
+# print (np.around(y_std[1, 1],  3))
+
 ####################
 
 fig, ax1 = plt.subplots()
 ax2 = ax1.twinx()
 
-ax1.plot(x, y_perf[0, 0, :, 3], color='red', linestyle='--', label='baseline')
-ax1.plot(x, y_perf[1, 0, :, 3], color='blue', linestyle='--', label='skip')
-ax1.plot(x, y_perf[1, 1, :, 3], color='green', linestyle='--', label='cards')
-
-ax2.plot(x, y_std[0, 0, :, 3], color='red', label='baseline')
-ax2.plot(x, y_std[1, 0, :, 3], color='blue', label='skip')
-ax2.plot(x, y_std[1, 1, :, 3], color='green', label='cards')
-
+ax1.plot(x, y_perf[0, 0, :, 4], color='red', linestyle='--', label='baseline')
+ax1.plot(x, y_perf[1, 0, :, 4], color='blue', linestyle='--', label='skip')
+ax1.plot(x, y_perf[1, 1, :, 4], color='green', linestyle='--', label='cards')
 ax1.set_ylim(bottom=0)
-ax2.set_ylim(bottom=0)
+
+####################
+
+y2 = 'STD'
+
+if y2 == 'STD':
+  ax2.plot(x, y_std[0, 0, :, 4], color='red', label='baseline')
+  ax2.plot(x, y_std[1, 0, :, 4], color='blue', label='skip')
+  ax2.plot(x, y_std[1, 1, :, 4], color='green', label='cards')
+  ax2.set_ylim(bottom=0)
+elif y2 == 'ACC':
+  ax2.plot(x, acc[0, 0, :], color='red', label='baseline')
+  ax2.plot(x, acc[1, 0, :], color='blue', label='skip')
+  ax2.plot(x, acc[1, 1, :], color='green', label='cards')
+  # ax2.set_ylim(bottom=0.5)
+else:
+  assert (False)
+
+####################
 
 ax1.legend(loc='center left')
 ax2.legend(loc='center right')

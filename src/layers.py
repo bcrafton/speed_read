@@ -138,7 +138,8 @@ class Conv(Layer):
         y_max = np.max(y - y_ref)
         y_mean = np.mean(y - y_ref)
         y_std = np.std(y - y_ref)
-        nmac = (self.yh * self.yw) * (self.fh * self.fw * self.fc * self.fn)
+        assert (self.s == 1)
+        nmac = (self.xh * self.xw) * (self.fh * self.fw * self.fc * self.fn)
         
         # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
         results = {}
