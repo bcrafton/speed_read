@@ -130,17 +130,14 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
             assert ((rpr_addr >= 0) && (rpr_addr < 64));
           }
           int rpr = lut_rpr[rpr_addr];
-
           assert (rpr >= 1);
           int comps = min(rpr, adc) - 1;
-          metrics[comps] += BL;
           
           clear(sat);
           clear(pdot_sum);
           int wl_total = 0;
           int wl_ptr = 0;
           while (wl_ptr < WL) {
-
             clear(pdot);
             int wl_sum = 0;
             if (skip) {              
@@ -204,6 +201,7 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
               }
             }
 
+            metrics[comps] += BL;
             metrics[METRIC_WL] += wl_sum;
 
           } // while (wl_ptr < wl) {
