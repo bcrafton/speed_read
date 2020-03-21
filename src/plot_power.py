@@ -83,21 +83,25 @@ print (np.around(y_std[1, 1],  3))
 
 ####################
 
+plot_layer = 5
+
+####################
+
 fig, ax1 = plt.subplots()
 ax2 = ax1.twinx()
 
 y1 = 'MAC_PER_pJ'
 
 if y1 == 'MAC_PER_CYCLE':
-  ax1.plot(x, y_mac_per_cycle[0, 0, :, 4], color='red', linestyle='--', label='baseline')
-  ax1.plot(x, y_mac_per_cycle[1, 0, :, 4], color='blue', linestyle='--', label='skip')
-  ax1.plot(x, y_mac_per_cycle[1, 1, :, 4], color='green', linestyle='--', label='cards')
+  ax1.plot(x, y_mac_per_cycle[0, 0, :, plot_layer], color='red', linestyle='--', label='baseline')
+  ax1.plot(x, y_mac_per_cycle[1, 0, :, plot_layer], color='blue', linestyle='--', label='skip')
+  ax1.plot(x, y_mac_per_cycle[1, 1, :, plot_layer], color='green', linestyle='--', label='cards')
   ax1.set_ylim(bottom=0)
   ax1.set_ylabel("MAC / Cycle")
 elif y1 == 'MAC_PER_pJ':
-  ax1.plot(x, y_mac_per_pJ[0, 0, :, 4], color='red', linestyle='--', label='baseline')
-  ax1.plot(x, y_mac_per_pJ[1, 0, :, 4], color='blue', linestyle='--', label='skip')
-  ax1.plot(x, y_mac_per_pJ[1, 1, :, 4], color='green', linestyle='--', label='cards')
+  ax1.plot(x, y_mac_per_pJ[0, 0, :, plot_layer], color='red', linestyle='--', label='baseline')
+  ax1.plot(x, y_mac_per_pJ[1, 0, :, plot_layer], color='blue', linestyle='--', label='skip')
+  ax1.plot(x, y_mac_per_pJ[1, 1, :, plot_layer], color='green', linestyle='--', label='cards')
   ax1.set_ylim(bottom=0)
   ax1.set_ylabel("MAC / pJ")
 
@@ -106,9 +110,9 @@ elif y1 == 'MAC_PER_pJ':
 y2 = 'ACC'
 
 if y2 == 'STD':
-  ax2.plot(x, y_std[0, 0, :, 4], color='red', label='baseline')
-  ax2.plot(x, y_std[1, 0, :, 4], color='blue', label='skip')
-  ax2.plot(x, y_std[1, 1, :, 4], color='green', label='cards')
+  ax2.plot(x, y_std[0, 0, :, plot_layer], color='red', label='baseline')
+  ax2.plot(x, y_std[1, 0, :, plot_layer], color='blue', label='skip')
+  ax2.plot(x, y_std[1, 1, :, plot_layer], color='green', label='cards')
   ax2.set_ylim(bottom=0)
   ax2.set_ylabel("Average STD from Truth")
 elif y2 == 'ACC':
