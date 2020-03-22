@@ -105,7 +105,7 @@ axs[1, 0].plot(x, y_std[0, 0, :, plot_layer], color='red', label='baseline')
 axs[1, 0].plot(x, y_std[1, 0, :, plot_layer], color='blue', label='skip')
 axs[1, 0].plot(x, y_std[1, 1, :, plot_layer], color='green', label='cards')
 axs[1, 0].set_ylim(bottom=0)
-axs[1, 0].set_ylabel("Average STD from Truth")
+axs[1, 0].set_ylabel("MatMul Error STD")
 
 axs[1, 1].plot(x, acc[0, 0, :], color='red', label='baseline')
 axs[1, 1].plot(x, acc[1, 0, :], color='blue', label='skip')
@@ -115,7 +115,7 @@ axs[1, 1].set_ylabel("Classification Accuracy")
 ####################
 
 fig = plt.gcf()
-fig.set_size_inches(8, 5)
+fig.set_size_inches(8, 4.5)
 fig.savefig('cards.png', dpi=300)
 # plt.show()
 
