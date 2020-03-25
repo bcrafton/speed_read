@@ -57,10 +57,10 @@ for key in sorted(results.keys()):
         y_mac_per_cycle[skip][cards][sigma_index][layer]  = np.sum(example_results['nmac']) / np.sum(example_results['cycle'])
         y_mac[skip][cards][sigma_index][layer]   = np.mean(example_results['nmac']) 
         y_cycle[skip][cards][sigma_index][layer] = np.mean(example_results['cycle'])
-        
-        y_ron[skip][cards][sigma_index][layer] = np.mean(example_results['ron'])
-        y_roff[skip][cards][sigma_index][layer] = np.mean(example_results['roff'])
-        y_adc[skip][cards][sigma_index][layer] = np.mean(example_results['adc'], axis=0)
+
+        y_ron[skip][cards][sigma_index][layer] = np.sum(example_results['ron'])
+        y_roff[skip][cards][sigma_index][layer] = np.sum(example_results['roff'])
+        y_adc[skip][cards][sigma_index][layer] = np.sum(example_results['adc'], axis=0)
         
         y_energy[skip][cards][sigma_index][layer] += y_ron[skip][cards][sigma_index][layer] * 1e-13
         y_energy[skip][cards][sigma_index][layer] += y_roff[skip][cards][sigma_index][layer] * 1e-14

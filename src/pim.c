@@ -138,17 +138,19 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
           int wl_ptr = 0;
           while (wl_ptr < WL) {
             int rows = min(rpr, WL - wl_ptr);
-
+            
+            /*
             int remainder=0;
             for (int wl_remainder=wl_ptr; wl_remainder<WL; wl_remainder++) {
               if (x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_remainder * 8) + xb]) {
                 remainder++;
               }
             }
-
+            */
+            
             clear(pdot);
             int wl_sum = 0;
-            if (skip) {              
+            if (skip) {
               while ((wl_ptr < WL) && (wl_sum + x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr * 8) + xb] <= rows)) {
                 if (x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr * 8) + xb]) {
                   wl_sum += 1;
@@ -209,9 +211,17 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
               }
             }
 
-            // int comps = min(remainder, adc) - 1;
-            int comps = min(remainder, min(rows, adc)) - 1;
+            // int comps = min(rows, adc) - 1;
+            // int comps = min(remainder, min(rows, adc) - 1);
+            int comps = min(wl_sum, min(rows, adc) - 1);
+            if (!((comps >= 0) && (comps < adc))) {
+              printf("comps: %d wl_sum: %d rows: %d adc: %d\n", comps, wl_sum, rows, adc);
+              assert((comps >= 0) && (comps < adc));
+            }
+
             metrics[comps] += BL;
+            assert(metrics[comps] < 1e9);
+
             metrics[METRIC_WL] += wl_sum;
 
           } // while (wl_ptr < wl) {
