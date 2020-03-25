@@ -70,16 +70,20 @@ for key in sorted(results.keys()):
         y_mac_per_pJ[skip][cards][sigma_index][layer] = np.sum(example_results['nmac']) / 1e12 / np.sum(y_energy[skip][cards][sigma_index][layer])
 
 ####################
-'''
-print (np.around(y_mac_per_cycle[0, 0], 1))
-print (np.around(y_mac_per_cycle[1, 0], 1))
-print (np.around(y_mac_per_cycle[1, 1], 1))
-'''
+
+#print (np.around(y_mac_per_cycle[0, 0], 1))
+#print (np.around(y_mac_per_cycle[1, 0], 1))
+#print (np.around(y_mac_per_cycle[1, 1], 1))
+
 # print (np.around(y_mean[1, 1],  3))
 
-print (np.around(y_std[0, 0],  3))
-print (np.around(y_std[1, 0],  3))
-print (np.around(y_std[1, 1],  3))
+#print (np.around(y_std[0, 0],  3))
+#print (np.around(y_std[1, 0],  3))
+#print (np.around(y_std[1, 1],  3))
+
+print (np.around(y_mac_per_pJ[0, 0],  3))
+print (np.around(y_mac_per_pJ[1, 0],  3))
+print (np.around(y_mac_per_pJ[1, 1],  3))
 
 ####################
 
