@@ -399,7 +399,32 @@ alright how do we use this quantize setup now ?
   > how do we get true variance = 5 if it floors everything ? 
   > i suppose just put in 6? 
 
+-----
 
+> how can MAC/J be increasing ? 
+> total MAC stays the same
+> ADC, RON, ROFF change.
+
+so we know we have less of ADC, RON, ROFF 
+> RON / ROFF does not play a role at all.
+
+changing variance inside of the c function "fixed" the problem.
+which showed the thing is the activations going to layers deeper layers
+
+BUT looking at this plot. i am seeing increasing energy efficieny for layer 1.
+WTF !!!
+
+> this narrows down our search. we can look at just the first layer!.
+
+okay i think i might understand it
+in the scenario where the WL is very sparse - 
+we wud be turning on 8 VS turning on 1 or 2 or something
+> min(rpr, WL - wl_ptr);
+this would not save u.
+
+so i think the way to show this is what is happening - atleast for layer 1, is min(pdot, rpr) 
+
+-----
 
 
 
