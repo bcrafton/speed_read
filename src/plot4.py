@@ -81,9 +81,11 @@ for key in sorted(results.keys()):
 #print (np.around(y_std[1, 0],  3))
 #print (np.around(y_std[1, 1],  3))
 
-print (np.around(y_mac_per_pJ[0, 0],  3))
-print (np.around(y_mac_per_pJ[1, 0],  3))
-print (np.around(y_mac_per_pJ[1, 1],  3))
+# print (np.around(y_mac_per_pJ[0, 0],  3))
+# print (np.around(y_mac_per_pJ[1, 0],  3))
+# print (np.around(y_mac_per_pJ[1, 1],  3))
+
+
 
 ####################
 
@@ -156,6 +158,30 @@ plt.tight_layout()
 fig.savefig('acc.png', dpi=300)
 
 ####################
+
+print (np.around(y_mac_per_pJ[1, 1, :, plot_layer] / y_mac_per_pJ[1, 0, :, plot_layer], 3))
+print (np.around(y_mac_per_cycle[1, 1, :, plot_layer] / y_mac_per_cycle[1, 0, :, plot_layer], 3))
+
+####################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
