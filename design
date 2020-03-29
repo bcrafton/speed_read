@@ -447,9 +447,18 @@ so i think the way to show this is what is happening - atleast for layer 1, is m
 
 -----
 
+I think gameplan is to move cconv stuff into conv.
+and do duplicates and stuff.
+> this will essentially be what we did in 6115 already.
+> so we will not have options to share weights between layers basically ? think im fine with that now.
+  > dont think it wud be too hard to add in the future.
 
+-----
 
-
+> model - figures out how many duplicates each layer gets
+> model.cut() -> call all layer.cut()
+> layer.cut() -> create all arrays / duplicates. create rpr_lut, var_lut.
+  > only think we dont do in cconv is the transformation of x stuff.
 
 
 
