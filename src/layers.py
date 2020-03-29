@@ -8,6 +8,7 @@ from dot import *
 from cdot import *
 from dot_ref import *
 from defines import *
+from var import *
 
 from scipy.stats import norm, binom
 from rpr import rpr
@@ -122,6 +123,7 @@ class Conv(Layer):
         nrow = self.fh * self.fw * self.fc
         p = np.max(col_density, axis=0)
         self.params['rpr'] = rpr(nrow=nrow, p=p, q=self.q, params=self.params)
+        self.params['var'] = lut_var(params['sigma'], 32)
         
         #########################
 

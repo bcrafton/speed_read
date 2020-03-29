@@ -9,34 +9,6 @@ lib.pim.restype = ctypes.c_int
 
 ###########################
 
-def get_lut_var(var, rpr):
-    lut = np.zeros(shape=(rpr + 1, 1000), dtype=np.int32)
-    for s in range(1, rpr + 1):
-        
-        std = var * np.sqrt(s)
-        
-        p5 = norm.cdf( 5.5, 0, std) - norm.cdf( 4.5, 0, std)
-        p4 = norm.cdf( 4.5, 0, std) - norm.cdf( 3.5, 0, std)
-        p3 = norm.cdf( 3.5, 0, std) - norm.cdf( 2.5, 0, std)
-        p2 = norm.cdf( 2.5, 0, std) - norm.cdf( 1.5, 0, std)
-        p1 = norm.cdf( 1.5, 0, std) - norm.cdf( 0.5, 0, std)
-
-        p5 = int(round(p5, 3) * 1000)
-        p4 = int(round(p4, 3) * 1000)
-        p3 = int(round(p3, 3) * 1000)
-        p2 = int(round(p2, 3) * 1000)
-        p1 = int(round(p1, 3) * 1000)
-        p0 = 1000 - 2 * (p5 + p4 + p3 + p2 + p1)
-        
-        pos = [5]*p5 + [4]*p4 + [3]*p3 + [2]*p2 + [1]*p1
-        neg = [-5]*p5 + [-4]*p4 + [-3]*p3 + [-2]*p2 + [-1]*p1
-        e = pos + neg + [0]*p0
-        lut[s, :] = e
-        
-    return lut
-
-###########################
-
 def cconv(x, f, b, q, pool, stride, pad1, pad2, params):
     assert (stride == 1)
 
@@ -50,7 +22,7 @@ def cconv(x, f, b, q, pool, stride, pad1, pad2, params):
     ##################################################
     
     lut_rpr = params['rpr']
-    lut_var = get_lut_var(params['sigma'], 32)
+    lut_var = params['var']
 
     ##################################################
 
@@ -106,10 +78,6 @@ def cconv(x, f, b, q, pool, stride, pad1, pad2, params):
         f = np.concatenate((f, zeros), axis=2)
 
     f = np.reshape(f, (nwl, params['wl'], -1, params['bl']))
-    
-    ##################################################
-    
-    # print (np.shape(patches), np.shape(f))
     
     ##################################################
     
