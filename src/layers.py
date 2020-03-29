@@ -34,9 +34,6 @@ class Model:
                 else:
                     results[layer] = [result]
 
-        acc = np.mean(y == np.argmax(pred, axis=1))
-        results['acc'] = acc
-
         return pred, results
 
 #########################
@@ -140,88 +137,6 @@ class Conv(Layer):
         y_std = np.std(y - y_ref)
         assert (self.s == 1)
         nmac = (self.xh * self.xw) * (self.fh * self.fw * self.fc * self.fn)
-        
-        # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
-        results = {}
-        results['nmac']  = nmac
-        results['adc']   = metrics[0:8]
-        results['cycle'] = metrics[8]
-        results['ron']   = metrics[9]
-        results['roff']  = metrics[10]
-        results['wl']    = metrics[11]
-        results['std']   = y_std
-        results['mean']  = y_mean
-
-        return y, results
-        
-#########################
-        
-class Dense(Layer):
-    def __init__(self, size, params, weights=None):
-        self.layer_id = Layer.layer_id
-        Layer.layer_id += 1
-
-        self.size = size
-        self.isize, self.osize = self.size
-        self.params = params
-
-        maxval = pow(2, params['bpw'] - 1)
-        minval = -1 * maxval
-        if weights == None:
-            values = np.array(range(minval + 1, maxval))
-            self.w = np.random.choice(a=values, size=(self.isize, self.osize), replace=True).astype(int)
-            self.b = np.zeros(shape=self.osize).astype(int) 
-            self.q = 200
-        else:
-            self.w, self.b, self.q = weights
-            # check shape
-            assert(np.shape(self.w) == (self.isize, self.osize))
-            assert(np.shape(self.b) == (self.osize,))
-            assert(np.shape(self.q) == ())
-            # cast as int
-            self.w = self.w.astype(int)
-            self.b = self.b.astype(int)
-            self.q = int(self.q)
-            # q must be larger than 0
-            assert(self.q > 0)
-            
-        #########################
-            
-        w_offset = self.w + params['offset']
-        wb = []
-        for bit in range(params['bpw']):
-            wb.append(np.bitwise_and(np.right_shift(w_offset, bit), 1))
-        self.wb = np.stack(wb, axis=-1)
-        
-        #########################
-        
-        self.params = params.copy()
-
-        w_offset = self.w + params['offset']
-        wb = []
-        for bit in range(params['bpw']):
-            wb.append(np.bitwise_and(np.right_shift(w_offset, bit), 1))
-        wb = np.stack(wb, axis=-1)
-
-        wb_cols = np.reshape(self.wb, (self.isize, self.osize, params['bpw']))
-        col_density = np.mean(wb_cols, axis=0)
-
-        nrow = self.isize
-        p = np.max(col_density, axis=0)
-        self.params['rpr'] = rpr(nrow=nrow, p=p, q=self.q, params=self.params)
-
-    def forward(self, x):
-        assert (np.shape(x) == (4,4,128))
-        x = np.mean(x, axis=(0, 1))
-        x = np.reshape(x, self.isize)
-        y_ref = dot_ref(x=x, w=self.w, b=self.b, q=self.q)
-        y, metrics = cdot(x=x, w=self.w, b=self.b, q=self.q, params=self.params)
-        
-        y_min = np.min(y - y_ref)
-        y_max = np.max(y - y_ref)
-        y_mean = np.mean(y - y_ref)
-        y_std = np.std(y - y_ref)
-        nmac = self.isize * self.osize
         
         # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
         results = {}

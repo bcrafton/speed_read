@@ -15,9 +15,7 @@ from multiprocessing import Pool
 cmd = "gcc pim.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o pim.so"
 os.system(cmd)
 
-from layers import Model
-from layers import Conv
-from layers import Dense
+from layers import *
 from defines import *
 
 ####
@@ -87,9 +85,7 @@ def create_model(weights, params):
     Conv(input_size=(16,16,64), filter_size=(3,3,64,64),  pool=2, stride=1, pad1=1, pad2=1, params=params, weights=weights[3]),
 
     Conv(input_size=(8,8,64), filter_size=(3,3,64,128),   pool=1, stride=1, pad1=1, pad2=1, params=params, weights=weights[4]),
-    Conv(input_size=(8,8,128), filter_size=(3,3,128,128), pool=2, stride=1, pad1=1, pad2=1, params=params, weights=weights[5]),
-
-    Dense(size=(128, 10), params=params, weights=weights[7])
+    Conv(input_size=(8,8,128), filter_size=(3,3,128,128), pool=2, stride=1, pad1=1, pad2=1, params=params, weights=weights[5])
     ]
 
     model = Model(layers=layers)
