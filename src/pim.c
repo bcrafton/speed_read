@@ -104,13 +104,12 @@ wl
 
 int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int adc, int skip, int R, int C, int NWL, int NBL, int WL, int BL)
 {
-  printf("%d\n", NWL * NBL);
-
   // x = nrow, nwl, wl, xb
   // f = nwl, wl, nbl, bl
   // y = nrow, ncol
   
   int cycles = 0;
+  int stalls = 0;
   
   int array_sync = 0;
   int array_done[ARRAY_SIZE];
@@ -142,6 +141,7 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
           int array = wl * NBL + bl;
           if (array_done[array]) { 
             // printf("array %d done\n", array);
+            stalls++;
             continue;
           }
           else {
@@ -245,6 +245,8 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
   } // for (int r=0; r<R; r++) {
   
   metrics[METRIC_CYCLE] = cycles;
+  
+  printf("%d: %d %d\n", NWL * NBL, cycles, stalls);
   
   return cycles;  
 }
