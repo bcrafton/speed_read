@@ -426,6 +426,37 @@ so i think the way to show this is what is happening - atleast for layer 1, is m
 
 -----
 
+> duplicates need not be syncd.
+  > until end of layer of course
+> all arrays for a patch must be syncd
+> layers must be syncd
+
+> if one finishes before all the others, it can pick up on the remainder if its workload ...
+  > no it cannot ...
+  > each array has different weights. 
+
+-----
+
+> while(!done) instead of for r:R
+  > cycle ++;
+> need a different state machine for each one, 
+> do we want to make a function for each array ? 
+
+> we can ignore duplication to start ...
+> for (int a=0; a<A; a++) { // do not actually need to create duplicate weights -> well for d2d variance we do.
+
+-----
+
+
+
+
+
+
+
+
+
+
+
 
 
 
