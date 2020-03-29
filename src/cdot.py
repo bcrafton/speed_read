@@ -37,16 +37,6 @@ def get_lut_var(var, rpr):
 
 ###########################
 
-def get_lut_rpr(rpr_dict):
-    lut = np.zeros(shape=(8, 8), dtype=np.int32)
-    for x in range(8):
-        for w in range(8):
-            lut[x][w] = rpr_dict[(x, w)]
-            
-    return lut
-
-###########################
-
 def cconv(x, f, b, q, pool, stride, pad1, pad2, params):
     assert (stride == 1)
 
@@ -59,9 +49,8 @@ def cconv(x, f, b, q, pool, stride, pad1, pad2, params):
     
     ##################################################
     
-    lut_rpr = get_lut_rpr(params['rpr'])
+    lut_rpr = params['rpr']
     lut_var = get_lut_var(params['sigma'], 32)
-    # print (lut_rpr)
 
     ##################################################
 

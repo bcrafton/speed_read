@@ -38,10 +38,10 @@ break expected error into:
 2) error from rpr > adc
 '''
 def rpr(nrow, p, q, params):
-    rpr_lut = {}
+    rpr_lut = np.zeros(shape=(8, 8), dtype=np.int32)
     for wb in range(params['bpw']):
         for xb in range(params['bpa']):
-            rpr_lut[(xb, wb)] = params['adc']
+            rpr_lut[xb][wb] = params['adc']
         
     if not (params['skip'] and params['cards']):
         '''
@@ -53,7 +53,6 @@ def rpr(nrow, p, q, params):
     
     # counting cards:
     # ===============
-    rpr_lut = {}
     for wb in range(params['bpw']):
         for xb in range(params['bpa']):
             rpr_low = 1
@@ -65,10 +64,10 @@ def rpr(nrow, p, q, params):
                 e_mu = (scale / q) * mu
 
                 if rpr == rpr_low:
-                    rpr_lut[(xb, wb)] = rpr
+                    rpr_lut[xb][wb] = rpr
                 # if (e < 1.) and (np.absolute(e_mu) < 0.1):
                 if e < 1.:
-                    rpr_lut[(xb, wb)] = rpr
+                    rpr_lut[xb][wb] = rpr
 
     '''
     for key in sorted(rpr_lut.keys()):
