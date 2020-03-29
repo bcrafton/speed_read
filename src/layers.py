@@ -72,8 +72,8 @@ class Conv(Layer):
         self.p2 = pad2
         assert (self.s == 1)
         
-        self.yh = (self.xh - self.fh + self.p + self.p1 + self.p2) // self.p
-        self.yw = (self.xw - self.fw + self.p + self.p1 + self.p2) // self.p
+        # self.yh = (self.xh - self.fh + self.p + self.p1 + self.p2) // self.p
+        # self.yw = (self.xw - self.fw + self.p + self.p1 + self.p2) // self.p
 
         maxval = pow(2, params['bpw'] - 1)
         minval = -1 * maxval
@@ -127,7 +127,8 @@ class Conv(Layer):
         # 1) tensorflow to compute y_ref
         # 2) save {x,y1,y2,...} as tb from tensorflow 
         y_ref = conv_ref(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2)
-        y, metrics = cconv(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2, params=self.params)
+        # y, metrics = cconv(x=x, f=self.w, wx=self.wb, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2, params=self.params)
+        y, metrics = self.conv(x=x)
 
         y_min = np.min(y - y_ref)
         y_max = np.max(y - y_ref)
@@ -150,6 +151,50 @@ class Conv(Layer):
         return y, results
         
         #########################
+        
+    def conv(self, x):
+
+        yh = (self.xh - self.fh + self.s + self.p1 + self.p2) // self.s
+        yw = yh
+        
+        #########################
+        
+        x = np.pad(array=x, pad_width=[[self.p1,self.p2], [self.p1,self.p2], [0,0]], mode='constant')
+        patches = []
+        for h in range(yh):
+            for w in range(yw):
+                patch = np.reshape(x[h*self.s:(h*self.s+self.fh), w*self.s:(w*self.s+self.fw), :], -1)
+                patches.append(patch)
+                
+        #########################
+        
+        patches = np.stack(patches, axis=0)
+        pb = []
+        for xb in range(self.params['bpa']):
+            pb.append(np.bitwise_and(np.right_shift(patches.astype(int), xb), 1))
+        
+        patches = np.stack(pb, axis=-1)
+        npatch, nrow, nbit = np.shape(patches)
+        
+        if (nrow % self.params['wl']):
+            zeros = np.zeros(shape=(npatch, self.params['wl'] - (nrow % self.params['wl']), self.params['bpa']))
+            patches = np.concatenate((patches, zeros), axis=1)
+            
+        patches = np.reshape(patches, (npatch, -1, self.params['wl'], self.params['bpa']))
+        
+        #########################
+        
+        y, metrics = pim(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], self.params)
+        y = np.reshape(y, (yh, yw, self.fn))
+        
+        assert(np.all(np.absolute(y) < 2 ** 23))
+        y = relu(y)
+        y = avg_pool(y, self.p)
+        y = y / self.q
+        y = np.floor(y)
+        y = np.clip(y, -128, 127)
+
+        return y, metrics
         
     def cut(self):
         
@@ -179,6 +224,7 @@ class Conv(Layer):
         ########################
 
         nwl, wl, ncol, nbit = np.shape(wb)
+        wb = np.transpose(wb, (0, 1, 3, 2))
         wb = np.reshape(wb, (nwl, self.params['wl'], ncol * nbit))
         
         nwl, wl, ncol = np.shape(wb)
