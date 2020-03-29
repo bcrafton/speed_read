@@ -17,12 +17,18 @@
 
 // make sure (bl <= 1024), malloc would be too slow.
 // if we just pick a size large enough we will be okay
-#define VECTOR_SIZE 1024
+#define VECTOR_SIZE 128
 #define ARRAY_SIZE 128
+#define PE_SIZE 64
 
 void clear_vector(int* v)
 {
   memset(v, 0, sizeof(int) * VECTOR_SIZE);
+}
+
+void clear_array(int* a)
+{
+  memset(a, 0, sizeof(int) * ARRAY_SIZE);
 }
 
 //////////////////////////////////////////////
@@ -97,106 +103,149 @@ wl
 #define METRIC_ROFF  10
 #define METRIC_WL    11
 
-int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int adc, int skip, int R, int C, int NWL, int NBL, int WL, int BL)
+int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int adc, int skip, int R, int D, int C, int NWL, int NBL, int WL, int BL)
 {
   // x = nrow, nwl, wl, xb
   // f = nwl, wl, nbl, bl
   // y = nrow, ncol
   
-  int cycles = 0;  
-  int done = 0;
+  int cycles = 0;
+  int stalls = 0;
+  
+  int array_sync = 0;
+  int array_done[ARRAY_SIZE];
 
   int wl_ptr[ARRAY_SIZE]; // NWL * NBL
   int wl_sum[ARRAY_SIZE]; // NWL * NBL
-  int wl_total[ARRAY_SIZE]; // NWL * NBL
+  // int wl_total[ARRAY_SIZE]; // NWL * NBL
+  
   int xb[ARRAY_SIZE]; // NWL * NBL
-  int r[ARRAY_SIZE]; // NWL * NBL
+    
+  int r[ARRAY_SIZE]; // NWL * NBL // this will be needed at duplicate level.
   
   int pdot[ARRAY_SIZE][VECTOR_SIZE];
-  int pdot_sum[ARRAY_SIZE][VECTOR_SIZE];
-  int sat[ARRAY_SIZE][VECTOR_SIZE];
+  // int pdot_sum[ARRAY_SIZE][VECTOR_SIZE];
+  // int sat[ARRAY_SIZE][VECTOR_SIZE];
   
+  // for (int r=0; r<R; r++) {
   while (!done) {
     cycles += 1;
-    for (int wl=0; wl<NWL; wl++) {
-      for (int bl=0; bl<NBL; bl++) {
+    
+    for (int d=0; d<D; d++) { 
+  
+      array_sync = 0;
+      clear_array(array_done);
+      clear_array(wl_ptr);
+      clear_array(xb);
+    
+      for (int wl=0; wl<NWL; wl++) {
+        for (int bl=0; bl<NBL; bl++) {
 
-        int array = wl * NBL + bl;
-        clear_vector(pdot[array]);
-
-        /////////////////////////////////////
-
-        int rpr_addr;
-        if (BL >= C) {
-          int x_addr = (xb * 8);
-          int w_addr = ((bl + 1) * (BL / C)) - 1;
-          // for dense:
-          w_addr = min(w_addr, 7);
-          rpr_addr = x_addr + w_addr;
-        }
-        else {
-          rpr_addr = (xb * 8) + (bl / (C / BL)); 
-        }
-        
-        if (!((rpr_addr >= 0) && (rpr_addr < 64))) {
-          printf("xb: %d bl: %d BL: %d C: %d: rpr_addr: %d\n", xb, bl, BL, C, rpr_addr);
-          assert ((rpr_addr >= 0) && (rpr_addr < 64));
-        }
-        int rpr = lut_rpr[rpr_addr];
-        assert (rpr >= 1);
-        
-        /////////////////////////////////////
-        
-        int rows = min(rpr, WL - wl_ptr[array]);
+          int array = wl * NBL + bl;
+          if (array_done[array]) { 
+            stalls++;
+            continue;
+          }
           
-        if (skip) {
-          while ((wl_ptr[array] < WL) && (wl_sum[array] + x[(r[array] * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[array] * 8) + xb[array]] <= rows)) {
-            if (x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr * 8) + xb]) {
-              wl_sum += 1;
-              for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
-                pdot[array][bl_ptr] += w[(wl * WL * NBL * BL) + (wl_ptr[array] * NBL * BL) + (bl * BL) + bl_ptr];
+          clear_vector(pdot[array]);
+          wl_sum[array] = 0;
+
+          /////////////////////////////////////
+
+          int rpr_addr;
+          if (BL >= C) {
+            int x_addr = (xb[array] * 8);
+            int w_addr = ((bl + 1) * (BL / C)) - 1;
+            // for dense:
+            w_addr = min(w_addr, 7);
+            rpr_addr = x_addr + w_addr;
+          }
+          else {
+            rpr_addr = (xb[array] * 8) + (bl / (C / BL)); 
+          }
+          
+          if (!((rpr_addr >= 0) && (rpr_addr < 64))) {
+            printf("xb: %d bl: %d BL: %d C: %d: rpr_addr: %d\n", xb[array], bl, BL, C, rpr_addr);
+            assert ((rpr_addr >= 0) && (rpr_addr < 64));
+          }
+          int rpr = lut_rpr[rpr_addr];
+          assert (rpr >= 1);
+          
+          /////////////////////////////////////
+          
+          int rows = min(rpr, WL - wl_ptr[array]);
+            
+          // printf("%d %d %d\n", wl_ptr[array], (wl_ptr[array] < WL), (wl_sum[array] + x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[array] * 8) + xb[array]] <= rows));
+            
+          if (skip) {
+            while ((wl_ptr[array] < WL) && (wl_sum[array] + x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[array] * 8) + xb[array]] <= rows)) {
+              if (x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[array] * 8) + xb[array]]) {
+                wl_sum[array] += 1;
+                for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
+                  pdot[array][bl_ptr] += w[(wl * WL * NBL * BL) + (wl_ptr[array] * NBL * BL) + (bl * BL) + bl_ptr];
+                }
+              }
+              wl_ptr[array] += 1;
+            }
+          }
+          else {
+            assert(0);
+          }
+          
+          /////////////////////////////////////
+
+          for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
+            int c = (bl_ptr + bl * BL) % C;
+            int wb = (bl_ptr + bl * BL) / C;
+            // comment me out for speed.
+            // if ((wl_ptr == 0) && (wl == 0) && (xb == 0) && (wb == 0)) { assert(y[r * C + c] == 0); }
+
+            if (wb == 0) {
+              y[r * C + c] -= ((wl_sum[array] * 128) << xb[array]);
+            }
+            
+            int key = rand() % 1000;
+            int var_addr = pdot[array][bl_ptr] * 1000 + key;
+            int var = lut_var[var_addr];
+
+            if (!((var >= -3) && (var <= 3))) {
+              printf("%d\n", var);
+              assert ((var >= -3) && (var <= 3));
+            }
+
+            pdot[array][bl_ptr] = min(max(pdot[array][bl_ptr] + var, 0), adc);
+            y[r * C + c] += (pdot[array][bl_ptr] << (wb + xb[array]));
+          }
+                    
+          if (wl_ptr[array] == WL) {            
+            wl_ptr[array] = 0;
+            
+            if (xb[array] == (8 - 1)) {
+              xb[array] = 0;
+              array_done[array] = 1;
+              
+              array_sync = 1;
+              for (int a=0; a<NWL * NBL; a++) {
+                array_sync = array_sync & array_done[a];
               }
             }
-            wl_ptr[array] += 1;
+            else {
+              xb[array] += 1;
+            }
           }
-        }
-        else {
-          assert(0);
-        }
-        if (wl_sum[array] >= adc) {
-          wl_total[array] += wl_sum[array];
-        }
-        
-        /////////////////////////////////////
-
-        for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
-          int c = (bl_ptr + bl * BL) % C;
-          int wb = (bl_ptr + bl * BL) / C;
-          // comment me out for speed.
-          // if ((wl_ptr == 0) && (wl == 0) && (xb == 0) && (wb == 0)) { assert(y[r * C + c] == 0); }
-
-          if (wb == 0) {
-            y[r[array] * C + c] -= ((wl_sum[array] * 128) << xb[array]);
+          else {
+            assert (wl_ptr[array] < WL);
           }
           
-          int key = rand() % 1000;
-          int var_addr = pdot[array][bl_ptr] * 1000 + key;
-          int var = lut_var[var_addr];
-
-          if (!((var >= -3) && (var <= 3))) {
-            printf("%d\n", var);
-            assert ((var >= -3) && (var <= 3));
-          }
-
-          pdot[array][bl_ptr] = min(max(pdot[array][bl_ptr] + var, 0), adc);
-          y[r * C + c] += (pdot[array][bl_ptr] << (wb + xb[array]));
-        }
-        
-      } // for (int bl=0; bl<NBL; bl++) {
-    } // for (int wl=0; wl<NWL; wl++) {
-  } // while (!done) {
+        } // for (int bl=0; bl<NBL; bl++) {
+      } // for (int wl=0; wl<NWL; wl++) {
+      assert (cycles < 100000);
+    } // while (!done) {
+  } // for (int r=0; r<R; r++) {
   
   metrics[METRIC_CYCLE] = cycles;
+  
+  printf("%d: %d %d\n", NWL * NBL, cycles, stalls);
   
   return cycles;  
 }
