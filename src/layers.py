@@ -97,15 +97,6 @@ class Conv(Layer):
             self.q = int(self.q)
             # q must be larger than 0
             assert(self.q > 0)
-
-        #########################
-
-        # w_offset = self.w + pow(2, params['bpw'] - 1)
-        w_offset = self.w + params['offset']
-        wb = []
-        for bit in range(params['bpw']):
-            wb.append(np.bitwise_and(np.right_shift(w_offset, bit), 1))
-        self.wb = np.stack(wb, axis=-1)
         
         #########################
         
@@ -117,7 +108,7 @@ class Conv(Layer):
             wb.append(np.bitwise_and(np.right_shift(w_offset, bit), 1))
         wb = np.stack(wb, axis=-1)
 
-        wb_cols = np.reshape(self.wb, (self.fh * self.fw * self.fc, self.fn, params['bpw']))
+        wb_cols = np.reshape(wb, (self.fh * self.fw * self.fc, self.fn, params['bpw']))
         col_density = np.mean(wb_cols, axis=0)
 
         nrow = self.fh * self.fw * self.fc
