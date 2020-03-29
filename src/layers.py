@@ -99,9 +99,12 @@ class Conv(Layer):
             assert(self.q > 0)
         
         #########################
-        
-        self.params = params.copy()
 
+        self.params = params.copy()
+        self.params['var'] = lut_var(params['sigma'], 32)
+        
+        #########################
+        
         w_offset = self.w + params['offset']
         wb = []
         for bit in range(params['bpw']):
@@ -114,14 +117,17 @@ class Conv(Layer):
         nrow = self.fh * self.fw * self.fc
         p = np.max(col_density, axis=0)
         self.params['rpr'] = rpr(nrow=nrow, p=p, q=self.q, params=self.params)
-        self.params['var'] = lut_var(params['sigma'], 32)
+        
+        #########################
+        
+        self.wb = self.cut()
         
         #########################
 
     def forward(self, x):
         # 1) tensorflow to compute y_ref
         # 2) save {x,y1,y2,...} as tb from tensorflow 
-        y_ref   = conv_ref(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2)
+        y_ref = conv_ref(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2)
         y, metrics = cconv(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2, params=self.params)
 
         y_min = np.min(y - y_ref)
@@ -144,7 +150,67 @@ class Conv(Layer):
 
         return y, results
         
+        #########################
+        
+    def cut(self):
+        
+        # nrow, nwl, wl, xb = np.shape(x)
+        # nwl, wl, nbl, bl = np.shape(w) 
+        # nrow, ncol = y_shape
+
+        ########################
+
+        w_offset = self.w + self.params['offset']
+        w_matrix = np.reshape(w_offset, (self.fh * self.fw * self.fc, self.fn))
+        wb = []
+        for bit in range(self.params['bpw']):
+            wb.append(np.bitwise_and(np.right_shift(w_matrix, bit), 1))
+        wb = np.stack(wb, axis=-1)
+        
+        ########################
+        
+        nrow, ncol, nbit = np.shape(wb)
+        if (nrow % self.params['wl']):
+            zeros = np.zeros(shape=(self.params['wl'] - (nrow % self.params['wl']), ncol, nbit))
+            wb = np.concatenate((wb, zeros), axis=0)
+
+        nrow, ncol, nbit = np.shape(wb)
+        wb = np.reshape(wb, (-1, self.params['wl'], ncol, nbit))
+        
+        ########################
+
+        nwl, wl, ncol, nbit = np.shape(wb)
+        wb = np.reshape(wb, (nwl, self.params['wl'], ncol * nbit))
+        
+        nwl, wl, ncol = np.shape(wb)
+        if (ncol % self.params['bl']):
+            zeros = np.zeros(shape=(nwl, self.params['wl'], self.params['bl'] - (ncol % self.params['bl'])))
+            wb = np.concatenate((wb, zeros), axis=2)
+
+        wb = np.reshape(wb, (nwl, self.params['wl'], -1, self.params['bl']))
+
+        ########################
+
+        return wb
+        
 #########################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         
         
