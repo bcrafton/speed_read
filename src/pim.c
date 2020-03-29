@@ -104,6 +104,8 @@ wl
 
 int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int adc, int skip, int R, int C, int NWL, int NBL, int WL, int BL)
 {
+  printf("%d\n", NWL * NBL);
+
   // x = nrow, nwl, wl, xb
   // f = nwl, wl, nbl, bl
   // y = nrow, ncol
@@ -115,31 +117,39 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
 
   int wl_ptr[ARRAY_SIZE]; // NWL * NBL
   int wl_sum[ARRAY_SIZE]; // NWL * NBL
-  int wl_total[ARRAY_SIZE]; // NWL * NBL
+  // int wl_total[ARRAY_SIZE]; // NWL * NBL
   
   int xb[ARRAY_SIZE]; // NWL * NBL
     
-  // this will be needed at duplicate level.
-  // int r[ARRAY_SIZE]; // NWL * NBL
+  // int r[ARRAY_SIZE]; // NWL * NBL // this will be needed at duplicate level.
   
   int pdot[ARRAY_SIZE][VECTOR_SIZE];
-  int pdot_sum[ARRAY_SIZE][VECTOR_SIZE];
-  int sat[ARRAY_SIZE][VECTOR_SIZE];
+  // int pdot_sum[ARRAY_SIZE][VECTOR_SIZE];
+  // int sat[ARRAY_SIZE][VECTOR_SIZE];
   
   for (int r=0; r<R; r++) {
-  
+    array_sync = 0;
+    clear_array(array_done);
+    
     clear_array(wl_ptr);
-    clear_array(wl_sum);
-    clear_array(wl_total);
-
+    clear_array(xb);
+    
     while (!array_sync) {
       cycles += 1;
       for (int wl=0; wl<NWL; wl++) {
         for (int bl=0; bl<NBL; bl++) {
 
           int array = wl * NBL + bl;
-          if (array_done[array]) continue;
+          if (array_done[array]) { 
+            // printf("array %d done\n", array);
+            continue;
+          }
+          else {
+            // printf("array %d not done\n", array);
+          }
+          
           clear_vector(pdot[array]);
+          wl_sum[array] = 0;
 
           /////////////////////////////////////
 
@@ -166,6 +176,8 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
           
           int rows = min(rpr, WL - wl_ptr[array]);
             
+          // printf("%d %d %d\n", wl_ptr[array], (wl_ptr[array] < WL), (wl_sum[array] + x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[array] * 8) + xb[array]] <= rows));
+            
           if (skip) {
             while ((wl_ptr[array] < WL) && (wl_sum[array] + x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[array] * 8) + xb[array]] <= rows)) {
               if (x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[array] * 8) + xb[array]]) {
@@ -179,9 +191,6 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
           }
           else {
             assert(0);
-          }
-          if (wl_sum[array] >= adc) {
-            wl_total[array] += wl_sum[array];
           }
           
           /////////////////////////////////////
@@ -208,30 +217,22 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
             pdot[array][bl_ptr] = min(max(pdot[array][bl_ptr] + var, 0), adc);
             y[r * C + c] += (pdot[array][bl_ptr] << (wb + xb[array]));
           }
-          
-          printf("%d\n", wl_ptr[array]);
-          
-          if (wl_ptr[array] == WL) {
+                    
+          if (wl_ptr[array] == WL) {            
             wl_ptr[array] = 0;
-            wl_sum[array] = 0;
-            wl_total[array] = 0;
             
-            if (xb[array] == 8 - 1) {
+            if (xb[array] == (8 - 1)) {
               xb[array] = 0;
               array_done[array] = 1;
               
-              int array_sync = 1;
+              array_sync = 1;
               for (int a=0; a<NWL * NBL; a++) {
-                array_sync &= array_done[a];
+                array_sync = array_sync & array_done[a];
               }
             }
             else {
-              printf ("made it\n");
               xb[array] += 1;
             }
-            
-            clear_vector(pdot_sum[array]);
-            clear_vector(sat[array]);
           }
           else {
             assert (wl_ptr[array] < WL);
@@ -239,6 +240,7 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
           
         } // for (int bl=0; bl<NBL; bl++) {
       } // for (int wl=0; wl<NWL; wl++) {
+      assert (cycles < 100000);
     } // while (!done) {
   } // for (int r=0; r<R; r++) {
   
