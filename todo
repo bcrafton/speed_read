@@ -88,10 +88,14 @@ which will be a giant pain to train.
 
 -------
 
-
-
-
-
+> better architecture sim
+> device-to-device variance, not read-to-read
+> there was 1 more thing ...
+> 8col/adc is good for x/w thing.
+  > means we can pick our x/w pretty much however
+  > also means we dont have to split at all.
+  
+-------
 
 
 
