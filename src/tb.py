@@ -64,13 +64,13 @@ param_sweep = {
 'bpa': 8,
 'bpw': 8,
 'adc': 8,
-'skip': [0, 1],
-'cards': [0, 1],
+'skip': [1],
+'cards': [0],
 'stall': 0,
 'wl': 128,
 'bl': 128,
 'offset': 128,
-'sigma': [0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15],
+'sigma': [0.05],
 'err_sigma': 0.,
 }
 
@@ -108,7 +108,7 @@ def run_command(x, y, weights, params, return_dict):
 results = {}
 
 start = time.time()
-x, y = init_x(5, (32, 32), 0, 127)
+x, y = init_x(1, (32, 32), 0, 127)
 weights = np.load('../cifar10_weights.npy', allow_pickle=True).item()
 
 num_runs = len(param_sweep)

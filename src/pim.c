@@ -108,9 +108,9 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
   int psum = 0;
   
   for (int r=0; r<R; r++) {
-    for (int wl=0; wl<NWL; wl++) {
-      for (int bl=0; bl<NBL; bl++) {
-        for (int xb=0; xb<8; xb++) {
+    for (int xb=0; xb<8; xb++) {
+      for (int wl=0; wl<NWL; wl++) {
+        for (int bl=0; bl<NBL; bl++) {
 
           // TODO: dont want to clip -> get this function right.
           int rpr_addr;
