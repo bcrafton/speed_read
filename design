@@ -491,9 +491,32 @@ parameters:
 > mac_loss = (nstall / (narray * ncycle)) * mac_per_cycle
 > utilization = (narray * ncycle) / (narray * ncycle + nstall)
 
+-----
 
+we still need to do layerwise synchonization problem.
+> will make this much worse than currently is.
 
+array: 222 cycle: 148 stall: 1548
+array: 498 cycle: 381 stall: 52786
+array: 240 cycle: 319 stall: 21096
+array: 500 cycle: 251 stall: 28416
+array: 240 cycle: 269 stall: 17496
+array: 432 cycle: 173 stall: 18648
 
+this is horrible.
+381 cycles, why is it so bad ??
+
+something tells me it has to do with zero skipping
+> turn off skip and u will see exactly that.
+
+array: 222 cycle: 1280 stall: 22016
+array: 498 cycle: 1664 stall: 42240
+array: 240 cycle: 1664 stall: 6144
+array: 500 cycle: 1408 stall: 48640
+array: 240 cycle: 1408 stall: 10240
+array: 432 cycle: 1408 stall: 18432
+
+-----
 
 
 

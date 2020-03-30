@@ -163,6 +163,8 @@ class Conv(Layer):
         nwl, _, nbl, _ = np.shape(self.wb) 
         results['array'] = self.ndup * nwl * nbl
         # print (results['array'])
+        
+        print ('array: %d cycle: %d stall: %d' % (results['array'], results['cycle'], results['stall']))
 
         return y, results
         
