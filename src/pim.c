@@ -282,11 +282,14 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
                 p = min(max(p, 0.), 1.);
                 int e = sat_error(p, adc, rpr);
                 y[r[d] * C + c] -= ((sat[d][array][bl_ptr] * e) << (wb + xb[d][array]));
+                
+                sat[d][array][bl_ptr] = 0;
+                pdot_sum[d][array][bl_ptr] = 0;
               }
             }
           }
 
-          if (wl_ptr[d][array] == WL) {            
+          if (wl_ptr[d][array] == WL) {
             wl_ptr[d][array] = 0;
             wl_total[d][array] = 0;
             

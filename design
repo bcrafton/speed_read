@@ -519,12 +519,31 @@ array: 432 cycle: 1408 stall: 18432
 -----
 
 > has counting cards been broken ?
+yeah it has to do with not reseting sat/pdot_sum
 
+clear(sat);
+clear(pdot_sum);
+int wl_total = 0;
+int wl_ptr = 0;
+while (wl_ptr < WL) {
 
+still didnt fix our problem...
 
+>> can we expect that this has same results as paper ?
+  > wud be nice debug.
+  
+oh wait, i think our weights are wrong ...
+> nah then why wud it work with rpr=8.
 
+are we doing rpr wrong ? 
+like, we are not choosing correct rpr ? 
 
+think i figured out the last piece
+we wud do correction accross all wl
+right now we are not doing that.
+we are doing for each array.
 
+-----
 
 
 
