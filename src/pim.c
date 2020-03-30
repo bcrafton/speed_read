@@ -17,8 +17,11 @@
 
 // make sure (bl <= 1024), malloc would be too slow.
 // if we just pick a size large enough we will be okay
-#define VECTOR_SIZE 1024
+#define VECTOR_SIZE 128
 #define ARRAY_SIZE 128
+#define PE_SIZE 128
+// int pdot[PE_SIZE][ARRAY_SIZE][VECTOR_SIZE]; 
+// is too large, we had to allocate using malloc.
 
 void clear_vector(int* v)
 {
@@ -108,65 +111,80 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
   // f = nwl, wl, nbl, bl
   // y = nrow, ncol
   
+  int done = 0;
+  
   int cycles = 0;
   int stalls = 0;
   
-  int array_sync = 0;
-  int array_done[ARRAY_SIZE];
+  int array_done[PE_SIZE][ARRAY_SIZE];
 
-  int wl_ptr[ARRAY_SIZE]; // NWL * NBL
-  int wl_sum[ARRAY_SIZE]; // NWL * NBL
+  int wl_ptr[PE_SIZE][ARRAY_SIZE]; // NWL * NBL
+  int wl_sum[PE_SIZE][ARRAY_SIZE]; // NWL * NBL
   // int wl_total[ARRAY_SIZE]; // NWL * NBL
   
-  int xb[ARRAY_SIZE]; // NWL * NBL
-    
-  // int r[ARRAY_SIZE]; // NWL * NBL // this will be needed at duplicate level.
+  int r[PE_SIZE]; // NWL * NBL // this will be needed at duplicate level.
+  int xb[PE_SIZE][ARRAY_SIZE]; // NWL * NBL
   
-  int pdot[ARRAY_SIZE][VECTOR_SIZE];
+  // int pdot[PE_SIZE][ARRAY_SIZE][VECTOR_SIZE];
+  int*** pdot = (int***) malloc(sizeof(int**) * PE_SIZE);
+  for (int i=0; i<PE_SIZE; i++) {
+    pdot[i] = (int**) malloc(sizeof(int*) * ARRAY_SIZE);
+    for (int j=0; j<ARRAY_SIZE; j++) {
+      pdot[i][j] = (int*) malloc(sizeof(int) * VECTOR_SIZE);
+    }
+  }
+  
   // int pdot_sum[ARRAY_SIZE][VECTOR_SIZE];
   // int sat[ARRAY_SIZE][VECTOR_SIZE];
   
-  for (int r=0; r<R; r++) {
-    array_sync = 0;
-    clear_array(array_done);
+  for (int d=0; d<D; d++) { 
+    clear_array(wl_ptr[d]);
+    clear_array(xb[d]);
+    clear_array(array_done[d]);
     
-    clear_array(wl_ptr);
-    clear_array(xb);
-    
-    while (!array_sync) {
-      cycles += 1;
+    r[d] = d;
+  }
+  
+  int next_r = D;
+  
+  while (!done) {
+    // array_sync = 0;
+    // clear_array(array_done);
+    // clear_array(wl_ptr);
+    // clear_array(xb);
+
+    cycles += 1;
+    assert (cycles < 100000);
+        
+    for (int d=0; d<D; d++) { 
       for (int wl=0; wl<NWL; wl++) {
         for (int bl=0; bl<NBL; bl++) {
 
           int array = wl * NBL + bl;
-          if (array_done[array]) { 
-            // printf("array %d done\n", array);
+          if (array_done[d][array]) {
             stalls++;
             continue;
           }
-          else {
-            // printf("array %d not done\n", array);
-          }
           
-          clear_vector(pdot[array]);
-          wl_sum[array] = 0;
+          clear_vector(pdot[d][array]);
+          wl_sum[d][array] = 0;
 
           /////////////////////////////////////
 
           int rpr_addr;
           if (BL >= C) {
-            int x_addr = (xb[array] * 8);
+            int x_addr = (xb[d][array] * 8);
             int w_addr = ((bl + 1) * (BL / C)) - 1;
             // for dense:
             w_addr = min(w_addr, 7);
             rpr_addr = x_addr + w_addr;
           }
           else {
-            rpr_addr = (xb[array] * 8) + (bl / (C / BL)); 
+            rpr_addr = (xb[d][array] * 8) + (bl / (C / BL)); 
           }
           
           if (!((rpr_addr >= 0) && (rpr_addr < 64))) {
-            printf("xb: %d bl: %d BL: %d C: %d: rpr_addr: %d\n", xb[array], bl, BL, C, rpr_addr);
+            printf("xb: %d bl: %d BL: %d C: %d: rpr_addr: %d\n", xb[d][array], bl, BL, C, rpr_addr);
             assert ((rpr_addr >= 0) && (rpr_addr < 64));
           }
           int rpr = lut_rpr[rpr_addr];
@@ -174,19 +192,17 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
           
           /////////////////////////////////////
           
-          int rows = min(rpr, WL - wl_ptr[array]);
-            
-          // printf("%d %d %d\n", wl_ptr[array], (wl_ptr[array] < WL), (wl_sum[array] + x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[array] * 8) + xb[array]] <= rows));
+          int rows = min(rpr, WL - wl_ptr[d][array]);
             
           if (skip) {
-            while ((wl_ptr[array] < WL) && (wl_sum[array] + x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[array] * 8) + xb[array]] <= rows)) {
-              if (x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[array] * 8) + xb[array]]) {
-                wl_sum[array] += 1;
+            while ((wl_ptr[d][array] < WL) && (wl_sum[d][array] + x[(r[d] * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[d][array] * 8) + xb[d][array]] <= rows)) {
+              if (x[(r[d] * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[d][array] * 8) + xb[d][array]]) {
+                wl_sum[d][array] += 1;
                 for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
-                  pdot[array][bl_ptr] += w[(wl * WL * NBL * BL) + (wl_ptr[array] * NBL * BL) + (bl * BL) + bl_ptr];
+                  pdot[d][array][bl_ptr] += w[(wl * WL * NBL * BL) + (wl_ptr[d][array] * NBL * BL) + (bl * BL) + bl_ptr];
                 }
               }
-              wl_ptr[array] += 1;
+              wl_ptr[d][array] += 1;
             }
           }
           else {
@@ -202,11 +218,11 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
             // if ((wl_ptr == 0) && (wl == 0) && (xb == 0) && (wb == 0)) { assert(y[r * C + c] == 0); }
 
             if (wb == 0) {
-              y[r * C + c] -= ((wl_sum[array] * 128) << xb[array]);
+              y[r[d] * C + c] -= ((wl_sum[d][array] * 128) << xb[d][array]);
             }
             
             int key = rand() % 1000;
-            int var_addr = pdot[array][bl_ptr] * 1000 + key;
+            int var_addr = pdot[d][array][bl_ptr] * 1000 + key;
             int var = lut_var[var_addr];
 
             if (!((var >= -3) && (var <= 3))) {
@@ -214,35 +230,45 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
               assert ((var >= -3) && (var <= 3));
             }
 
-            pdot[array][bl_ptr] = min(max(pdot[array][bl_ptr] + var, 0), adc);
-            y[r * C + c] += (pdot[array][bl_ptr] << (wb + xb[array]));
+            pdot[d][array][bl_ptr] = min(max(pdot[d][array][bl_ptr] + var, 0), adc);
+            y[r[d] * C + c] += (pdot[d][array][bl_ptr] << (wb + xb[d][array]));
           }
                     
-          if (wl_ptr[array] == WL) {            
-            wl_ptr[array] = 0;
+          if (wl_ptr[d][array] == WL) {            
+            wl_ptr[d][array] = 0;
             
-            if (xb[array] == (8 - 1)) {
-              xb[array] = 0;
-              array_done[array] = 1;
+            if (xb[d][array] == (8 - 1)) {
+              xb[d][array] = 0;
+              array_done[d][array] = 1;
               
-              array_sync = 1;
+              int array_sync = 1;
               for (int a=0; a<NWL * NBL; a++) {
-                array_sync = array_sync & array_done[a];
+                array_sync = array_sync & array_done[d][a];
+              }
+              
+              if (array_sync) {
+                if (next_r < R) {
+                  r[d] = next_r;
+                  next_r++;
+                  clear_array(array_done[d]);
+                }
+                else if (r[d] == (R - 1)) {
+                  done = 1;
+                }
               }
             }
             else {
-              xb[array] += 1;
+              xb[d][array] += 1;
             }
           }
           else {
-            assert (wl_ptr[array] < WL);
+            assert (wl_ptr[d][array] < WL);
           }
           
         } // for (int bl=0; bl<NBL; bl++) {
       } // for (int wl=0; wl<NWL; wl++) {
-      assert (cycles < 100000);
-    } // while (!done) {
-  } // for (int r=0; r<R; r++) {
+    } // for (int d=0; d<D; d++) { 
+  } // while (!done) {
   
   metrics[METRIC_CYCLE] = cycles;
   
