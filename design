@@ -470,8 +470,15 @@ and do duplicates and stuff.
 
 okay found the issue, its just that row=1023 finishes before something else and all else has to halt.
 
+-----
 
+alright what do we do now ? 
+> cards
+> baseline
+> metrics
+> need a better way of capturing dead cycles also.
 
+-----
 
 
 
