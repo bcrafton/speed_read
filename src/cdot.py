@@ -102,8 +102,8 @@ def pim(x, w, y_shape, lut_var, lut_rpr, ndup, params):
         
     y = np.zeros(shape=y_shape)
 
-    # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
-    metrics = np.zeros(shape=12)
+    # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl, stall
+    metrics = np.zeros(shape=13)
     
     x = np.ascontiguousarray(x, np.int32)
     w = np.ascontiguousarray(w, np.int32)

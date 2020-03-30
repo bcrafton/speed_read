@@ -117,6 +117,7 @@ wl
 #define METRIC_RON    9
 #define METRIC_ROFF  10
 #define METRIC_WL    11
+#define METRIC_STALL 12
 
 int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int adc, int skip, int R, int D, int C, int NWL, int NBL, int WL, int BL)
 {
@@ -125,10 +126,7 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
   // y = nrow, ncol
   
   int done = 0;
-  
-  int cycles = 0;
-  int stalls = 0;
-  
+    
   int dup_done[PE_SIZE];
   int array_done[PE_SIZE][ARRAY_SIZE];
 
@@ -165,8 +163,8 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
     // clear_array(wl_ptr);
     // clear_array(xb);
 
-    cycles += 1;
-    assert (cycles < 100000);
+    metrics[METRIC_CYCLE] += 1;
+    assert (metrics[METRIC_CYCLE] < 100000);
         
     for (int d=0; d<D; d++) { 
       for (int wl=0; wl<NWL; wl++) {
@@ -174,7 +172,7 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
 
           int array = wl * NBL + bl;
           if (array_done[d][array]) {
-            stalls++;
+            metrics[METRIC_STALL] += 1;
             continue;
           }
           
@@ -329,12 +327,10 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
       } // for (int wl=0; wl<NWL; wl++) {
     } // for (int d=0; d<D; d++) { 
   } // while (!done) {
+    
+  printf("%d: %d %d\n", NWL * NBL, metrics[METRIC_CYCLE], metrics[METRIC_STALL]);
   
-  metrics[METRIC_CYCLE] = cycles;
-  
-  printf("%d: %d %d\n", NWL * NBL, cycles, stalls);
-  
-  return cycles;  
+  return metrics[METRIC_CYCLE];  
 }
 
 
