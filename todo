@@ -97,11 +97,23 @@ which will be a giant pain to train.
   
 -------
 
-alright what do we do now ? 
-> put cards back in
-> put baseline back in
-> put metrics back in
-> how to capture dead cycles better
+array allocation:
+array: 222 cycle: 148 stall: 1548
+array: 498 cycle: 381 stall: 52786
+array: 240 cycle: 319 stall: 21096
+array: 500 cycle: 251 stall: 28416
+array: 240 cycle: 269 stall: 17496
+array: 432 cycle: 173 stall: 18648
+
+array: 222 cycle: 1280 stall: 22016
+array: 498 cycle: 1664 stall: 42240
+array: 240 cycle: 1664 stall: 6144
+array: 500 cycle: 1408 stall: 48640
+array: 240 cycle: 1408 stall: 10240
+array: 432 cycle: 1408 stall: 18432
+
+fix cards:
+idky cards sucks rn
 
 -------
 
