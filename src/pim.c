@@ -328,7 +328,7 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
     } // for (int d=0; d<D; d++) { 
   } // while (!done) {
     
-  printf("%d: %d %d\n", NWL * NBL, metrics[METRIC_CYCLE], metrics[METRIC_STALL]);
+  // printf("%d: %d %d\n", NWL * NBL, metrics[METRIC_CYCLE], metrics[METRIC_STALL]);
   
   return metrics[METRIC_CYCLE];  
 }

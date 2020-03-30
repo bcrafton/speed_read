@@ -480,6 +480,31 @@ alright what do we do now ?
 
 -----
 
+okay, how do we compute this "performance loss" thing.
+
+parameters:
+> ncycle
+> nstall 
+> narray
+> nmac
+
+> mac_loss = (nstall / (narray * ncycle)) * mac_per_cycle
+> utilization = (narray * ncycle) / (narray * ncycle + nstall)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

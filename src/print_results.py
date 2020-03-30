@@ -36,26 +36,42 @@ y_roff = np.zeros(shape=(2, 2, len(x), num_layers))
 y_adc = np.zeros(shape=(2, 2, len(x), num_layers, num_comparator))
 y_energy = np.zeros(shape=(2, 2, len(x), num_layers))
 
+array_util = np.zeros(shape=(2, 2, len(x), num_layers))
+
 for key in sorted(results.keys()):
     (skip, cards, sigma) = key
     layer_results = results[key]
 
     for layer in range(num_layers):
-        example_results = merge_dicts(layer_results[layer])
+        rdict = merge_dicts(layer_results[layer])
         sigma_index = np.where(x == sigma)[0][0]
         
-        y_mean[skip][cards][sigma_index][layer] = np.mean(example_results['mean'])
-        y_std[skip][cards][sigma_index][layer] = np.mean(example_results['std'])
+        ############################
+        
+        y_mean[skip][cards][sigma_index][layer] = np.mean(rdict['mean'])
+        y_std[skip][cards][sigma_index][layer] = np.mean(rdict['std'])
+        
+        ############################
 
-        y_ron[skip][cards][sigma_index][layer] = np.sum(example_results['ron'])
-        y_roff[skip][cards][sigma_index][layer] = np.sum(example_results['roff'])
-        y_adc[skip][cards][sigma_index][layer] = np.sum(example_results['adc'], axis=0)
+        y_ron[skip][cards][sigma_index][layer] = np.sum(rdict['ron'])
+        y_roff[skip][cards][sigma_index][layer] = np.sum(rdict['roff'])
+        y_adc[skip][cards][sigma_index][layer] = np.sum(rdict['adc'], axis=0)
         y_energy[skip][cards][sigma_index][layer] += y_ron[skip][cards][sigma_index][layer] * 2e-16
         y_energy[skip][cards][sigma_index][layer] += y_roff[skip][cards][sigma_index][layer] * 2e-16
         y_energy[skip][cards][sigma_index][layer] += np.sum(y_adc[skip][cards][sigma_index][layer] * np.array([1,2,3,4,5,6,7,8]) * comp_pJ)
 
-        y_mac_per_cycle[skip][cards][sigma_index][layer]  = np.sum(example_results['nmac']) / np.sum(example_results['cycle'])
-        y_mac_per_pJ[skip][cards][sigma_index][layer] = np.sum(example_results['nmac']) / 1e12 / np.sum(y_energy[skip][cards][sigma_index][layer])
+        y_mac_per_cycle[skip][cards][sigma_index][layer]  = np.sum(rdict['nmac']) / np.sum(rdict['cycle'])
+        y_mac_per_pJ[skip][cards][sigma_index][layer] = np.sum(rdict['nmac']) / 1e12 / np.sum(y_energy[skip][cards][sigma_index][layer])
+        
+        ############################
+
+        y_cycle = np.mean(rdict['cycle'])
+        y_stall = np.mean(rdict['stall'])
+        y_array = np.mean(rdict['array'])
+
+        array_util[skip][cards][sigma_index][layer] = (y_array * y_cycle) / (y_array * y_cycle + y_stall)
+        
+        ############################
 
 ####################
 
@@ -78,6 +94,11 @@ print ('mac / pJ')
 # print (np.around(y_mac_per_pJ[0, 0],  3))
 print (np.around(y_mac_per_pJ[1, 0],  3))
 # print (np.around(y_mac_per_pJ[1, 1],  3))
+
+print ('array util')
+# print (np.around(array_util[0, 0],  3))
+print (np.around(array_util[1, 0],  3))
+# print (np.around(array_util[1, 1],  3))
 
 ####################
 

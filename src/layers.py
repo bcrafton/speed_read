@@ -158,6 +158,11 @@ class Conv(Layer):
         results['wl']    = metrics[11]
         results['std']   = y_std
         results['mean']  = y_mean
+        results['stall'] = metrics[12]
+
+        nwl, _, nbl, _ = np.shape(self.wb) 
+        results['array'] = self.ndup * nwl * nbl
+        # print (results['array'])
 
         return y, results
         
