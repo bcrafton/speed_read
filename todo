@@ -113,7 +113,13 @@ array: 240 cycle: 1408 stall: 10240
 array: 432 cycle: 1408 stall: 18432
 
 fix cards:
-idky cards sucks rn
+arrays carry different #s of wb=[1,2,3,4,5,6,7,8] ... which we dont want.
+we can allocate redundant arrays based on this.
+OR 
+we can give each array same # of wb=[...].
+
+problem = we still have 128 ADC per array.
+so we cant actually distribute them out properly
 
 -------
 
