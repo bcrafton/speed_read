@@ -33,6 +33,19 @@ void clear_array(int* a)
   memset(a, 0, sizeof(int) * ARRAY_SIZE);
 }
 
+int*** array3D()
+{
+  int*** array = (int***) malloc(sizeof(int**) * PE_SIZE);
+  for (int i=0; i<PE_SIZE; i++) {
+    array[i] = (int**) malloc(sizeof(int*) * ARRAY_SIZE);
+    for (int j=0; j<ARRAY_SIZE; j++) {
+      array[i][j] = (int*) malloc(sizeof(int) * VECTOR_SIZE);
+      clear_vector(array[i][j]);
+    }
+  }
+  return array;
+}
+
 //////////////////////////////////////////////
 
 long unsigned int factorial(int n)
@@ -121,25 +134,22 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
 
   int wl_ptr[PE_SIZE][ARRAY_SIZE]; // NWL * NBL
   int wl_sum[PE_SIZE][ARRAY_SIZE]; // NWL * NBL
-  // int wl_total[ARRAY_SIZE]; // NWL * NBL
+  int wl_total[PE_SIZE][ARRAY_SIZE]; // NWL * NBL
   
   int r[PE_SIZE]; // NWL * NBL // this will be needed at duplicate level.
   int xb[PE_SIZE][ARRAY_SIZE]; // NWL * NBL
   
   // int pdot[PE_SIZE][ARRAY_SIZE][VECTOR_SIZE];
-  int*** pdot = (int***) malloc(sizeof(int**) * PE_SIZE);
-  for (int i=0; i<PE_SIZE; i++) {
-    pdot[i] = (int**) malloc(sizeof(int*) * ARRAY_SIZE);
-    for (int j=0; j<ARRAY_SIZE; j++) {
-      pdot[i][j] = (int*) malloc(sizeof(int) * VECTOR_SIZE);
-    }
-  }
+  // int pdot_sum[PE_SIZE][ARRAY_SIZE][VECTOR_SIZE];
+  // int sat[PE_SIZE][ARRAY_SIZE][VECTOR_SIZE];
   
-  // int pdot_sum[ARRAY_SIZE][VECTOR_SIZE];
-  // int sat[ARRAY_SIZE][VECTOR_SIZE];
-  
+  int*** pdot = array3D();
+  int*** pdot_sum = array3D();
+  int*** sat = array3D();
+
   for (int d=0; d<D; d++) { 
     clear_array(wl_ptr[d]);
+    clear_array(wl_total[d]);
     clear_array(xb[d]);
     clear_array(array_done[d]);
     
@@ -210,14 +220,15 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
           else {
             assert(0);
           }
+          if (wl_sum[d][array] >= adc) {
+            wl_total[d][array] += wl_sum[d][array];
+          }
           
           /////////////////////////////////////
 
           for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
             int c = (bl_ptr + bl * BL) % C;
             int wb = (bl_ptr + bl * BL) / C;
-            // comment me out for speed.
-            // if ((wl_ptr == 0) && (wl == 0) && (xb == 0) && (wb == 0)) { assert(y[r * C + c] == 0); }
 
             if (wb == 0) {
               y[r[d] * C + c] -= ((wl_sum[d][array] * 128) << xb[d][array]);
@@ -234,10 +245,29 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
 
             pdot[d][array][bl_ptr] = min(max(pdot[d][array][bl_ptr] + var, 0), adc);
             y[r[d] * C + c] += (pdot[d][array][bl_ptr] << (wb + xb[d][array]));
+            
+            if (wl_sum[d][array] >= adc) {
+              sat[d][array][bl_ptr] += (pdot[d][array][bl_ptr] == adc);
+              pdot_sum[d][array][bl_ptr] += pdot[d][array][bl_ptr];
+            }
           }
-                    
+
+          if (wl_ptr[d][array] == WL) {
+            for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
+              int c = (bl_ptr + bl * BL) % C;
+              int wb = (bl_ptr + bl * BL) / C;
+              if (wl_total[array][d]) {
+                float p = ((float) pdot_sum[d][array][bl_ptr]) / ((float) wl_total[d][array]);
+                p = min(max(p, 0.), 1.);
+                int e = sat_error(p, adc, rpr);
+                y[r[d] * C + c] -= ((sat[d][array][bl_ptr] * e) << (wb + xb[d][array]));
+              }
+            }
+          }
+
           if (wl_ptr[d][array] == WL) {            
             wl_ptr[d][array] = 0;
+            wl_total[d][array] = 0;
             
             if (xb[d][array] == (8 - 1)) {
               xb[d][array] = 0;
