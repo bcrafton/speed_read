@@ -80,26 +80,26 @@ for key in sorted(results.keys()):
 print ('mean')
 # print (np.around(y_mean[0, 0],  3))
 print (np.around(y_mean[1, 0],  3))
-# print (np.around(y_mean[1, 1],  3))
+print (np.around(y_mean[1, 1],  3))
 
 print ('std')
 # print (np.around(y_std[0, 0],  3))
 print (np.around(y_std[1, 0],  3))
-# print (np.around(y_std[1, 1],  3))
+print (np.around(y_std[1, 1],  3))
 
-print ('mac / cycle')
+# print ('mac / cycle')
 # print (np.around(y_mac_per_cycle[0, 0], 1))
-print (np.around(y_mac_per_cycle[1, 0], 1))
+# print (np.around(y_mac_per_cycle[1, 0], 1))
 # print (np.around(y_mac_per_cycle[1, 1], 1))
 
-print ('mac / pJ')
+# print ('mac / pJ')
 # print (np.around(y_mac_per_pJ[0, 0],  3))
-print (np.around(y_mac_per_pJ[1, 0],  3))
+# print (np.around(y_mac_per_pJ[1, 0],  3))
 # print (np.around(y_mac_per_pJ[1, 1],  3))
 
-print ('array util')
+# print ('array util')
 # print (np.around(array_util[0, 0],  3))
-print (np.around(array_util[1, 0],  3))
+# print (np.around(array_util[1, 0],  3))
 # print (np.around(array_util[1, 1],  3))
 
 ####################
