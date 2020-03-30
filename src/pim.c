@@ -130,16 +130,13 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
   int dup_done[PE_SIZE];
   int array_done[PE_SIZE][ARRAY_SIZE];
 
-  int wl_ptr[PE_SIZE][ARRAY_SIZE]; // NWL * NBL
-  int wl_sum[PE_SIZE][ARRAY_SIZE]; // NWL * NBL
-  int wl_total[PE_SIZE][ARRAY_SIZE]; // NWL * NBL
+  int wl_ptr[PE_SIZE][ARRAY_SIZE]; 
+  int wl_sum[PE_SIZE][ARRAY_SIZE]; 
+  int wl_total[PE_SIZE][ARRAY_SIZE]; 
   
-  int r[PE_SIZE]; // NWL * NBL // this will be needed at duplicate level.
-  int xb[PE_SIZE][ARRAY_SIZE]; // NWL * NBL
-  
-  // int pdot[PE_SIZE][ARRAY_SIZE][VECTOR_SIZE];
-  // int pdot_sum[PE_SIZE][ARRAY_SIZE][VECTOR_SIZE];
-  // int sat[PE_SIZE][ARRAY_SIZE][VECTOR_SIZE];
+  int r[PE_SIZE]; 
+  int col[PE_SIZE][ARRAY_SIZE]; 
+  int xb[PE_SIZE][ARRAY_SIZE]; 
   
   int*** pdot = array3D();
   int*** pdot_sum = array3D();
@@ -148,6 +145,7 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
   for (int d=0; d<D; d++) { 
     clear_array(wl_ptr[d]);
     clear_array(wl_total[d]);
+    clear_array(col[d]);
     clear_array(xb[d]);
     clear_array(array_done[d]);
     
@@ -288,35 +286,42 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
             wl_ptr[d][array] = 0;
             wl_total[d][array] = 0;
             
-            if (xb[d][array] == (8 - 1)) {
-              xb[d][array] = 0;
-              array_done[d][array] = 1;
-              
-              int array_sync = 1;
-              for (int a=0; a<NWL * NBL; a++) {
-                array_sync = array_sync & array_done[d][a];
-              }
-              
-              if (array_sync) {
-                if (next_r < R) {
-                  r[d] = next_r;
-                  next_r++;
-                  clear_array(array_done[d]);
+            if (col[d][array] == (8 - 1)) {
+              col[d][array] = 0;
+          
+              if (xb[d][array] == (8 - 1)) {
+                xb[d][array] = 0;
+                array_done[d][array] = 1;
+                
+                int array_sync = 1;
+                for (int a=0; a<NWL * NBL; a++) {
+                  array_sync = array_sync & array_done[d][a];
                 }
-                else {
-                  dup_done[d] = 1;
-                  
-                  int dup_sync = 1;
-                  for (int a=0; a<D; a++) {
-                    dup_sync = dup_sync & dup_done[a];
+                
+                if (array_sync) {
+                  if (next_r < R) {
+                    r[d] = next_r;
+                    next_r++;
+                    clear_array(array_done[d]);
                   }
-                  
-                  done = dup_sync;                  
+                  else {
+                    dup_done[d] = 1;
+                    
+                    int dup_sync = 1;
+                    for (int a=0; a<D; a++) {
+                      dup_sync = dup_sync & dup_done[a];
+                    }
+                    
+                    done = dup_sync;                  
+                  }
                 }
+              }
+              else {
+                xb[d][array] += 1;
               }
             }
             else {
-              xb[d][array] += 1;
+              col[d][array] += 1;
             }
           }
           else {
