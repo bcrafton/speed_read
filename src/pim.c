@@ -218,7 +218,16 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
             }
           }
           else {
-            assert(0);
+            int start = wl_ptr[d][array];
+            while ((wl_ptr[d][array] < WL) && (wl_ptr[d][array] < (start + adc))) {
+              if (x[(r[d] * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[d][array] * 8) + xb[d][array]]) {
+                wl_sum[d][array] += 1;
+                for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
+                  pdot[d][array][bl_ptr] += w[(wl * WL * NBL * BL) + (wl_ptr[d][array] * NBL * BL) + (bl * BL) + bl_ptr];
+                }
+              }
+              wl_ptr[d][array] += 1;
+            }
           }
           if (wl_sum[d][array] >= adc) {
             wl_total[d][array] += wl_sum[d][array];
