@@ -17,6 +17,7 @@ from rpr import rpr
 class Model:
     def __init__(self, layers):
         self.layers = layers
+        self.set_ndup()
 
     def forward(self, x, y):
         num_examples, _, _, _ = np.shape(x)
@@ -35,6 +36,17 @@ class Model:
                     results[layer] = [result]
 
         return pred, results
+        
+    def set_ndup(self):
+        nmac = 0
+        for layer in self.layers:
+            nmac += layer.nmac
+
+        for layer in range(len(self.layers)):
+            p = self.layers[layer].nmac / nmac
+            if (layer == 0): ndup = p * (2048 * 128 * 128) / np.prod(np.shape(self.layers[layer].wb)) * (128 / 27)
+            else:            ndup = p * (2048 * 128 * 128) / np.prod(np.shape(self.layers[layer].wb))
+            self.layers[layer].set_ndup(int(ndup))
 
 #########################
 
@@ -70,10 +82,9 @@ class Conv(Layer):
         self.s = stride
         self.p1 = pad1
         self.p2 = pad2
+
         assert (self.s == 1)
-        
-        # self.yh = (self.xh - self.fh + self.p + self.p1 + self.p2) // self.p
-        # self.yw = (self.xw - self.fw + self.p + self.p1 + self.p2) // self.p
+        self.nmac = (self.fh * self.fw * self.fc * self.fn) * (self.xh * self.xw)
 
         maxval = pow(2, params['bpw'] - 1)
         minval = -1 * maxval
@@ -152,6 +163,9 @@ class Conv(Layer):
         
         #########################
         
+    def set_ndup(self, ndup):
+        self.ndup = ndup
+        
     def conv(self, x):
 
         yh = (self.xh - self.fh + self.s + self.p1 + self.p2) // self.s
@@ -184,7 +198,7 @@ class Conv(Layer):
         
         #########################
         
-        y, metrics = pim(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], self.params)
+        y, metrics = pim(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], self.ndup, self.params)
         y = np.reshape(y, (yh, yw, self.fn))
         
         assert(np.all(np.absolute(y) < 2 ** 23))

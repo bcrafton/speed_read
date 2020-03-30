@@ -95,7 +95,7 @@ def cconv(x, f, b, q, pool, stride, pad1, pad2, params):
 
 ##################################################
 
-def pim(x, w, y_shape, lut_var, lut_rpr, params):
+def pim(x, w, y_shape, lut_var, lut_rpr, ndup, params):
     nrow, nwl, wl, xb = np.shape(x)
     nwl, wl, nbl, bl = np.shape(w) # nwl, nbl, wl, bl
     nrow, ncol = y_shape
@@ -126,6 +126,7 @@ def pim(x, w, y_shape, lut_var, lut_rpr, params):
     ctypes.c_int(params['adc']),
     ctypes.c_int(params['skip']),
     ctypes.c_int(nrow),
+    ctypes.c_int(ndup),
     ctypes.c_int(ncol),
     ctypes.c_int(nwl),
     ctypes.c_int(nbl),

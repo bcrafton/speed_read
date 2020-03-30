@@ -102,7 +102,7 @@ wl
 #define METRIC_ROFF  10
 #define METRIC_WL    11
 
-int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int adc, int skip, int R, int C, int NWL, int NBL, int WL, int BL)
+int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int adc, int skip, int R, int D, int C, int NWL, int NBL, int WL, int BL)
 {
   // x = nrow, nwl, wl, xb
   // f = nwl, wl, nbl, bl
