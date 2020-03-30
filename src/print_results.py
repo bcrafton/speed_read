@@ -68,7 +68,9 @@ for key in sorted(results.keys()):
         y_cycle = np.mean(rdict['cycle'])
         y_stall = np.mean(rdict['stall'])
         y_array = np.mean(rdict['array'])
-
+        
+        # TODO - account for slowest layer and add all those cycles to each of these.
+        # that would be true utilization AND will show how bad it is.
         array_util[skip][cards][sigma_index][layer] = (y_array * y_cycle) / (y_array * y_cycle + y_stall)
         
         ############################

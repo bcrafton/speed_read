@@ -97,6 +97,17 @@ which will be a giant pain to train.
   
 -------
 
+fix cards:
+arrays carry different #s of wb=[1,2,3,4,5,6,7,8] ... which we dont want.
+we can allocate redundant arrays based on this.
+OR 
+we can give each array same # of wb=[...].
+
+problem = we still have 128 ADC per array.
+so we cant actually distribute them out properly
+
+-------
+
 array allocation:
 array: 222 cycle: 148 stall: 1548
 array: 498 cycle: 381 stall: 52786
@@ -112,16 +123,24 @@ array: 500 cycle: 1408 stall: 48640
 array: 240 cycle: 1408 stall: 10240
 array: 432 cycle: 1408 stall: 18432
 
-fix cards:
-arrays carry different #s of wb=[1,2,3,4,5,6,7,8] ... which we dont want.
-we can allocate redundant arrays based on this.
-OR 
-we can give each array same # of wb=[...].
-
-problem = we still have 128 ADC per array.
-so we cant actually distribute them out properly
+> array allocation is part of our solution ... so we do this later.
+  > right now we highlight the problem.
 
 -------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
