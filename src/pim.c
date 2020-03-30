@@ -251,6 +251,9 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
               printf("%d\n", var);
               assert ((var >= -3) && (var <= 3));
             }
+            
+            metrics[METRIC_RON] += pdot[d][array][bl_ptr];
+            metrics[METRIC_ROFF] += rows - pdot[d][array][bl_ptr];
 
             pdot[d][array][bl_ptr] = min(max(pdot[d][array][bl_ptr] + var, 0), adc);
             y[r[d] * C + c] += (pdot[d][array][bl_ptr] << (wb + xb[d][array]));
@@ -260,6 +263,15 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
               pdot_sum[d][array][bl_ptr] += pdot[d][array][bl_ptr];
             }
           }
+
+          int comps = min(wl_sum[d][array], min(rows, adc) - 1);
+          //if (!((comps >= 0) && (comps < adc))) {
+          //  printf("comps: %d wl_sum: %d rows: %d adc: %d\n", comps, wl_sum, rows, adc);
+          //  assert((comps >= 0) && (comps < adc));
+          //}
+          metrics[comps] += BL;
+          // assert(metrics[comps] < 1e9);
+          metrics[METRIC_WL] += wl_sum[d][array];
 
           if (wl_ptr[d][array] == WL) {
             for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
