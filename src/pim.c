@@ -206,7 +206,8 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
             while ((wl_ptr[d][array] < WL) && (wl_sum[d][array] + x[(r[d] * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[d][array] * 8) + xb[d][array]] <= rows)) {
               if (x[(r[d] * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[d][array] * 8) + xb[d][array]]) {
                 wl_sum[d][array] += 1;
-                for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
+                for (int adc_ptr=0; adc_ptr<BL; adc_ptr+=8) {
+                  int bl_ptr = adc_ptr + col[d][array];
                   pdot[d][array][bl_ptr] += w[(wl * WL * NBL * BL) + (wl_ptr[d][array] * NBL * BL) + (bl * BL) + bl_ptr];
                 }
               }
@@ -218,7 +219,8 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
             while ((wl_ptr[d][array] < WL) && (wl_ptr[d][array] < (start + adc))) {
               if (x[(r[d] * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[d][array] * 8) + xb[d][array]]) {
                 wl_sum[d][array] += 1;
-                for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
+                for (int adc_ptr=0; adc_ptr<BL; adc_ptr+=8) {
+                  int bl_ptr = adc_ptr + col[d][array];
                   pdot[d][array][bl_ptr] += w[(wl * WL * NBL * BL) + (wl_ptr[d][array] * NBL * BL) + (bl * BL) + bl_ptr];
                 }
               }
@@ -231,7 +233,8 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
           
           /////////////////////////////////////
 
-          for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
+          for (int adc_ptr=0; adc_ptr<BL; adc_ptr+=8) {
+            int bl_ptr = adc_ptr + col[d][array];
             int c = (bl_ptr + bl * BL) % C;
             int wb = (bl_ptr + bl * BL) / C;
 
@@ -270,7 +273,8 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
           metrics[METRIC_WL] += wl_sum[d][array];
 
           if (wl_ptr[d][array] == WL) {
-            for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
+            for (int adc_ptr=0; adc_ptr<BL; adc_ptr+=8) {
+              int bl_ptr = adc_ptr + col[d][array];
               int c = (bl_ptr + bl * BL) % C;
               int wb = (bl_ptr + bl * BL) / C;
               if (wl_total[array][d]) {
