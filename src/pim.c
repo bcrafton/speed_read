@@ -116,6 +116,7 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
   int cycles = 0;
   int stalls = 0;
   
+  // int dup_done[PE_SIZE];
   int array_done[PE_SIZE][ARRAY_SIZE];
 
   int wl_ptr[PE_SIZE][ARRAY_SIZE]; // NWL * NBL
@@ -247,13 +248,13 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
               }
               
               if (array_sync) {
-                if (next_r < R) {
+                if (r[d] == (R - 1)) {
+                  done = 1;
+                }
+                else if (next_r < R) {
                   r[d] = next_r;
                   next_r++;
                   clear_array(array_done[d]);
-                }
-                else if (r[d] == (R - 1)) {
-                  done = 1;
                 }
               }
             }

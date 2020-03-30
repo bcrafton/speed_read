@@ -466,7 +466,9 @@ and do duplicates and stuff.
   > seems mb correct 
   > starting dup 
 
+-----
 
+okay found the issue, its just that row=1023 finishes before something else and all else has to halt.
 
 
 
