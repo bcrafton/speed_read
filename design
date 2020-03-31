@@ -568,7 +568,15 @@ if (wl_total[array][d]) {
 
 -----
 
+alright so we can definitely work on array allocation
+> i do wonder if Yu's paper discussed this in any more detail.
 
+so allocation needs to be based on:
+> MAC and MAC/cycle
+
+previously we used MAC, but they operate at different speeds which is killing us
+
+-----
 
 
 
