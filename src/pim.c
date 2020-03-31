@@ -174,9 +174,6 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
             continue;
           }
           
-          clear_vector(pdot[d][array]);
-          wl_sum[d][array] = 0;
-
           /////////////////////////////////////
 
           int rpr_addr;
@@ -203,7 +200,10 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
           /////////////////////////////////////
           
           int rows = min(rpr, WL - wl_ptr[d][array]);
-            
+
+          clear_vector(pdot[d][array]);
+          wl_sum[d][array] = 0;
+
           if (skip) {
             while ((wl_ptr[d][array] < WL) && (wl_sum[d][array] + x[(r[d] * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[d][array] * 8) + xb[d][array]] <= rows)) {
               if (x[(r[d] * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[d][array] * 8) + xb[d][array]]) {
@@ -239,11 +239,6 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
             int bl_ptr = adc_ptr + col[d][array];
             int c = (bl_ptr + bl * BL) % C;
             int wb = (bl_ptr + bl * BL) / C;
-            
-            if (!(wbit == wb)) {
-              printf("%d %d\n", wbit, wb);
-              assert(wbit == wb);
-            }
 
             if (wb == 0) {
               y[r[d] * C + c] -= ((wl_sum[d][array] * 128) << xb[d][array]);
@@ -285,12 +280,7 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
               int c = (bl_ptr + bl * BL) % C;
               int wb = (bl_ptr + bl * BL) / C;
 
-              if (!(wbit == wb)) {
-                printf("%d %d\n", wbit, wb);
-                assert(wbit == wb);
-              }
-
-              if (wl_total[array][d]) {
+              if (wl_total[d][array]) {
                 float p = ((float) pdot_sum[d][array][bl_ptr]) / ((float) wl_total[d][array]);
                 p = min(max(p, 0.), 1.);
                 int e = sat_error(p, adc, rpr);

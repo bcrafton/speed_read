@@ -549,6 +549,33 @@ we are doing for each array.
 
 well we have an assertion catching what I believe is the problem now.
 
+nope thats not the problem either ...
+
+-----
+
+it has to be with rpr.
+is xb weird at all ? 
+> idts, it does not change accross the array. 
+
+we cud go back to "6115-1" and try to make it work with the sat/pdot_sum fix
+> wud tell us if it has anything to do with adc_ptr. 
+
+'''
+if (wl_total[array][d]) {
+  float p = ((float) pdot_sum[d][array][bl_ptr]) / ((float) wl_total[d][array]);
+'''
+> holy shit lol
+
+-----
+
+
+
+
+
+
+
+
+
 
 
 
