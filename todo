@@ -18,15 +18,11 @@ done
   > https://stackoverflow.com/questions/10789042/python-multi-threading-slower-than-serial
   > apparently python has real issues with this ...
   > multiprocessing is a package that supports spawning processes using an API similar to the threading module. The multiprocessing package offers both local and remote concurrency, effectively side-stepping the Global Interpreter Lock by using subprocesses instead of threads. Due to this, the multiprocessing module allows the programmer to fully leverage multiple processors on a given machine. It runs on both Unix and Windows.
-  
 > better performance metric.
   > nmac = (Hi * Wi) * (Fh * Fw * Ci * Co)
   > mwl = (Hi * Wi) * 8 * ((Fh * Fw * Ci) / WL) * (Co / BL)
-
 > collection scripts
-
 > move rpr out of conv
-
 > is pooling necessary ?
   > yes.
 
@@ -37,75 +33,20 @@ future / not doing:
 
 todo
 -------
-> dynamic profiling
-> save {x,y1,y2,...} as tb from tensorflow.
-> batchnorm
-
-> bias centering
-> cconv cleanup 
-> we dont do variance by cell.
-  > we do read-to-read variance basically
-  > wudnt really be useful for bias centering anyways.
-> no skip only go length of x ? 
-  > currently it goes whole wl ...
-
-> imagenet64
-
--------
-
-priority:
-> imagenet64
-
--------
-
-model was wrong -> messed everything up.
 > make sure Ho/Wo and yh/yw are correct.
-
-as mean/std of activations/weights goes down, performance skyrockets.
-
--------
-
-will we be able to support resnet/densenet/mobilenet ? 
-> depthwise convolutions are bad for compute in memory.
-> pointwise are just fine.
-
-can we find online where state of the art is for 8 bit networks ? 
-> what models are people using ? 
-> what do accuracy numbers look like ? 
-
-so it seems like everyone respects resnet.
-which will be a giant pain to train.
-
 > ResNet ? 
 > BatchNorm
 > Intermediate Accuracy #s would also be good.
-> Parallelize over the 5 GPUs
-
 -------
-
 > run inference, make sure acc is good.
 > parse thru code trying to find (nan, 1/0, numerical instability)
-
 -------
-
 > better architecture sim
 > device-to-device variance, not read-to-read
 > there was 1 more thing ...
 > 8col/adc is good for x/w thing.
   > means we can pick our x/w pretty much however
   > also means we dont have to split at all.
-  
--------
-
-fix cards:
-arrays carry different #s of wb=[1,2,3,4,5,6,7,8] ... which we dont want.
-we can allocate redundant arrays based on this.
-OR 
-we can give each array same # of wb=[...].
-
-problem = we still have 128 ADC per array.
-so we cant actually distribute them out properly
-
 -------
 
 array allocation:
@@ -122,9 +63,6 @@ array: 240 cycle: 1664 stall: 6144
 array: 500 cycle: 1408 stall: 48640
 array: 240 cycle: 1408 stall: 10240
 array: 432 cycle: 1408 stall: 18432
-
-> array allocation is part of our solution ... so we do this later.
-  > right now we highlight the problem.
 
 -------
 
