@@ -108,15 +108,27 @@ for key in sorted(results.keys()):
 # print (np.around(y_mac_per_pJ[1, 1],  3))
 
 print ('array util')
-print (np.around(array_util[0, 0],  3))
-print (np.around(array_util[1, 0],  3))
-print (np.around(array_util[1, 1],  3))
+print (np.around(array_util[0, 0, 0],  3))
+print (np.around(array_util[1, 0, 0],  3))
+print (np.around(array_util[1, 1, 0],  3))
 
 ####################
 
+layers = np.array(range(1, 6+1))
+baseline = np.around(array_util[0, 0, 0],  3)
+zero_skip = np.around(array_util[1, 0, 0],  3)
+cards = np.around(array_util[1, 1, 0],  3)
 
+width = 0.35
+plt.bar(x=layers - width/2, height=baseline, width=width, label='baseline')
+plt.bar(x=layers + width/2, height=zero_skip, width=width, label='zero skip')
+plt.legend()
 
+plt.ylabel('Array Utilization')
+plt.xlabel('Layer #')
 
+# plt.show()
+plt.savefig('util.png', dpi=300)
 
 
 
