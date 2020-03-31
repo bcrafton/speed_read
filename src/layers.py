@@ -38,15 +38,27 @@ class Model:
         return pred, results
         
     def set_ndup(self):
+        # x_non_zero = np.array([0.41, 0.19, 0.145, 0.13, 0.12, 0.06])
+        # cycle_per_array = np.ceil((128 / 8) * x_non_zero)
+        # cycle_per_array = cycle_per_array / np.mean(cycle_per_array)
+    
+        total_weights = 2048 * 128 * 128
+    
         nmac = 0
         for layer in self.layers:
             nmac += layer.nmac
 
         for layer in range(len(self.layers)):
             p = self.layers[layer].nmac / nmac
-            if (layer == 0): ndup = p * (2048 * 128 * 128) / np.prod(np.shape(self.layers[layer].wb)) * (128 / 27)
-            else:            ndup = p * (2048 * 128 * 128) / np.prod(np.shape(self.layers[layer].wb))
+            array_weights = np.prod(np.shape(self.layers[layer].w)) * 8 
+            ndup = p * total_weights / array_weights
             self.layers[layer].set_ndup(int(ndup))
+
+        '''
+        ndup = [60, 83, 20, 20, 4, 3]
+        for layer in range(len(self.layers)):
+            self.layers[layer].set_ndup(ndup[layer])
+        '''
 
 #########################
 
@@ -196,6 +208,12 @@ class Conv(Layer):
         
         patches = np.stack(pb, axis=-1)
         npatch, nrow, nbit = np.shape(patches)
+        
+        #########################
+        
+        print (np.count_nonzero(patches) / np.prod(np.shape(patches)))
+        
+        #########################
         
         if (nrow % self.params['wl']):
             zeros = np.zeros(shape=(npatch, self.params['wl'] - (nrow % self.params['wl']), self.params['bpa']))

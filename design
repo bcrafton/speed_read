@@ -596,7 +596,8 @@ MAC = fixed
 
 -----
 
-
+> share = f(network_mac, layer_mac, layer_mac_per_cycle)
+well actually shouldn't we modify 
 
 
 

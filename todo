@@ -44,7 +44,7 @@ todo
 > better architecture sim
 > device-to-device variance, not read-to-read
 > there was 1 more thing ...
-> 8col/adc is good for x/w thing.
+> 8 col/adc is good for x/w thing.
   > means we can pick our x/w pretty much however
   > also means we dont have to split at all.
 -------
@@ -64,8 +64,11 @@ array: 500 cycle: 1408 stall: 48640
 array: 240 cycle: 1408 stall: 10240
 array: 432 cycle: 1408 stall: 18432
 
--------
+> going to be 2 parts:
+1) (layer level) compile time based off of (X, W) statistics
+2) (PE level) run time based on when arrays finish
 
+-------
 
 
 
