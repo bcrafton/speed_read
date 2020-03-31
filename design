@@ -600,9 +600,13 @@ MAC = fixed
 
 so we did something that kinda works.
 
+-----
 
+> so our current solution works well using the sparsity in patches, dont even need to compute MAC/per cycle.
 
+the winner will simply be decided by highest throughput of all 1024 arrays.
 
+-----
 
 
 

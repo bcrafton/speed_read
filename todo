@@ -68,6 +68,11 @@ array: 432 cycle: 1408 stall: 18432
 1) (layer level) compile time based off of (X, W) statistics
 2) (PE level) run time based on when arrays finish
 
+found 2 techniques for doing this.
+1) sparsity in x
+2) mac/cycle/array
+>> the winner will simply be decided by highest throughput of all 1024 arrays.
+
 -------
 
 
