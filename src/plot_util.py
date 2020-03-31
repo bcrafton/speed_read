@@ -119,9 +119,17 @@ baseline = np.around(array_util[0, 0, 0],  3)
 zero_skip = np.around(array_util[1, 0, 0],  3)
 cards = np.around(array_util[1, 1, 0],  3)
 
+'''
 width = 0.35
 plt.bar(x=layers - width/2, height=baseline, width=width, label='baseline')
 plt.bar(x=layers + width/2, height=zero_skip, width=width, label='zero skip')
+plt.legend()
+'''
+
+width = 0.2
+plt.bar(x=layers - width, height=baseline,  width=width, label='baseline')
+plt.bar(x=layers,         height=zero_skip, width=width, label='zero skip')
+plt.bar(x=layers + width, height=cards,     width=width, label='counting cards')
 plt.legend()
 
 plt.ylabel('Array Utilization')
