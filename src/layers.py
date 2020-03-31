@@ -93,7 +93,8 @@ class Model:
         shares = np.zeros(shape=len(self.layers))
         for layer in range(len(self.layers)):
             fh, fw, fc, fn = np.shape(self.layers[layer].w)
-            rows_per_array = min(fh * fw * fc, 128)
+            # rows_per_array = min(fh * fw * fc, 128)
+            rows_per_array = 128 
             cycle_per_array = rows_per_array / mac_per_array[layer]
             shares[layer] = self.layers[layer].nmac * cycle_per_array
 
@@ -110,7 +111,8 @@ class Model:
         shares = shares / np.sum(shares)
         
         for layer in range(len(self.layers)):
-            layer_weights = np.prod(np.shape(self.layers[layer].w)) * 8
+            # layer_weights = np.prod(np.shape(self.layers[layer].w)) * 8
+            layer_weights = np.prod(np.shape(self.layers[layer].wb))
             share = shares[layer] * total_weights / layer_weights
             ndup = int(np.round(share))
             self.layers[layer].set_ndup(ndup)
