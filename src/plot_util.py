@@ -161,6 +161,7 @@ plt.legend()
 
 plt.ylabel('Array Utilization')
 plt.xlabel('Layer #')
+plt.ylim(0, 1)
 
 # plt.show()
 plt.savefig('util.png', dpi=300)

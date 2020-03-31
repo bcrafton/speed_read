@@ -125,6 +125,9 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
   // f = nwl, wl, nbl, bl
   // y = nrow, ncol
   
+  // our arrays are sized for 128. need to increase.
+  assert (D <= 128);
+  
   int done = 0;
     
   int dup_done[PE_SIZE];

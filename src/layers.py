@@ -38,27 +38,34 @@ class Model:
         return pred, results
         
     def set_ndup(self):
-        # x_non_zero = np.array([0.41, 0.19, 0.145, 0.13, 0.12, 0.06])
-        # cycle_per_array = np.ceil((128 / 8) * x_non_zero)
-        # cycle_per_array = cycle_per_array / np.mean(cycle_per_array)
     
-        total_weights = 2048 * 128 * 128
+        x_non_zero = np.array([0.41, 0.19, 0.145, 0.13, 0.12, 0.06])
+            
+        ###########
     
+        shares = np.zeros(shape=len(self.layers))
+        for layer in range(len(self.layers)):
+            fh, fw, fc, fn = np.shape(self.layers[layer].w)
+            rows_per_array = min(fh * fw * fc, 128)
+            cycle_per_array = np.ceil((rows_per_array / 8) * x_non_zero[layer])
+            shares[layer] = self.layers[layer].nmac * cycle_per_array
+
+        ###########
+
+        total_weights = 1024 * 128 * 128    
+        
         nmac = 0
         for layer in self.layers:
             nmac += layer.nmac
-
+            
+        ###########
+        
+        shares = shares / np.sum(shares)
         for layer in range(len(self.layers)):
-            p = self.layers[layer].nmac / nmac
-            array_weights = np.prod(np.shape(self.layers[layer].w)) * 8 
-            ndup = p * total_weights / array_weights
-            self.layers[layer].set_ndup(int(ndup))
-
-        '''
-        ndup = [60, 83, 20, 20, 4, 3]
-        for layer in range(len(self.layers)):
-            self.layers[layer].set_ndup(ndup[layer])
-        '''
+            layer_weights = np.prod(np.shape(self.layers[layer].w)) * 8
+            ndup = int(np.ceil(shares[layer] * total_weights / layer_weights))
+            self.layers[layer].set_ndup(ndup)
+            print (ndup)
 
 #########################
 
@@ -211,7 +218,8 @@ class Conv(Layer):
         
         #########################
         
-        print (np.count_nonzero(patches) / np.prod(np.shape(patches)))
+        # print (np.count_nonzero(patches) / np.prod(np.shape(patches)))
+        # print (8 * np.count_nonzero(patches, axis=(0, 1)) / np.prod(np.shape(patches)))
         
         #########################
         
