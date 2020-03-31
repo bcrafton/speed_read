@@ -31,6 +31,10 @@ y_std = np.zeros(shape=(2, 2, len(x), num_layers))
 y_mac_per_cycle = np.zeros(shape=(2, 2, len(x), num_layers))
 y_mac_per_pJ = np.zeros(shape=(2, 2, len(x), num_layers))
 
+cycle = np.zeros(shape=(2, 2, len(x), num_layers))
+nmac = np.zeros(shape=(2, 2, len(x), num_layers))
+array = np.zeros(shape=(2, 2, len(x), num_layers))
+
 y_ron = np.zeros(shape=(2, 2, len(x), num_layers))
 y_roff = np.zeros(shape=(2, 2, len(x), num_layers))
 y_adc = np.zeros(shape=(2, 2, len(x), num_layers, num_comparator))
@@ -66,6 +70,12 @@ for key in sorted(results.keys()):
         y_mac_per_pJ[skip][cards][sigma_index][layer] = np.sum(rdict['nmac']) / 1e12 / np.sum(y_energy[skip][cards][sigma_index][layer])
         
         ############################
+        
+        cycle[skip][cards][sigma_index][layer] = np.mean(rdict['cycle'])
+        nmac[skip][cards][sigma_index][layer] = np.mean(rdict['nmac'])
+        array[skip][cards][sigma_index][layer] = np.mean(rdict['array'])
+        
+        ############################
 
         max_cycle = max(max_cycle, np.mean(rdict['cycle']))
         
@@ -87,6 +97,23 @@ for key in sorted(results.keys()):
 
 ####################
 
+print ('cycle')
+# print (np.around(cycle[0, 0, 0], 1))
+print (np.around(cycle[1, 0, 0], 1))
+# print (np.around(cycle[1, 1, 0], 1))
+
+print ('nmac')
+# print (np.around(nmac[0, 0, 0], 1))
+print (np.around(nmac[1, 0, 0], 1))
+# print (np.around(nmac[1, 1, 0], 1))
+
+print ('array')
+# print (np.around(array[0, 0, 0], 1))
+print (np.around(array[1, 0, 0], 1))
+# print (np.around(array[1, 1, 0], 1))
+
+####################
+
 # print ('mean')
 # print (np.around(y_mean[0, 0],  3))
 # print (np.around(y_mean[1, 0],  3))
@@ -97,10 +124,10 @@ for key in sorted(results.keys()):
 # print (np.around(y_std[1, 0],  3))
 # print (np.around(y_std[1, 1],  3))
 
-# print ('mac / cycle')
-# print (np.around(y_mac_per_cycle[0, 0], 1))
-# print (np.around(y_mac_per_cycle[1, 0], 1))
-# print (np.around(y_mac_per_cycle[1, 1], 1))
+print ('mac / cycle')
+# print (np.around(y_mac_per_cycle[0, 0, 0], 1))
+print (np.around(y_mac_per_cycle[1, 0, 0], 1))
+# print (np.around(y_mac_per_cycle[1, 1, 0], 1))
 
 # print ('mac / pJ')
 # print (np.around(y_mac_per_pJ[0, 0],  3))
@@ -108,9 +135,9 @@ for key in sorted(results.keys()):
 # print (np.around(y_mac_per_pJ[1, 1],  3))
 
 print ('array util')
-print (np.around(array_util[0, 0, 0],  3))
+# print (np.around(array_util[0, 0, 0],  3))
 print (np.around(array_util[1, 0, 0],  3))
-print (np.around(array_util[1, 1, 0],  3))
+# print (np.around(array_util[1, 1, 0],  3))
 
 ####################
 

@@ -574,9 +574,33 @@ alright so we can definitely work on array allocation
 so allocation needs to be based on:
 > MAC and MAC/cycle
 
-previously we used MAC, but they operate at different speeds which is killing us
+previously we used MAC, but they operate at different speeds which is killing us.
+
+so the question is how can we predict the number of MACs.
+> def has to do with #zeros in activations and weights. 
 
 -----
+
+initial algorithm = 
+mac/cycle/array = (% nonzero x) * (% nonzero w)
+> well actually for zero-skipping w does not matter.
+
+MAC = fixed
+
+-----
+
+> okay so hard coding ndup, we can definitely see that "good" ndup can be chosen.
+  > can probably get 75% util this way accross the board
+
+> going from 75% -> 90% is going to require the hard stuff.
+
+-----
+
+
+
+
+
+
 
 
 

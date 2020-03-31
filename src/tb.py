@@ -62,7 +62,7 @@ param_sweep = {
 'bpa': 8,
 'bpw': 8,
 'adc': 8,
-'skip': [0, 1],
+'skip': [1],
 'cards': [0],
 'stall': 0,
 'wl': 128,
@@ -124,7 +124,7 @@ for run in range(0, num_runs, parallel_runs):
     results.update(return_dict)
 
 np.save('results', results)
-print (time.time() - start)
+print ('time taken:', time.time() - start)
 
 ####
 
