@@ -129,6 +129,9 @@ print ('mac / cycle')
 print (np.around(y_mac_per_cycle[1, 0, 0], 1))
 # print (np.around(y_mac_per_cycle[1, 1, 0], 1))
 
+print ('mac / cycle / array')
+print (np.around(y_mac_per_cycle[1, 0, 0] / array[1, 0, 0], 1))
+
 # print ('mac / pJ')
 # print (np.around(y_mac_per_pJ[0, 0],  3))
 # print (np.around(y_mac_per_pJ[1, 0],  3))
