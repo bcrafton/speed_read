@@ -608,7 +608,9 @@ the winner will simply be decided by highest throughput of all 1024 arrays.
 
 -----
 
-
+> need to switch allocation based on algoritm:
+  > baseline
+  > zero skipping.
 
 
 
