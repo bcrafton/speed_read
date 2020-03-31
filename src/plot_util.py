@@ -42,7 +42,9 @@ for key in sorted(results.keys()):
     (skip, cards, sigma) = key
     layer_results = results[key]
 
+    max_cycle = 0
     for layer in range(num_layers):
+    
         rdict = merge_dicts(layer_results[layer])
         sigma_index = np.where(x == sigma)[0][0]
         
@@ -65,27 +67,35 @@ for key in sorted(results.keys()):
         
         ############################
 
+        max_cycle = max(max_cycle, np.mean(rdict['cycle']))
+        
+        ############################
+
+    for layer in range(num_layers):
+
+        rdict = merge_dicts(layer_results[layer])
+        sigma_index = np.where(x == sigma)[0][0]
+        
+        ############################
+
         y_cycle = np.mean(rdict['cycle'])
         y_stall = np.mean(rdict['stall'])
         y_array = np.mean(rdict['array'])
-        
-        # TODO - account for slowest layer and add all those cycles to each of these.
-        # that would be true utilization AND will show how bad it is.
-        array_util[skip][cards][sigma_index][layer] = (y_array * y_cycle) / (y_array * y_cycle + y_stall)
+        array_util[skip][cards][sigma_index][layer] = (y_array * y_cycle - y_stall) / (y_array * max_cycle)
         
         ############################
 
 ####################
 
-print ('mean')
+# print ('mean')
 # print (np.around(y_mean[0, 0],  3))
-print (np.around(y_mean[1, 0],  3))
-print (np.around(y_mean[1, 1],  3))
+# print (np.around(y_mean[1, 0],  3))
+# print (np.around(y_mean[1, 1],  3))
 
-print ('std')
+# print ('std')
 # print (np.around(y_std[0, 0],  3))
-print (np.around(y_std[1, 0],  3))
-print (np.around(y_std[1, 1],  3))
+# print (np.around(y_std[1, 0],  3))
+# print (np.around(y_std[1, 1],  3))
 
 # print ('mac / cycle')
 # print (np.around(y_mac_per_cycle[0, 0], 1))
@@ -97,10 +107,10 @@ print (np.around(y_std[1, 1],  3))
 # print (np.around(y_mac_per_pJ[1, 0],  3))
 # print (np.around(y_mac_per_pJ[1, 1],  3))
 
-# print ('array util')
-# print (np.around(array_util[0, 0],  3))
-# print (np.around(array_util[1, 0],  3))
-# print (np.around(array_util[1, 1],  3))
+print ('array util')
+print (np.around(array_util[0, 0],  3))
+print (np.around(array_util[1, 0],  3))
+print (np.around(array_util[1, 1],  3))
 
 ####################
 
