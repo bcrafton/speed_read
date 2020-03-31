@@ -63,7 +63,7 @@ param_sweep = {
 'bpw': 8,
 'adc': 8,
 'skip': [1],
-'cards': [0, 1],
+'cards': [1],
 'stall': 0,
 'wl': 128,
 'bl': 128,

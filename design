@@ -543,9 +543,11 @@ we wud do correction accross all wl
 right now we are not doing that.
 we are doing for each array.
 
+... no actually i dont think that is right.
+
 -----
 
-
+well we have an assertion catching what I believe is the problem now.
 
 
 

@@ -191,6 +191,8 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
             rpr_addr = (xb[d][array] * 8) + (bl / (C / BL)); 
           }
           
+          int wbit = ((bl + 1) * (BL / C)) - 1;
+          
           if (!((rpr_addr >= 0) && (rpr_addr < 64))) {
             printf("xb: %d bl: %d BL: %d C: %d: rpr_addr: %d\n", xb[d][array], bl, BL, C, rpr_addr);
             assert ((rpr_addr >= 0) && (rpr_addr < 64));
@@ -237,6 +239,11 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
             int bl_ptr = adc_ptr + col[d][array];
             int c = (bl_ptr + bl * BL) % C;
             int wb = (bl_ptr + bl * BL) / C;
+            
+            if (!(wbit == wb)) {
+              printf("%d %d\n", wbit, wb);
+              assert(wbit == wb);
+            }
 
             if (wb == 0) {
               y[r[d] * C + c] -= ((wl_sum[d][array] * 128) << xb[d][array]);
@@ -277,6 +284,12 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
               int bl_ptr = adc_ptr + col[d][array];
               int c = (bl_ptr + bl * BL) % C;
               int wb = (bl_ptr + bl * BL) / C;
+
+              if (!(wbit == wb)) {
+                printf("%d %d\n", wbit, wb);
+                assert(wbit == wb);
+              }
+
               if (wl_total[array][d]) {
                 float p = ((float) pdot_sum[d][array][bl_ptr]) / ((float) wl_total[d][array]);
                 p = min(max(p, 0.), 1.);
