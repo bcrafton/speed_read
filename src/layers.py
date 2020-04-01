@@ -78,9 +78,13 @@ class Model:
 
         for layer in range(len(self.layers)):
             p = self.layers[layer].nmac / nmac
-            if (layer == 0): ndup = p * (1024 * 128 * 128) / np.prod(np.shape(self.layers[layer].wb)) * (128 / 27)
-            else:            ndup = p * (1024 * 128 * 128) / np.prod(np.shape(self.layers[layer].wb))
-            self.layers[layer].set_ndup(int(np.ceil(ndup)))
+            if (layer == 0): ndup = p * (1024 * 128 * 128) / np.prod(np.shape(self.layers[layer].w)) / 8
+            else:            ndup = p * (1024 * 128 * 128) / np.prod(np.shape(self.layers[layer].w)) / 8
+            # ndup = int(np.round(ndup))
+            # ndup = int(np.floor(ndup))
+            ndup = int(np.ceil(ndup))
+            self.layers[layer].set_ndup(ndup)
+            print (ndup)
 
     def set_ndup2(self):
     
