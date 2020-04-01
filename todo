@@ -90,7 +90,13 @@ Guessing it is probably the array, BUT can we duplicate things inside the PE to 
 
 -------
 
+so i think we can formulate this better.
+if u gather profiled data
+and we assume that directly correlates to MACs, we shud be able to use some solver to compute the best configuration for throughput.
 
+we shud be trying to use all the arrays tho.
+
+-------
 
 
 

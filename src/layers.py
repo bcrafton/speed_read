@@ -84,7 +84,7 @@ class Model:
             # ndup = int(np.floor(ndup))
             ndup = int(np.ceil(ndup))
             self.layers[layer].set_ndup(ndup)
-            print (ndup)
+            # print (ndup)
 
     def set_ndup2(self):
     
