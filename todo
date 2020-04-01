@@ -75,8 +75,20 @@ found 2 techniques for doing this.
 
 -------
 
+Compile time array allocation based on layers.
+> Seems like we solved this already.
+> For report #1 we will just talk about this
 
+Runtime allocation based on ?
+Profile where stalls come from:
+> When duplicate arrays have finished ? sync_dup
+> Arrays in same PE have finished ? sync_array
+Guessing it is probably the array, BUT can we duplicate things inside the PE to speed up array level stalls ?
 
+> Need to make ndup configurable so we can make baseline work just as well.
+> Lets see MAC/cycle.
+
+-------
 
 
 
