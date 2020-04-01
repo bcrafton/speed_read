@@ -88,7 +88,7 @@ def create_model(weights, params):
     Conv(input_size=(8,8,128), filter_size=(3,3,128,128), pool=2, stride=1, pad1=1, pad2=1, params=params, weights=weights[5])
     ]
 
-    model = Model(layers=layers)
+    model = Model(layers=layers, params=params)
     return model
 
 ####

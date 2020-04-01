@@ -15,8 +15,9 @@ from rpr import rpr
 #########################
 
 class Model:
-    def __init__(self, layers):
+    def __init__(self, layers, params):
         self.layers = layers
+        self.params = params
         self.set_ndup()
 
     def forward(self, x, y):
@@ -38,7 +39,10 @@ class Model:
         return pred, results
         
     def set_ndup(self):
-        self.set_ndup2()
+        if self.params['skip']:
+            self.set_ndup2()
+        else:
+            self.set_ndup1()
         
     #######################################################
     
@@ -110,7 +114,7 @@ class Model:
             share = shares[layer] * total_weights / layer_weights
             ndup = int(np.round(share))
             self.layers[layer].set_ndup(ndup)
-            print (ndup)
+            # print (ndup)
 
     def set_ndup3(self):
     
@@ -144,7 +148,7 @@ class Model:
             share = shares[layer] * total_weights / layer_weights
             ndup = int(np.round(share))
             self.layers[layer].set_ndup(ndup)
-            print (ndup)
+            # print (ndup)
 
     #######################################################            
 
