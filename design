@@ -653,16 +653,30 @@ but how ?
 
 if u wait till xb granularity, have a feeling there wont be enof to split.
 
+------
+
+array: 72 nmac 884736 cycle: 3528 stall: 3552
+array: 354 nmac 9437184 cycle: 4261 stall: 412778
+array: 132 nmac 4718592 cycle: 4604 stall: 164016
+array: 240 nmac 9437184 cycle: 4107 stall: 209008
+array: 120 nmac 4718592 cycle: 4178 stall: 124848
+array: 144 nmac 9437184 cycle: 4071 stall: 137520
+time taken: 8.473353147506714
+
+array: 72 nmac 884736 cycle: 3528 stall: 3552
+array: 354 nmac 9437184 cycle: 3187 stall: 32582
+array: 132 nmac 4718592 cycle: 3414 stall: 6936
+array: 240 nmac 9437184 cycle: 3295 stall: 14128
+array: 120 nmac 4718592 cycle: 3196 stall: 7008
+array: 144 nmac 9437184 cycle: 3127 stall: 1584
+time taken: 8.821300745010376
 
 ------
 
+so the upper bound is ridiculous
+how can we get a realistic estimation ? 
 
-
-
-
-
-
-
+like if we did only double sharing ? 
 
 
 

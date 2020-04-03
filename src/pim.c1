@@ -176,32 +176,11 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
 
           /////////////////////////////////////
           /*
-          int sync = 1;
-          for (int i=0; i<NWL * NBL; i++) {
-            sync = sync & array_done[d][i];
-          }
-          if (sync) {
-            metrics[METRIC_STALL] += 1;
-            continue;
-          }
-          while (array_done[d][array]) {
-            array = (array + 1) % (NBL * NWL);
-            
-            if (array == (wl * NBL + bl)) {
-              for (int i=0; i<NWL * NBL; i++) {
-                printf("%d\n", array_done[d][i]);
-              }
-            }
-            assert (array != (wl * NBL + bl));
-          }
-          */
-          /////////////////////////////////////
-          ///*
           if (array_done[d][array]) {
             metrics[METRIC_STALL] += 1;
             continue;
           }
-          //*/
+          */
           /////////////////////////////////////
           /*
           int sync = 1;
@@ -217,7 +196,46 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
             assert (array != (wl * NBL + bl));
           }
           */
-
+          /////////////////////////////////////
+          /*
+          int sync = 1;
+          for (int i=0; i<NWL * NBL; i++) {
+            sync = sync & array_done[d][i];
+          }
+          if (sync) {
+            metrics[METRIC_STALL] += 1;
+            continue;
+          }
+          if (array_done[d][array]) {
+            array = (array + 1) % (NBL * NWL);
+            assert (array != (wl * NBL + bl));
+          }
+          if (array_done[d][array]) {
+            metrics[METRIC_STALL] += 1;
+            continue;
+          }
+          */
+          /////////////////////////////////////
+          ///*
+          int sync = 1;
+          for (int i=0; i<NWL * NBL; i++) {
+            sync = sync & array_done[d][i];
+          }
+          if (sync) {
+            metrics[METRIC_STALL] += 1;
+            continue;
+          }
+          for (int i=0; i<min(NBL * NWL, 4); i++) {
+            if (array_done[d][array]) {
+              array = (array + 1) % (NBL * NWL);
+              assert (array != (wl * NBL + bl));
+            }
+          }
+          if (array_done[d][array]) {
+            metrics[METRIC_STALL] += 1;
+            continue;
+          }
+          //*/
           /////////////////////////////////////
 
           int new_wl = array / NBL;
