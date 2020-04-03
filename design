@@ -766,8 +766,69 @@ then try some shit out with PE level.
 ------
 
 this larger CNN will give us better perf improvement ... just saying.
+> we switching to 256.
+
+alright so we care about X not Y ... input to layer not output.
 
 ------
+
+okay so we need to learn ILP 
+this is more complicated than we thought
+even for allocating layer
+
+I think we shud absolutely use ILP to do this.
+if u allocate 14 duplicates to something
+ur fucked lol.
+> https://docs.python-mip.com/en/latest/examples.html#job-shop-scheduling-problem
+
+looks like we can absolutely do it with this.
+
+------
+
+so we have template examples for knapsack and TSP
+we just need to make a mini problem and then scale it up.
+
+------
+
+but formulating this is difficult.
+because its not just maximizing the min.
+its also dealing with rounding errors.
+> 14 / 16 thing...
+
+so it dosnt really feel like a linear problem lol.
+
+could we frame this is a dynamic programming problem ? 
+i think we cud.
+
+i think we shud just write it as exhausive and make it dynamic afterwards.
+if it fails any constraints just do continue and let it roll.
+
+-----
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -18,6 +18,7 @@ class Model:
     def __init__(self, layers, params):
         self.layers = layers
         self.params = params
+        self.profile()
         self.set_ndup()
 
     def forward(self, x, y):
@@ -46,28 +47,8 @@ class Model:
         
     #######################################################
     
-    def profile(self, x):
-        '''
-        num_examples, _, _, _ = np.shape(x)
-        num_layers = len(self.layers)
-
-        pred = [None] * num_examples
-        results = {}
-
-        for example in range(num_examples):
-            pred[example] = x[example]
-            for layer in range(num_layers):
-                pred[example], result = self.layers[layer].forward(x=pred[example])
-                if (layer in results.keys()):
-                    results[layer].append(result)
-                else:
-                    results[layer] = [result]
-
-        return pred, results
-        '''
-        # setup a profile function so we arnt hardcoding some random #s.
-        # why do we use MAC/cycle and not x_non_zero, shouldn't they be the same ?
-        pass
+    def profile(self):
+        self.prof = np.load('cifar10_profile.npy', allow_pickle=True).item()
     
     #######################################################
 
@@ -78,8 +59,8 @@ class Model:
 
         for layer in range(len(self.layers)):
             p = self.layers[layer].nmac / nmac
-            if (layer == 0): ndup = p * (1024 * 128 * 128) / np.prod(np.shape(self.layers[layer].w)) / 8
-            else:            ndup = p * (1024 * 128 * 128) / np.prod(np.shape(self.layers[layer].w)) / 8
+            if (layer == 0): ndup = p * (4096 * 128 * 128) / np.prod(np.shape(self.layers[layer].w)) / 8
+            else:            ndup = p * (4096 * 128 * 128) / np.prod(np.shape(self.layers[layer].w)) / 8
             # ndup = int(np.round(ndup))
             # ndup = int(np.floor(ndup))
             ndup = int(np.ceil(ndup))
@@ -87,22 +68,23 @@ class Model:
             # print (ndup)
 
     def set_ndup2(self):
-    
-        x_non_zero = np.array([0.41, 0.19, 0.145, 0.13, 0.12, 0.06])
-            
-        ###########
-    
         shares = np.zeros(shape=len(self.layers))
         for layer in range(len(self.layers)):
+            layer_ratio, pe_ratio = self.prof[layer]
+            # layer_ratio = layer_ratios[layer]
+            # print (layer_ratio)
+        
             fh, fw, fc, fn = np.shape(self.layers[layer].w)
-            # rows_per_array = min(fh * fw * fc, 128)
-            rows_per_array = 128 
-            cycle_per_array = rows_per_array * x_non_zero[layer]
-            shares[layer] = self.layers[layer].nmac * cycle_per_array
+            # rows_per_array = np.ceil(layer_ratio * 128 / 8)
+            rows_per_array = np.ceil(layer_ratio * 128)
+            array_util = min(fh * fw * fc, 128) / 128
+            
+            shares[layer] = self.layers[layer].nmac / array_util * rows_per_array
+            # print (shares[layer])
     
         ###########
 
-        total_weights = 1024 * 128 * 128
+        total_weights = 4096 * 128 * 128
         
         nmac = 0
         for layer in self.layers:
@@ -112,49 +94,11 @@ class Model:
 
         shares = shares / np.sum(shares)
         
-        for layer in range(len(self.layers)):
-            # layer_weights = np.prod(np.shape(self.layers[layer].w)) * 8
+        for layer in range(len(self.layers)):        
             layer_weights = np.prod(np.shape(self.layers[layer].wb))
             share = shares[layer] * total_weights / layer_weights
-            ndup = max(1, int(np.round(share)))
+            ndup = int(np.ceil(share))
             self.layers[layer].set_ndup(ndup)
-            # print (ndup)
-
-    def set_ndup3(self):
-    
-        mac_per_array = np.array([3.5, 6.3, 7.8, 9.6, 9.4, 16.])
-            
-        ###########
-    
-        shares = np.zeros(shape=len(self.layers))
-        for layer in range(len(self.layers)):
-            fh, fw, fc, fn = np.shape(self.layers[layer].w)
-            # rows_per_array = min(fh * fw * fc, 128)
-            rows_per_array = 128 
-            cycle_per_array = rows_per_array / mac_per_array[layer]
-            shares[layer] = self.layers[layer].nmac * cycle_per_array
-
-        ###########
-
-        total_weights = 1024 * 128 * 128
-        
-        nmac = 0
-        for layer in self.layers:
-            nmac += layer.nmac
-            
-        ###########
-        
-        shares = shares / np.sum(shares)
-        
-        for layer in range(len(self.layers)):
-            # layer_weights = np.prod(np.shape(self.layers[layer].w)) * 8
-            layer_weights = np.prod(np.shape(self.layers[layer].wb))
-            share = shares[layer] * total_weights / layer_weights
-            ndup = int(np.round(share))
-            self.layers[layer].set_ndup(ndup)
-            # print (ndup)
-
-    #######################################################            
 
 #########################
 

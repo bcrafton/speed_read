@@ -136,7 +136,7 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
   // y = nrow, ncol
   
   // our arrays are sized for 128. need to increase.
-  printf("%d %d %d\n", D, NWL * NBL, BL);
+  // printf("%d %d %d\n", D, NWL * NBL, BL);
   assert ((D >= 1) && (NWL >= 1) && (NWL >= 1) && (BL >= 1));
   assert (D <= PE_SIZE);
   assert ((NWL * NBL) <= ARRAY_SIZE);
