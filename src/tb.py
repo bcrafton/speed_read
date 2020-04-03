@@ -78,14 +78,14 @@ param_sweep = perms(param_sweep)
 
 def create_model(weights, params):
     layers = [
-    Conv(input_size=(32,32,3),  filter_size=(3,3,3,32),   pool=1, stride=1, pad1=1, pad2=1, params=params, weights=weights[0]),
-    Conv(input_size=(32,32,32), filter_size=(3,3,32,32),  pool=2, stride=1, pad1=1, pad2=1, params=params, weights=weights[1]),
+    Conv(input_size=(32,32, 3), filter_size=(3,3, 3,64), pool=1, stride=1, pad1=1, pad2=1, params=params, weights=weights[0]),
+    Conv(input_size=(32,32,64), filter_size=(3,3,64,64), pool=2, stride=1, pad1=1, pad2=1, params=params, weights=weights[1]),
 
-    Conv(input_size=(16,16,32), filter_size=(3,3,32,64),  pool=1, stride=1, pad1=1, pad2=1, params=params, weights=weights[2]),
-    Conv(input_size=(16,16,64), filter_size=(3,3,64,64),  pool=2, stride=1, pad1=1, pad2=1, params=params, weights=weights[3]),
+    Conv(input_size=(16,16,64),  filter_size=(3,3, 64,128), pool=1, stride=1, pad1=1, pad2=1, params=params, weights=weights[2]),
+    Conv(input_size=(16,16,128), filter_size=(3,3,128,128), pool=2, stride=1, pad1=1, pad2=1, params=params, weights=weights[3]),
 
-    Conv(input_size=(8,8,64), filter_size=(3,3,64,128),   pool=1, stride=1, pad1=1, pad2=1, params=params, weights=weights[4]),
-    Conv(input_size=(8,8,128), filter_size=(3,3,128,128), pool=2, stride=1, pad1=1, pad2=1, params=params, weights=weights[5])
+    Conv(input_size=(8,8,128), filter_size=(3,3,128,256), pool=1, stride=1, pad1=1, pad2=1, params=params, weights=weights[4]),
+    Conv(input_size=(8,8,256), filter_size=(3,3,256,256), pool=2, stride=1, pad1=1, pad2=1, params=params, weights=weights[5])
     ]
 
     model = Model(layers=layers, params=params)

@@ -17,9 +17,9 @@
 
 // make sure (bl <= 1024), malloc would be too slow.
 // if we just pick a size large enough we will be okay
-#define VECTOR_SIZE 128
-#define ARRAY_SIZE 128
-#define PE_SIZE 128
+#define VECTOR_SIZE 256
+#define ARRAY_SIZE 512
+#define PE_SIZE 256
 // int pdot[PE_SIZE][ARRAY_SIZE][VECTOR_SIZE]; 
 // is too large, we had to allocate using malloc.
 
@@ -31,6 +31,16 @@ void clear_vector(int* v)
 void clear_array(int* a)
 {
   memset(a, 0, sizeof(int) * ARRAY_SIZE);
+}
+
+int** array2D()
+{
+  int** array = (int**) malloc(sizeof(int*) * PE_SIZE);
+  for (int i=0; i<PE_SIZE; i++) {
+    array[i] = (int*) malloc(sizeof(int) * ARRAY_SIZE);
+    clear_array(array[i]);
+  }
+  return array;
 }
 
 int*** array3D()
@@ -126,20 +136,30 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
   // y = nrow, ncol
   
   // our arrays are sized for 128. need to increase.
-  assert (D <= 128);
+  printf("%d %d %d\n", D, NWL * NBL, BL);
+  assert ((D >= 1) && (NWL >= 1) && (NWL >= 1) && (BL >= 1));
+  assert (D <= PE_SIZE);
+  assert ((NWL * NBL) <= ARRAY_SIZE);
+  assert (BL <= VECTOR_SIZE);
   
   int done = 0;
     
   int dup_done[PE_SIZE];
-  int array_done[PE_SIZE][ARRAY_SIZE];
+  // int array_done[PE_SIZE][ARRAY_SIZE];
+  int** array_done = array2D();
 
-  int wl_ptr[PE_SIZE][ARRAY_SIZE]; 
-  int wl_sum[PE_SIZE][ARRAY_SIZE]; 
-  int wl_total[PE_SIZE][ARRAY_SIZE]; 
+  // int wl_ptr[PE_SIZE][ARRAY_SIZE]; 
+  // int wl_sum[PE_SIZE][ARRAY_SIZE]; 
+  // int wl_total[PE_SIZE][ARRAY_SIZE]; 
+  int** wl_ptr = array2D();
+  int** wl_sum = array2D();
+  int** wl_total = array2D();
   
   int r[PE_SIZE]; 
-  int col[PE_SIZE][ARRAY_SIZE]; 
-  int xb[PE_SIZE][ARRAY_SIZE]; 
+  // int col[PE_SIZE][ARRAY_SIZE]; 
+  // int xb[PE_SIZE][ARRAY_SIZE]; 
+  int** col = array2D();
+  int** xb = array2D();
   
   int*** pdot = array3D();
   int*** pdot_sum = array3D();
@@ -166,8 +186,8 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
 
     metrics[METRIC_CYCLE] += 1;
     // if there are more duplicates than rows, then I believe we hit this assert.
-    assert (metrics[METRIC_CYCLE] < 100000);
-        
+    assert (metrics[METRIC_CYCLE] < 1000000);
+
     for (int d=0; d<D; d++) { 
       for (int wl=0; wl<NWL; wl++) {
         for (int bl=0; bl<NBL; bl++) {

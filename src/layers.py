@@ -116,7 +116,7 @@ class Model:
             # layer_weights = np.prod(np.shape(self.layers[layer].w)) * 8
             layer_weights = np.prod(np.shape(self.layers[layer].wb))
             share = shares[layer] * total_weights / layer_weights
-            ndup = int(np.round(share))
+            ndup = max(1, int(np.round(share)))
             self.layers[layer].set_ndup(ndup)
             # print (ndup)
 
@@ -202,7 +202,7 @@ class Conv(Layer):
             self.b = np.zeros(shape=self.fn).astype(int)
             self.q = 200
         else:
-            self.w, self.b, self.q = weights
+            self.w, self.b, self.q = weights['f'], weights['b'], weights['q']
             assert (np.all(self.w >= minval))
             assert (np.all(self.w <= maxval))
             # check shape

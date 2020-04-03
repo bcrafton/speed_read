@@ -737,20 +737,37 @@ so we need to allocate duplicates based on this.
 ------
 
 alright so what is the plan ? 
+> well we shud profile for both layer division
+AND 
+> PE division
 
+so we sorta need to move to automatic profiling now.
+
+but how do we best allocate even with the given profile ?
+I think something weighted based on number of STDs from mean.
 
 ------
 
+def think it wud be best to run this in tflow.
+then import all the activations, or statistics or w.e.
+for simplicity now atleast.
 
+------
 
+i want to keep the current model
+so we have to rerun tflow again.
 
+then we will grab those activations
+replace layer:
+x_non_zero = np.array([0.41, 0.19, 0.145, 0.13, 0.12, 0.06])
 
+then try some shit out with PE level.
 
+------
 
+this larger CNN will give us better perf improvement ... just saying.
 
-
-
-
+------
 
 
 
