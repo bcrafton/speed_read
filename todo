@@ -99,9 +99,41 @@ we shud be trying to use all the arrays tho.
 -------
 
 breaking barriers
-array level allocation
+> array level allocation
+> this is going to be maximizing throughput around PD constraints
+
+> identify the 3 bottlenecks
+> talk about from a PD constraint we need to have 16 arrays in 1 block
+> and the workarounds we have given these constraints.
 
 -------
+
+So the way I see it, there are really only two ways we can do this statically:
+
+> increase number of duplications in PE to reduce idle time
+> give more duplications to arrays that on average take longer
+
+So we would have to profile input data to see if there is any trend, and we could look at covariance like to mentioned to see if there were any trend between arrays. 
+
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

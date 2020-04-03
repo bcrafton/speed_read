@@ -677,6 +677,76 @@ so the upper bound is ridiculous
 how can we get a realistic estimation ? 
 
 like if we did only double sharing ? 
+we tried this, results not so great. 
+
+------
+
+alright so how do we get that good utilization ? 
+so I guess there are a couple options. 
+> more duplicates
+> smarter duplicates
+
+------
+
+so how many do we get ? 
+that is one question.
+but which ones get duplicates ? 
+are there certain layers that just have less 1s ? 
+> so thats actually not that much information to look at.
+
+let me think.
+so instead of the average patch
+... each filter does a 128x16 chunk right ?  
+
+so can we look at these patches
+> and figure out a pattern of covariance
+> or if any patches get on average less data. 
+
+------
+
+so we do this:
+> x = nrow, nwl, wl, xb
+> f = nwl, wl, nbl, bl
+  
+but i want to look at x as:
+> (npatch, nwl, wl, nbl, bl, xb)
+
+how do we break down each one ? 
+or essentially each array inside each patch
+and see if get any correlation at all.
+
+we can create a standalone python script to do this.
+
+one problem is we are gonna need to see this correlation over many images tho...
+and part of me thinks that just isnt going to happen...
+
+well it might happen in the channel dimension ?
+> yeah thats the only thing I can think of here.
+
+okay,
+so how do we gather data ? 
+well we get these weights from our quantize branch 
+so we shud just pull all the activations then.
+
+------
+
+yeah so that worked out well
+can clearly see on average some 128s have more data than others
+so we need to allocate duplicates based on this.
+
+------
+
+alright so what is the plan ? 
+
+
+------
+
+
+
+
+
+
+
 
 
 
