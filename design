@@ -608,9 +608,71 @@ the winner will simply be decided by highest throughput of all 1024 arrays.
 
 -----
 
-> need to switch allocation based on algoritm:
+> need to switch allocation based on algorithm:
   > baseline
   > zero skipping.
+
+-----
+
+> so we are only focusing on array level
+ignore: array_sync, dup_done, dup_sync, r[d]
+ignore: layer level
+
+> if xb==7 and col==7
+> array done = 1
+> if all wl/bl are done, array sync
+------
+ignore these
+------
+> if all dups are done, dup sync
+> if all layers are done, done
+------
+
+so when bl/wl finish, we need to repurpose them.
+can we just do a neihbor thing ?
+
+gameplan:
+>>> idea for tonight, get the upper bound estimate
+show how it correlates to MAC/cycle.
+
+------
+
+what are the loops at the array level:
+> xb
+> col
+> wl 
+
+yeah thats it
+so either at the (xb, col) granularity we help out.
+
+------
+
+best if we do it in such a way
+that they are getting summed together anyways.
+but how ? 
+
+if u wait till xb granularity, have a feeling there wont be enof to split.
+
+
+------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
