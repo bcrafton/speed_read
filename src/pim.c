@@ -145,19 +145,13 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
   int done = 0;
     
   int dup_done[PE_SIZE];
-  // int array_done[PE_SIZE][ARRAY_SIZE];
   int** array_done = array2D();
 
-  // int wl_ptr[PE_SIZE][ARRAY_SIZE]; 
-  // int wl_sum[PE_SIZE][ARRAY_SIZE]; 
-  // int wl_total[PE_SIZE][ARRAY_SIZE]; 
   int** wl_ptr = array2D();
   int** wl_sum = array2D();
   int** wl_total = array2D();
   
   int r[PE_SIZE]; 
-  // int col[PE_SIZE][ARRAY_SIZE]; 
-  // int xb[PE_SIZE][ARRAY_SIZE]; 
   int** col = array2D();
   int** xb = array2D();
   
