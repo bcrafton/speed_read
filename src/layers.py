@@ -23,6 +23,16 @@ class Model:
         self.mac_per_array = [2., 2., 2., 2., 2., 2.] # compute this from params
         self.set_dup()
         
+        self.map_blocks = []
+        for layer in self.layers:
+            map_block = np.zeros(shape=(layer.block, 1))
+            for block in range(layer.block):
+                map_block[block] = (block + 1) % layer.block
+                
+            self.map_blocks.append(map_block)
+            
+        self.set_map_block()
+        
     def profile(self, x):
         num_examples, _, _, _ = np.shape(x)
         num_layers = len(self.layers)
@@ -64,6 +74,10 @@ class Model:
         for layer in range(len(self.layers)):
             dup = alloc[layer] // self.layers[layer].factor
             self.layers[layer].set_dup(dup)
+
+    def set_map_block(self):
+        for layer in range(len(self.layers)):
+            self.layers[layer].set_map_block(self.map_blocks[layer])
 
 #########################
 
@@ -150,6 +164,7 @@ class Conv(Layer):
         self.wb = self.cut()
         nwl, _, nbl, _ = np.shape(self.wb) 
         self.factor = nwl * nbl
+        self.block = nwl
         
         #########################
 
@@ -191,6 +206,9 @@ class Conv(Layer):
     def set_dup(self, dup):
         self.dup = dup
         
+    def set_map_block(self, map_block):
+        self.map_block = map_block
+        
     def conv(self, x):
 
         yh = (self.xh - self.fh + self.s + self.p1 + self.p2) // self.s
@@ -230,7 +248,7 @@ class Conv(Layer):
         
         #########################
         
-        y, metrics = pim(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], self.dup, self.params)
+        y, metrics = pim(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], self.map_block, self.dup, self.params)
         y = np.reshape(y, (yh, yw, self.fn))
         
         assert(np.all(np.absolute(y) < 2 ** 23))

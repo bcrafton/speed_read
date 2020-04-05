@@ -9,7 +9,7 @@ lib.pim.restype = ctypes.c_int
 
 ###########################
 
-def pim(x, w, y_shape, lut_var, lut_rpr, ndup, params):
+def pim(x, w, y_shape, lut_var, lut_rpr, map_block, ndup, params):
     nrow, nwl, wl, xb = np.shape(x)
     nwl, wl, nbl, bl = np.shape(w) # nwl, nbl, wl, bl
     nrow, ncol = y_shape
@@ -25,11 +25,8 @@ def pim(x, w, y_shape, lut_var, lut_rpr, ndup, params):
     lut_var = np.ascontiguousarray(lut_var, np.int32)
     lut_rpr = np.ascontiguousarray(lut_rpr, np.int32)
     metrics = np.ascontiguousarray(metrics, np.int32)
-
-    map_block = np.zeros(shape=nwl)
-    for i in range(nwl):
-        map_block[i] = (i + 1) % nwl
     map_block = np.ascontiguousarray(map_block, np.int32)
+    _, nmap = np.shape(map_block)
 
     psum = lib.pim(
     ctypes.c_void_p(x.ctypes.data), 
@@ -38,10 +35,8 @@ def pim(x, w, y_shape, lut_var, lut_rpr, ndup, params):
     ctypes.c_void_p(lut_var.ctypes.data), 
     ctypes.c_void_p(lut_rpr.ctypes.data), 
     ctypes.c_void_p(metrics.ctypes.data), 
-    
     ctypes.c_void_p(map_block.ctypes.data), 
-    ctypes.c_int(1),
-    
+    ctypes.c_int(nmap),
     ctypes.c_int(params['adc']),
     ctypes.c_int(params['skip']),
     ctypes.c_int(nrow),
