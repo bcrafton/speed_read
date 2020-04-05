@@ -8,11 +8,30 @@ factor = np.array([288, 144, 72, 40, 20, 4])
 narray = 4096
 nlayer = 6
 
+filter_shape = [
+(3*3*  3* 64),
+(3*3* 64* 64),
+(3*3* 64*128),
+(3*3*128*128),
+(3*3*128*256),
+(3*3*256*256)
+]
+
+input_shape = [
+(32*32),
+(32*32),
+(16*16),
+(16*16),
+(8*8),
+(8*8)
+]
+
 nmac = np.array([37748736, 18874368, 37748736, 18874368, 37748736, 1769472])
 
 ############################
 
-array_density = np.array([0.0763, 0.1605, 0.1877, 0.1966, 0.2489, 0.52])
+# array_density = np.array([0.06, 0.12, 0.13, 0.145, 0.19, 0.41])
+array_density = np.array([0.03, 0.1, 0.125, 0.135, 0.188, 0.41])
 
 params = {
 'bpa': 8,
@@ -30,8 +49,8 @@ class BB:
     def __init__(self, narray, params):
         self.narray = narray
         self.params = params
-        self.row_per_array = params['wl'] * array_density
-        self.mac_per_array = (params['wl'] / self.row_per_array) * (params['bl'] / params['adc_mux']) / 8
+        self.row_per_array = np.ceil(params['wl'] * array_density / params['adc']) * params['adc']
+        self.mac_per_array = ((params['wl'] / self.row_per_array * (params['bl'] / params['adc_mux'])) / params['adc'])
 
     def bound(self):
         layer = len(self.narray)
@@ -42,7 +61,8 @@ class BB:
         elif layer == nlayer:
             min_cycle = np.max(nmac / self.mac_per_array / self.narray)
         else:
-            actual = np.max(nmac[0:layer] / self.mac_per_array[0:layer] / self.narray)
+            scaled_mac_per_array = np.array([21.2, 10.9, 9.9, 8.1, 7.6, 3.5])
+            actual = np.max(nmac[0:layer] / scaled_mac_per_array[0:layer] / self.narray)
             upper_bound = np.sum(nmac[layer:] / self.mac_per_array[layer:]) / remainder
             min_cycle = max(actual, upper_bound)
             
@@ -61,7 +81,14 @@ class BB:
             new_narray.append(min(need, remainder))
             remainder -= new_narray[n]
 
-        max_cycle = np.max(nmac / self.mac_per_array / new_narray)
+        ndup = np.array(new_narray) / factor
+        scale = input_shape / (np.ceil(input_shape / ndup) * ndup) # this is correct, dont do %
+        # scaled_mac_per_array = self.mac_per_array * scale
+        # scaled_mac_per_array = [3.5, 7.6, 8.1, 9.9, 10.9, 21.2]
+        scaled_mac_per_array = np.array([21.2, 10.9, 9.9, 8.1, 7.6, 3.5])
+
+        assert (len(scale) == nlayer)
+        max_cycle = np.max(nmac / scaled_mac_per_array / new_narray)
         return max_cycle
 
     def branch(self, lower_bound):
@@ -81,41 +108,37 @@ class BB:
 
 ############################
 
+def branch_and_bound_help(branches, lower_bound):
+    new_branches = []
+    for branch in branches:
+        new_branches.extend(branch.branch(lower_bound))
+    return new_branches
+
 def branch_and_bound():
-
-    def branch_and_bound_help(branches, lower_bound):
-        new_branches = []
-        for branch in branches:
-            new_branches.extend(branch.branch(lower_bound))
-        return new_branches
-
-    ################################
-
     root = BB([], params)
     branches = [root]
     lower_bound = root.value()
     for layer in range(nlayer):
+        print (lower_bound)
         branches = branch_and_bound_help(branches, lower_bound)
         for branch in branches:
             lower_bound = min(lower_bound, branch.value())
             
-    ################################
-           
-    best_branch = None
-    for branch in branches:
-        if best_branch is None:
-            best_branch = branch
-        elif branch.value() < best_branch.value():
-            best_branch = branch
-        elif (branch.value() == best_branch.value()) and (np.sum(branch.narray) > np.sum(best_branch.narray)):
-            best_branch = branch
-            
-    return best_branch
+    return branches
         
 ############################
 
-branch = branch_and_bound()
-print (branch.narray, np.sum(branch.narray))
+branches = branch_and_bound()
+
+min_branch = branches[0]
+for branch in branches:
+    if branch.value() < min_branch.value():
+        min_branch = branch
+
+print ()
+print (np.sum(min_branch.narray))
+print (min_branch.value())
+print (min_branch.narray)
 
 ############################
 

@@ -8,10 +8,20 @@ factor = np.array([288, 144, 72, 40, 20, 4])
 narray = 4096
 nlayer = 6
 
+input_shape = [
+(8*8),
+(8*8),
+(16*16),
+(16*16),
+(32*32),
+(32*32),
+]
+
 nmac = np.array([37748736, 18874368, 37748736, 18874368, 37748736, 1769472])
 
 ############################
 
+# array_density = np.array([0.06, 0.12, 0.13, 0.145, 0.19, 0.41])
 array_density = np.array([0.0763, 0.1605, 0.1877, 0.1966, 0.2489, 0.52])
 
 params = {
@@ -42,7 +52,11 @@ class BB:
         elif layer == nlayer:
             min_cycle = np.max(nmac / self.mac_per_array / self.narray)
         else:
-            actual = np.max(nmac[0:layer] / self.mac_per_array[0:layer] / self.narray)
+            ndup = np.array(self.narray) / factor[0:layer]
+            scale = input_shape[0:layer] / (np.ceil(input_shape[0:layer] / ndup) * ndup)
+            scaled_mac_per_array = self.mac_per_array[0:layer] # * scale
+        
+            actual = np.max(nmac[0:layer] / scaled_mac_per_array[0:layer] / self.narray)
             upper_bound = np.sum(nmac[layer:] / self.mac_per_array[layer:]) / remainder
             min_cycle = max(actual, upper_bound)
             
@@ -61,7 +75,12 @@ class BB:
             new_narray.append(min(need, remainder))
             remainder -= new_narray[n]
 
-        max_cycle = np.max(nmac / self.mac_per_array / new_narray)
+        ndup = np.array(new_narray) / factor
+        scale = input_shape / (np.ceil(input_shape / ndup) * ndup)
+        scaled_mac_per_array = self.mac_per_array # * scale
+        # print (self.mac_per_array)
+        # print (scaled_mac_per_array)
+        max_cycle = np.max(nmac / scaled_mac_per_array / new_narray)
         return max_cycle
 
     def branch(self, lower_bound):
@@ -81,16 +100,13 @@ class BB:
 
 ############################
 
+def branch_and_bound_help(branches, lower_bound):
+    new_branches = []
+    for branch in branches:
+        new_branches.extend(branch.branch(lower_bound))
+    return new_branches
+
 def branch_and_bound():
-
-    def branch_and_bound_help(branches, lower_bound):
-        new_branches = []
-        for branch in branches:
-            new_branches.extend(branch.branch(lower_bound))
-        return new_branches
-
-    ################################
-
     root = BB([], params)
     branches = [root]
     lower_bound = root.value()
@@ -98,24 +114,23 @@ def branch_and_bound():
         branches = branch_and_bound_help(branches, lower_bound)
         for branch in branches:
             lower_bound = min(lower_bound, branch.value())
-            
-    ################################
-           
-    best_branch = None
-    for branch in branches:
-        if best_branch is None:
-            best_branch = branch
-        elif branch.value() < best_branch.value():
-            best_branch = branch
-        elif (branch.value() == best_branch.value()) and (np.sum(branch.narray) > np.sum(best_branch.narray)):
-            best_branch = branch
-            
-    return best_branch
+    return branches
         
 ############################
 
-branch = branch_and_bound()
-print (branch.narray, np.sum(branch.narray))
+branches = branch_and_bound()
+
+branch_table = {}
+for branch in branches:
+    if branch.value() in branch_table.keys():
+        branch_table[branch.value()].append(branch)
+    else:
+        branch_table[branch.value()] = [branch]
+
+best = np.min(list(branch_table.keys()))
+print (best)
+for branch in branch_table[best]:
+    print (np.sum(branch.narray), branch.narray, branch.value())
 
 ############################
 
