@@ -129,7 +129,7 @@ wl
 #define METRIC_WL    11
 #define METRIC_STALL 12
 
-int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int adc, int skip, int R, int D, int C, int NWL, int NBL, int WL, int BL)
+int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int* map, int nmap, int adc, int skip, int R, int D, int C, int NWL, int NBL, int WL, int BL)
 {
   // x = nrow, nwl, wl, xb
   // f = nwl, wl, nbl, bl
@@ -187,29 +187,72 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
         for (int bl=0; bl<NBL; bl++) {
 
           int array = wl * NBL + bl;
+
+          /////////////////////////////////////
+          /*
+          int sync = 1;
+          for (int i=0; i<NWL * NBL; i++) {
+            sync = sync & array_done[d][i];
+          }
+          if (sync) {
+            metrics[METRIC_STALL] += 1;
+            continue;
+          }
+          for (int i=0; i<min(NWL * NBL, 4); i++) {
+            if (array_done[d][array]) {
+              array = (array + 1) % (NWL * NBL);
+              assert (array != (wl * NBL + bl));
+            }
+          }
+          if (array_done[d][array]) {
+            metrics[METRIC_STALL] += 1;
+            continue;
+          }
+          */
+          /////////////////////////////////////
+          
+          int sync = 1;
+          for (int i=0; i<NWL * NBL; i++) {
+            sync = sync & array_done[d][i];
+          }
+          if (sync) {
+            metrics[METRIC_STALL] += 1;
+            continue;
+          }
+          for (int i=0; i<min(NWL, nmap); i++) {
+            if (array_done[d][array]) {
+              array = map[i] * NWL + bl;
+              assert (array != (wl * NBL + bl));
+            }
+          }
           if (array_done[d][array]) {
             metrics[METRIC_STALL] += 1;
             continue;
           }
           
           /////////////////////////////////////
+          
+          int new_wl = array / NBL;
+          int new_bl = array % NBL;
+          
+          /////////////////////////////////////
 
           int rpr_addr;
           if (BL >= C) {
             int x_addr = (xb[d][array] * 8);
-            int w_addr = ((bl + 1) * (BL / C)) - 1;
+            int w_addr = ((new_bl + 1) * (BL / C)) - 1;
             // for dense:
             w_addr = min(w_addr, 7);
             rpr_addr = x_addr + w_addr;
           }
           else {
-            rpr_addr = (xb[d][array] * 8) + (bl / (C / BL)); 
+            rpr_addr = (xb[d][array] * 8) + (new_bl / (C / BL)); 
           }
           
-          int wbit = ((bl + 1) * (BL / C)) - 1;
+          int wbit = ((new_bl + 1) * (BL / C)) - 1;
           
           if (!((rpr_addr >= 0) && (rpr_addr < 64))) {
-            printf("xb: %d bl: %d BL: %d C: %d: rpr_addr: %d\n", xb[d][array], bl, BL, C, rpr_addr);
+            printf("xb: %d bl: %d BL: %d C: %d: rpr_addr: %d\n", xb[d][array], new_bl, BL, C, rpr_addr);
             assert ((rpr_addr >= 0) && (rpr_addr < 64));
           }
           int rpr = lut_rpr[rpr_addr];
@@ -223,29 +266,19 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
           wl_sum[d][array] = 0;
 
           if (skip) {
-            while ((wl_ptr[d][array] < WL) && (wl_sum[d][array] + x[(r[d] * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[d][array] * 8) + xb[d][array]] <= rows)) {
-              if (x[(r[d] * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[d][array] * 8) + xb[d][array]]) {
+            while ((wl_ptr[d][array] < WL) && (wl_sum[d][array] + x[(r[d] * NWL * WL * 8) + (new_wl * WL * 8) + (wl_ptr[d][array] * 8) + xb[d][array]] <= rows)) {
+              if (x[(r[d] * NWL * WL * 8) + (new_wl * WL * 8) + (wl_ptr[d][array] * 8) + xb[d][array]]) {
                 wl_sum[d][array] += 1;
                 for (int adc_ptr=0; adc_ptr<BL; adc_ptr+=8) {
                   int bl_ptr = adc_ptr + col[d][array];
-                  pdot[d][array][bl_ptr] += w[(wl * WL * NBL * BL) + (wl_ptr[d][array] * NBL * BL) + (bl * BL) + bl_ptr];
+                  pdot[d][array][bl_ptr] += w[(new_wl * WL * NBL * BL) + (wl_ptr[d][array] * NBL * BL) + (new_bl * BL) + bl_ptr];
                 }
               }
               wl_ptr[d][array] += 1;
             }
           }
           else {
-            int start = wl_ptr[d][array];
-            while ((wl_ptr[d][array] < WL) && (wl_ptr[d][array] < (start + adc))) {
-              if (x[(r[d] * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[d][array] * 8) + xb[d][array]]) {
-                wl_sum[d][array] += 1;
-                for (int adc_ptr=0; adc_ptr<BL; adc_ptr+=8) {
-                  int bl_ptr = adc_ptr + col[d][array];
-                  pdot[d][array][bl_ptr] += w[(wl * WL * NBL * BL) + (wl_ptr[d][array] * NBL * BL) + (bl * BL) + bl_ptr];
-                }
-              }
-              wl_ptr[d][array] += 1;
-            }
+            assert(0);
           }
           if (wl_sum[d][array] >= adc) {
             wl_total[d][array] += wl_sum[d][array];
@@ -255,8 +288,8 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
 
           for (int adc_ptr=0; adc_ptr<BL; adc_ptr+=8) {
             int bl_ptr = adc_ptr + col[d][array];
-            int c = (bl_ptr + bl * BL) % C;
-            int wb = (bl_ptr + bl * BL) / C;
+            int c = (bl_ptr + new_bl * BL) % C;
+            int wb = (bl_ptr + new_bl * BL) / C;
 
             if (wb == 0) {
               y[r[d] * C + c] -= ((wl_sum[d][array] * 128) << xb[d][array]);
@@ -295,8 +328,8 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
           if (wl_ptr[d][array] == WL) {
             for (int adc_ptr=0; adc_ptr<BL; adc_ptr+=8) {
               int bl_ptr = adc_ptr + col[d][array];
-              int c = (bl_ptr + bl * BL) % C;
-              int wb = (bl_ptr + bl * BL) / C;
+              int c = (bl_ptr + new_bl * BL) % C;
+              int wb = (bl_ptr + new_bl * BL) / C;
 
               if (wl_total[d][array]) {
                 float p = ((float) pdot_sum[d][array][bl_ptr]) / ((float) wl_total[d][array]);
