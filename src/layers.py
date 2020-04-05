@@ -18,8 +18,7 @@ class Model:
     def __init__(self, layers, params):
         self.layers = layers
         self.params = params
-        self.profile()
-        self.set_ndup()
+        self.set_dup()
 
     def forward(self, x, y):
         num_examples, _, _, _ = np.shape(x)
@@ -39,80 +38,12 @@ class Model:
 
         return pred, results
         
-    def set_ndup(self):
-        #'''
-        # narray = np.array([128, 1240, 600, 1008, 432, 576])
-        # narray = np.array([132, 1280, 560, 1080, 432, 576])
+    def set_dup(self):
         narray = np.array([136, 1340, 600, 1008, 432, 576])
         assert (np.sum(narray) <= 4096)
         for layer in range(len(self.layers)):
             dup = narray[layer] // self.layers[layer].narray
-            print (dup, self.layers[layer].narray,narray[layer] / self.layers[layer].narray)
-            self.layers[layer].set_ndup(dup)
-        
-        return None
-        #'''
-        '''
-        if self.params['skip']:
-            self.set_ndup2()
-        else:
-            self.set_ndup1()
-        '''
-        
-    #######################################################
-    
-    def profile(self):
-        self.prof = np.load('cifar10_profile.npy', allow_pickle=True).item()
-    
-    #######################################################
-
-    def set_ndup1(self):
-        nmac = 0
-        for layer in self.layers:
-            nmac += layer.nmac
-
-        for layer in range(len(self.layers)):
-            p = self.layers[layer].nmac / nmac
-            if (layer == 0): ndup = p * (4096 * 128 * 128) / np.prod(np.shape(self.layers[layer].w)) / 8
-            else:            ndup = p * (4096 * 128 * 128) / np.prod(np.shape(self.layers[layer].w)) / 8
-            # ndup = int(np.round(ndup))
-            # ndup = int(np.floor(ndup))
-            ndup = int(np.ceil(ndup))
-            self.layers[layer].set_ndup(ndup)
-            # print (ndup)
-
-    def set_ndup2(self):
-        shares = np.zeros(shape=len(self.layers))
-        for layer in range(len(self.layers)):
-            layer_ratio, pe_ratio = self.prof[layer]
-            # layer_ratio = layer_ratios[layer]
-            # print (layer_ratio)
-        
-            fh, fw, fc, fn = np.shape(self.layers[layer].w)
-            # rows_per_array = np.ceil(layer_ratio * 128 / 8)
-            rows_per_array = np.ceil(layer_ratio * 128)
-            array_util = min(fh * fw * fc, 128) / 128
-            
-            shares[layer] = self.layers[layer].nmac / array_util * rows_per_array
-            # print (shares[layer])
-    
-        ###########
-
-        total_weights = 4096 * 128 * 128
-        
-        nmac = 0
-        for layer in self.layers:
-            nmac += layer.nmac
-            
-        ###########
-
-        shares = shares / np.sum(shares)
-        
-        for layer in range(len(self.layers)):        
-            layer_weights = np.prod(np.shape(self.layers[layer].wb))
-            share = shares[layer] * total_weights / layer_weights
-            ndup = int(np.ceil(share))
-            self.layers[layer].set_ndup(ndup)
+            self.layers[layer].set_dup(dup)
 
 #########################
 
@@ -229,8 +160,7 @@ class Conv(Layer):
         results['stall'] = metrics[12]
 
         nwl, _, nbl, _ = np.shape(self.wb) 
-        results['array'] = self.ndup * nwl * nbl
-        # print (results['array'])
+        results['array'] = self.dup * nwl * nbl
         
         print ('narray: %d array: %d nmac %d cycle: %d stall: %d' % (nwl * nbl, results['array'], results['nmac'], results['cycle'], results['stall']))
 
@@ -238,8 +168,8 @@ class Conv(Layer):
         
         #########################
         
-    def set_ndup(self, ndup):
-        self.ndup = ndup
+    def set_dup(self, dup):
+        self.dup = dup
         
     def conv(self, x):
 
@@ -280,7 +210,7 @@ class Conv(Layer):
         
         #########################
         
-        y, metrics = pim(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], self.ndup, self.params)
+        y, metrics = pim(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], self.dup, self.params)
         y = np.reshape(y, (yh, yw, self.fn))
         
         assert(np.all(np.absolute(y) < 2 ** 23))

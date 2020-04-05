@@ -72,7 +72,7 @@ class BB:
         for n in range(factor[layer], int(remainder), factor[layer]):
             new_narray = copy.copy(self.narray)
             new_narray.append(n)
-            new_BB = BB(new_narray, params)
+            new_BB = BB(new_narray, self.params)
             new_bound = new_BB.bound()
             if new_bound <= lower_bound:
                 branches.append(new_BB)
@@ -81,7 +81,7 @@ class BB:
 
 ############################
 
-def branch_and_bound():
+def branch_and_bound(narray, layers, density, params):
 
     def branch_and_bound_help(branches, lower_bound):
         new_branches = []
@@ -91,7 +91,7 @@ def branch_and_bound():
 
     ################################
 
-    root = BB([], params)
+    root = BB([], self.params)
     branches = [root]
     lower_bound = root.value()
     for layer in range(nlayer):
@@ -111,11 +111,6 @@ def branch_and_bound():
             best_branch = branch
             
     return best_branch
-        
-############################
-
-branch = branch_and_bound()
-print (branch.narray, np.sum(branch.narray))
 
 ############################
 
