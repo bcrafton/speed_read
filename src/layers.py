@@ -12,6 +12,8 @@ from var import *
 from scipy.stats import norm, binom
 from rpr import rpr
 
+from BB import branch_and_bound
+
 #########################
 
 class Model:
@@ -39,6 +41,9 @@ class Model:
         return pred, results
         
     def set_dup(self):
+        wl_density = np.array([0.0763, 0.1605, 0.1877, 0.1966, 0.2489, 0.52])
+        narray = branch_and_bound(4096, self.layers, wl_density, self.params)
+        
         narray = np.array([136, 1340, 600, 1008, 432, 576])
         assert (np.sum(narray) <= 4096)
         for layer in range(len(self.layers)):

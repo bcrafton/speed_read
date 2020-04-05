@@ -62,6 +62,7 @@ param_sweep = {
 'bpa': 8,
 'bpw': 8,
 'adc': 8,
+'adc_mux': 8,
 'skip': [1],
 'cards': [0],
 'stall': 0,

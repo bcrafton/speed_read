@@ -10,18 +10,7 @@ nlayer = 6
 
 nmac = np.array([37748736, 18874368, 37748736, 18874368, 37748736, 1769472])
 
-############################
-
 array_density = np.array([0.0763, 0.1605, 0.1877, 0.1966, 0.2489, 0.52])
-
-params = {
-'bpa': 8,
-'bpw': 8,
-'adc': 8,
-'adc_mux': 8,
-'wl': 128,
-'bl': 128,
-}
 
 ############################
 
@@ -91,7 +80,7 @@ def branch_and_bound(narray, layers, density, params):
 
     ################################
 
-    root = BB([], self.params)
+    root = BB([], params)
     branches = [root]
     lower_bound = root.value()
     for layer in range(nlayer):
