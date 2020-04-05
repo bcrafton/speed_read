@@ -805,36 +805,138 @@ if it fails any constraints just do continue and let it roll.
 
 -----
 
+wow so we actually do need a dynamic solution
+this is interesting.
+this is much easier for a 0/1 problem
 
+but the idea is u break it into sub problems.
+u cud def turn this thing into 0/1 knapsack with a constraint right ? 
 
+actually idk if this makes sense at all for dynamic programming ...
+it isnt really a subset sort of thing...
 
+i dont think it has the optimal subproblem thing.
 
+-----
 
+so for the 14/256 thing its still useful to have the remainder
+14/16 is very bad tho.
+and i dont know how u formuluate this problem.
 
+because its not linear
+when u increase narray, it dosnt increase performance linearly. 
+> https://math.stackexchange.com/questions/1470668/linearizing-a-constraint-for-ilp
 
+ah but u can still use ILP somehow lol.
 
+----- 
 
+so im thinking:
+create all options
+512, 32, ...
+do knapsack
+with constraints that u cant have both of them
+then u do the C thing that guy did up there.
 
+-----
 
+https://math.stackexchange.com/questions/2446606/linear-programming-set-a-variable-the-max-between-two-another-variables/2447498
 
+what is mixed linear integer programming ?? 
+> think its just a combination
 
+-----
 
+ah definitely think branch and bound could be an option as well.
+yeah wudnt that be perfect actually ???
 
+> bc it is this max thing, it is so ez to formulate a branch and bound solution
+but it has to be formulated as a minimization problem.
 
+also u can come up with an initial estimate. 
 
+> https://github.com/bcrafton/Algorithms3/blob/master/4/src/branch_and_bound_knapsack.cpp
 
+-----
 
+ILP and BB will both work fine for this
+for ILP we could have just unwinded the solution where the nonlinearity existed.
 
+-----
 
+> now we integrate branch and bound.
+  > account for the 14/16 thing.
+    > better estimate basically.
+      
+> use the profile data
+  > not ([0.06, 0.12, 0.13, 0.145, 0.19, 0.41])
 
+> move on to PE estimations.
 
+-----
 
+make a standalone BB thing.
+that tackles smallest # things first
+takes all the parameters we want.
 
+----
 
+> seems like we need to figure out that 14/16 thing now.
+> so what will this look like ? 
 
+performance = mac_per_patch * npatch / ndup 
+> basically just figure out that rounding thing here.
+> ((npatch % ndup) / npatch) * ndup
+> (64 - (64 % 14)) / 64 * 14
+  > 12.25
+  > this # actually makes sense to me.
 
+just means we need to tell it how many rows there are,
+so we are really better just passing all the shapes in.
 
+----
 
+alright i think waht we need to do next
+is account for the PE delay
+so think like this:
+on average it might be (8 row_per_array) BUT if there is 288 of them
+u better believe that its gonna me larger than 2 cycles.
+
+----
+
+okay, so what error are we going for r.n
+> pe error ?
+> duplication error ?
+
+----
+
+we absolutely need to find a good approx for mac
+that seems to be everything.
+
+holy shit
+yeah when u pulled the MAC estimate from plot_util.py 
+and used that instead of the other shit we were doing
+it worked so well.
+
+----
+
+alright so how do we get a good MAC estimation ? 
+i think the thing is, it cant be like 
+always 1 or 2 cycles
+u will fuck up bad taht way.
+
+but we shud be able to look at the data in advance.
+but pull numbers from afterwards
+but either way it really wudnt matter right ? 
+i mean u can get accurate MAC estimates in simulation thats not a problem.
+
+----
+
+so we have literally seen
+if u have good MAC estiamtions
+this thing is so easily solvable.
+
+so how can we get them then ? 
 
 
 

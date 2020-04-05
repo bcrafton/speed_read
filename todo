@@ -117,13 +117,12 @@ So we would have to profile input data to see if there is any trend, and we coul
 
 -------
 
+so we figured out how to solve these:
+1. branch and bound = perfect
+2. Binary ILP, where u unwind all the MAC/Array so u dont pick array(layer=0) = 5 ... u have that as a binay choice and can pick any of them. then u constrain ILP so that u can only pick 1 of those. Lastly, then u can maximize the minimum thing.
+> https://math.stackexchange.com/questions/2446606/linear-programming-set-a-variable-the-max-between-two-another-variables/2447498
 
-
-
-
-
-
-
+-------
 
 
 
