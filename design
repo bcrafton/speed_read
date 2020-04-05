@@ -1032,7 +1032,14 @@ lets integrate, then setup the API for it.
 
 -----
 
+okay so we integrated, which we shud have done awhile ago
+and we want to make profile work now.
 
+a couple of things first:
+> MAC / PE seems way better metric
+> if we use profile, i think we will have to put scale back in.
+
+-----
 
 
 
