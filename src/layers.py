@@ -20,6 +20,7 @@ class Model:
     def __init__(self, layers, params):
         self.layers = layers
         self.params = params
+        self.mac_per_array = [2., 2., 2., 2., 2., 2.]
         self.set_dup()
         
     def profile(self, x):
@@ -29,13 +30,15 @@ class Model:
         pred = [None] * num_examples
         results = {}
 
+        mac_per_array = np.zeros(shape=(num_examples, num_layers))
         for example in range(num_examples):
             pred[example] = x[example]
             for layer in range(num_layers):
                 pred[example], result = self.layers[layer].forward(x=pred[example])
-                mac_per_cycle_per_array = result['nmac'] / result['cycle'] / result['array']
-                print (mac_per_cycle_per_array)
-                # how can we use this to set dup ? 
+                mac_per_array[example][layer] = result['nmac'] / result['cycle'] / result['array']
+                
+        self.mac_per_array = np.mean(mac_per_array, axis=0)
+        self.set_dup()
 
     def forward(self, x, y):
         num_examples, _, _, _ = np.shape(x)
@@ -56,12 +59,7 @@ class Model:
         return pred, results
         
     def set_dup(self):
-        if self.params['skip']:
-            wl_density = np.array([0.52, 0.2489, 0.1966, 0.1877, 0.1605, 0.0763])
-        else:
-            wl_density = np.array([4., 1., 1., 1., 1., 1.])
-        
-        alloc = branch_and_bound(4096, self.layers, wl_density, self.params)
+        alloc = branch_and_bound(4096, self.layers, self.mac_per_array, self.params)
         assert (np.sum(alloc) <= 4096)
         for layer in range(len(self.layers)):
             dup = alloc[layer] // self.layers[layer].factor

@@ -63,11 +63,8 @@ class BB:
 
 ############################
 
-def branch_and_bound(narray, layers, density, params):
+def branch_and_bound(narray, layers, mac_per_array, params):
     nlayer = len(layers)
-    row_per_array = params['wl'] * density
-    mac_per_array = (params['wl'] / row_per_array) * (params['bl'] / params['adc_mux']) / 8
-
     nmac = np.zeros(shape=nlayer, dtype=np.int32)
     factor = np.zeros(shape=nlayer, dtype=np.int32)
     for layer in range(nlayer):
