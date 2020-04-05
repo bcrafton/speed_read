@@ -1041,6 +1041,25 @@ a couple of things first:
 
 -----
 
+okay, so results are pretty awesome
+and we can see the clear room for PE level allocation
+so where do we go from here ? 
+
+we want to do duplicates inside of PE.
+> say we have some # of duplicates, how do we allocate ?
+
+compute average #WLs for each block
+we have to pass in a list of doubles 
+
+if array_done[array], then try its double.
+
+-----
+
+so first thing i think, is augment pim.c to handle this double PE thing.
+
+
+
+
 
 
 

@@ -20,7 +20,7 @@ class Model:
     def __init__(self, layers, params):
         self.layers = layers
         self.params = params
-        self.mac_per_array = [2., 2., 2., 2., 2., 2.]
+        self.mac_per_array = [2., 2., 2., 2., 2., 2.] # compute this from params
         self.set_dup()
         
     def profile(self, x):

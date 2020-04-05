@@ -131,7 +131,8 @@ then use that in the branch and bound.
 
 -------
 
-
+I think we are going to find, we dont even need branch and bound
+we can outright compute the allocations we want when we get to this PE shit.
 
 
 
