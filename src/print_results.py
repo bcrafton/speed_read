@@ -87,9 +87,9 @@ print ('std')
 print (np.around(y_std[1, 0],  3))
 print (np.around(y_std[1, 1],  3))
 
-# print ('mac / cycle')
+print ('mac / cycle')
 # print (np.around(y_mac_per_cycle[0, 0], 1))
-# print (np.around(y_mac_per_cycle[1, 0], 1))
+print (np.around(y_mac_per_cycle[1, 0], 1))
 # print (np.around(y_mac_per_cycle[1, 1], 1))
 
 # print ('mac / pJ')

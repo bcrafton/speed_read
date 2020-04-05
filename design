@@ -938,7 +938,99 @@ this thing is so easily solvable.
 
 so how can we get them then ? 
 
+----
 
+approx:
+[3972.8 4096.8 4106.8 3567.4 3945.  3238.2]
+[4088.  4247.6 3847.6 3790.6 3945.  3238.2]
+
+mixing the two wins:
+4088.  4096.8 3847.6 3790.6 3945.  3238.2
+
+yeah so u absolutely have to look at more than 1 example
+seems our solution is actually correct ...
+
+-----
+
+> which is kinda weird because u wud think that the actual mac results wud win ...
+
+-----
+
+why are we unable to compute the #s correctly ? 
+> well i guess make sure ur data matches the approx...
+> i.e. use 5 examples for both.
+
+-----
+
+i have a feeling this:
+520 vs 600 thing
+is coming down to a bad approx 
+from the rounding thing.
+
+> also we cud just take the bb solution that has the most arrays used as well...
+
+-----
+
+okay so heres the thing with scale.
+you loop through (col, xb)
+on the SAME 128 bits of data
+> so something can take 1x or 2x the speed.
+
+so the scale thing assumes that wont happen ... but for 256 arrays ... it likely will.
+> which i believe is the issue with our bb14 case.
+
+our approx is still shit now
+3514 vs 4100 ???
+
+-----
+
+instead of density
+we are gonna look at number or reads
+simplify the problem.
+throw out MAC
+through out rows 
+we need a tighter estimate.
+
+-----
+
+oh fuck
+every x-bit is different 
+so actually we were wrong up there ^^^
+
+how are we so wrong with estimations!!!
+
+-----
+
+i think the next step wud be looking at:
+  > mean
+  > std
+  because we actually are pretty dang close
+
+probs best idea:
+>>> we could also just takes samples of a bunch of options for layers independent of one another
+> because they are independent, then use those for cycle and skip over row / mac / w.e.
+
+-----
+
+> might be best to say good enof with our approx.
+
+where do we go next tho ? 
+
+move onto PE estimations
+that is also going to take statistics.
+
+or maybe not even really.
+
+-----
+
+but anyways,
+where do we go from here ???
+> integration
+> array allocation inside each PE.
+
+lets integrate, then setup the API for it.
+
+-----
 
 
 

@@ -124,6 +124,12 @@ so we figured out how to solve these:
 
 -------
 
+thinking instead of these estimations, 
+we just run the layers for different #narray in parallel
+like 5-10 samples from each of reasonable window
+then use that in the branch and bound.
+
+-------
 
 
 

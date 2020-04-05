@@ -40,10 +40,24 @@ class Model:
         return pred, results
         
     def set_ndup(self):
+        #'''
+        # narray = np.array([128, 1240, 600, 1008, 432, 576])
+        # narray = np.array([132, 1280, 560, 1080, 432, 576])
+        narray = np.array([136, 1340, 600, 1008, 432, 576])
+        assert (np.sum(narray) <= 4096)
+        for layer in range(len(self.layers)):
+            dup = narray[layer] // self.layers[layer].narray
+            print (dup, self.layers[layer].narray,narray[layer] / self.layers[layer].narray)
+            self.layers[layer].set_ndup(dup)
+        
+        return None
+        #'''
+        '''
         if self.params['skip']:
             self.set_ndup2()
         else:
             self.set_ndup1()
+        '''
         
     #######################################################
     
@@ -183,6 +197,8 @@ class Conv(Layer):
         #########################
         
         self.wb = self.cut()
+        nwl, _, nbl, _ = np.shape(self.wb) 
+        self.narray = nwl * nbl
         
         #########################
 
@@ -216,7 +232,7 @@ class Conv(Layer):
         results['array'] = self.ndup * nwl * nbl
         # print (results['array'])
         
-        print ('array: %d nmac %d cycle: %d stall: %d' % (results['array'], results['nmac'], results['cycle'], results['stall']))
+        print ('narray: %d array: %d nmac %d cycle: %d stall: %d' % (nwl * nbl, results['array'], results['nmac'], results['cycle'], results['stall']))
 
         return y, results
         
