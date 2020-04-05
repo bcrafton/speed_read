@@ -3,16 +3,6 @@ import numpy as np
 import copy
 
 ############################
-'''
-factor = np.array([288, 144, 72, 40, 20, 4])
-narray = 4096
-nlayer = 6
-
-nmac = np.array([37748736, 18874368, 37748736, 18874368, 37748736, 1769472])
-
-array_density = np.array([0.0763, 0.1605, 0.1877, 0.1966, 0.2489, 0.52])
-'''
-############################
 
 class BB:
 
@@ -84,6 +74,14 @@ def branch_and_bound(narray, layers, density, params):
         nmac[layer] = layers[layer].nmac
         factor[layer] = layers[layer].factor
 
+    ################################
+    
+    mac_per_array = mac_per_array[::-1]
+    nmac = nmac[::-1]
+    factor = factor[::-1]
+    
+    ################################
+
     def branch_and_bound_help(branches, lower_bound):
         new_branches = []
         for branch in branches:
@@ -111,7 +109,8 @@ def branch_and_bound(narray, layers, density, params):
         elif (branch.value() == best_branch.value()) and (np.sum(branch.alloc) > np.sum(best_branch.alloc)):
             best_branch = branch
             
-    return best_branch.alloc
+    best_alloc = best_branch.alloc[::-1]
+    return best_alloc
 
 ############################
 

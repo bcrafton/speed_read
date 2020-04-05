@@ -41,11 +41,15 @@ class Model:
         return pred, results
         
     def set_dup(self):
-        wl_density = np.array([0.0763, 0.1605, 0.1877, 0.1966, 0.2489, 0.52])
+        if self.params['skip']:
+            wl_density = np.array([0.52, 0.2489, 0.1966, 0.1877, 0.1605, 0.0763])
+        else:
+            wl_density = np.array([4., 1., 1., 1., 1., 1.])
+        
         alloc = branch_and_bound(4096, self.layers, wl_density, self.params)
         print (alloc)
-        alloc = np.array([136, 1340, 600, 1008, 432, 576])
-        print (alloc)
+        # alloc = np.array([136, 1340, 600, 1008, 432, 576])
+        # print (alloc)
         assert (np.sum(alloc) <= 4096)
         for layer in range(len(self.layers)):
             dup = alloc[layer] // self.layers[layer].factor
