@@ -41,6 +41,7 @@ class Model:
         results = {}
 
         mac_per_array = np.zeros(shape=(num_examples, num_layers))
+        mac_per_block = copy.copy(map_per_block) # this is next part.
         for example in range(num_examples):
             pred[example] = x[example]
             for layer in range(num_layers):

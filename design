@@ -1058,6 +1058,13 @@ if array_done[array], then try its double.
 so first thing i think, is augment pim.c to handle this double PE thing.
 > also, duplicates should only occur over blocks ... we dont care about array.
 
+-----
+
+identifying correct branch point:
+so def want:
+> 6115-7
+> not sure exactly which commit we want tho.
+
 
 
 
