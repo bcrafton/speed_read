@@ -1076,10 +1076,16 @@ so def want:
 
 > starting with branch 7, can always come back.
 
+-----
 
+alright so how do we start ?
 
+so initial thought = need to create c api for #blocks
+right now things will just be passing blocks as even multiple
+so we can verify we did things right
+then we will do block level allocation.
 
-
+-----
 
 
 
