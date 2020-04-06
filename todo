@@ -131,15 +131,37 @@ then use that in the branch and bound.
 
 -------
 
-I think we are going to find, we dont even need branch and bound
-we can outright compute the allocations we want when we get to this PE shit.
+think we cannot separate it as layer/PE.
+wud be better to view them together.
+we can make use of additional arrays if we have them
+dosnt need to be multiple of filter size.
 
+may want to revert back a few commits ...
 
+-------
 
+> switch back 2 branches actually I think.
 
+> yeah so we want to do block level allocation now
+  > which means things are gonna change.
+  > have to find best place to revert back to.
+  
+need to send Sam the .npy activation files as well.
 
+-------
 
+so how is block level allocation going to work ??
+well every block is going to get some workload.
+so we figure out how many MACs that is 
+and then distribute it out basically.
+same shit as layers except now we are doing blocks
 
+yeah ... this is actually quite simple ...
+
+> other things is ignore the idea of duplication, we just send whatever we can to whoever is next
+this discussion really locked it down.
+
+-------
 
 
 

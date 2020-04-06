@@ -1056,10 +1056,25 @@ if array_done[array], then try its double.
 -----
 
 so first thing i think, is augment pim.c to handle this double PE thing.
+> also, duplicates should only occur over blocks ... we dont care about array.
 
+-----
 
+identifying correct branch point:
+so def want:
+> 6115-7
+> not sure exactly which commit we want tho.
 
+-----
 
+> so at end of branch 6 we had things figured out
+  > that is where we updated pim.c for the array2D()
+  
+> in branch 7, we basically integrated profile.
+  > so its really a toss up. do you want the hardcoded BB (branch 6)
+  > or do you want the integrated one (branch 7)
+
+> starting with branch 7, can always come back.
 
 
 
