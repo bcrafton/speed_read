@@ -171,6 +171,8 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int* b
   int** wl_total = array2D();
   
   int*** pdot = array3D();
+  int*** pdot_sum = array3D();
+  int*** sat = array3D();
 
   for (int block=0; block<B; block++) {
     int wl = block_map[block];
@@ -185,7 +187,7 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int* b
 
     metrics[METRIC_CYCLE] += 1;
     // if there are more duplicates than rows, then I believe we hit this assert.
-    assert (metrics[METRIC_CYCLE] < 50000);
+    assert (metrics[METRIC_CYCLE] < 500000);
 
     for (int block=0; block<B; block++) {
       
@@ -241,7 +243,17 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int* b
           }
         }
         else {
-          assert (0);
+          int start = wl_ptr[block][bl];
+          while ((wl_ptr[block][bl] < WL) && (wl_ptr[block][bl] < (start + adc))) {
+            if (x[(r[block] * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[block][bl] * 8) + xb[block]]) {
+              wl_sum[block][bl] += 1;
+              for (int adc_ptr=0; adc_ptr<BL; adc_ptr+=8) {
+                int bl_ptr = adc_ptr + col[block];
+                pdot[block][bl][bl_ptr] += w[(wl * WL * NBL * BL) + (wl_ptr[block][bl] * NBL * BL) + (bl * BL) + bl_ptr];
+              }
+            }
+            wl_ptr[block][bl] += 1;
+          }
         }
         if (wl_sum[block][bl] >= adc) {
           wl_total[block][bl] += wl_sum[block][bl];
@@ -272,6 +284,11 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int* b
 
           pdot[block][bl][bl_ptr] = min(max(pdot[block][bl][bl_ptr] + var, 0), adc);
           y[r[block] * C + c] += (pdot[block][bl][bl_ptr] << (wb + xb[block]));
+          
+          if (wl_sum[block][bl] >= adc) {
+            sat[block][bl][bl_ptr] += (pdot[block][bl][bl_ptr] == adc);
+            pdot_sum[block][bl][bl_ptr] += pdot[block][bl][bl_ptr];
+          }
         }
 
         int comps = min(wl_sum[block][bl], min(rows, adc) - 1);
@@ -282,6 +299,25 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int* b
         metrics[comps] += BL;
         // assert(metrics[comps] < 1e9);
         metrics[METRIC_WL] += wl_sum[block][bl];
+
+        if (wl_ptr[block][bl] == WL) {
+          for (int adc_ptr=0; adc_ptr<BL; adc_ptr+=8) {
+            int bl_ptr = adc_ptr + col[block];
+            int c = (bl_ptr + bl * BL) % C;
+            int wb = (bl_ptr + bl * BL) / C;
+
+            if (wl_total[block][bl]) {
+              float p = ((float) pdot_sum[block][bl][bl_ptr]) / ((float) wl_total[block][bl]);
+              p = min(max(p, 0.), 1.);
+              int e = sat_error(p, adc, rpr);
+              y[r[block] * C + c] -= ((sat[block][bl][bl_ptr] * e) << (wb + xb[block]));
+              
+              sat[block][bl][bl_ptr] = 0;
+              pdot_sum[block][bl][bl_ptr] = 0;
+            }
+          }
+        }
+
       
         if (wl_ptr[block][bl] == WL) {
           wl_ptr[block][bl] = 0;
