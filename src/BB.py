@@ -49,7 +49,7 @@ class BB:
     def branch(self, lower_bound):
         layer = len(self.alloc)        
         lower_bound = min(lower_bound, self.value())
-        branches = []
+        bounds = []; branches = []
         remainder = self.narray - np.sum(self.alloc)
         for n in range(self.factor[layer], int(remainder), self.factor[layer]):
             new_alloc = copy.copy(self.alloc)
@@ -57,9 +57,9 @@ class BB:
             new_BB = BB(self.narray, self.nlayer, new_alloc, self.mac_per_array, self.nmac, self.factor, self.params)
             new_bound = new_BB.bound()
             if new_bound <= lower_bound:
-                branches.append(new_BB)
+                bounds.append(new_bound); branches.append(new_BB)
         
-        return branches
+        return bounds, branches
 
 ############################
 
@@ -76,17 +76,27 @@ def branch_and_bound(narray, nmac, factor, mac_per_array, params):
     ################################
 
     def branch_and_bound_help(branches, lower_bound):
-        new_branches = []
+        new_bounds = []; new_branches = []
         for branch in branches:
-            new_branches.extend(branch.branch(lower_bound))
+            next_bounds, next_branches = branch.branch(lower_bound)
+            new_bounds.extend(next_bounds); new_branches.extend(next_branches)
+            
+        # thing I worry about here is losing all path diversity.
+        if len(new_bounds) > 500:
+            new_bounds = np.array(new_bounds)
+            order = np.argsort(new_bounds)[0:500]
+            new_branches = [new_branches[i] for i in order]
+            
         return new_branches
 
     ################################
 
     root = BB(narray, nlayer, [], mac_per_array, nmac, factor, params)
     branches = [root]
+    # lower_bound = 3300
     lower_bound = root.value()
     for layer in range(nlayer):
+        print (layer, lower_bound, len(branches))
         branches = branch_and_bound_help(branches, lower_bound)
         for branch in branches:
             lower_bound = min(lower_bound, branch.value())

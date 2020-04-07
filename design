@@ -1210,13 +1210,22 @@ so the duplicates make getting estimates for the blocks weird.
 
 -----
 
+we are going to def have problems with partial blocks
+> 3x3x3x64
+> 3x3x64x64
 
+> there mac/cycle will be lower ? 
+> they will require the same number of MACs ? 
 
+that will be huge problem.
 
+-----
 
+i think out bound() function is pretty good.
+i think the big issue is our value function.
+its to much of an underestimate.
 
-
-
+-----
 
 
 
