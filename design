@@ -1087,6 +1087,38 @@ then we will do block level allocation.
 
 -----
 
+so we need to get rid of this "D" idea within pim.c
+its block now.
+
+assert (D <= PE_SIZE);
+assert ((NWL * NBL) <= ARRAY_SIZE);
+assert (BL <= VECTOR_SIZE);
+
+new config:
+PE_SIZE = D * NWL
+ARRAY_SIZE = NBL
+VECTOR_SIZE = BL
+
+-----
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
