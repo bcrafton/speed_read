@@ -1340,6 +1340,32 @@ not comfortable putting in hack, because we dont know it will work immediatly.
 
 ------
 
+so we are wrong right now.
+wtf is going on.
+
+always need to make sure std and mean match.
+wtf is going on with BB breaking ???
+
+------
+
+so u run into this issue because:
+we take 25 best bound, not value 
+but we set threshold with value instead
+thinking there might be a separate issue, but this can be avoided
+
+------
+
+so is our sim accurate now ? 
+> we no longer get 1300:2000 lol.
+
+------
+
+
+
+
+
+
+
 
 
 
