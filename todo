@@ -118,6 +118,9 @@ breaking barriers
 > make sure this is correct
 
 > be able to run {naive, layer-wise, block-wise}
+  > plot them.
+
+> need to run ResNet.
 
 -------
 
