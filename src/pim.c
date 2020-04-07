@@ -139,7 +139,6 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int* b
   int D = B / NWL;
   
   // our arrays are sized for 128. need to increase.
-  // printf("%d %d %d\n", D, NWL * NBL, BL);
   assert ((D >= 1) && (NWL >= 1) && (NWL >= 1) && (BL >= 1));
   assert (D <= PE_SIZE);
   assert ((NWL * NBL) <= ARRAY_SIZE);
@@ -366,7 +365,7 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int* b
         }
         
       } // for (int bl=0; bl<NBL; bl++) {
-    } // for (int b=0; b<D; b++) {
+    } // for (int b=0; b<B; b++) {
   } // while (!done) {
     
   // printf("%d: %d %d\n", NWL * NBL, metrics[METRIC_CYCLE], metrics[METRIC_STALL]);
