@@ -128,6 +128,7 @@ wl
 #define METRIC_ROFF  10
 #define METRIC_WL    11
 #define METRIC_STALL 12
+#define METRIC_BLOCK_CYCLE 13
 
 int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int* block_map, int adc, int skip, int R, int B, int C, int NWL, int NBL, int WL, int BL)
 {
@@ -185,15 +186,19 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int* b
     assert (metrics[METRIC_CYCLE] < 50000);
 
     for (int b=0; b<B; b++) {
+    
+      int d = b / NWL;
+    
       for (int bl=0; bl<NBL; bl++) {
 
-        int d = b / NWL;
-        int wl = block_map[b];
-                
+        int wl = block_map[b];                
         int array = wl * NBL + bl;
         if (array_done[d][array]) {
           metrics[METRIC_STALL] += 1;
           continue;
+        }
+        else if (bl == 0) { 
+          metrics[METRIC_BLOCK_CYCLE + b] += 1;
         }
         
         /////////////////////////////////////

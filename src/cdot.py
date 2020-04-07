@@ -16,8 +16,9 @@ def pim(x, w, y_shape, lut_var, lut_rpr, ndup, params):
         
     y = np.zeros(shape=y_shape)
 
-    # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl, stall
-    metrics = np.zeros(shape=13)
+    # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl, stall, block_cycles[ndup * nwl]
+    metrics_len = 13 + ndup * nwl
+    metrics = np.zeros(shape=metrics_len)
     
     x = np.ascontiguousarray(x, np.int32)
     w = np.ascontiguousarray(w, np.int32)

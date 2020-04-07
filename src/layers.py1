@@ -20,7 +20,7 @@ class Model:
     def __init__(self, layers, params):
         self.layers = layers
         self.params = params
-        self.mac_per_array = [2., 2., 2., 2., 2., 2.] # compute this from params
+        # self.mac_per_array = np.array([3.52024446, 7.64965165, 8.05440393, 9.83894759, 11.16837082, 21.18164189])
         self.set_dup()
         
     def profile(self, x):
@@ -59,15 +59,41 @@ class Model:
         return pred, results
         
     def set_dup(self):
+        
         nlayer = len(self.layers)
     
-        nmac = np.zeros(shape=nlayer, dtype=np.int32)
-        factor = np.zeros(shape=nlayer, dtype=np.int32)
+        ####################################################
+    
+        nblock = 0
         for layer in range(nlayer):
-            nmac[layer] = self.layers[layer].nmac
-            factor[layer] = self.layers[layer].factor
+            nwl, _, nbl, _ = np.shape(self.layers[layer].wb) 
+            nblock += nwl
+        
+        mac_per_array = np.array([3.52024446, 7.64965165, 8.05440393, 9.83894759, 11.16837082, 21.18164189])    
+        self.mac_per_array = [0.] * nblock
+        
+        nmac = np.zeros(shape=nblock, dtype=np.int32)
+        factor = np.zeros(shape=nblock, dtype=np.int32)
+        
+        block = 0
+        for layer in range(nlayer):
+            nwl, _, nbl, _ = np.shape(self.layers[layer].wb) 
+            for wl in range(nwl):
+                nmac[block] = self.layers[layer].nmac // nwl
+                factor[block] = nbl
+                self.mac_per_array[block] = mac_per_array[layer]
+                block += 1
+    
+        print (nmac)
+        print (factor)
+        print (self.mac_per_array)
+    
+        ####################################################
     
         alloc = branch_and_bound(4096, nmac, factor, self.mac_per_array, self.params)
+        
+        print (alloc)
+        
         assert (np.sum(alloc) <= 4096)
         for layer in range(len(self.layers)):
             dup = alloc[layer] // self.layers[layer].factor
@@ -186,8 +212,6 @@ class Conv(Layer):
         results['std']   = y_std
         results['mean']  = y_mean
         results['stall'] = metrics[12]
-        
-        results['block_cycle'] = metrics[13:]
 
         nwl, _, nbl, _ = np.shape(self.wb) 
         results['array'] = self.dup * nwl * nbl
