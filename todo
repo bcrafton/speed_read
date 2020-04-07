@@ -174,7 +174,8 @@ this discussion really locked it down.
 
 -------
 
-
+> find an upperbound on speed we can go.
+  > (total 1s in all data) / (total arrays * 8)
 
 
 

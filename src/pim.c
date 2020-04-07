@@ -185,6 +185,12 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int* b
 
   while (!done) {
 
+    for (int i=0; i<B; i++) {
+      for (int j=0; j<NBL; j++) {
+        assert(wl_ptr[i][0] == wl_ptr[i][j]);
+      }
+    }
+
     metrics[METRIC_CYCLE] += 1;
     // if there are more duplicates than rows, then I believe we hit this assert.
     assert (metrics[METRIC_CYCLE] < 500000);
@@ -194,6 +200,7 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int* b
       int wl = block_map[block];
       assert (wl < NWL);
 
+      // here is our issue.
       if (block_done[block]) {
         metrics[METRIC_STALL] += 1;
         continue;
@@ -323,7 +330,7 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int* b
           wl_ptr[block][bl] = 0;
           wl_total[block][bl] = 0;
 
-          if (bl == 0) {
+          if (bl == (NBL - 1)) {
             if (col[block] == (8 - 1)) {
               col[block] = 0;
           

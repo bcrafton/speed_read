@@ -1360,9 +1360,11 @@ so is our sim accurate now ?
 
 ------
 
+> find an upperbound on speed we can go.
+(total 1s in all data) / (total arrays * 8)
 
-
-
+WE ARE STILL FUCKING WRONG.
+WHY ARE WE NOT CHECKING THIS !!!
 
 
 
