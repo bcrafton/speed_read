@@ -1227,6 +1227,33 @@ its to much of an underestimate.
 
 -----
 
+1) pim.c API changes
+
+2) branch and bound - tighter value function, needs to run faster ...
+   > I think we can make our heuristic just taking the 100 best solutions in each step.
+
+3) we are going to def have problems with partial blocks
+   > 3x3x3x64
+   > 3x3x64x64
+
+-----
+
+branch and bound heuristic is good enof for now.
+
+moving onto pim.c fixes.
+
+------
+
+
+
+
+
+
+
+
+
+
+
 
 
 

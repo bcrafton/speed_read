@@ -20,9 +20,24 @@ class Model:
     def __init__(self, layers, params):
         self.layers = layers
         self.params = params
-        # self.mac_per_array = np.array([3.52024446, 7.64965165, 8.05440393, 9.83894759, 11.16837082, 21.18164189])
-        self.set_dup()
+        # self.mac_per_array = [2., 2., 2., 2., 2., 2.] # compute this from params
+        self.mac_per_array = [ 3.53238789,  8.52039003,  8.60774198,  8.40863925,  8.60994088, 14.7751503,
+                            9.68035451,  9.77015074,  9.25649718,  9.59063415, 16.26651958, 12.0848239,
+                           11.64049734, 12.17688592, 11.49351105, 11.05719588, 11.57675322, 11.96785975,
+                           11.52585297, 12.05592347, 14.55062167, 13.64196503, 14.84057971, 13.50700742,
+                           12.60307692, 13.79124579, 14.55062167, 13.64196503, 14.90809827, 28.69352014,
+                           28.54355401, 28.05479452, 27.81663837, 28.99823009, 28.34602076, 28.15120275,
+                           27.4438861,  27.53613445, 26.55429498, 28.64335664, 27.26123128, 28.69352014,
+                           27.76949153, 28.24827586, 26.99176277, 29.41472172, 27.67567568]
         
+        self.nlayer = len(self.layers)
+        self.nblock = 0
+        for layer in range(self.nlayer):
+            nwl, _, nbl, _ = np.shape(self.layers[layer].wb) 
+            self.nblock += nwl
+                  
+        self.set_dup()
+                  
     def profile(self, x):
         num_examples, _, _, _ = np.shape(x)
         num_layers = len(self.layers)
@@ -31,13 +46,20 @@ class Model:
         results = {}
 
         mac_per_array = np.zeros(shape=(num_examples, num_layers))
+        mac_per_array_block = np.zeros(shape=(num_examples, self.nblock))
         for example in range(num_examples):
             pred[example] = x[example]
+            block1 = 0
             for layer in range(num_layers):
                 pred[example], result = self.layers[layer].forward(x=pred[example])
                 mac_per_array[example][layer] = result['nmac'] / result['cycle'] / result['array']
+                block2 = block1 + self.layers[layer].nwl
+                mac_per_array_block[example][block1:block2] = result['nmac'] / result['block_cycle'] / self.layers[layer].factor
+                block1 = block2
                 
         self.mac_per_array = np.mean(mac_per_array, axis=0)
+        self.mac_per_array_block = np.mean(mac_per_array_block, axis=0)
+        print (self.mac_per_array_block)
         self.set_dup()
 
     def forward(self, x, y):
@@ -59,39 +81,32 @@ class Model:
         return pred, results
         
     def set_dup(self):
-        
-        nlayer = len(self.layers)
-    
-        ####################################################
-    
-        nblock = 0
-        for layer in range(nlayer):
-            nwl, _, nbl, _ = np.shape(self.layers[layer].wb) 
-            nblock += nwl
-        
-        mac_per_array = np.array([3.52024446, 7.64965165, 8.05440393, 9.83894759, 11.16837082, 21.18164189])    
-        self.mac_per_array = [0.] * nblock
-        
-        nmac = np.zeros(shape=nblock, dtype=np.int32)
-        factor = np.zeros(shape=nblock, dtype=np.int32)
-        
+
+        '''
+        nmac = np.zeros(shape=self.nlayer, dtype=np.int32)
+        factor = np.zeros(shape=self.nlayer, dtype=np.int32)
+        for layer in range(self.nlayer):
+            nmac[layer] = self.layers[layer].nmac
+            factor[layer] = self.layers[layer].factor
+        '''
+
+        nmac = np.zeros(shape=self.nblock, dtype=np.int32)
+        factor = np.zeros(shape=self.nblock, dtype=np.int32)
         block = 0
-        for layer in range(nlayer):
+        for layer in range(self.nlayer):
             nwl, _, nbl, _ = np.shape(self.layers[layer].wb) 
             for wl in range(nwl):
                 nmac[block] = self.layers[layer].nmac // nwl
                 factor[block] = nbl
-                self.mac_per_array[block] = mac_per_array[layer]
                 block += 1
-    
-        print (nmac)
-        print (factor)
-        print (self.mac_per_array)
-    
-        ####################################################
-    
+                
+        # print (nmac)
+        # print (factor)
+        # print (self.mac_per_array)
+
         alloc = branch_and_bound(4096, nmac, factor, self.mac_per_array, self.params)
         
+        print (np.sum(alloc))
         print (alloc)
         
         assert (np.sum(alloc) <= 4096)
@@ -185,6 +200,9 @@ class Conv(Layer):
         nwl, _, nbl, _ = np.shape(self.wb) 
         self.factor = nwl * nbl
         
+        self.nwl = nwl
+        self.nbl = nbl
+        
         #########################
 
     def forward(self, x):
@@ -212,6 +230,8 @@ class Conv(Layer):
         results['std']   = y_std
         results['mean']  = y_mean
         results['stall'] = metrics[12]
+        
+        results['block_cycle'] = metrics[13:]
 
         nwl, _, nbl, _ = np.shape(self.wb) 
         results['array'] = self.dup * nwl * nbl
