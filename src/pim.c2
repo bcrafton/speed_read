@@ -21,16 +21,9 @@
 #define ARRAY_SIZE 32
 #define BLOCK_SIZE 1024
 
-//////////////////////////////////////////////
-
 void clear_vector(int* v)
 {
   memset(v, 0, sizeof(int) * VECTOR_SIZE);
-}
-
-void clear_array(int* a)
-{
-  memset(a, 0, sizeof(int) * ARRAY_SIZE);
 }
 
 void clear_block(int* a)
@@ -38,22 +31,10 @@ void clear_block(int* a)
   memset(a, 0, sizeof(int) * BLOCK_SIZE);
 }
 
-//////////////////////////////////////////////
-
-int* array1D()
+int* block_alloc()
 {
   int* array = (int*) malloc(sizeof(int) * BLOCK_SIZE);
   clear_block(array);
-  return array;
-}
-
-int** array2D()
-{
-  int** array = (int**) malloc(sizeof(int*) * BLOCK_SIZE);
-  for (int i=0; i<BLOCK_SIZE; i++) {
-    array[i] = (int*) malloc(sizeof(int) * ARRAY_SIZE);
-    clear_array(array[i]);
-  }
   return array;
 }
 
@@ -158,14 +139,15 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int* b
   
   int done = 0;
     
-  int* block_done = array1D();
-  int* r = array1D(); 
-  int* col = array1D();
-  int* xb = array1D();
+  int* block_done = block_alloc();
 
-  int** wl_ptr = array2D();
-  int** wl_sum = array2D();
-  int** wl_total = array2D();
+  int* wl_ptr = block_alloc();
+  int* wl_sum = block_alloc();
+  int* wl_total = block_alloc();
+  
+  int* r = block_alloc(); 
+  int* col = block_alloc();
+  int* xb = block_alloc();
   
   int*** pdot = array3D();
   int*** pdot_sum = array3D();
@@ -190,6 +172,7 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int* b
     for (int block=0; block<B; block++) {
       
       int wl = block_map[block];
+      printf("%d | %d %d | %d %d\n", metrics[METRIC_CYCLE], block, r[block], xb[block], col[block]);
 
       if (block_done[block]) {
         metrics[METRIC_STALL] += 1;
@@ -224,28 +207,38 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int* b
         
         /////////////////////////////////////
         
-        int rows = min(rpr, WL - wl_ptr[block][bl]);
+        int rows = min(rpr, WL - wl_ptr[block]);
 
         clear_vector(pdot[block][bl]);
-        wl_sum[block][bl] = 0;
+        wl_sum[block] = 0;
 
         if (skip) {
-          while ((wl_ptr[block][bl] < WL) && (wl_sum[block][bl] + x[(r[block] * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[block][bl] * 8) + xb[block]] <= rows)) {
-            if (x[(r[block] * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[block][bl] * 8) + xb[block]]) {
-              wl_sum[block][bl] += 1;
+          while ((wl_ptr[block] < WL) && (wl_sum[block] + x[(r[block] * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[block] * 8) + xb[block]] <= rows)) {
+            if (x[(r[block] * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[block] * 8) + xb[block]]) {
+              wl_sum[block] += 1;
               for (int adc_ptr=0; adc_ptr<BL; adc_ptr+=8) {
                 int bl_ptr = adc_ptr + col[block];
-                pdot[block][bl][bl_ptr] += w[(wl * WL * NBL * BL) + (wl_ptr[block][bl] * NBL * BL) + (bl * BL) + bl_ptr];
+                pdot[block][bl][bl_ptr] += w[(wl * WL * NBL * BL) + (wl_ptr[block] * NBL * BL) + (bl * BL) + bl_ptr];
               }
             }
-            wl_ptr[block][bl] += 1;
+            wl_ptr[block] += 1;
           }
         }
         else {
-          assert (0);
+          int start = wl_ptr[block];
+          while ((wl_ptr[block] < WL) && (wl_ptr[block] < (start + adc))) {
+            if (x[(r[block] * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[block] * 8) + xb[block]]) {
+              wl_sum[block] += 1;
+              for (int adc_ptr=0; adc_ptr<BL; adc_ptr+=8) {
+                int bl_ptr = adc_ptr + col[block];
+                pdot[block][bl][bl_ptr] += w[(wl * WL * NBL * BL) + (wl_ptr[block] * NBL * BL) + (bl * BL) + bl_ptr];
+              }
+            }
+            wl_ptr[block] += 1;
+          }
         }
-        if (wl_sum[block][bl] >= adc) {
-          wl_total[block][bl] += wl_sum[block][bl];
+        if (wl_sum[block] >= adc) {
+          wl_total[block] += wl_sum[block];
         }
         
         /////////////////////////////////////
@@ -256,7 +249,7 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int* b
           int wb = (bl_ptr + bl * BL) / C;
 
           if (wb == 0) {
-            y[r[block] * C + c] -= ((wl_sum[block][bl] * 128) << xb[block]);
+            y[r[block] * C + c] -= ((wl_sum[block] * 128) << xb[block]);
           }
           
           int key = rand() % 1000;
@@ -274,29 +267,29 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int* b
           pdot[block][bl][bl_ptr] = min(max(pdot[block][bl][bl_ptr] + var, 0), adc);
           y[r[block] * C + c] += (pdot[block][bl][bl_ptr] << (wb + xb[block]));
           
-          if (wl_sum[block][bl] >= adc) {
+          if (wl_sum[block] >= adc) {
             sat[block][bl][bl_ptr] += (pdot[block][bl][bl_ptr] == adc);
             pdot_sum[block][bl][bl_ptr] += pdot[block][bl][bl_ptr];
           }
         }
 
-        int comps = min(wl_sum[block][bl], min(rows, adc) - 1);
+        int comps = min(wl_sum[block], min(rows, adc) - 1);
         //if (!((comps >= 0) && (comps < adc))) {
         //  printf("comps: %d wl_sum: %d rows: %d adc: %d\n", comps, wl_sum, rows, adc);
         //  assert((comps >= 0) && (comps < adc));
         //}
         metrics[comps] += BL;
         // assert(metrics[comps] < 1e9);
-        metrics[METRIC_WL] += wl_sum[block][bl];
+        metrics[METRIC_WL] += wl_sum[block];
 
-        if (wl_ptr[block][bl] == WL) {
+        if (wl_ptr[block] == WL) {
           for (int adc_ptr=0; adc_ptr<BL; adc_ptr+=8) {
             int bl_ptr = adc_ptr + col[block];
             int c = (bl_ptr + bl * BL) % C;
             int wb = (bl_ptr + bl * BL) / C;
 
-            if (wl_total[block][bl]) {
-              float p = ((float) pdot_sum[block][bl][bl_ptr]) / ((float) wl_total[block][bl]);
+            if (wl_total[block]) {
+              float p = ((float) pdot_sum[block][bl][bl_ptr]) / ((float) wl_total[block]);
               p = min(max(p, 0.), 1.);
               int e = sat_error(p, adc, rpr);
               y[r[block] * C + c] -= ((sat[block][bl][bl_ptr] * e) << (wb + xb[block]));
@@ -306,46 +299,45 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int* b
             }
           }
         }
-      } // for (int bl=0; bl<NBL; bl++) {
-      
-      int bl = 0;
-      if (wl_ptr[block][bl] == WL) {
-        wl_ptr[block][bl] = 0;
-        wl_total[block][bl] = 0;
+
+        if (wl_ptr[block] == WL) {
+          wl_ptr[block] = 0;
+          wl_total[block] = 0;
+          
+          if (col[block] == (8 - 1)) {
+            col[block] = 0;
         
-        if (col[block] == (8 - 1)) {
-          col[block] = 0;
-      
-          if (xb[block] == (8 - 1)) {
-            xb[block] = 0;
-            
-            if (next_r[wl] < R) {
-              r[block] = next_r[wl];
-              next_r[wl]++;
+            if (xb[block] == (8 - 1)) {
+              xb[block] = 0;
+              
+              if (next_r[wl] < R) {
+                r[block] = next_r[wl];
+                next_r[wl]++;
+              }
+              else {
+                block_done[block] = 1;
+                
+                int block_sync = 1;
+                for (int i=0; i<B; i++) {
+                  block_sync = block_sync & block_done[i];
+                }
+
+                done = block_sync;                  
+              }
             }
             else {
-              block_done[block] = 1;
-              
-              int block_sync = 1;
-              for (int i=0; i<B; i++) {
-                block_sync = block_sync & block_done[i];
-              }
-
-              done = block_sync;                  
+              xb[block] += 1;
             }
           }
           else {
-            xb[block] += 1;
+            col[block] += 1;
           }
         }
         else {
-          col[block] += 1;
+          assert (wl_ptr[block] < WL);
         }
-      }
-      else {
-        assert (wl_ptr[block][bl] < WL);
-      }
-
+        
+      } // for (int bl=0; bl<NBL; bl++) {
     } // for (int b=0; b<B; b++) {
   } // while (!done) {
 

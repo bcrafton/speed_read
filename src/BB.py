@@ -82,9 +82,9 @@ def branch_and_bound(narray, nmac, factor, mac_per_array, params):
             new_bounds.extend(next_bounds); new_branches.extend(next_branches)
             
         # thing I worry about here is losing all path diversity.
-        if len(new_bounds) > 500:
+        if len(new_bounds) > 25:
             new_bounds = np.array(new_bounds)
-            order = np.argsort(new_bounds)[0:500]
+            order = np.argsort(new_bounds)[0:25]
             new_branches = [new_branches[i] for i in order]
             
         return new_branches

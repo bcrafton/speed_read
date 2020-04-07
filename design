@@ -1309,18 +1309,36 @@ even in best case scenario this has to be cycle 64.
 
 > because its all wrapped in:
   for (int bl=0; bl<NBL; bl++) {
+  
+------
 
+so lots of things wrapped inside of: for (int bl=0; bl<NBL; bl++) {
+have certain issues
 
+> wl_ptr[block]
+> wl_sum[block]
 
+anything that is changed inside of this is gonna get fucked.
 
+before each array had its own thing.
+[d][array] ...
 
+------
 
+its a pain the ass because of how we setup wl_ptr, wl_sum
+we increment them as we go.
 
+i think we are going to have to extend all of them ...
+meaning give nearly all of them [BLOCK_SIZE][ARRAY_SIZE]
 
+that is going to require a hack though.
 
+because block_done does not require this.
+so u wud have to sync all arrays and that is unnecessary.
 
+not comfortable putting in hack, because we dont know it will work immediatly.
 
-
+------
 
 
 

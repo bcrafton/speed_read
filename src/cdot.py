@@ -28,11 +28,14 @@ def pim(x, w, y_shape, lut_var, lut_rpr, ndup, params):
     metrics = np.ascontiguousarray(metrics, np.int32)
 
     ########
-    
-    block_map = np.zeros(shape=(ndup, nwl))
-    for i in range(ndup):
-        for j in range(nwl):
-            block_map[i][j] = j
+        
+    nblock = np.sum(ndup)    
+    block_map = np.zeros(shape=nblock)
+    block = 0
+    for i in range(nwl):
+        for j in range(ndup[i]):
+            block_map[block] = i
+            block += 1
     
     block_map = np.ascontiguousarray(block_map.flatten(), np.int32)
     
@@ -49,7 +52,7 @@ def pim(x, w, y_shape, lut_var, lut_rpr, ndup, params):
     ctypes.c_int(params['adc']),
     ctypes.c_int(params['skip']),
     ctypes.c_int(nrow),
-    ctypes.c_int(ndup * nwl),
+    ctypes.c_int(nblock),
     ctypes.c_int(ncol),
     ctypes.c_int(nwl),
     ctypes.c_int(nbl),
