@@ -1134,17 +1134,75 @@ def branch_and_bound(narray, layers, mac_per_array, params):
 
 -----
 
+so we absolutely need to start with a good initial solution
+because holy crap is it slow ...
 
+pull:
+1) mac_per_cycle
+2) max min cycle speed or w.e. for lower bound.
 
+-----
 
+ah - the reason its not working I believe
+may be because we arnt accounting for zeros that happen in layers 1/2
+because they are only 64.
 
+but why would that change anything ??
 
+actually is our nmac wrong ? 
+> nmac = (self.xh * self.xw) * (self.fh * self.fw * self.fc * self.fn) ??
 
+32*32*3*3*3*32 = 884736
+not 1769472
 
+so something definitely wrong here.
 
+-----
 
+okay seems like we fixed it.
+only problem is i think we are picking wrong lower bound.
+so we are picking what previous stuff actually got on an example
+we need to pick what actual stuff actually got as a bound!!!
 
+> it got 3912, so actually very accurate.
 
+> we should not expect that great of a result yet since we arnt using accurate MAC/cycle
+  > how are we going to get accurate mac/cycle.
+  
+-----
+  
+actually come to think of it - 
+we wud def not want to run "block specific" 
+until we had profiled data
+
+so in order,
+it will be:
+
+-----
+
+1) (2) mac-per-cycle
+2) (layer-level) mac-per-cycle
+3) (block-level) mac-per-cycle
+
+-----
+
+new issue = 
+old code not working when we set bound = 3912
+despite that being the final answer.
+
+NOPE that wasnt a problem at all
+that just happens because we start by profiling ...
+
+-----
+
+so new problem then = 
+we dont have block level speeds. 
+
+how can we get these ???
+
+> cycle count for each block. piece of cake.
+
+-----
 
 
 
