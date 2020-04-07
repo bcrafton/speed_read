@@ -1101,6 +1101,51 @@ VECTOR_SIZE = BL
 
 -----
 
+> one idea for BB, is we can use layer-level allocation for lower bound.
+  > or limit the range that can be used ...
+    > limit to 20% of 4096 for each block.
+
+bb14.py is no longer accurate ...
+> we dont use scale anymore.
+
+so how do we start here ? 
+> write out all possible blocks ? 
+> that will be like 100 ...
+
+-----
+
+well here is the API:
+
+def branch_and_bound(narray, layers, mac_per_array, params):
+    nlayer = len(layers)
+    nmac = np.zeros(shape=nlayer, dtype=np.int32)
+    factor = np.zeros(shape=nlayer, dtype=np.int32)
+    for layer in range(nlayer):
+        nmac[layer] = layers[layer].nmac
+        factor[layer] = layers[layer].factor
+
+
+> layers is not used after this.
+
+-----
+
+> so we can just treat blocks/layers the same ... 
+> branch and bound need not change, which is wonderful.
+
+-----
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
