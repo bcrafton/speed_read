@@ -59,7 +59,15 @@ class Model:
         return pred, results
         
     def set_dup(self):
-        alloc = branch_and_bound(4096, self.layers, self.mac_per_array, self.params)
+        nlayer = len(self.layers)
+    
+        nmac = np.zeros(shape=nlayer, dtype=np.int32)
+        factor = np.zeros(shape=nlayer, dtype=np.int32)
+        for layer in range(nlayer):
+            nmac[layer] = self.layers[layer].nmac
+            factor[layer] = self.layers[layer].factor
+    
+        alloc = branch_and_bound(4096, nmac, factor, self.mac_per_array, self.params)
         assert (np.sum(alloc) <= 4096)
         for layer in range(len(self.layers)):
             dup = alloc[layer] // self.layers[layer].factor

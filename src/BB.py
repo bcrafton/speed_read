@@ -63,13 +63,9 @@ class BB:
 
 ############################
 
-def branch_and_bound(narray, layers, mac_per_array, params):
-    nlayer = len(layers)
-    nmac = np.zeros(shape=nlayer, dtype=np.int32)
-    factor = np.zeros(shape=nlayer, dtype=np.int32)
-    for layer in range(nlayer):
-        nmac[layer] = layers[layer].nmac
-        factor[layer] = layers[layer].factor
+def branch_and_bound(narray, nmac, factor, mac_per_array, params):
+
+    nlayer = len(nmac)
 
     ################################
     
