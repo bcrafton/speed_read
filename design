@@ -1244,6 +1244,75 @@ moving onto pim.c fixes.
 
 ------
 
+so what are we changing ? 
+
+> array sync 
+  > we arnt syncing at the end of each PE anymore
+
+> block_map
+  > B = NWL.
+    > block_map is just block_count
+    > where we say how many times we have duplicated each block.
+
+> remove D entirely
+  > it really only ever was used for sizing arrays anyways.
+  
+
+we will need to add [wl_ptr, wl_sum, all PE level things]
+
+------
+
+> all things like:
+wl_ptr[d][array]
+
+can just be 
+wl_ptr[block]
+
+becaue we should not be indexing by bl.
+
+> int r[PE_SIZE]; 
+this will become r[BLOCK_SIZE];
+
+------
+
+okay the block_count / block_map thing is tricky.
+we store all blocks together 
+
+i dont think it is ever useful to store things as block_count.
+because then u have to decode everything.
+is there any instance where we want block_count ?? 
+
+------
+
+its realy not possible to get these numbers:
+> [ 816. 1422.  579.  897.  319.  893.]
+
+1024 / 39 = 27
+27 * 8 * 8 = 1728 ...
+27 * 8 * 8 * 2 = 3400 ...
+
+AND also our operation is mismatching
+so these arnt the real #s thankfully.
+
+because we are seeing 800 instead of 3200
+its a pretty big tip off
+that we are skipping over xb or col i think.
+
+------
+
+okay so somehow 
+on:
+cycle 20, 
+block=0 is already getting the next wave.
+
+even in best case scenario this has to be cycle 64.
+
+> because its all wrapped in:
+  for (int bl=0; bl<NBL; bl++) {
+
+
+
+
 
 
 
