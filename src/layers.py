@@ -21,8 +21,15 @@ class Model:
         self.layers = layers
         self.params = params
         self.mac_per_array = [2., 2., 2., 2., 2., 2.] # compute this from params
-        self.set_dup()
         
+        self.nlayer = len(self.layers)
+        self.set_dup()
+
+        self.nblock = 0
+        for layer in range(self.nlayer):
+            nwl, _, nbl, _ = np.shape(self.layers[layer].wb) 
+            self.nblock += nwl
+                  
     def profile(self, x):
         num_examples, _, _, _ = np.shape(x)
         num_layers = len(self.layers)
@@ -31,13 +38,19 @@ class Model:
         results = {}
 
         mac_per_array = np.zeros(shape=(num_examples, num_layers))
+        mac_per_array_block = np.zeros(shape=(num_examples, self.nblock))
         for example in range(num_examples):
             pred[example] = x[example]
+            block1 = 0
             for layer in range(num_layers):
                 pred[example], result = self.layers[layer].forward(x=pred[example])
                 mac_per_array[example][layer] = result['nmac'] / result['cycle'] / result['array']
+                block2 = block1 + self.layers[layer].nwl
+                mac_per_array_block[example][block1:block2] = result['nmac'] / result['block_cycle'] / self.layers[layer].factor
+                block1 = block2
                 
         self.mac_per_array = np.mean(mac_per_array, axis=0)
+        self.mac_per_array_block = np.mean(mac_per_array_block, axis=0)
         self.set_dup()
 
     def forward(self, x, y):
@@ -59,11 +72,9 @@ class Model:
         return pred, results
         
     def set_dup(self):
-        nlayer = len(self.layers)
-    
-        nmac = np.zeros(shape=nlayer, dtype=np.int32)
-        factor = np.zeros(shape=nlayer, dtype=np.int32)
-        for layer in range(nlayer):
+        nmac = np.zeros(shape=self.nlayer, dtype=np.int32)
+        factor = np.zeros(shape=self.nlayer, dtype=np.int32)
+        for layer in range(self.nlayer):
             nmac[layer] = self.layers[layer].nmac
             factor[layer] = self.layers[layer].factor
     
@@ -158,6 +169,9 @@ class Conv(Layer):
         self.wb = self.cut()
         nwl, _, nbl, _ = np.shape(self.wb) 
         self.factor = nwl * nbl
+        
+        self.nwl = nwl
+        self.nbl = nbl
         
         #########################
 
