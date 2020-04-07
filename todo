@@ -108,74 +108,37 @@ breaking barriers
 
 -------
 
-So the way I see it, there are really only two ways we can do this statically:
-
-> increase number of duplications in PE to reduce idle time
-> give more duplications to arrays that on average take longer
-
-So we would have to profile input data to see if there is any trend, and we could look at covariance like to mentioned to see if there were any trend between arrays. 
-
--------
-
-so we figured out how to solve these:
-1. branch and bound = perfect
-2. Binary ILP, where u unwind all the MAC/Array so u dont pick array(layer=0) = 5 ... u have that as a binay choice and can pick any of them. then u constrain ILP so that u can only pick 1 of those. Lastly, then u can maximize the minimum thing.
-> https://math.stackexchange.com/questions/2446606/linear-programming-set-a-variable-the-max-between-two-another-variables/2447498
-
--------
-
-thinking instead of these estimations, 
-we just run the layers for different #narray in parallel
-like 5-10 samples from each of reasonable window
-then use that in the branch and bound.
-
--------
-
-think we cannot separate it as layer/PE.
-wud be better to view them together.
-we can make use of additional arrays if we have them
-dosnt need to be multiple of filter size.
-
-may want to revert back a few commits ...
-
--------
-
-> switch back 2 branches actually I think.
-
-> yeah so we want to do block level allocation now
-  > which means things are gonna change.
-  > have to find best place to revert back to.
-  
-need to send Sam the .npy activation files as well.
-
--------
-
-so how is block level allocation going to work ??
-well every block is going to get some workload.
-so we figure out how many MACs that is 
-and then distribute it out basically.
-same shit as layers except now we are doing blocks
-
-yeah ... this is actually quite simple ...
-
-> other things is ignore the idea of duplication, we just send whatever we can to whoever is next
-this discussion really locked it down.
-
--------
-
-1) pim.c API changes
-
-2) branch and bound - tighter value function, needs to run faster ...
-   > I think we can make our heuristic just taking the 100 best solutions in each step.
-
-3) we are going to def have problems with partial blocks
-   > 3x3x3x64
-   > 3x3x64x64
-
--------
-
 > find an upperbound on speed we can go.
   > (total 1s in all data) / (total arrays * 8)
+  > that is too low 
+  > assume every array goes in 1 cycle.
+  > yeah this really isnt too helpful ... its roughly 1300.
+
+> fix the hacks = [block][bl]
+> make sure this is correct
+
+> be able to run {naive, layer-wise, block-wise}
+
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
