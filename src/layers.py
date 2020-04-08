@@ -47,9 +47,11 @@ class Model:
             for layer in range(num_layers):
                 pred[example], result = self.layers[layer].forward(x=pred[example])
                 block2 = block1 + self.layers[layer].nwl
-                mac_per_array_block[example][block1:block2] = result['nmac'] / result['block_cycle'] / self.layers[layer].factor
-                mac_per_array_layer[example][layer] = result['nmac'] / result['cycle'] / self.layers[layer].factor / self.layers[layer].layer_alloc
-                block1 = block2
+                
+                mac_per_array_block[example][block1:block2] = (result['nmac'] / self.layers[layer].factor) / (result['block_cycle'])
+                mac_per_array_layer[example][layer] =         (result['nmac'] / self.layers[layer].factor) / (result['cycle'] * self.layers[layer].layer_alloc)
+
+                block1 = block2                
                 
         self.mac_per_array_block = np.mean(mac_per_array_block, axis=0)
         self.mac_per_array_layer = np.mean(mac_per_array_layer, axis=0)
@@ -231,10 +233,13 @@ class Conv(Layer):
 
         nwl, _, nbl, _ = np.shape(self.wb)
         
-        if   self.params['alloc'] == 'block': results['array'] = np.sum(self.block_alloc) * nwl * nbl
-        elif self.params['alloc'] == 'layer': results['array'] = self.layer_alloc * nwl * nbl
-        
-        print ('narray: %d alloc: %d nmac %d cycle: %d stall: %d' % (nwl * nbl, self.layer_alloc, results['nmac'], results['cycle'], results['stall']))
+        if self.params['alloc'] == 'block': 
+            results['array'] = np.sum(self.block_alloc) * nbl
+            print ('alloc: %d nmac %d cycle: %d stall: %d' % (nbl * np.sum(self.block_alloc), results['nmac'], results['cycle'], results['stall']))
+                    
+        elif self.params['alloc'] == 'layer': 
+            results['array'] = self.layer_alloc * nwl * nbl
+            print ('alloc: %d nmac %d cycle: %d stall: %d' % (nwl * nbl * self.layer_alloc, results['nmac'], results['cycle'], results['stall']))
 
         return y, results
         
