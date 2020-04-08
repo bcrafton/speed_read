@@ -210,26 +210,18 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int* b
       }
       
       for (int bl=0; bl<NBL; bl++) {
+        
+        int x_addr = xb[block] * 8;
+        int w_addr = col[block];
+        int rpr_addr = x_addr + w_addr;
 
-        int rpr_addr;
-        if (BL >= C) {
-          int x_addr = (xb[block] * 8);
-          int w_addr = ((bl + 1) * (BL / C)) - 1;
-          // for dense:
-          w_addr = min(w_addr, 7);
-          rpr_addr = x_addr + w_addr;
-        }
-        else {
-          rpr_addr = (xb[block] * 8) + (bl / (C / BL)); 
-        }
-                
         if (!((rpr_addr >= 0) && (rpr_addr < 64))) {
           printf("xb: %d bl: %d BL: %d C: %d: rpr_addr: %d\n", xb[block], bl, BL, C, rpr_addr);
           assert ((rpr_addr >= 0) && (rpr_addr < 64));
         }
         int rpr = lut_rpr[rpr_addr];
         assert (rpr >= 1);
-        
+                
         /////////////////////////////////////
         
         int rows = min(rpr, WL - wl_ptr[block][bl]);
@@ -270,8 +262,8 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int* b
 
         for (int adc_ptr=0; adc_ptr<BL; adc_ptr+=8) {
           int bl_ptr = adc_ptr + col[block];
-          int c = (bl_ptr + bl * BL) % C;
-          int wb = (bl_ptr + bl * BL) / C;
+          int c = (bl_ptr + bl * BL) / 8;
+          int wb = col[block];
 
           if (wb == 0) {
             y[r[block] * C + c] -= ((wl_sum[block][bl] * 128) << xb[block]);
@@ -310,8 +302,8 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int* b
         if (wl_ptr[block][bl] == WL) {
           for (int adc_ptr=0; adc_ptr<BL; adc_ptr+=8) {
             int bl_ptr = adc_ptr + col[block];
-            int c = (bl_ptr + bl * BL) % C;
-            int wb = (bl_ptr + bl * BL) / C;
+            int c = (bl_ptr + bl * BL) / 8;
+            int wb = col[block];
 
             if (wl_total[block][bl]) {
               float p = ((float) pdot_sum[block][bl][bl_ptr]) / ((float) wl_total[block][bl]);

@@ -1394,6 +1394,38 @@ the only thing that changes is the python code surrounding things.
 > wb = np.transpose(wb, (0, 1, 3, 2))
 well thats because we never fixed this it seems..
 
+------
+
+why did transforming wb change the number of cycles it takes ? 
+check the error.
+
+alloc: 44 nmac 1769472 cycle: 11416 stall: 344
+alloc: 904 nmac 37748736 cycle: 6048 stall: 171296
+alloc: 480 nmac 18874368 cycle: 5272 stall: 43472
+alloc: 936 nmac 37748736 cycle: 5648 stall: 47888
+alloc: 576 nmac 18874368 cycle: 6120 stall: 29320
+alloc: 1152 nmac 37748736 cycle: 8440 stall: 120296
+> it does cause error, but thats expected.
+
+changing the weights should not change the performance of skip
+just the accuracy.
+
+alloc: 44 nmac 1769472 cycle: 11416 stall: 344
+alloc: 904 nmac 37748736 cycle: 5072 stall: 134056
+alloc: 480 nmac 18874368 cycle: 4344 stall: 34416
+alloc: 936 nmac 37748736 cycle: 3744 stall: 35464
+alloc: 576 nmac 18874368 cycle: 2616 stall: 9712
+alloc: 1152 nmac 37748736 cycle: 1272 stall: 7408
+
+------
+
+OHHHH duh.
+it dosnt change the first layer
+it only changes after BECAUSE we change the output / accuracy.
+
+this becoming a time-old issue.
+
+------
 
 
 

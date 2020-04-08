@@ -308,7 +308,7 @@ class Conv(Layer):
 
         ########################
 
-        w_offset = self.w + self.params['offset']
+        w_offset = np.copy(self.w) + self.params['offset']
         w_matrix = np.reshape(w_offset, (self.fh * self.fw * self.fc, self.fn))
         wb = []
         for bit in range(self.params['bpw']):
@@ -328,7 +328,7 @@ class Conv(Layer):
         ########################
 
         nwl, wl, ncol, nbit = np.shape(wb)
-        wb = np.transpose(wb, (0, 1, 3, 2))
+        # wb = np.transpose(wb, (0, 1, 3, 2))
         wb = np.reshape(wb, (nwl, self.params['wl'], ncol * nbit))
         
         nwl, wl, ncol = np.shape(wb)
