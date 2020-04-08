@@ -28,7 +28,7 @@ class Model:
             self.nblock += nwl
 
         self.mac_per_array = [2.] * self.nblock
-        self.set_dup()                  
+        self.set_block_alloc()                  
 
     def profile(self, x):
         num_examples, _, _, _ = np.shape(x)
@@ -48,7 +48,7 @@ class Model:
                 block1 = block2
                 
         self.mac_per_array = np.mean(mac_per_array, axis=0)
-        self.set_dup()
+        self.set_block_alloc()
 
     def forward(self, x, y):
         num_examples, _, _, _ = np.shape(x)
@@ -68,7 +68,7 @@ class Model:
 
         return pred, results
         
-    def set_dup(self):
+    def set_block_alloc(self):
         nmac = np.zeros(shape=self.nblock, dtype=np.int32)
         factor = np.zeros(shape=self.nblock, dtype=np.int32)
         block = 0
@@ -85,8 +85,8 @@ class Model:
         block1 = 0
         for layer in range(self.nlayer):
             block2 = block1 + self.layers[layer].nwl
-            dup = np.array(alloc[block1:block2]) // self.layers[layer].nbl
-            self.layers[layer].set_dup(dup)
+            block_alloc = np.array(alloc[block1:block2]) // self.layers[layer].nbl
+            self.layers[layer].set_block_alloc(block_alloc)
             block1 = block2
 
 #########################
@@ -209,7 +209,7 @@ class Conv(Layer):
         results['block_cycle'] = metrics[13:]
 
         nwl, _, nbl, _ = np.shape(self.wb) 
-        results['array'] = self.dup * nwl * nbl
+        results['array'] = self.block_alloc * nwl * nbl
         
         print ('narray: %d nmac %d cycle: %d stall: %d' % (nwl * nbl, results['nmac'], results['cycle'], results['stall']))
 
@@ -217,8 +217,8 @@ class Conv(Layer):
         
         #########################
         
-    def set_dup(self, dup):
-        self.dup = dup
+    def set_block_alloc(self, block_alloc):
+        self.block_alloc = block_alloc
         
     def conv(self, x):
 
@@ -254,7 +254,7 @@ class Conv(Layer):
         
         #########################
         
-        y, metrics = pim(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], self.dup, self.params)
+        y, metrics = pim(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], self.block_alloc, self.params)
         y = np.reshape(y, (yh, yw, self.fn))
         
         assert(np.all(np.absolute(y) < 2 ** 23))

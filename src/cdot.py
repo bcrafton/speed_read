@@ -9,7 +9,7 @@ lib.pim.restype = ctypes.c_int
 
 ###########################
 
-def pim(x, w, y_shape, lut_var, lut_rpr, ndup, params):
+def pim(x, w, y_shape, lut_var, lut_rpr, alloc, params):
     nrow, nwl, wl, xb = np.shape(x)
     nwl, wl, nbl, bl = np.shape(w) # nwl, nbl, wl, bl
     nrow, ncol = y_shape
@@ -29,11 +29,11 @@ def pim(x, w, y_shape, lut_var, lut_rpr, ndup, params):
 
     ########
         
-    nblock = np.sum(ndup)    
+    nblock = np.sum(alloc)    
     block_map = np.zeros(shape=nblock)
     block = 0
     for i in range(nwl):
-        for j in range(ndup[i]):
+        for j in range(alloc[i]):
             block_map[block] = i
             block += 1
     

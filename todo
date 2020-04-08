@@ -49,65 +49,6 @@ todo
   > also means we dont have to split at all.
 -------
 
-array allocation:
-array: 222 cycle: 148 stall: 1548
-array: 498 cycle: 381 stall: 52786
-array: 240 cycle: 319 stall: 21096
-array: 500 cycle: 251 stall: 28416
-array: 240 cycle: 269 stall: 17496
-array: 432 cycle: 173 stall: 18648
-
-array: 222 cycle: 1280 stall: 22016
-array: 498 cycle: 1664 stall: 42240
-array: 240 cycle: 1664 stall: 6144
-array: 500 cycle: 1408 stall: 48640
-array: 240 cycle: 1408 stall: 10240
-array: 432 cycle: 1408 stall: 18432
-
-> going to be 2 parts:
-1) (layer level) compile time based off of (X, W) statistics
-2) (PE level) run time based on when arrays finish
-
-found 2 techniques for doing this.
-1) sparsity in x
-2) mac/cycle/array
->> the winner will simply be decided by highest throughput of all 1024 arrays.
-
--------
-
-Compile time array allocation based on layers.
-> Seems like we solved this already.
-> For report #1 we will just talk about this
-
-Runtime allocation based on ?
-Profile where stalls come from:
-> When duplicate arrays have finished ? sync_dup
-> Arrays in same PE have finished ? sync_array
-Guessing it is probably the array, BUT can we duplicate things inside the PE to speed up array level stalls ?
-
-> Need to make ndup configurable so we can make baseline work just as well.
-> Lets see MAC/cycle.
-
--------
-
-so i think we can formulate this better.
-if u gather profiled data
-and we assume that directly correlates to MACs, we shud be able to use some solver to compute the best configuration for throughput.
-
-we shud be trying to use all the arrays tho.
-
--------
-
-breaking barriers
-> array level allocation
-> this is going to be maximizing throughput around PD constraints
-
-> identify the 3 bottlenecks
-> talk about from a PD constraint we need to have 16 arrays in 1 block
-> and the workarounds we have given these constraints.
-
--------
-
 > find an upperbound on speed we can go.
   > (total 1s in all data) / (total arrays * 8)
   > that is too low 
@@ -121,6 +62,15 @@ breaking barriers
   > plot them.
 
 > need to run ResNet.
+
+-------
+
+priorities:
+> how can we verify this shit ? 
+> clean up code
+> make good plots.
+
+above all else, we need to make sure our shit is right.
 
 -------
 
