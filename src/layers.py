@@ -29,7 +29,8 @@ class Model:
 
         self.mac_per_array_block = [2.] * self.nblock
         self.mac_per_array_layer = [2.] * self.nlayer
-        self.set_block_alloc()                  
+        self.set_block_alloc() 
+        self.set_layer_alloc()                 
 
     def profile(self, x):
         num_examples, _, _, _ = np.shape(x)
@@ -47,12 +48,13 @@ class Model:
                 pred[example], result = self.layers[layer].forward(x=pred[example])
                 block2 = block1 + self.layers[layer].nwl
                 mac_per_array_block[example][block1:block2] = result['nmac'] / result['block_cycle'] / self.layers[layer].factor
-                mac_per_array_layer[example][layer] = result['nmac'] / result['cycle'] / self.layers[layer].factor
+                mac_per_array_layer[example][layer] = result['nmac'] / result['cycle'] / self.layers[layer].factor / self.layers[layer].layer_alloc
                 block1 = block2
                 
         self.mac_per_array_block = np.mean(mac_per_array_block, axis=0)
         self.mac_per_array_layer = np.mean(mac_per_array_layer, axis=0)
         self.set_block_alloc()
+        self.set_layer_alloc()
 
     def forward(self, x, y):
         num_examples, _, _, _ = np.shape(x)
@@ -84,7 +86,6 @@ class Model:
                 block += 1
                 
         alloc = branch_and_bound(4096, nmac, factor, self.mac_per_array_block, self.params)
-        # alloc = branch_and_bound(4096, nmac, factor, self.mac_per_array_layer, self.params)
         assert (np.sum(alloc) <= 4096)
 
         block1 = 0
@@ -93,6 +94,21 @@ class Model:
             block_alloc = np.array(alloc[block1:block2]) // self.layers[layer].nbl
             self.layers[layer].set_block_alloc(block_alloc)
             block1 = block2
+
+    # https://github.com/bcrafton/speed_read/blob/block-alloc/src/layers.py
+    def set_layer_alloc(self):
+        nmac = np.zeros(shape=self.nlayer, dtype=np.int32)
+        factor = np.zeros(shape=self.nlayer, dtype=np.int32)
+        for layer in range(self.nlayer):
+            nmac[layer] = self.layers[layer].nmac
+            factor[layer] = self.layers[layer].factor
+                
+        alloc = branch_and_bound(4096, nmac, factor, self.mac_per_array_layer, self.params)
+        assert (np.sum(alloc) <= 4096)
+
+        for layer in range(len(self.layers)):
+            layer_alloc = alloc[layer] // self.layers[layer].factor
+            self.layers[layer].set_layer_alloc(layer_alloc)
 
 #########################
 
@@ -214,9 +230,9 @@ class Conv(Layer):
         results['block_cycle'] = metrics[13:]
 
         nwl, _, nbl, _ = np.shape(self.wb) 
-        results['array'] = self.block_alloc * nwl * nbl
+        # results['array'] = self.block_alloc * nwl * nbl
         
-        print ('narray: %d nmac %d cycle: %d stall: %d' % (nwl * nbl, results['nmac'], results['cycle'], results['stall']))
+        print ('narray: %d alloc: %d nmac %d cycle: %d stall: %d' % (nwl * nbl, self.layer_alloc, results['nmac'], results['cycle'], results['stall']))
 
         return y, results
         
@@ -224,7 +240,10 @@ class Conv(Layer):
         
     def set_block_alloc(self, block_alloc):
         self.block_alloc = block_alloc
-        
+
+    def set_layer_alloc(self, layer_alloc):
+        self.layer_alloc = layer_alloc
+
     def conv(self, x):
 
         yh = (self.xh - self.fh + self.s + self.p1 + self.p2) // self.s
@@ -259,7 +278,10 @@ class Conv(Layer):
         
         #########################
         
-        y, metrics = pim(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], self.block_alloc, self.params)
+        if   self.params['alloc'] == 'block': alloc = self.block_alloc
+        elif self.params['alloc'] == 'layer': alloc = self.layer_alloc
+        
+        y, metrics = pim(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], alloc, self.params)
         y = np.reshape(y, (yh, yw, self.fn))
         
         assert(np.all(np.absolute(y) < 2 ** 23))

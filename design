@@ -1366,6 +1366,47 @@ so is our sim accurate now ?
 WE ARE STILL FUCKING WRONG.
 WHY ARE WE NOT CHECKING THIS !!!
 
+------
+
+are we just hacking things unnecessarily ? 
+> block and layer alloc ??
+
+------
+
+yeah this def dosnt feel like a good use of our time ...
+what is better then ? 
+
+verifying it actually works.
+well this is interesting because
+most of the speedup came from not PE syncing
+not because we did block alloc.
+
+yeah the whole thing is sending data whenever the blocks are ready.
+looks like that saved about 400 cycles. 
+
+then layer vs block saves only ~150 cycles.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

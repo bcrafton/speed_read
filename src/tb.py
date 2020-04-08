@@ -65,6 +65,9 @@ param_sweep = {
 'adc_mux': 8,
 'skip': [1],
 'cards': [0],
+'alloc': ['block'],
+# 'alloc': ['block', 'layer'],
+'profile': 1,
 'stall': 0,
 'wl': 128,
 'bl': 128,
@@ -97,7 +100,8 @@ def create_model(weights, params):
 def run_command(x, y, weights, params, return_dict):
     print (params)
     model = create_model(weights, params)
-    model.profile(x=x)
+    if params['profile']:
+        model.profile(x=x)
     _, result = model.forward(x=x, y=y)
     return_dict[(params['skip'], params['cards'], params['sigma'])] = result
 

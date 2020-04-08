@@ -28,16 +28,28 @@ def pim(x, w, y_shape, lut_var, lut_rpr, alloc, params):
     metrics = np.ascontiguousarray(metrics, np.int32)
 
     ########
+
+    if params['alloc'] == 'block':
+        nblock = np.sum(alloc)    
+        block_map = np.zeros(shape=nblock)
+        block = 0
+        for i in range(nwl):
+            for j in range(alloc[i]):
+                block_map[block] = i
+                block += 1
         
-    nblock = np.sum(alloc)    
-    block_map = np.zeros(shape=nblock)
-    block = 0
-    for i in range(nwl):
-        for j in range(alloc[i]):
-            block_map[block] = i
-            block += 1
-    
-    block_map = np.ascontiguousarray(block_map.flatten(), np.int32)
+        block_map = np.ascontiguousarray(block_map.flatten(), np.int32)
+        
+    ########
+
+    elif params['alloc'] == 'layer':
+        nblock = alloc * nwl
+        block_map = np.zeros(shape=(alloc, nwl))
+        for i in range(alloc):
+            for j in range(nwl):
+                block_map[i][j] = j
+        
+        block_map = np.ascontiguousarray(block_map.flatten(), np.int32)
     
     ########
 
