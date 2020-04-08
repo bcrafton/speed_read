@@ -229,8 +229,10 @@ class Conv(Layer):
         
         results['block_cycle'] = metrics[13:]
 
-        nwl, _, nbl, _ = np.shape(self.wb) 
-        # results['array'] = self.block_alloc * nwl * nbl
+        nwl, _, nbl, _ = np.shape(self.wb)
+        
+        if   self.params['alloc'] == 'block': results['array'] = np.sum(self.block_alloc) * nwl * nbl
+        elif self.params['alloc'] == 'layer': results['array'] = self.layer_alloc * nwl * nbl
         
         print ('narray: %d alloc: %d nmac %d cycle: %d stall: %d' % (nwl * nbl, self.layer_alloc, results['nmac'], results['cycle'], results['stall']))
 
