@@ -27,7 +27,7 @@ class Model:
             nwl, _, nbl, _ = np.shape(self.layers[layer].wb) 
             self.nblock += nwl
 
-        self.mac_per_array = [2.] * self.nblock
+        self.mac_per_array_block = [2.] * self.nblock
         self.set_block_alloc()                  
 
     def profile(self, x):
@@ -37,17 +37,17 @@ class Model:
         pred = [None] * num_examples
         results = {}
 
-        mac_per_array = np.zeros(shape=(num_examples, self.nblock))
+        mac_per_array_block = np.zeros(shape=(num_examples, self.nblock))
         for example in range(num_examples):
             pred[example] = x[example]
             block1 = 0
             for layer in range(num_layers):
                 pred[example], result = self.layers[layer].forward(x=pred[example])
                 block2 = block1 + self.layers[layer].nwl
-                mac_per_array[example][block1:block2] = result['nmac'] / result['block_cycle'] / self.layers[layer].factor
+                mac_per_array_block[example][block1:block2] = result['nmac'] / result['block_cycle'] / self.layers[layer].factor
                 block1 = block2
                 
-        self.mac_per_array = np.mean(mac_per_array, axis=0)
+        self.mac_per_array_block = np.mean(mac_per_array_block, axis=0)
         self.set_block_alloc()
 
     def forward(self, x, y):
@@ -79,7 +79,7 @@ class Model:
                 factor[block] = nbl
                 block += 1
                 
-        alloc = branch_and_bound(4096, nmac, factor, self.mac_per_array, self.params)
+        alloc = branch_and_bound(4096, nmac, factor, self.mac_per_array_block, self.params)
         assert (np.sum(alloc) <= 4096)
 
         block1 = 0
