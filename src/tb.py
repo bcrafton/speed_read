@@ -103,7 +103,7 @@ def run_command(x, y, weights, params, return_dict):
     if params['profile']:
         model.profile(x=x)
     _, result = model.forward(x=x, y=y)
-    return_dict[(params['skip'], params['cards'], params['sigma'])] = result
+    return_dict[(params['skip'], params['cards'], params['alloc'])] = result
 
 ####
 
