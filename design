@@ -1439,15 +1439,30 @@ cards is failing.
 we dont really need cards, but I think we shud just make these pieces robust.
 > is there any way we can compare against past results ? 
 > shudnt we get some similar things ? 
+> it works, just use the mean and std thresholds
 
+------
 
+> fix BB
+  > make this problem go away.
 
+> figure out how we want to plot things.
+  > dont really want to plot vs variance ...
+  > just pick a variance (10%?)
+  > plot the different allocation options.
 
+------
 
+is the problem with BB what we think it is ??
+higher value thing gets left out because of bound or w.e.
 
+------
 
-
-
+so starting with the divide by zero error.
+when need = 0 because it gets rounded down
+what is our policy ? 
+if something calls value()
+we have to give it some approx.
 
 
 

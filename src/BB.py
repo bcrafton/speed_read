@@ -39,9 +39,9 @@ class BB:
         for n in range(layer, self.nlayer):
             need = np.ceil(self.nmac[n] / self.mac_per_array[n] / upper_bound)
             need = need - (need % (self.factor[n]))
-            assert (remainder > self.factor[n])
-            if (need <= 0): return np.inf
-            # need = max(self.factor[n], need)
+            if (need < 1): return np.inf
+            # assert (remainder >= self.factor[n])
+            if (remainder < self.factor[n]): return np.inf
             new_alloc.append(min(need, remainder))
             remainder -= new_alloc[n]
 
@@ -56,7 +56,7 @@ class BB:
         lower_bound = min(lower_bound, self.value())
         branches = []
         remainder = self.narray - np.sum(self.alloc)
-        for n in range(self.factor[layer], int(remainder), self.factor[layer]):
+        for n in range(self.factor[layer], int(remainder) + 1, self.factor[layer]): # do NOT forget (+1)
             new_alloc = copy.copy(self.alloc)
             new_alloc.append(n)
             new_BB = BB(self.narray, self.nlayer, new_alloc, self.mac_per_array, self.nmac, self.factor, self.params)
