@@ -113,31 +113,46 @@ plt.rcParams.update({'font.size': 18})
 ####################
 
 plt.cla()
+plt.clf()
+plt.close()
 
 plt.ylabel('# Cycles')
 plt.xlabel('Layer #')
-# plt.ylim(bottom=0)
 
-width = 0.1
-plt.bar(x=layers - width - width - width/2, height=skip_none,   width=width, label='alg=skip, alloc=no profile', color='silver', hatch='-')
-plt.bar(x=layers - width - width/2,         height=skip_layer,  width=width, label='alg=skip, alloc=layer-wise', color='silver', hatch='//')
-plt.bar(x=layers - width/2,                 height=skip_block,  width=width, label='alg=skip, alloc=block-wise', color='silver', hatch='.')
-plt.bar(x=layers + width/2,                 height=cards_none,  width=width, label='alg=cards, alloc=no profile', color='royalblue', hatch='-')
-plt.bar(x=layers + width + width/2,         height=cards_layer, width=width, label='alg=cards, alloc=layer-wise', color='royalblue', hatch='//')
-plt.bar(x=layers + width + width + width/2, height=cards_block, width=width, label='alg=cards, alloc=block-wise', color='royalblue', hatch='.')
+width = 0.2
+plt.bar(x=layers - width, height=skip_none,   width=width, label='no profile', color='silver')
+plt.bar(x=layers,         height=skip_layer,  width=width, label='layer-wise', color='royalblue')
+plt.bar(x=layers + width, height=skip_block,  width=width, label='block-wise', color='black')
 
-plt.legend()
+plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc='lower left', ncol=2, mode="expand", borderaxespad=0.)
 
 fig = plt.gcf()
 fig.set_size_inches(9, 9)
-plt.tight_layout()
-fig.savefig('cycles.png', dpi=300)
+# plt.tight_layout()
+fig.savefig('skip-cycles.png', dpi=300)
 
 ####################
 
+plt.clf()
+plt.cla()
+plt.close()
 
+plt.ylabel('# Cycles')
+plt.xlabel('Layer #')
 
+width = 0.2
+plt.bar(x=layers - width, height=cards_none,   width=width, label='no profile', color='silver')
+plt.bar(x=layers,         height=cards_layer,  width=width, label='layer-wise', color='royalblue')
+plt.bar(x=layers + width, height=cards_block,  width=width, label='block-wise', color='black')
 
+plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc='lower left', ncol=2, mode="expand", borderaxespad=0.)
+
+fig = plt.gcf()
+fig.set_size_inches(9, 9)
+# plt.tight_layout()
+fig.savefig('cards-cycles.png', dpi=300)
+
+####################
 
 
 
