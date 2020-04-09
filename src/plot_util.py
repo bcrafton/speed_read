@@ -41,7 +41,7 @@ y_energy = np.zeros(shape=(2, 2, 2, num_layers))
 array_util = np.zeros(shape=(2, 2, 2, num_layers))
 
 for key in sorted(results.keys()):
-    (skip, cards, alloc) = key
+    (skip, cards, alloc, profile) = key
     alloc = 1 if alloc == 'block' else 0
     layer_results = results[key]
 
@@ -91,92 +91,6 @@ for key in sorted(results.keys()):
         array_util[skip][cards][alloc][layer] = (y_array * y_cycle - y_stall) / (y_array * max_cycle)
         
         ############################
-
-####################
-'''
-print ('cycle')
-# print (np.around(cycle[0, 0], 1))
-print (np.around(cycle[1, 0], 1))
-print (np.around(cycle[1, 1], 1))
-
-print ('nmac')
-# print (np.around(nmac[0, 0], 1))
-print (np.around(nmac[1, 0], 1))
-print (np.around(nmac[1, 1], 1))
-
-# print ('array')
-# print (np.around(array[0, 0], 1))
-# print (np.around(array[1, 0], 1))
-# print (np.around(array[1, 1], 1))
-
-####################
-
-# print ('mean')
-# print (np.around(y_mean[0, 0],  3))
-print (np.around(y_mean[1, 0],  3))
-print (np.around(y_mean[1, 1],  3))
-
-# print ('std')
-# print (np.around(y_std[0, 0],  3))
-print (np.around(y_std[1, 0],  3))
-print (np.around(y_std[1, 1],  3))
-
-print ('mac / cycle')
-# print (np.around(y_mac_per_cycle[0, 0], 1))
-print (np.around(y_mac_per_cycle[1, 0], 1))
-print (np.around(y_mac_per_cycle[1, 1], 1))
-
-print ('mac / cycle / array')
-# print (np.around(y_mac_per_cycle[0, 0, 0] / array[0, 0, 0], 1))
-# print (np.around(y_mac_per_cycle[1, 0, 0] / array[1, 0, 0], 1))
-# print (np.around(y_mac_per_cycle[1, 1, 0] / array[1, 1, 0], 1))
-
-print ('array util')
-# print (np.around(array_util[0, 0],  3))
-print (np.around(array_util[1, 0],  3))
-print (np.around(array_util[1, 1],  3))
-'''
-####################
-
-'''
-layers = np.array(range(1, 6+1))
-baseline = np.around(array_util[0, 0, 0],  3)
-zero_skip = np.around(array_util[1, 0, 0],  3)
-cards = np.around(array_util[1, 1, 0],  3)
-'''
-
-'''
-width = 0.2
-plt.bar(x=layers - width/2, height=baseline, width=width, label='baseline')
-plt.bar(x=layers + width/2, height=zero_skip, width=width, label='zero skip')
-# plt.legend()
-'''
-
-'''
-width = 0.2
-plt.bar(x=layers - width, height=baseline,  width=width, label='baseline')
-plt.bar(x=layers,         height=zero_skip, width=width, label='zero skip')
-plt.bar(x=layers + width, height=cards,     width=width, label='counting cards')
-# plt.legend()
-'''
-
-'''
-ax = plt.gca()
-ax.axes.xaxis.set_ticklabels([])
-ax.axes.yaxis.set_ticklabels([])
-
-plt.xticks(layers)
-
-fig = plt.gcf()
-fig.set_size_inches(3.3, 2.)
-
-# plt.ylabel('Array Utilization')
-# plt.xlabel('Layer #')
-plt.ylim(0, 1)
-
-# plt.show()
-plt.savefig('util.png', dpi=300)
-'''
 
 ####################
 
