@@ -64,7 +64,7 @@ param_sweep = {
 'adc': 8,
 'adc_mux': 8,
 'skip': [1],
-'cards': [0],
+'cards': [0, 1],
 'alloc': ['block'],
 # 'alloc': ['block', 'layer'],
 'profile': 1,
@@ -72,7 +72,7 @@ param_sweep = {
 'wl': 128,
 'bl': 128,
 'offset': 128,
-'sigma': [0.05],
+'sigma': [0.08],
 'err_sigma': 0.,
 }
 

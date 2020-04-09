@@ -98,65 +98,62 @@ for key in sorted(results.keys()):
 ####################
 
 print ('cycle')
-# print (np.around(cycle[0, 0, 0], 1))
-print (np.around(cycle[1, 0, 0], 1))
-# print (np.around(cycle[1, 1, 0], 1))
+# print (np.around(cycle[0, 0], 1))
+print (np.around(cycle[1, 0], 1))
+print (np.around(cycle[1, 1], 1))
 
 print ('nmac')
-# print (np.around(nmac[0, 0, 0], 1))
-print (np.around(nmac[1, 0, 0], 1))
-# print (np.around(nmac[1, 1, 0], 1))
+# print (np.around(nmac[0, 0], 1))
+print (np.around(nmac[1, 0], 1))
+print (np.around(nmac[1, 1], 1))
 
-print ('array')
-# print (np.around(array[0, 0, 0], 1))
-print (np.around(array[1, 0, 0], 1))
-# print (np.around(array[1, 1, 0], 1))
+# print ('array')
+# print (np.around(array[0, 0], 1))
+# print (np.around(array[1, 0], 1))
+# print (np.around(array[1, 1], 1))
 
 ####################
 
 # print ('mean')
 # print (np.around(y_mean[0, 0],  3))
-# print (np.around(y_mean[1, 0],  3))
-# print (np.around(y_mean[1, 1],  3))
+print (np.around(y_mean[1, 0],  3))
+print (np.around(y_mean[1, 1],  3))
 
 # print ('std')
 # print (np.around(y_std[0, 0],  3))
-# print (np.around(y_std[1, 0],  3))
-# print (np.around(y_std[1, 1],  3))
+print (np.around(y_std[1, 0],  3))
+print (np.around(y_std[1, 1],  3))
 
 print ('mac / cycle')
-# print (np.around(y_mac_per_cycle[0, 0, 0], 1))
-print (np.around(y_mac_per_cycle[1, 0, 0], 1))
-# print (np.around(y_mac_per_cycle[1, 1, 0], 1))
+# print (np.around(y_mac_per_cycle[0, 0], 1))
+print (np.around(y_mac_per_cycle[1, 0], 1))
+print (np.around(y_mac_per_cycle[1, 1], 1))
 
 print ('mac / cycle / array')
 # print (np.around(y_mac_per_cycle[0, 0, 0] / array[0, 0, 0], 1))
-print (np.around(y_mac_per_cycle[1, 0, 0] / array[1, 0, 0], 1))
-print (np.around(y_mac_per_cycle[1, 1, 0] / array[1, 1, 0], 1))
-
-# print ('mac / pJ')
-# print (np.around(y_mac_per_pJ[0, 0],  3))
-# print (np.around(y_mac_per_pJ[1, 0],  3))
-# print (np.around(y_mac_per_pJ[1, 1],  3))
+# print (np.around(y_mac_per_cycle[1, 0, 0] / array[1, 0, 0], 1))
+# print (np.around(y_mac_per_cycle[1, 1, 0] / array[1, 1, 0], 1))
 
 print ('array util')
-# print (np.around(array_util[0, 0, 0],  3))
-print (np.around(array_util[1, 0, 0],  3))
-# print (np.around(array_util[1, 1, 0],  3))
+# print (np.around(array_util[0, 0],  3))
+print (np.around(array_util[1, 0],  3))
+print (np.around(array_util[1, 1],  3))
 
 ####################
 
+'''
 layers = np.array(range(1, 6+1))
 baseline = np.around(array_util[0, 0, 0],  3)
 zero_skip = np.around(array_util[1, 0, 0],  3)
 cards = np.around(array_util[1, 1, 0],  3)
+'''
 
-# '''
+'''
 width = 0.2
 plt.bar(x=layers - width/2, height=baseline, width=width, label='baseline')
 plt.bar(x=layers + width/2, height=zero_skip, width=width, label='zero skip')
 # plt.legend()
-# '''
+'''
 
 '''
 width = 0.2
@@ -166,6 +163,7 @@ plt.bar(x=layers + width, height=cards,     width=width, label='counting cards')
 # plt.legend()
 '''
 
+'''
 ax = plt.gca()
 ax.axes.xaxis.set_ticklabels([])
 ax.axes.yaxis.set_ticklabels([])
@@ -181,7 +179,7 @@ plt.ylim(0, 1)
 
 # plt.show()
 plt.savefig('util.png', dpi=300)
-
+'''
 
 
 
