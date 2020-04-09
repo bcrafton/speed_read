@@ -1464,7 +1464,17 @@ what is our policy ?
 if something calls value()
 we have to give it some approx.
 
+------
 
+problem right now with this plot,
+is that we dont know how to plot it 
+we want to plot probabl 6 things
+
+but is that a bar chart for all 6 things ???
+well actually maybe
+if it can be done.
+
+yeah so how do we plot this data?
 
 
 

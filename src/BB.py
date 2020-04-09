@@ -24,6 +24,7 @@ class BB:
         elif layer == self.nlayer:
             min_cycle = np.max(self.nmac / self.mac_per_array / self.alloc)
         else:
+            if remainder < 1: return np.inf
             actual = np.max(self.nmac[0:layer] / self.mac_per_array[0:layer] / self.alloc)
             upper_bound = np.sum(self.nmac[layer:] / self.mac_per_array[layer:]) / remainder
             min_cycle = max(actual, upper_bound)
@@ -105,7 +106,7 @@ def branch_and_bound(narray, nmac, factor, mac_per_array, params):
     # lower_bound = 3300
     lower_bound = root.value()
     for layer in range(nlayer):
-        print (layer, lower_bound, len(branches))
+        # print (layer, lower_bound, len(branches))
         branches = branch_and_bound_help(branches, lower_bound)
         for branch in branches:
             lower_bound = min(lower_bound, branch.value())

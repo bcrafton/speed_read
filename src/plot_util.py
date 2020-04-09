@@ -183,14 +183,18 @@ plt.savefig('util.png', dpi=300)
 layers      = np.array(range(1, 6+1))
 skip_block  = np.around(cycle[1, 0, 1],  3)
 cards_block = np.around(cycle[1, 1, 1],  3)
+skip_layer  = np.around(cycle[1, 0, 0],  3)
+cards_layer = np.around(cycle[1, 1, 0],  3)
 
 plt.ylabel('# Cycles')
 plt.xlabel('Layer #')
 # plt.ylim(bottom=0)
 
 width = 0.2
-plt.bar(x=layers - width/2, height=skip_block, width=width, label='skip-block')
-plt.bar(x=layers + width/2, height=cards_block, width=width, label='cards-block')
+plt.bar(x=layers - width - width/2, height=skip_layer,  width=width, label='skip-layer')
+plt.bar(x=layers - width/2,         height=skip_block,  width=width, label='skip-block')
+plt.bar(x=layers + width/2,         height=cards_layer, width=width, label='cards-layer')
+plt.bar(x=layers + width + width/2, height=cards_block, width=width, label='cards-block')
 plt.show()
 
 
