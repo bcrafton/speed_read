@@ -67,11 +67,15 @@ todo
 
 priorities:
 > how can we verify this shit ? 
-> clean up code
-> make good plots.
+  > clean up code
+  > above all else, we need to make sure our shit is right.
+
+> plots - with/without PE sync. allocation just on zero counts, not profiling.
 > resnet
 
-above all else, we need to make sure our shit is right.
+> compare with PE sync, account for PD constraints.
+  > 1: 16 array per block ? 64 array per block ?
+  > 2: the same blocks must be used together, i.e. you cannot just send any input data anywhere.
 
 -------
 
