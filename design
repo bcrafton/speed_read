@@ -1427,14 +1427,18 @@ this becoming a time-old issue.
 
 ------
 
+branch and bound is failing - fix it.
+think just slowly work towards goals for paper
+making other tasks priority.
 
+------
 
+branch and bound is failing.
+cards is failing.
 
-
-
-
-
-
+we dont really need cards, but I think we shud just make these pieces robust.
+> is there any way we can compare against past results ? 
+> shudnt we get some similar things ? 
 
 
 
