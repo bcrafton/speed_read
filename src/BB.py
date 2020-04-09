@@ -40,16 +40,21 @@ class BB:
             need = np.ceil(self.nmac[n] / self.mac_per_array[n] / upper_bound)
             need = need - (need % (self.factor[n]))
             assert (remainder > self.factor[n])
+            if (need <= 0): return np.inf
+            # need = max(self.factor[n], need)
             new_alloc.append(min(need, remainder))
             remainder -= new_alloc[n]
 
+        assert (np.all(np.absolute(self.mac_per_array) > 0))
+        assert (np.all(np.absolute(new_alloc) > 0))
+        assert (np.sum(new_alloc) <= self.narray)
         max_cycle = np.max(self.nmac / self.mac_per_array / new_alloc)
         return max_cycle
 
     def branch(self, lower_bound):
         layer = len(self.alloc)        
         lower_bound = min(lower_bound, self.value())
-        bounds = []; branches = []
+        branches = []
         remainder = self.narray - np.sum(self.alloc)
         for n in range(self.factor[layer], int(remainder), self.factor[layer]):
             new_alloc = copy.copy(self.alloc)
@@ -57,9 +62,9 @@ class BB:
             new_BB = BB(self.narray, self.nlayer, new_alloc, self.mac_per_array, self.nmac, self.factor, self.params)
             new_bound = new_BB.bound()
             if new_bound <= lower_bound:
-                bounds.append(new_bound); branches.append(new_BB)
+                branches.append(new_BB)
         
-        return bounds, branches
+        return branches
 
 ############################
 
@@ -76,13 +81,17 @@ def branch_and_bound(narray, nmac, factor, mac_per_array, params):
     ################################
 
     def branch_and_bound_help(branches, lower_bound):
-        new_bounds = []; new_branches = []
+        new_branches = []
         for branch in branches:
-            next_bounds, next_branches = branch.branch(lower_bound)
-            new_bounds.extend(next_bounds); new_branches.extend(next_branches)
+            next_branches = branch.branch(lower_bound)
+            new_branches.extend(next_branches)
             
         # thing I worry about here is losing all path diversity.
-        if len(new_bounds) > 25:
+        if len(new_branches) > 25:
+            new_bounds = []
+            for new_branch in new_branches:
+                new_bounds.append(new_branch.bound())
+            
             new_bounds = np.array(new_bounds)
             order = np.argsort(new_bounds)[0:25]
             new_branches = [new_branches[i] for i in order]
