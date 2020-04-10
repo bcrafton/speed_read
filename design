@@ -1476,6 +1476,156 @@ if it can be done.
 
 yeah so how do we plot this data?
 
+------
+
+so how does this PE level thing work ? 
+we need to block things together, but what does that change ? 
+1) blocks of 16/32/64 arrays are tiled throughout the chip. you cannot arbitrarily group blocks together like we are.
+2) you cannot arbitrarily send whatever feature data to the next available block mapped to those weights, maybe do to ifmap reuse or just locality.
+
+------
+
+what do we do with fixed block size ? 
+lets say 64 arrays.
+how do we make blocks out of this ? 
+well col-wise we shud actually always be good really. 
+> it will always be power of 2 col-wise.
+
+so u wud just need to make sure u fill up the 64 arrays - u dont want any partial blocks.
+so the challenge then is data reuse/movement
+
+------
+
+what happens if u dont use a full PE for a layer ? 
+
+the other thing is the input/output from these PE can be from different things which is weird.
+that part feels like it wud cause bus contention and what not.
+
+>> we need to find the simplest way to architect things.
+because we want to keep this paper about the main idea.
+
+------
+
+we can try to survey the papers and do something similar.
+> PE = 16 x 8 x 128 x 128
+> Yu did 9 x 16 x 128 x 128
+
+Definitely think you can skip over Tile level.
+
+Oh, Atom Layer did something really clever actually.
+They rotate the crossbars for the given arrays.
+So that the ADCs are always used, they claim array are is tiny
+They have 160 PEs, each one contains a 8x128x128 for each layer ... 16 layers = 16x8x128x128
+4 * 4 * 3 * 3 = 144, so i guess thats why they have 160.
+3x3x512x512 vs 1x1x128x128
+
+Max ^ 2 was also by Yu.
+lots of the same figures.
+interesting, same  Tile/PE idea.
+
+------
+
+> Processing Element (PE): Each PE consists
+of 16 ReRAM based memory subarrays, where
+each subarray is a 1-transistor-1-resistor (1T1R) array
+of size 128 × 128. Each subarray has its own set of
+peripheral circuitry. A set of 4 subarrays share 1 look up
+table (LUT). Each PE also has three local buffers, RF I ,
+RF II and RF III , to store IFM, dot product and partial
+sums, respectively.
+
+> Tile: Each tile consists of 3 × 3 PEs, an I/O buffer to
+store input/output data, a non-linear activation function
+unit and an accumulation unit for partial sum addition.
+
+> Chip: Each chip consists of 12 tiles, and a DFF-based
+I/O interface to store multiple input feature maps and one
+max-pooling unit.
+
+1)
+they never once reference ADCs here...
+2)
+they never skip the zeros.
+... meaning i dont know how fast they are processing arrays.
+
+------
+
+so we need to make a design as similar as possible to these.
+how we allocate based on the PE is a different question.
+definitely skip the tile.
+
+so all we really have is:
+array,
+pe,
+chip
+
+and we need to explain why the PE abstraction exists 
+> I/O pretty much.
+> i think we may be able to gloss over I/O as a problem
+> but we need to back it up somehow, on our mapping strategy.
+
+------
+
+okay we have some group of arrays
+how do you map weights to them ? 
+can u mix layers ? 
+
+are there any input / output bandwidth restrictions ? 
+if two blocks are in the same layer, 
+dont share any inputs, dont share any outputs
+is there any more sense in binning them
+then there is binning different layers ?
+> i dont think so.
+
+but i guess the goal should be maximize utilization
+but through mapping minimize input/output bandwidth ? 
+
+------
+
+so this changes nothing lol.
+>> i guess one constraint is that we cannot split a block over PEs.
+
+>> what about accumulation inside of a PE ???
+
+what wud be the next constraint ? 
+> cannot split layers over PEs
+
+think we will assume no I/O limitations.
+BUT I think we have to argue we place for data reuse and min I/O.
+
+they never say what they do with less than 512 channels.
+
+------
+
+It should be noted that array partitioning within
+the PE is helpful to maximize the memory utilization. Since
+the kernels from some convolutional layers (normally the
+first couple of layers) could be shallow and small, which
+will not fill the entire PE and cause memory waste. With a
+group of partitioned sub-arrays, those shallow kernels could
+be duplicated in different sub-arrays and take multiple input
+data to generate independent outputs simultaneously. In this
+case, those shallow convolutional layers which have shallow
+kernels but large IFMs could be speeded up significantly.
+
+okay we are on the same page.
+
+------
+
+yeah i dont think we will have any issues here.
+we map things to be accumulated together or concatenated together.
+there probs actually is an interconnect paper there.
+
+------
+
+
+
+
+
+
+
+
+
 
 
 

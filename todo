@@ -77,6 +77,12 @@ priorities:
   > 1: 16 array per block ? 64 array per block ?
   > 2: the same blocks must be used together, i.e. you cannot just send any input data anywhere.
 
+is there a way we can perform pim operations on the gpu ?
+where compuation is same as our c kernel but we do some hack to run real fast on the gpu ? 
+and still get metrics.
+
+> building a robust simulator could be really useful.
+
 -------
 
 think just slowly work towards goals for paper
