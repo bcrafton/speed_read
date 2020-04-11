@@ -12,8 +12,8 @@ import multiprocessing
 from multiprocessing import Process
 from multiprocessing import Pool
 
-cmd = "gcc pim.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o pim.so"
-os.system(cmd)
+cmd = "gcc pim.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o pim.so"; os.system(cmd)
+cmd = "gcc pim_sync.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o pim_sync.so"; os.system(cmd)
 
 from layers import *
 from defines import *
@@ -64,14 +64,14 @@ param_sweep = {
 'adc': 8,
 'adc_mux': 8,
 'skip': [1],
-'cards': [0, 1],
+'cards': [0],
 'alloc': ['block', 'layer'],
-'profile': [0, 1],
+'profile': [1],
 'stall': 0,
 'wl': 128,
 'bl': 128,
 'offset': 128,
-'sigma': [0.08],
+'sigma': [0.05],
 'err_sigma': 0.,
 }
 

@@ -83,6 +83,8 @@ and still get metrics.
 
 > building a robust simulator could be really useful.
 
+> when we bring back pe_sync, verify it works same as 6115-7.
+
 -------
 
 think just slowly work towards goals for paper

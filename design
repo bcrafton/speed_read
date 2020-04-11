@@ -1618,13 +1618,34 @@ there probs actually is an interconnect paper there.
 
 ------
 
+want to bring back PE synchonzation
+which sucks.
+bought back old pim.c file
+> we will want to verify we have same results as previous shit.
 
+want to give it similar code to current thing, but not sure best way to do it
 
+do we move over to blocks ? 
+well we need to return block level cycles i think.
+but no i think we shud keep D.
 
+> block = wl anyways.
 
+could we just build this into our current code ? 
+basically just sync everything at a PE ? 
+i think we cud but it might get ugly.
+and we have to standardize order of block map
 
+one of them goes 0000 1111 the other goes 0 1 2 3 
 
+i say we start with converting old one over.
+changing new one will suck because we will need to change block sync.
+to have 2 syncs instead of 1. 
 
+-----
+
+> https://github.com/bcrafton/speed_read/commit/cca4ca39087da40eaaad0af9a00e25aa53b77bb1#diff-54bb363844a887d2b67e2c8bd1b27cf6
+  > made these changes, seems like pim sync works.
 
 
 

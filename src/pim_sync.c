@@ -128,6 +128,7 @@ wl
 #define METRIC_ROFF  10
 #define METRIC_WL    11
 #define METRIC_STALL 12
+#define METRIC_BLOCK_CYCLE 13
 
 int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int adc, int skip, int R, int D, int C, int NWL, int NBL, int WL, int BL)
 {
@@ -136,7 +137,6 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
   // y = nrow, ncol
   
   // our arrays are sized for 128. need to increase.
-  // printf("%d %d %d\n", D, NWL * NBL, BL);
   assert ((D >= 1) && (NWL >= 1) && (NWL >= 1) && (BL >= 1));
   assert (D <= PE_SIZE);
   assert ((NWL * NBL) <= ARRAY_SIZE);
@@ -173,10 +173,6 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
   int next_r = D;
   
   while (!done) {
-    // array_sync = 0;
-    // clear_array(array_done);
-    // clear_array(wl_ptr);
-    // clear_array(xb);
 
     metrics[METRIC_CYCLE] += 1;
     // if there are more duplicates than rows, then I believe we hit this assert.
@@ -184,6 +180,7 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
 
     for (int d=0; d<D; d++) { 
       for (int wl=0; wl<NWL; wl++) {
+        // int block = d * NWL + wl;
         for (int bl=0; bl<NBL; bl++) {
 
           int array = wl * NBL + bl;
@@ -191,27 +188,15 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
             metrics[METRIC_STALL] += 1;
             continue;
           }
+          else { 
+            metrics[METRIC_BLOCK_CYCLE + wl] += 1;
+          }
           
           /////////////////////////////////////
 
-          int rpr_addr;
-          if (BL >= C) {
-            int x_addr = (xb[d][array] * 8);
-            int w_addr = ((bl + 1) * (BL / C)) - 1;
-            // for dense:
-            w_addr = min(w_addr, 7);
-            rpr_addr = x_addr + w_addr;
-          }
-          else {
-            rpr_addr = (xb[d][array] * 8) + (bl / (C / BL)); 
-          }
-          
-          int wbit = ((bl + 1) * (BL / C)) - 1;
-          
-          if (!((rpr_addr >= 0) && (rpr_addr < 64))) {
-            printf("xb: %d bl: %d BL: %d C: %d: rpr_addr: %d\n", xb[d][array], bl, BL, C, rpr_addr);
-            assert ((rpr_addr >= 0) && (rpr_addr < 64));
-          }
+          int x_addr = xb[d][array] * 8;
+          int w_addr = col[d][array];
+          int rpr_addr = x_addr + w_addr;
           int rpr = lut_rpr[rpr_addr];
           assert (rpr >= 1);
           
@@ -255,8 +240,8 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
 
           for (int adc_ptr=0; adc_ptr<BL; adc_ptr+=8) {
             int bl_ptr = adc_ptr + col[d][array];
-            int c = (bl_ptr + bl * BL) % C;
-            int wb = (bl_ptr + bl * BL) / C;
+            int c = (bl_ptr + bl * BL) / 8;
+            int wb = col[d][array];
 
             if (wb == 0) {
               y[r[d] * C + c] -= ((wl_sum[d][array] * 128) << xb[d][array]);
@@ -284,10 +269,6 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
           }
 
           int comps = min(wl_sum[d][array], min(rows, adc) - 1);
-          //if (!((comps >= 0) && (comps < adc))) {
-          //  printf("comps: %d wl_sum: %d rows: %d adc: %d\n", comps, wl_sum, rows, adc);
-          //  assert((comps >= 0) && (comps < adc));
-          //}
           metrics[comps] += BL;
           // assert(metrics[comps] < 1e9);
           metrics[METRIC_WL] += wl_sum[d][array];
@@ -295,8 +276,8 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
           if (wl_ptr[d][array] == WL) {
             for (int adc_ptr=0; adc_ptr<BL; adc_ptr+=8) {
               int bl_ptr = adc_ptr + col[d][array];
-              int c = (bl_ptr + bl * BL) % C;
-              int wb = (bl_ptr + bl * BL) / C;
+              int c = (bl_ptr + bl * BL) / 8;
+              int wb = col[d][array];
 
               if (wl_total[d][array]) {
                 float p = ((float) pdot_sum[d][array][bl_ptr]) / ((float) wl_total[d][array]);
@@ -360,9 +341,7 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
       } // for (int wl=0; wl<NWL; wl++) {
     } // for (int d=0; d<D; d++) { 
   } // while (!done) {
-    
-  // printf("%d: %d %d\n", NWL * NBL, metrics[METRIC_CYCLE], metrics[METRIC_STALL]);
-  
+
   return metrics[METRIC_CYCLE];  
 }
 

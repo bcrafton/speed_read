@@ -4,8 +4,12 @@ from conv_utils import *
 from scipy.stats import norm
 
 import ctypes
-lib = ctypes.cdll.LoadLibrary('./pim.so')
-lib.pim.restype = ctypes.c_int
+
+pim_lib = ctypes.cdll.LoadLibrary('./pim.so')
+pim_lib.pim.restype = ctypes.c_int
+
+pim_sync_lib = ctypes.cdll.LoadLibrary('./pim_sync.so')
+pim_sync_lib.pim.restype = ctypes.c_int
 
 ###########################
 
@@ -53,23 +57,46 @@ def pim(x, w, y_shape, lut_var, lut_rpr, alloc, params):
     
     ########
 
-    psum = lib.pim(
-    ctypes.c_void_p(x.ctypes.data), 
-    ctypes.c_void_p(w.ctypes.data), 
-    ctypes.c_void_p(y.ctypes.data), 
-    ctypes.c_void_p(lut_var.ctypes.data), 
-    ctypes.c_void_p(lut_rpr.ctypes.data), 
-    ctypes.c_void_p(metrics.ctypes.data), 
-    ctypes.c_void_p(block_map.ctypes.data), 
-    ctypes.c_int(params['adc']),
-    ctypes.c_int(params['skip']),
-    ctypes.c_int(nrow),
-    ctypes.c_int(nblock),
-    ctypes.c_int(ncol),
-    ctypes.c_int(nwl),
-    ctypes.c_int(nbl),
-    ctypes.c_int(wl),
-    ctypes.c_int(bl))
+    if params['alloc'] == 'block':
+        psum = pim_lib.pim(
+        ctypes.c_void_p(x.ctypes.data), 
+        ctypes.c_void_p(w.ctypes.data), 
+        ctypes.c_void_p(y.ctypes.data), 
+        ctypes.c_void_p(lut_var.ctypes.data), 
+        ctypes.c_void_p(lut_rpr.ctypes.data), 
+        ctypes.c_void_p(metrics.ctypes.data), 
+        ctypes.c_void_p(block_map.ctypes.data), 
+        ctypes.c_int(params['adc']),
+        ctypes.c_int(params['skip']),
+        ctypes.c_int(nrow),
+        ctypes.c_int(nblock),
+        ctypes.c_int(ncol),
+        ctypes.c_int(nwl),
+        ctypes.c_int(nbl),
+        ctypes.c_int(wl),
+        ctypes.c_int(bl))
+    
+    ########
+    
+    if params['alloc'] == 'layer':
+        psum = pim_sync_lib.pim(
+        ctypes.c_void_p(x.ctypes.data), 
+        ctypes.c_void_p(w.ctypes.data), 
+        ctypes.c_void_p(y.ctypes.data), 
+        ctypes.c_void_p(lut_var.ctypes.data), 
+        ctypes.c_void_p(lut_rpr.ctypes.data), 
+        ctypes.c_void_p(metrics.ctypes.data), 
+        ctypes.c_int(params['adc']),
+        ctypes.c_int(params['skip']),
+        ctypes.c_int(nrow),
+        ctypes.c_int(alloc),
+        ctypes.c_int(ncol),
+        ctypes.c_int(nwl),
+        ctypes.c_int(nbl),
+        ctypes.c_int(wl),
+        ctypes.c_int(bl))
+    
+    ########
     
     return y, metrics
     
