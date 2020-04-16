@@ -1647,6 +1647,33 @@ to have 2 syncs instead of 1.
 > https://github.com/bcrafton/speed_read/commit/cca4ca39087da40eaaad0af9a00e25aa53b77bb1#diff-54bb363844a887d2b67e2c8bd1b27cf6
   > made these changes, seems like pim sync works.
 
+-----
+
+looks like mobilenet is actually valid:
+> https://blog.tensorflow.org/2020/04/quantization-aware-training-with-tensorflow-model-optimization-toolkit.html
+
+-----
+
+https://www.tensorflow.org/model_optimization/guide/quantization/training
+https://www.tensorflow.org/model_optimization/guide/quantization/training_example
+
+https://www.tensorflow.org/lite/performance/post_training_quantization
+https://www.tensorflow.org/lite/performance/post_training_integer_quant
+
+want to just do post-training quantization
+they say:
+Symmetric, per-channel
+Asymmetric, per-channel
+
+i think assymetric means they shift the mean over
+and 
+then per channel, means each channel gets its own zero-point... not each tensor.
+
+> https://www.tensorflow.org/lite/performance/quantization_spec
+> Per-axis vs per-tensor
+
+-----
+
 
 
 
