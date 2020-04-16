@@ -64,14 +64,14 @@ param_sweep = {
 'adc': 8,
 'adc_mux': 8,
 'skip': [1],
-'cards': [0],
+'cards': [0, 1],
 'alloc': ['block', 'layer'],
-'profile': [1],
+'profile': [0, 1],
 'stall': 0,
 'wl': 128,
 'bl': 128,
 'offset': 128,
-'sigma': [0.05],
+'sigma': [0.08], # seems like you gotta change e_mu based on this.
 'err_sigma': 0.,
 }
 

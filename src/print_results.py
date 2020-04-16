@@ -96,18 +96,27 @@ for key in sorted(results.keys()):
 
 print ('mean')
 # print (np.around(y_mean[0, 0],  3))
-print (np.around(y_mean[1, 0],  3))
+# print (np.around(y_mean[1, 0],  3))
 # print (np.around(y_mean[1, 1],  3))
+print (np.around(y_mean, 3))
 
 print ('std')
 # print (np.around(y_std[0, 0],  3))
-print (np.around(y_std[1, 0],  3))
+# print (np.around(y_std[1, 0],  3))
 # print (np.around(y_std[1, 1],  3))
+print (np.around(y_std, 3))
 
 print ('mac / cycle')
 # print (np.around(y_mac_per_cycle[0, 0], 1))
-print (np.around(y_mac_per_cycle[1, 0], 1))
+# print (np.around(y_mac_per_cycle[1, 0], 1))
 # print (np.around(y_mac_per_cycle[1, 1], 1))
+print (np.around(y_mac_per_cycle, 1))
+
+print ('cycle')
+# print (np.around(y_mac_per_cycle[0, 0], 1))
+# print (np.around(y_mac_per_cycle[1, 0], 1))
+# print (np.around(y_mac_per_cycle[1, 1], 1))
+print (np.around(cycle, 1))
 
 ####################
 
