@@ -147,8 +147,8 @@ class Conv(Layer):
         self.p1 = pad1
         self.p2 = pad2
 
-        assert (self.s == 1)
-        self.nmac = (self.fh * self.fw * self.fc * self.fn) * (self.xh * self.xw)
+        assert (self.s == 1 or self.p == 1)
+        self.nmac = (self.fh * self.fw * self.fc * self.fn) * (self.xh * self.xw) // (self.s ** 2)
 
         maxval = pow(2, params['bpw'] - 1)
         minval = -1 * maxval
@@ -158,19 +158,19 @@ class Conv(Layer):
             self.b = np.zeros(shape=self.fn).astype(int)
             self.q = 200
         else:
-            self.w, self.b, self.q = weights['f'], weights['b'], weights['q']
+            self.w, self.b, self.q = weights['f'], weights['b'], weights['y']
             assert (np.all(self.w >= minval))
             assert (np.all(self.w <= maxval))
             # check shape
             assert(np.shape(self.w) == self.filter_size)
             assert(np.shape(self.b) == (self.fn,))
-            assert(np.shape(self.q) == ())
+            assert(np.shape(self.q) == (self.fn,))
             # cast as int
             self.w = self.w.astype(int)
             self.b = self.b.astype(int)
-            self.q = int(self.q)
+            self.q = self.q.astype(int)
             # q must be larger than 0
-            assert(self.q > 0)
+            # assert(self.q > 0)
         
         #########################
 
@@ -214,12 +214,11 @@ class Conv(Layer):
         y_max = np.max(y - y_ref)
         y_mean = np.mean(y - y_ref)
         y_std = np.std(y - y_ref)
-        assert (self.s == 1)
-        nmac = (self.xh * self.xw) * (self.fh * self.fw * self.fc * self.fn)
+        # assert (self.s == 1)
         
         # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
         results = {}
-        results['nmac']  = nmac
+        results['nmac']  = self.nmac
         results['adc']   = metrics[0:8]
         results['cycle'] = metrics[8]
         results['ron']   = metrics[9]

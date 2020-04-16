@@ -87,8 +87,11 @@ and still get metrics.
 
 -------
 
-think just slowly work towards goals for paper
-making other tasks priority.
+ResNet18
+> tb_resnet.py
+> load imagenet data samples ~5 from validation set.
+> need to support negative weights
+> need to write code for residual blocks.
 
 
 

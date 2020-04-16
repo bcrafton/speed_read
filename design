@@ -1684,6 +1684,40 @@ now we need to build resnet in the simulator.
 
 -----
 
+so we can support negative activation values
+or we can change ResNet.
+it looks like it might be more beneficial to change ResNet. 
+
+but at the same time, isnt negative activation values something we want to support ? 
+its pretty fundamental ...
+
+-----
+
+lets change ResNet first.
+what does this require ? 
+
+well it dosnt look like we are using quantized ResNet, just original ResNet.
+dont think that part would matter so much really if we are changing the inputs anyways.
+
+so we will need to get these weights to laptop
+then run our activation fixer to make shit work.
+
+-----
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
