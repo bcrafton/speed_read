@@ -343,9 +343,64 @@ class Conv(Layer):
         
 #########################
 
+class res_block1(layer):
+    def __init__(self, f1, f2, s, weights=None):
+    
+        self.f1 = f1
+        self.f2 = f2
+        self.s = s
 
+        if weights:
+            self.conv1 = conv_block((3, 3, f1, f2), s, weights=weights)
+            self.conv2 = conv_block((3, 3, f2, f2), 1, weights=weights, relu=False)
+        else:
+            self.conv1 = conv_block((3, 3, f1, f2), s, weights=None)
+            self.conv2 = conv_block((3, 3, f2, f2), 1, weights=None, relu=False)
 
+    def forward(self, x, scale, ymax, nlayer):
+        y1 = self.conv1.train(x)
+        y2 = self.conv2.train(y1)        
+        y3 = relu(y2 + x)
+        return y3
 
+    def set_block_alloc(self, block_alloc):
+        pass
+
+    def set_layer_alloc(self, layer_alloc):
+        pass
+        
+#############
+
+class res_block2(layer):
+    def __init__(self, f1, f2, s, weights=None):
+
+        self.f1 = f1
+        self.f2 = f2
+        self.s = s
+        
+        if weights:
+            self.conv1 = conv_block((3, 3, f1, f2), p, noise=None, weights=weights)
+            self.conv2 = conv_block((3, 3, f2, f2), 1, noise=None, weights=weights, relu=False)
+            self.conv3 = conv_block((1, 1, f1, f2), p, noise=None, weights=weights, relu=False)
+        else:
+            self.conv1 = conv_block((3, 3, f1, f2), p, noise=None, weights=None)
+            self.conv2 = conv_block((3, 3, f2, f2), 1, noise=None, weights=None, relu=False)
+            self.conv3 = conv_block((1, 1, f1, f2), p, noise=None, weights=None, relu=False)
+
+    def forward(self, x):
+        y1 = self.conv1.forward(x)
+        y2 = self.conv2.forward(y1)
+        y3 = self.conv3.forward(x)
+        y4 = relu(y2 + y3)
+        return y4 
+
+    def set_block_alloc(self, block_alloc):
+        pass
+
+    def set_layer_alloc(self, layer_alloc):
+        pass
+
+#############
 
 
 
