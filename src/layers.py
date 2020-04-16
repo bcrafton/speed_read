@@ -129,7 +129,7 @@ class Layer:
 #########################
 
 class Conv(Layer):
-    def __init__(self, input_size, filter_size, pool, stride, pad1, pad2, params, weights=None):
+    def __init__(self, input_size, filter_size, pool, stride, pad1, pad2, params, weights, relu=True):
         self.layer_id = Layer.layer_id
         Layer.layer_id += 1
 
@@ -146,31 +146,27 @@ class Conv(Layer):
         self.s = stride
         self.p1 = pad1
         self.p2 = pad2
+        self.relu = relu
 
         assert (self.s == 1 or self.p == 1)
         self.nmac = (self.fh * self.fw * self.fc * self.fn) * (self.xh * self.xw) // (self.s ** 2)
 
         maxval = pow(2, params['bpw'] - 1)
         minval = -1 * maxval
-        if weights == None:
-            values = np.array(range(minval + 1, maxval))
-            self.w = np.random.choice(a=values, size=self.filter_size, replace=True).astype(int)
-            self.b = np.zeros(shape=self.fn).astype(int)
-            self.q = 200
-        else:
-            self.w, self.b, self.q = weights['f'], weights['b'], weights['y']
-            assert (np.all(self.w >= minval))
-            assert (np.all(self.w <= maxval))
-            # check shape
-            assert(np.shape(self.w) == self.filter_size)
-            assert(np.shape(self.b) == (self.fn,))
-            assert(np.shape(self.q) == (self.fn,))
-            # cast as int
-            self.w = self.w.astype(int)
-            self.b = self.b.astype(int)
-            self.q = self.q.astype(int)
-            # q must be larger than 0
-            # assert(self.q > 0)
+
+        self.w, self.b, self.q = weights[self.layer_id]['f'], weights[self.layer_id]['b'], weights[self.layer_id]['y']
+        assert (np.all(self.w >= minval))
+        assert (np.all(self.w <= maxval))
+        # check shape
+        assert(np.shape(self.w) == self.filter_size)
+        assert(np.shape(self.b) == (self.fn,))
+        assert(np.shape(self.q) == ())
+        # cast as int
+        self.w = self.w.astype(int)
+        self.b = self.b.astype(int)
+        self.q = self.q.astype(int)
+        # q must be larger than 0
+        # assert(self.q > 0)
         
         #########################
 
@@ -291,7 +287,8 @@ class Conv(Layer):
         y = np.reshape(y, (yh, yw, self.fn))
         
         assert(np.all(np.absolute(y) < 2 ** 23))
-        y = relu(y)
+        if self.relu:
+            y = relu(y)
         y = avg_pool(y, self.p)
         y = y / self.q
         y = np.floor(y)
@@ -343,23 +340,28 @@ class Conv(Layer):
         
 #########################
 
-class res_block1(layer):
-    def __init__(self, f1, f2, s, weights=None):
-    
-        self.f1 = f1
-        self.f2 = f2
-        self.s = s
+class Block1(Layer):
+    def __init__(self, input_size, filter_size, stride, params, weights):
+        self.layer_id = Layer.layer_id
+        Layer.layer_id += 1
+        
+        self.input_size = input_size
+        self.f1, self.f2 = filter_size
+        self.s = stride
+        
+        self.params = params.copy()
+        self.params['var'] = lut_var(params['sigma'], 32)
 
-        if weights:
-            self.conv1 = conv_block((3, 3, f1, f2), s, weights=weights)
-            self.conv2 = conv_block((3, 3, f2, f2), 1, weights=weights, relu=False)
-        else:
-            self.conv1 = conv_block((3, 3, f1, f2), s, weights=None)
-            self.conv2 = conv_block((3, 3, f2, f2), 1, weights=None, relu=False)
+        input_size1 = input_size
+        input_size2 = (input_size1[0] // stride, input_size1[1] // stride, input_size1[2])
 
-    def forward(self, x, scale, ymax, nlayer):
-        y1 = self.conv1.train(x)
-        y2 = self.conv2.train(y1)        
+        # Conv(input_size=(224, 224, 3), filter_size=(7,7,3,64), pool=1, stride=2, pad1=3, pad2=3, params=params, weights=weights[0]),
+        self.conv1 = Conv(input_size1, (3,3,self.f1,self.f2), 1, stride, pad1=1, pad2=1, params=params, weights=weights)
+        self.conv2 = Conv(input_size2, (3,3,self.f2,self.f2), 1, 1,      pad1=1, pad2=1, params=params, weights=weights, relu=False)
+
+    def forward(self, x):
+        y1 = self.conv1.forward(x)
+        y2 = self.conv2.forward(y1)        
         y3 = relu(y2 + x)
         return y3
 
@@ -370,7 +372,7 @@ class res_block1(layer):
         pass
         
 #############
-
+'''
 class res_block2(layer):
     def __init__(self, f1, f2, s, weights=None):
 
@@ -399,12 +401,29 @@ class res_block2(layer):
 
     def set_layer_alloc(self, layer_alloc):
         pass
-
+'''
 #############
 
+class MaxPool(Layer):
+    def __init__(self, input_size, kernel_size, stride, params, weights):
+        self.layer_id = Layer.layer_id
+        Layer.layer_id += 1
+        
+        self.input_size = input_size
+        self.k = kernel_size
+        self.s = stride
 
+    def forward(self, x):
+        y = avg_pool(x, self.k)
+        return y
 
+    def set_block_alloc(self, block_alloc):
+        pass
 
+    def set_layer_alloc(self, layer_alloc):
+        pass
+
+#############
 
 
 
