@@ -1674,8 +1674,15 @@ then per channel, means each channel gets its own zero-point... not each tensor.
 
 -----
 
+okay we finally have our resnet weights
+now we need to build resnet in the simulator.
 
+> tb_resnet.py
+> load imagenet data samples ~5 from validation set.
+> need to support negative weights
+> need to write code for residual blocks.
 
+-----
 
 
 
