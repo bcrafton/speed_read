@@ -185,7 +185,7 @@ class Conv(Layer):
         y_std = np.std(y - y_ref)
         # assert (self.s == 1)
         
-        print ('y_mean', y_mean, 'y_std', y_std)
+        # print ('y_mean', y_mean, 'y_std', y_std)
         
         # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
         results = {}
@@ -206,11 +206,11 @@ class Conv(Layer):
         
         if self.params['alloc'] == 'block': 
             results['array'] = np.sum(self.block_alloc) * nbl
-            print ('alloc: %d nmac %d cycle: %d stall: %d' % (nbl * np.sum(self.block_alloc), results['nmac'], results['cycle'], results['stall']))
+            print ('alloc: %d*%d=%d nmac %d cycle: %d stall: %d' % (np.sum(self.block_alloc), nbl, nbl * np.sum(self.block_alloc), results['nmac'], results['cycle'], results['stall']))
                     
         elif self.params['alloc'] == 'layer': 
             results['array'] = self.layer_alloc * nwl * nbl
-            print ('alloc: %d nmac %d cycle: %d stall: %d' % (nwl * nbl * self.layer_alloc, results['nmac'], results['cycle'], results['stall']))
+            print ('alloc: %d*%d=%d nmac %d cycle: %d stall: %d' % (self.layer_alloc, nwl * nbl, nwl * nbl * self.layer_alloc, results['nmac'], results['cycle'], results['stall']))
 
         ########################
 
