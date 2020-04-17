@@ -44,7 +44,7 @@ class Model:
             pred[example] = x[example]
             for layer in range(num_layers):
                 pred[example], result = self.layers[layer].forward(x=pred[example])
-                assert ((pred[example] % 1) == 0)
+                assert (np.all((pred[example] % 1) == 0))
                 for r in result:
                     results[r['id']].append(r)
 
