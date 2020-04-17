@@ -17,8 +17,8 @@
 
 // make sure (bl <= 1024), malloc would be too slow.
 // if we just pick a size large enough we will be okay
-#define VECTOR_SIZE 256
-#define ARRAY_SIZE 32
+#define VECTOR_SIZE 512
+#define ARRAY_SIZE 64
 #define BLOCK_SIZE 1024
 
 //////////////////////////////////////////////

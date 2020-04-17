@@ -18,7 +18,7 @@
 // make sure (bl <= 1024), malloc would be too slow.
 // if we just pick a size large enough we will be okay
 #define VECTOR_SIZE 256
-#define ARRAY_SIZE 512
+#define ARRAY_SIZE 1024
 #define PE_SIZE 256
 // int pdot[PE_SIZE][ARRAY_SIZE][VECTOR_SIZE]; 
 // is too large, we had to allocate using malloc.

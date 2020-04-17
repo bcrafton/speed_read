@@ -128,6 +128,14 @@ def create_model(weights, params):
     
     Block2(input_size=(56, 56, 64),  filter_size=(64,  128), stride=2, params=params, weights=weights),
     Block1(input_size=(28, 28, 128), filter_size=(128, 128), stride=1, params=params, weights=weights),
+    
+    Block2(input_size=(28, 28, 128), filter_size=(128, 256), stride=2, params=params, weights=weights),
+    Block1(input_size=(14, 14, 256), filter_size=(256, 256), stride=1, params=params, weights=weights),
+    
+    Block2(input_size=(14, 14, 256), filter_size=(256, 512), stride=2, params=params, weights=weights),
+    Block1(input_size=(  7, 7, 512), filter_size=(512, 512), stride=1, params=params, weights=weights),
+    
+    MaxPool(input_size=(7, 7, 512), kernel_size=7, stride=7, params=params, weights=weights),
     ]
 
     model = Model(layers=layers, params=params)

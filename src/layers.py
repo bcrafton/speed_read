@@ -57,8 +57,8 @@ class Model:
             nmac[weight] = self.weights[weight].nmac
             factor[weight] = self.weights[weight].factor
                 
-        alloc = branch_and_bound(4096, nmac, factor, self.mac_per_array_layer, self.params)
-        assert (np.sum(alloc) <= 4096)
+        alloc = branch_and_bound(2 ** 14, nmac, factor, self.mac_per_array_layer, self.params)
+        assert (np.sum(alloc) <= 2 ** 14)
 
         for weight in range(len(self.weights)):
             layer_alloc = alloc[weight] // self.weights[weight].factor
