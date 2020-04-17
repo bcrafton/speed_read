@@ -31,7 +31,23 @@ class Model:
         self.set_layer_alloc()
 
     def profile(self, x):
-        pass
+        num_examples, _, _, _ = np.shape(x)
+        num_layers = len(self.layers)
+
+        pred = [None] * num_examples
+        results = {}
+
+        mac_per_array_layer = np.zeros(shape=(num_examples, self.nweight))
+        for example in range(num_examples):
+            pred[example] = x[example]
+            for layer in range(num_layers):
+                pred[example], result = self.layers[layer].forward(x=pred[example])
+                assert (np.all((pred[example] % 1) == 0))
+                for r in result:
+                    mac_per_array_layer[example][r['id']] = (r['nmac'] / self.weights[r['id']].factor) / (r['cycle'] * self.weights[r['id']].layer_alloc)
+
+        self.mac_per_array_layer = np.mean(mac_per_array_layer, axis=0)
+        self.set_layer_alloc()
 
     def forward(self, x, y):
         num_examples, _, _, _ = np.shape(x)
@@ -59,6 +75,8 @@ class Model:
                 
         alloc = branch_and_bound(2 ** 14, nmac, factor, self.mac_per_array_layer, self.params)
         assert (np.sum(alloc) <= 2 ** 14)
+        # assert (np.sum(alloc) == 2 ** 14)
+        print ("%d / %d" % (np.sum(alloc), 2 ** 14))
 
         for weight in range(len(self.weights)):
             layer_alloc = alloc[weight] // self.weights[weight].factor
@@ -167,10 +185,7 @@ class Conv(Layer):
         y_std = np.std(y - y_ref)
         # assert (self.s == 1)
         
-        print ('y_mean', y_mean)
-        print ('y_std', y_std)
-        # idx = np.where(np.absolute(y - y_ref) > 0)
-        # print (y[idx], y_ref[idx])
+        print ('y_mean', y_mean, 'y_std', y_std)
         
         # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
         results = {}
@@ -341,7 +356,7 @@ class Block1(Layer):
     def forward(self, x):
         y1, r1 = self.conv1.forward(x)
         y2, r2 = self.conv2.forward(y1)        
-        y3 = relu(y2 + x)
+        y3 = relu(x + y2)
         
         result = []
         result.extend(r1)

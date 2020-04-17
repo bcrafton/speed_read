@@ -17,11 +17,13 @@
 
 // make sure (bl <= 1024), malloc would be too slow.
 // if we just pick a size large enough we will be okay
-#define VECTOR_SIZE 256
-#define ARRAY_SIZE 1024
-#define PE_SIZE 256
+#define VECTOR_SIZE 128 // bl per array 
+#define ARRAY_SIZE 1152 // 36 * 32
+#define PE_SIZE 784 // duplicate
 // int pdot[PE_SIZE][ARRAY_SIZE][VECTOR_SIZE]; 
 // is too large, we had to allocate using malloc.
+
+//////////////////////////////////////////////
 
 void clear_vector(int* v)
 {
@@ -32,6 +34,21 @@ void clear_array(int* a)
 {
   memset(a, 0, sizeof(int) * ARRAY_SIZE);
 }
+
+//////////////////////////////////////////////
+
+void free3D(int*** array)
+{
+  for (int i=0; i<PE_SIZE; i++) {
+    for (int j=0; j<ARRAY_SIZE; j++) {
+      free(array[i][j]);
+    }
+    free(array[i]);
+  }
+  free(array);
+}
+
+//////////////////////////////////////////////
 
 int** array2D()
 {
@@ -136,12 +153,16 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
   // f = nwl, wl, nbl, bl
   // y = nrow, ncol
   
+  printf("%d %d | %d\n", NWL, NBL, ARRAY_SIZE);
+  printf("%d | %d\n", BL, VECTOR_SIZE);
+  printf("%d | %d\n", D, PE_SIZE);
+  
   // our arrays are sized for 128. need to increase.
   assert ((D >= 1) && (NWL >= 1) && (NWL >= 1) && (BL >= 1));
   assert (D <= PE_SIZE);
   assert ((NWL * NBL) <= ARRAY_SIZE);
   assert (BL <= VECTOR_SIZE);
-  
+    
   int done = 0;
     
   int dup_done[PE_SIZE];
@@ -341,6 +362,10 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
       } // for (int wl=0; wl<NWL; wl++) {
     } // for (int d=0; d<D; d++) { 
   } // while (!done) {
+
+  free3D(pdot);
+  free3D(pdot_sum);
+  free3D(sat);
 
   return metrics[METRIC_CYCLE];  
 }
