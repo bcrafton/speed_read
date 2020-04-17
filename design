@@ -1704,13 +1704,36 @@ then run our activation fixer to make shit work.
 
 -----
 
-absolutely think quantize functions have been broken.
+now we need to figure out 
+how to do allocation and stuff with zero weight layers. 
 
+wow this is a giant pain in the ass now
+probably shud re-write this setup
 
+was thinking about creating:
+> operations
+> layers
 
+to simplify things
+but we need output of convolutions, to be relu'd.
+becuase that is what matters for mse.
 
+do we tho ? 
+we dont really have a good hold on mse ~ acc
+also we dont really know what thresh will result in what.
 
+-----
 
+DONT OVER DESIGN YET:
+i wudnt over design this right now, dont know what lies ahead.
+and the correct structure will be way more clear then.
+
+-----
+
+> figure out how to check (y - y_ref).
+
+want to add tensorflow activations to that .npy file
+will give us better solution.
 
 
 

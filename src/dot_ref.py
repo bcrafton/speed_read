@@ -6,7 +6,7 @@ from scipy.stats import norm, binom
 
 ##################################################
 
-def conv_ref(x, f, b, q, pool, stride, pad1, pad2):
+def conv_ref(x, f, b, q, pool, stride, pad1, pad2, relu_flag):
     Hi, Wi, Ci = np.shape(x)
     Fh, Fw, _, Co = np.shape(f)
     Ho = conv_output_length(Hi, Fh, 'same', stride)
@@ -20,12 +20,16 @@ def conv_ref(x, f, b, q, pool, stride, pad1, pad2):
         for w in range(Wo):
             patch = np.reshape(x[h*stride:(h*stride+Fh), w*stride:(w*stride+Fw), :], -1)
             assert(np.prod(np.shape(patch)) == np.shape(f_matrix)[0])
-            y[h, w, :] = relu(patch @ f_matrix)
+            y[h, w, :] = patch @ f_matrix
 
+    '''
+    if relu_flag:
+        y = relu(y)
     y = avg_pool(y, pool)
     y = y / q
     y = np.floor(y)
     y = np.clip(y, -128, 127)
+    '''
     
     return y
 
