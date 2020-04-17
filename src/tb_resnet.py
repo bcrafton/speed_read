@@ -70,7 +70,7 @@ param_sweep = {
 'skip': [1],
 'cards': [0],
 'alloc': ['layer', 'block'],
-'profile': [1],
+'profile': [0, 1],
 'stall': 0,
 'wl': 128,
 'bl': 128,

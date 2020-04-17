@@ -19,7 +19,7 @@ def merge_dicts(list_of_dicts):
 
 comp_pJ = 22. * 1e-12 / 32. / 16.
 
-num_layers = 6
+num_layers = 20
 num_comparator = 8
 results = np.load('results.npy', allow_pickle=True).item()
 
@@ -96,7 +96,7 @@ for key in sorted(results.keys()):
 
 ####################
 
-layers      = np.array(range(1, 6+1))
+layers      = np.array(range(1, num_layers+1))
 
 skip_none  = np.around(cycle[1, 0, 0, 0],  3)
 skip_layer  = np.around(cycle[1, 0, 0, 1],  3)
@@ -108,7 +108,7 @@ cards_block = np.around(cycle[1, 1, 1, 1],  3)
 
 ####################
 
-plt.rcParams.update({'font.size': 18})
+plt.rcParams.update({'font.size': 10})
 
 ####################
 
@@ -126,8 +126,13 @@ plt.bar(x=layers + width, height=skip_block,  width=width, label='block-wise', c
 
 plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc='lower left', ncol=2, mode="expand", borderaxespad=0.)
 
+plt.plot([0., 20.], [np.max(skip_none),  np.max(skip_none)],  "k--", color='silver')
+plt.plot([0., 20.], [np.max(skip_layer), np.max(skip_layer)], "k--", color='royalblue')
+plt.plot([0., 20.], [np.max(skip_block), np.max(skip_block)], "k--", color='black')
+plt.xticks(layers)
+
 fig = plt.gcf()
-fig.set_size_inches(9, 9)
+# fig.set_size_inches(9, 9)
 # plt.tight_layout()
 fig.savefig('skip-cycles.png', dpi=300)
 

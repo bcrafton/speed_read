@@ -20,6 +20,12 @@ def merge_dicts(list_of_dicts):
 num_layers = 20
 results = np.load('results.npy', allow_pickle=True).item()
 
+y_mean  = np.zeros(shape=(2, 2, 2, num_layers))
+y_std   = np.zeros(shape=(2, 2, 2, num_layers))
+y_cycle = np.zeros(shape=(2, 2, 2, num_layers))
+y_stall = np.zeros(shape=(2, 2, 2, num_layers))
+y_array = np.zeros(shape=(2, 2, 2, num_layers))
+
 for key in sorted(results.keys()):
     print (key)
 
@@ -33,23 +39,17 @@ for key in sorted(results.keys()):
         
         ############################
         
-        y_mean  = np.mean(rdict['mean'])
-        y_std   = np.mean(rdict['std'])
-        y_cycle = np.mean(rdict['cycle'])
-        y_stall = np.mean(rdict['stall'])
-        y_array = np.mean(rdict['array'])
-        
-        ############################
-
-        print ('mean', y_mean)
-        print ('std', y_std)
-        print ('cycles', y_cycle)
-        print ('---')
+        y_mean[skip][cards][alloc][layer]  = np.mean(rdict['mean'])
+        y_std[skip][cards][alloc][layer]   = np.mean(rdict['std'])
+        y_cycle[skip][cards][alloc][layer] = np.mean(rdict['cycle'])
+        y_stall[skip][cards][alloc][layer] = np.mean(rdict['stall'])
+        y_array[skip][cards][alloc][layer] = np.mean(rdict['array'])
 
         ############################
 
-
-
+print (y_cycle)
+print (y_std)
+print (y_mean)
 
 
 
