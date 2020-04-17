@@ -17,9 +17,9 @@
 
 // make sure (bl <= 1024), malloc would be too slow.
 // if we just pick a size large enough we will be okay
-#define VECTOR_SIZE 512
-#define ARRAY_SIZE 64
-#define BLOCK_SIZE 1024
+#define VECTOR_SIZE 128 // number bl per array
+#define ARRAY_SIZE 32 // 512 / 16 = 32
+#define BLOCK_SIZE 1024 // number of blocks 
 
 //////////////////////////////////////////////
 
@@ -36,6 +36,19 @@ void clear_array(int* a)
 void clear_block(int* a)
 {
   memset(a, 0, sizeof(int) * BLOCK_SIZE);
+}
+
+//////////////////////////////////////////////
+
+void free3D(int*** array)
+{
+  for (int i=0; i<BLOCK_SIZE; i++) {
+    for (int j=0; j<ARRAY_SIZE; j++) {
+      free(array[i][j]);
+    }
+    free(array[i]);
+  }
+  free(array);
 }
 
 //////////////////////////////////////////////
@@ -360,6 +373,10 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int* b
       } // for (int bl=0; bl<NBL; bl++) {
     } // for (int b=0; b<B; b++) {
   } // while (!done) {
+
+  free3D(pdot);
+  free3D(pdot_sum);
+  free3D(sat);
 
   return metrics[METRIC_CYCLE];  
 }

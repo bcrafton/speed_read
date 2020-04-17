@@ -69,7 +69,7 @@ param_sweep = {
 'adc_mux': 8,
 'skip': [1],
 'cards': [0],
-'alloc': ['layer'],
+'alloc': ['block'],
 'profile': [1],
 'stall': 0,
 'wl': 128,

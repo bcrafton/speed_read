@@ -21,14 +21,23 @@ class Model:
         self.layers = layers
         self.params = params
 
-        self.weights = []        
         self.nlayer = len(self.layers)
+
+        self.weights = []
         for layer in self.layers:
             self.weights.extend(layer.weights())
         self.nweight = len(self.weights)
 
+        self.nblock = 0
+        for weight in self.weights:
+            self.nblock += weight.nwl
+
         self.mac_per_array_layer = [2.] * self.nweight
         self.set_layer_alloc()
+        
+        print ('nblock', self.nblock)
+        self.mac_per_array_block = [2.] * self.nblock
+        self.set_block_alloc()
 
     def profile(self, x):
         num_examples, _, _, _ = np.shape(x)
@@ -81,6 +90,27 @@ class Model:
         for weight in range(len(self.weights)):
             layer_alloc = alloc[weight] // self.weights[weight].factor
             self.weights[weight].set_layer_alloc(layer_alloc)
+
+    def set_block_alloc(self):
+        nmac = np.zeros(shape=self.nblock, dtype=np.int32)
+        factor = np.zeros(shape=self.nblock, dtype=np.int32)
+        block = 0
+        for weight in range(self.nweight):
+            nwl, _, nbl, _ = np.shape(self.weights[weight].wb) 
+            for wl in range(nwl):
+                nmac[block] = self.weights[weight].nmac // nwl
+                factor[block] = nbl
+                block += 1
+                
+        alloc = branch_and_bound(2 ** 14, nmac, factor, self.mac_per_array_block, self.params)
+        assert (np.sum(alloc) <= 2 ** 14)
+
+        block1 = 0
+        for weight in range(self.nweight):
+            block2 = block1 + self.weights[weight].nwl
+            block_alloc = np.array(alloc[block1:block2]) // self.weights[weight].nbl
+            self.weights[weight].set_block_alloc(block_alloc)
+            block1 = block2
 
 #########################
 
