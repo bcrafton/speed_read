@@ -28,8 +28,10 @@ class Model:
             self.weights.extend(layer.weights())
         self.nweight = len(self.weights)
 
+        self.block_map = []
         self.nblock = 0
-        for weight in self.weights:
+        for w, weight in enumerate(self.weights):
+            self.block_map.append(slice(self.nblock, self.nblock + weight.nwl))
             self.nblock += weight.nwl
 
         self.mac_per_array_layer = [2.] * self.nweight
@@ -47,6 +49,8 @@ class Model:
         results = {}
 
         mac_per_array_layer = np.zeros(shape=(num_examples, self.nweight))
+        mac_per_array_block = np.zeros(shape=(num_examples, self.nblock))
+        
         for example in range(num_examples):
             pred[example] = x[example]
             for layer in range(num_layers):
@@ -54,9 +58,15 @@ class Model:
                 assert (np.all((pred[example] % 1) == 0))
                 for r in result:
                     mac_per_array_layer[example][r['id']] = (r['nmac'] / self.weights[r['id']].factor) / (r['cycle'] * self.weights[r['id']].layer_alloc)
-
+                    mac_per_array_block[example][self.block_map[r['id']]] = (r['nmac'] / self.weights[r['id']].factor) / (r['block_cycle'])
+                    
         self.mac_per_array_layer = np.mean(mac_per_array_layer, axis=0)
-        self.set_layer_alloc()
+        self.mac_per_array_block = np.mean(mac_per_array_block, axis=0)
+        
+        if self.params['alloc'] == 'layer': 
+            self.set_layer_alloc() # block alloc was failing when layer was selected, this is a bandaid.
+        else:
+            self.set_block_alloc()
 
     def forward(self, x, y):
         num_examples, _, _, _ = np.shape(x)

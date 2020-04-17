@@ -17,7 +17,7 @@ def merge_dicts(list_of_dicts):
 
 ####################
 
-num_layers = 1
+num_layers = 20
 results = np.load('results.npy', allow_pickle=True).item()
 
 for key in sorted(results.keys()):
@@ -44,6 +44,7 @@ for key in sorted(results.keys()):
         print ('mean', y_mean)
         print ('std', y_std)
         print ('cycles', y_cycle)
+        print ('---')
 
         ############################
 
