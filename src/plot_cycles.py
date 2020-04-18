@@ -41,6 +41,7 @@ y_energy = np.zeros(shape=(2, 2, 2, 2, num_layers))
 array_util = np.zeros(shape=(2, 2, 2, 2, num_layers))
 
 for key in sorted(results.keys()):
+    print (key)
     (skip, cards, alloc, profile) = key
     alloc = 1 if alloc == 'block' else 0
     layer_results = results[key]
@@ -120,9 +121,9 @@ plt.ylabel('# Cycles')
 plt.xlabel('Layer #')
 
 width = 0.2
-plt.bar(x=layers - width, height=skip_none,   width=width, label='no profile', color='silver')
-plt.bar(x=layers,         height=skip_layer,  width=width, label='layer-wise', color='royalblue')
-plt.bar(x=layers + width, height=skip_block,  width=width, label='block-wise', color='black')
+plt.bar(x=layers - width, height=skip_none,   width=width, label='weight-based', color='silver')
+plt.bar(x=layers,         height=skip_layer,  width=width, label='performance-based layer-wise', color='royalblue')
+plt.bar(x=layers + width, height=skip_block,  width=width, label='performance-based block-wise', color='black')
 
 plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc='lower left', ncol=2, mode="expand", borderaxespad=0.)
 
@@ -146,14 +147,19 @@ plt.ylabel('# Cycles')
 plt.xlabel('Layer #')
 
 width = 0.2
-plt.bar(x=layers - width, height=cards_none,   width=width, label='no profile', color='silver')
-plt.bar(x=layers,         height=cards_layer,  width=width, label='layer-wise', color='royalblue')
-plt.bar(x=layers + width, height=cards_block,  width=width, label='block-wise', color='black')
+plt.bar(x=layers - width, height=cards_none,   width=width, label='weight-based ', color='silver')
+plt.bar(x=layers,         height=cards_layer,  width=width, label='performance-based layer-wise', color='royalblue')
+plt.bar(x=layers + width, height=cards_block,  width=width, label='performance-based block-wise', color='black')
 
 plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc='lower left', ncol=2, mode="expand", borderaxespad=0.)
 
+plt.plot([0., 20.], [np.max(cards_none),  np.max(cards_none)],  "k--", color='silver')
+plt.plot([0., 20.], [np.max(cards_layer), np.max(cards_layer)], "k--", color='royalblue')
+plt.plot([0., 20.], [np.max(cards_block), np.max(cards_block)], "k--", color='black')
+plt.xticks(layers)
+
 fig = plt.gcf()
-fig.set_size_inches(9, 9)
+# fig.set_size_inches(9, 9)
 # plt.tight_layout()
 fig.savefig('cards-cycles.png', dpi=300)
 
