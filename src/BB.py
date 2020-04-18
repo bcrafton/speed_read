@@ -92,11 +92,21 @@ def branch_and_bound(narray, nmac, factor, mac_per_array, params):
             new_bounds = []
             for new_branch in new_branches:
                 new_bounds.append(new_branch.bound())
-            
             new_bounds = np.array(new_bounds)
-            order = np.argsort(new_bounds)[0:25]
-            new_branches = [new_branches[i] for i in order]
-            
+            order1 = np.argsort(new_bounds)[0:25]
+            new_branches1 = [new_branches[i] for i in order1]
+
+            new_values = []
+            for new_branch in new_branches:
+                new_values.append(new_branch.value())
+            new_values = np.array(new_values)
+            order2 = np.argsort(new_values)[0:25]
+            new_branches2 = [new_branches[i] for i in order2]
+
+            new_branches = []
+            new_branches.extend(new_branches1)
+            new_branches.extend(new_branches2)
+
         return new_branches
 
     ################################

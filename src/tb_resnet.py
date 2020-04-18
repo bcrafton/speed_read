@@ -32,6 +32,7 @@ def init_x(num_example):
     xs, ys = dataset['x'], dataset['y']
     assert (np.shape(xs) == (10, 224, 224, 3))
 
+    # TODO: make sure we are using the right input images and weights
     xs = xs / 255. 
     # xs = xs - np.array([0.485, 0.456, 0.406])
     xs = xs / np.array([0.229, 0.224, 0.225])
@@ -70,12 +71,15 @@ param_sweep = {
 'skip': [1],
 'cards': [0],
 'alloc': ['layer', 'block'],
-'profile': [0, 1],
+'profile': [1],
 'stall': 0,
 'wl': 128,
 'bl': 128,
 'offset': 128,
-'sigma': [0.01], # seems like you gotta change e_mu based on this.
+# seems like you gotta change e_mu based on this.
+# set e_mu = 0.15
+# set sigma = 0.05
+'sigma': [0.05], 
 'err_sigma': 0.,
 }
 
@@ -157,10 +161,11 @@ results = {}
 
 start = time.time()
 x, y = init_x(num_example=1)
+# TODO: make sure we are using the right input images and weights
 weights = np.load('resnet18_quant_weights.npy', allow_pickle=True).item()
 
 num_runs = len(param_sweep)
-parallel_runs = 12
+parallel_runs = 4
 for run in range(0, num_runs, parallel_runs):
     threads = []
     manager = multiprocessing.Manager()
