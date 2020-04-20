@@ -92,15 +92,42 @@ for key in sorted(results.keys()):
     ###################################
 
     cycle[key] = y_cycle
+    nmac[key] = y_nmac
 
 ############################
 
+lut = {
+5472: 0, 
+2 ** 13: 1, 
+1.5 * 2 ** 13: 2, 
+2 ** 14: 3, 
+1.5 * 2 ** 14: 4
+}
+
+ys = {}
 for key in cycle.keys():
-    print (key, np.max(cycle[key]))
+    (skip, cards, alloc, profile, narray) = key
+    ncycle = np.max(cycle[key])
+    perf = np.sum(nmac[key]) / np.max(cycle[key])
 
+    config = (skip, cards, alloc, profile)
+    if config not in ys.keys():
+        ys[config] = np.zeros(5)
+    
+    ys[config][lut[narray]] = perf # ncycle
+    
+############################
 
+print (ys.keys())
 
+for key in ys.keys():
+    plt.plot(lut.keys(), ys[key], marker='.')
 
+# plt.ylim(bottom=0, top=1e4)
+plt.xticks( list(lut.keys()) )
+plt.show()
+
+############################
 
 
 
