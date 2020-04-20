@@ -93,6 +93,7 @@ for key in sorted(results.keys()):
 
     cycle[key] = y_cycle
     nmac[key] = y_nmac
+    array[key] = y_array
 
 ############################
 
@@ -118,13 +119,55 @@ for key in cycle.keys():
     
 ############################
 
+'''
 print (ys.keys())
 
 for key in ys.keys():
     plt.plot(lut.keys(), ys[key], marker='.')
+'''
+
+############################
+
+# config = (skip, cards, alloc, profile)
+keys = [
+(0, 0, 'block', 0), 
+(0, 0, 'block', 1), 
+(0, 0, 'layer', 0), 
+(0, 0, 'layer', 1), 
+(1, 0, 'block', 0), 
+(1, 0, 'block', 1), 
+(1, 0, 'layer', 0), 
+(1, 0, 'layer', 1)
+]
+
+'''
+plt.plot(lut.keys(), ys[(0, 0, 'layer', 0)], marker='.', label='Baseline')
+plt.plot(lut.keys(), ys[(1, 0, 'layer', 0)], marker='.', label='Zero Skip')
+
+plt.plot(lut.keys(), ys[(0, 0, 'layer', 1)], marker='.', label='Baseline')
+plt.plot(lut.keys(), ys[(1, 0, 'layer', 1)], marker='.', label='Zero Skip')
+
+plt.plot(lut.keys(), ys[(0, 0, 'block', 1)], marker='.', label='Baseline')
+plt.plot(lut.keys(), ys[(1, 0, 'block', 1)], marker='.', label='Zero Skip')
+'''
+
+plt.plot(lut.keys(), ys[(1, 0, 'block', 1)], marker='.', label='Perf-Based Block-wise')
+plt.plot(lut.keys(), ys[(1, 0, 'layer', 1)], marker='.', label='Perf-Based Layer-wise')
+plt.plot(lut.keys(), ys[(1, 0, 'layer', 0)], marker='.', label='Weight-Based')
+plt.plot(lut.keys(), ys[(0, 0, 'layer', 1)], marker='.', label='Baseline')
+
+############################
+
+# print (ys[(1, 0, 'layer', 1)] / ys[(0, 0, 'layer', 1)])
+
+# print (cycle[(0, 0, 'layer', 1, 2 ** 14)])
+# print (np.sum(array[(0, 0, 'layer', 1, 2 ** 14)]), array[(0, 0, 'layer', 1, 2 ** 14)])
+
+############################
 
 # plt.ylim(bottom=0, top=1e4)
 plt.xticks( list(lut.keys()) )
+plt.legend()
 plt.show()
 
 ############################
