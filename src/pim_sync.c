@@ -17,27 +17,22 @@
 
 // make sure (bl <= 1024), malloc would be too slow.
 // if we just pick a size large enough we will be okay
-#define VECTOR_SIZE 128 // bl per array 
-#define ARRAY_SIZE 1152 // 36 * 32
-#define PE_SIZE 1500 // duplicate
+// #define VECTOR_SIZE 128 // bl per array 
+// #define ARRAY_SIZE 1152 // 36 * 32
+// #define PE_SIZE 1500 // duplicate
 // int pdot[PE_SIZE][ARRAY_SIZE][VECTOR_SIZE]; 
 // is too large, we had to allocate using malloc.
 
 //////////////////////////////////////////////
 
-void clear_vector(int* v)
+void clear_array(int* a, int size)
 {
-  memset(v, 0, sizeof(int) * VECTOR_SIZE);
-}
-
-void clear_array(int* a)
-{
-  memset(a, 0, sizeof(int) * ARRAY_SIZE);
+  memset(a, 0, sizeof(int) * size);
 }
 
 //////////////////////////////////////////////
 
-void free3D(int*** array)
+void free3D(int*** array, int PE_SIZE, int ARRAY_SIZE, int VECTOR_SIZE)
 {
   for (int i=0; i<PE_SIZE; i++) {
     for (int j=0; j<ARRAY_SIZE; j++) {
@@ -50,24 +45,31 @@ void free3D(int*** array)
 
 //////////////////////////////////////////////
 
-int** array2D()
+int* array1D(int PE_SIZE)
+{
+  int* array = (int*) malloc(sizeof(int) * PE_SIZE);
+  clear_array(array, PE_SIZE);
+  return array;
+}
+
+int** array2D(int PE_SIZE, int ARRAY_SIZE)
 {
   int** array = (int**) malloc(sizeof(int*) * PE_SIZE);
   for (int i=0; i<PE_SIZE; i++) {
     array[i] = (int*) malloc(sizeof(int) * ARRAY_SIZE);
-    clear_array(array[i]);
+    clear_array(array[i], ARRAY_SIZE);
   }
   return array;
 }
 
-int*** array3D()
+int*** array3D(int PE_SIZE, int ARRAY_SIZE, int VECTOR_SIZE)
 {
   int*** array = (int***) malloc(sizeof(int**) * PE_SIZE);
   for (int i=0; i<PE_SIZE; i++) {
     array[i] = (int**) malloc(sizeof(int*) * ARRAY_SIZE);
     for (int j=0; j<ARRAY_SIZE; j++) {
       array[i][j] = (int*) malloc(sizeof(int) * VECTOR_SIZE);
-      clear_vector(array[i][j]);
+      clear_array(array[i][j], VECTOR_SIZE);
     }
   }
   return array;
@@ -159,36 +161,35 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
   
   // our arrays are sized for 128. need to increase.
   assert ((D >= 1) && (NWL >= 1) && (NWL >= 1) && (BL >= 1));
-  assert (D <= PE_SIZE);
-  assert ((NWL * NBL) <= ARRAY_SIZE);
-  assert (BL <= VECTOR_SIZE);
+  // assert (D <= PE_SIZE);
+  // assert ((NWL * NBL) <= ARRAY_SIZE);
+  // assert (BL <= VECTOR_SIZE);
     
+  int PE_SIZE = D;
+  int ARRAY_SIZE = NWL * NBL;
+  int VECTOR_SIZE = BL;
+
+  ///////////////////////////////
+
   int done = 0;
     
-  int dup_done[PE_SIZE];
-  int** array_done = array2D();
+  int* dup_done = array1D(PE_SIZE);
+  int** array_done = array2D(PE_SIZE, ARRAY_SIZE);
 
-  int** wl_ptr = array2D();
-  int** wl_sum = array2D();
-  int** wl_total = array2D();
+  int** wl_ptr = array2D(PE_SIZE, ARRAY_SIZE);
+  int** wl_sum = array2D(PE_SIZE, ARRAY_SIZE);
+  int** wl_total = array2D(PE_SIZE, ARRAY_SIZE);
   
-  int r[PE_SIZE]; 
-  int** col = array2D();
-  int** xb = array2D();
+  int* r = array1D(PE_SIZE);
+  int** col = array2D(PE_SIZE, ARRAY_SIZE);
+  int** xb = array2D(PE_SIZE, ARRAY_SIZE);
   
-  int*** pdot = array3D();
-  int*** pdot_sum = array3D();
-  int*** sat = array3D();
+  int*** pdot = array3D(PE_SIZE, ARRAY_SIZE, VECTOR_SIZE);
+  int*** pdot_sum = array3D(PE_SIZE, ARRAY_SIZE, VECTOR_SIZE);
+  int*** sat = array3D(PE_SIZE, ARRAY_SIZE, VECTOR_SIZE);
 
-  for (int d=0; d<D; d++) { 
-    clear_array(wl_ptr[d]);
-    clear_array(wl_total[d]);
-    clear_array(col[d]);
-    clear_array(xb[d]);
-    clear_array(array_done[d]);
-    
+  for (int d=0; d<D; d++) {
     r[d] = d;
-    dup_done[d] = 0;
   }
   
   int next_r = D;
@@ -197,7 +198,7 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
 
     metrics[METRIC_CYCLE] += 1;
     // if there are more duplicates than rows, then I believe we hit this assert.
-    assert (metrics[METRIC_CYCLE] < 1000000);
+    // assert (metrics[METRIC_CYCLE] < 1000000);
 
     for (int d=0; d<D; d++) { 
       for (int wl=0; wl<NWL; wl++) {
@@ -225,7 +226,7 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
           
           int rows = min(rpr, WL - wl_ptr[d][array]);
 
-          clear_vector(pdot[d][array]);
+          clear_array(pdot[d][array], VECTOR_SIZE);
           wl_sum[d][array] = 0;
 
           if (skip) {
@@ -332,7 +333,7 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
                   if (next_r < R) {
                     r[d] = next_r;
                     next_r++;
-                    clear_array(array_done[d]);
+                    clear_array(array_done[d], ARRAY_SIZE);
                   }
                   else {
                     dup_done[d] = 1;
@@ -363,9 +364,9 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
     } // for (int d=0; d<D; d++) { 
   } // while (!done) {
 
-  free3D(pdot);
-  free3D(pdot_sum);
-  free3D(sat);
+  free3D(pdot, PE_SIZE, ARRAY_SIZE, VECTOR_SIZE);
+  free3D(pdot_sum, PE_SIZE, ARRAY_SIZE, VECTOR_SIZE);
+  free3D(sat, PE_SIZE, ARRAY_SIZE, VECTOR_SIZE);
 
   return metrics[METRIC_CYCLE];  
 }

@@ -206,7 +206,7 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int* b
 
     metrics[METRIC_CYCLE] += 1;
     // if there are more duplicates than rows, then I believe we hit this assert.
-    assert (metrics[METRIC_CYCLE] < 500000);
+    // assert (metrics[METRIC_CYCLE] < 500000);
 
     for (int block=0; block<B; block++) {
       

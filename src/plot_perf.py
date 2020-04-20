@@ -95,7 +95,8 @@ for key in sorted(results.keys()):
 
 ############################
 
-print (cycle)
+for key in cycle.keys():
+    print (key, np.max(cycle[key]))
 
 
 
