@@ -1842,7 +1842,9 @@ cudnt figure out if it made sense that starting from a different position wud yi
 
 go back and figure out what we shudnt have changed.
 
+-----
 
+might we have an issue with pim.c/pim_sync.c and how 32768 ? 
 
 
 
