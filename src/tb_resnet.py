@@ -69,13 +69,14 @@ param_sweep = {
 'adc': 8,
 'adc_mux': 8,
 'skip': [1],
-'cards': [0],
+'cards': [0, 1],
 'alloc': ['layer', 'block'],
-'profile': [1],
+'profile': [0, 1],
 'stall': 0,
 'wl': 128,
 'bl': 128,
 'offset': 128,
+'narray': [2 ** 14, 24960, 2 ** 15],
 # seems like you gotta change e_mu based on this.
 # set e_mu = 0.15
 # set sigma = 0.05
@@ -153,7 +154,7 @@ def run_command(x, y, weights, params, return_dict):
     if params['profile']:
         model.profile(x=x)
     _, result = model.forward(x=x, y=y)
-    return_dict[(params['skip'], params['cards'], params['alloc'], params['profile'])] = result
+    return_dict[(params['skip'], params['cards'], params['alloc'], params['profile'], params['narray'])] = result
 
 ####
 

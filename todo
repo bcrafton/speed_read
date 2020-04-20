@@ -98,7 +98,9 @@ ResNet18
 > only explore branches that arnt +1 over upper bound. dosnt make sense otherwise.
 > probably can do something similar with lower bound search.
 
+-------
 
+little doubt we wud have solved this problem much faster, IF we had layed down with laptop in room byself.
 
 
 

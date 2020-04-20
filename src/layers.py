@@ -93,11 +93,11 @@ class Model:
             nmac[weight] = self.weights[weight].nmac
             factor[weight] = self.weights[weight].factor
                 
-        # alloc = branch_and_bound(24960, nmac, factor, self.mac_per_array_layer, self.params)
-        alloc = array_allocation(24960, nmac, factor, self.mac_per_array_layer, self.params)
-        assert (np.sum(alloc) <= 24960)
+        # alloc = branch_and_bound(self.params['narray'], nmac, factor, self.mac_per_array_layer, self.params)
+        alloc = array_allocation(self.params['narray'], nmac, factor, self.mac_per_array_layer, self.params)
+        assert (np.sum(alloc) <= self.params['narray'])
         # assert (np.sum(alloc) == 2 ** 14)
-        print ("%d / %d" % (np.sum(alloc), 24960))
+        print ("%d / %d" % (np.sum(alloc), self.params['narray']))
 
         for weight in range(len(self.weights)):
             layer_alloc = alloc[weight] // self.weights[weight].factor
@@ -114,9 +114,9 @@ class Model:
                 factor[block] = nbl
                 block += 1
                 
-        # alloc = branch_and_bound(24960, nmac, factor, self.mac_per_array_block, self.params)
-        alloc = array_allocation(24960, nmac, factor, self.mac_per_array_block, self.params)
-        assert (np.sum(alloc) <= 24960)
+        # alloc = branch_and_bound(self.params['narray'], nmac, factor, self.mac_per_array_block, self.params)
+        alloc = array_allocation(self.params['narray'], nmac, factor, self.mac_per_array_block, self.params)
+        assert (np.sum(alloc) <= self.params['narray'])
 
         block1 = 0
         for weight in range(self.nweight):
