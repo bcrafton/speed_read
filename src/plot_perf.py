@@ -1,6 +1,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+plt.rcParams.update({'font.size': 8})
 
 ####################
 
@@ -168,15 +169,20 @@ plt.plot(lut.keys(), ys[(0, 0, 'layer', 1)], marker='.', label='Baseline')
 # plt.ylim(bottom=0, top=1e4)
 plt.xticks( list(lut.keys()) )
 plt.legend()
-plt.show()
+plt.grid(True, linestyle='dotted')
+#plt.show()
+
+plt.xlabel('Arrays / Design')
+plt.ylabel('Performance (MAC/cycle)')
 
 ############################
 
+fig = plt.gcf()
+fig.set_size_inches(4, 3)
+plt.tight_layout()
+fig.savefig('perf.png', dpi=300)
 
-
-
-
-
+############################
 
 
 
