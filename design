@@ -1838,6 +1838,9 @@ took so long to figure out the factor[argmax + layer] thing.
 cudnt figure out if it made sense that starting from a different position wud yield different results. 
 > and it didnt make sense, but idk what was up with out brain.
 
+-----
+
+go back and figure out what we shudnt have changed.
 
 
 

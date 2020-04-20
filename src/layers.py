@@ -34,13 +34,13 @@ class Model:
         for w, weight in enumerate(self.weights):
             self.block_map.append(slice(self.nblock, self.nblock + weight.nwl))
             self.nblock += weight.nwl
-        
-        print ('nblock', self.nblock)
-        self.mac_per_array_block = np.load('mac_per_array_block.npy')
-        self.set_block_alloc()
 
         self.mac_per_array_layer = [2.] * self.nweight
-        # self.set_layer_alloc()
+        self.set_layer_alloc()
+        
+        print ('nblock', self.nblock)
+        self.mac_per_array_block = [2.] * self.nblock
+        self.set_block_alloc()
 
     def profile(self, x):
         num_examples, _, _, _ = np.shape(x)
@@ -63,8 +63,7 @@ class Model:
                     
         self.mac_per_array_layer = np.mean(mac_per_array_layer, axis=0)
         self.mac_per_array_block = np.mean(mac_per_array_block, axis=0)
-        np.save('mac_per_array_block', np.array(self.mac_per_array_block))        
-
+        
         if self.params['alloc'] == 'layer': 
             self.set_layer_alloc() # block alloc was failing when layer was selected, this is a bandaid.
         else:
