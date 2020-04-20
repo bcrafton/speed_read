@@ -93,10 +93,10 @@ ResNet18
 > need to support negative weights
 > need to write code for residual blocks.
 
+-------
 
-
-
-
+> only explore branches that arnt +1 over upper bound. dosnt make sense otherwise.
+> probably can do something similar with lower bound search.
 
 
 

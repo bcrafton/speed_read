@@ -13,6 +13,7 @@ from scipy.stats import norm, binom
 from rpr import rpr
 
 from BB import branch_and_bound
+from AA import array_allocation
 
 #########################
 
@@ -93,7 +94,8 @@ class Model:
             nmac[weight] = self.weights[weight].nmac
             factor[weight] = self.weights[weight].factor
                 
-        alloc = branch_and_bound(24960, nmac, factor, self.mac_per_array_layer, self.params)
+        # alloc = branch_and_bound(24960, nmac, factor, self.mac_per_array_layer, self.params)
+        alloc = array_allocation(24960, nmac, factor, self.mac_per_array_layer, self.params)
         assert (np.sum(alloc) <= 24960)
         # assert (np.sum(alloc) == 2 ** 14)
         print ("%d / %d" % (np.sum(alloc), 24960))
@@ -113,7 +115,8 @@ class Model:
                 factor[block] = nbl
                 block += 1
                 
-        alloc = branch_and_bound(24960, nmac, factor, self.mac_per_array_block, self.params)
+        # alloc = branch_and_bound(24960, nmac, factor, self.mac_per_array_block, self.params)
+        alloc = array_allocation(24960, nmac, factor, self.mac_per_array_block, self.params)
         assert (np.sum(alloc) <= 24960)
 
         block1 = 0
