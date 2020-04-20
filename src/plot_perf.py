@@ -116,7 +116,7 @@ for key in cycle.keys():
     if config not in ys.keys():
         ys[config] = np.zeros(5)
     
-    ys[config][lut[narray]] = perf # ncycle
+    ys[config][lut[narray]] = perf * 100e6 / 1e12
     
 ############################
 
@@ -173,7 +173,7 @@ plt.grid(True, linestyle='dotted')
 #plt.show()
 
 plt.xlabel('Arrays / Design')
-plt.ylabel('Performance (MAC/cycle)')
+plt.ylabel('Performance (TMAC/s)')
 
 ############################
 

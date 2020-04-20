@@ -42,7 +42,7 @@ array_util = np.zeros(shape=(2, 2, 2, 2, num_layers))
 
 for key in sorted(results.keys()):
     print (key)
-    (skip, cards, alloc, profile) = key
+    (skip, cards, alloc, profile, narray) = key
     alloc = 1 if alloc == 'block' else 0
     layer_results = results[key]
 
