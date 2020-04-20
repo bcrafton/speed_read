@@ -19,7 +19,7 @@
 // if we just pick a size large enough we will be okay
 #define VECTOR_SIZE 128 // number bl per array
 #define ARRAY_SIZE 32 // 512 / 16 = 32
-#define BLOCK_SIZE 1024 // number of blocks 
+#define BLOCK_SIZE 2048 // number of blocks 
 
 //////////////////////////////////////////////
 

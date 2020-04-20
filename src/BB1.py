@@ -5,7 +5,6 @@ import copy
 ############################
 
 class BB:
-    global_alloc = 0    
 
     def __init__(self, narray, nlayer, alloc, mac_per_array, nmac, factor, params):
         self.narray = narray
@@ -37,34 +36,29 @@ class BB:
         layer = len(self.alloc)
         if (layer < self.nlayer):
             remainder = self.narray - np.sum(self.alloc)
-            '''
+
             target = self.nmac[layer:] / self.mac_per_array[layer:] / upper_bound
             alloc_floor = np.clip(target // self.factor[layer:], 1, np.inf) * self.factor[layer:]
             if np.any(remainder < np.sum(alloc_floor)): return np.inf
-            '''
-            # alloc = alloc_floor
-            # alloc = np.zeros_like(alloc_floor)
-            alloc = np.zeros(shape=(self.nlayer - layer))            
+
+            alloc = alloc_floor
             cycles = self.nmac[layer:] / self.mac_per_array[layer:] / alloc
-            argmax = np.argmax(cycles)
-            while (np.sum(alloc) + self.factor[argmax]) <= remainder:
-                alloc[argmax] += self.factor[argmax]
+            argmin = np.argmin(cycles)
+            while (np.sum(alloc) + self.factor[argmin]) < remainder:
+                alloc[argmin] += self.factor[argmin]
                 cycles = self.nmac[layer:] / self.mac_per_array[layer:] / alloc
-                argmax = np.argmax(cycles)
+                argmin = np.argmin(cycles)
 
             new_alloc = np.concatenate((self.alloc, alloc))
         else:
             new_alloc = self.alloc
 
+        if p: print (new_alloc)
+
         assert (np.all(np.absolute(self.mac_per_array) > 0))
         assert (np.all(np.absolute(new_alloc) > 0))
         assert (np.sum(new_alloc) <= self.narray)
         max_cycle = np.max(self.nmac / self.mac_per_array / new_alloc)
-
-        if p: print (np.sum(new_alloc), remainder, upper_bound, max_cycle, cycles)
-        # if p: print (np.sum(new_alloc), upper_bound, max_cycle, self.alloc, BB.global_alloc - new_alloc)
-        if p: BB.global_alloc = new_alloc
-
         return max_cycle
 
     def branch(self, lower_bound):
@@ -73,11 +67,11 @@ class BB:
         branches = []
         remainder = self.narray - np.sum(self.alloc)
         for n in range(self.factor[layer], int(remainder) + 1, self.factor[layer]): # do NOT forget (+1)
-            # dont attempt to allocate more than upper_bound.
             new_alloc = copy.copy(self.alloc)
             new_alloc.append(n)
             new_BB = BB(self.narray, self.nlayer, new_alloc, self.mac_per_array, self.nmac, self.factor, self.params)
-            if new_BB.bound() <= lower_bound:
+            new_bound = new_BB.bound()
+            if new_bound <= lower_bound:
                 branches.append(new_BB)
         
         return branches
@@ -111,17 +105,18 @@ def branch_and_bound(narray, nmac, factor, mac_per_array, params):
             order1 = np.argsort(new_bounds)[0:5]
             new_branches1 = [new_branches[i] for i in order1]
 
+            '''
             new_values = []
             for new_branch in new_branches:
                 new_values.append(new_branch.value())
             new_values = np.array(new_values)
-            order2 = np.argsort(new_values)[0:5]
+            order2 = np.argsort(new_values)[0:25]
             new_branches2 = [new_branches[i] for i in order2]
-            # print (new_branches2[0].alloc)
+            '''
 
             new_branches = []
-            # new_branches.extend(new_branches1)
-            new_branches.extend(new_branches2)
+            new_branches.extend(new_branches1)
+            # new_branches.extend(new_branches2)
 
         return new_branches
 
@@ -129,15 +124,15 @@ def branch_and_bound(narray, nmac, factor, mac_per_array, params):
 
     root = BB(narray, nlayer, [], mac_per_array, nmac, factor, params)
     branches = [root]
+    # lower_bound = 3300
     lower_bound = root.value(p=True)
     for layer in range(nlayer):
-        # print (layer, lower_bound, len(branches))
+        print (layer, lower_bound, len(branches))
         branches = branch_and_bound_help(branches, lower_bound)
-
-        # print (layer, len(branches), lower_bound, branches[0].value(), branches[0].bound(), end=' ')
-        branches[0].value(p=True)
+        
+        print (lower_bound, branches[0].value(), branches[0].bound(), branches[0].alloc)
+        # branch.value(p=True)
         for branch in branches:
-            # print (layer, len(branches), lower_bound, branch.value(), branch.bound())
             lower_bound = min(lower_bound, branch.value())
             
     ################################

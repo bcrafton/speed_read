@@ -19,7 +19,7 @@
 // if we just pick a size large enough we will be okay
 #define VECTOR_SIZE 128 // bl per array 
 #define ARRAY_SIZE 1152 // 36 * 32
-#define PE_SIZE 784 // duplicate
+#define PE_SIZE 1500 // duplicate
 // int pdot[PE_SIZE][ARRAY_SIZE][VECTOR_SIZE]; 
 // is too large, we had to allocate using malloc.
 

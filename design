@@ -1735,6 +1735,105 @@ and the correct structure will be way more clear then.
 want to add tensorflow activations to that .npy file
 will give us better solution.
 
+-----
+
+okay so a weird thing happens.
+value() increases
+which should not happen
+
+value() decreases
+bound() increases 
+
+-----
+
+well thats not necessarily true actually.
+but the question is why does root post such a good .value() ? 
+
+switching to layer-wise allocation since the problem persists
+eventually it recovers as we allocate more
+
+-----
+
+so it wud make sense 
+if there existed branches with the same low value
+but we just didnt pick them
+
+can we confirm this is the case ?
+
+-----
+
+>> can we confirm we didnt mess up value/bound = lower_bound/upper_bound ? 
+
+-----
+
+developing a hunch
+that the use of value as the upper bound is what causes the issue.
+
+so thats not really an issue tho
+because:
+10 lower 50176 value 44600 | bound 42560 new_bound 44600.88888888889 narray 24696 [2304, 2304, 128, 2304, 1152, 1440, 1440, 80, 1440, 720, 1296, 1296, 72, 1296, 680, 1340, 1340, 1340, 1340, 1384]
+new bound becomes value.
+so its not actually a good solution.
+
+but still
+it shudnt shoot low.
+that means somewhere the in value choices 
+the new bound of 44600
+wasnt enof to push some layer to take what it needs.
+and it ended up lower
+
+which dosnt make any sense because a lower number made it take wht it needed.
+
+nah that shud happen actually
+some of them wud reach for 4250, need the extras and then pull back.
+
+then some of them will reach for 4460 and not need the extras so back out.
+so then what shud we do ? 
+
+i guess this sorta comes down to looking for a better lower bound.
+u can go through each of them and give the left overs to the ones that need it the most.
+
+-----
+
+essentially, i think we should try to make the bound.
+but then satisfy each nodes by lowest bounds one at a time.
+
+we cud even rewrite this ? 
+for each need, you pick the one that yields the highest min bound.
+
+-----
+
+like our new solution, i think probelm gotta be some rounding thing now.
+
+-----
+
+dosnt make any sense, how value() would increase.
+if u are picking the smallest ones how can this happen ? 
+
+solve this first.
+THEN you can make sure branches that attempt to go over ideal are killed.
+
+-----
+
+wow, so it is picking the right answers.
+but the value() keeps going up.
+does this make any sense ???
+
+the only logical thing i see
+would be upper bound is a change variable.
+
+we removed that chance.
+but the new problem is that things seemingly randomly change. 
+from 1 BB to the next, it will pick different allocations.
+which makes no sense.
+
+-----
+
+
+
+
+
+
 
 
 

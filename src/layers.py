@@ -33,13 +33,13 @@ class Model:
         for w, weight in enumerate(self.weights):
             self.block_map.append(slice(self.nblock, self.nblock + weight.nwl))
             self.nblock += weight.nwl
-
-        self.mac_per_array_layer = [2.] * self.nweight
-        self.set_layer_alloc()
         
         print ('nblock', self.nblock)
-        self.mac_per_array_block = [2.] * self.nblock
+        self.mac_per_array_block = np.load('mac_per_array_block.npy')
         self.set_block_alloc()
+
+        self.mac_per_array_layer = [2.] * self.nweight
+        # self.set_layer_alloc()
 
     def profile(self, x):
         num_examples, _, _, _ = np.shape(x)
@@ -62,7 +62,8 @@ class Model:
                     
         self.mac_per_array_layer = np.mean(mac_per_array_layer, axis=0)
         self.mac_per_array_block = np.mean(mac_per_array_block, axis=0)
-        
+        np.save('mac_per_array_block', np.array(self.mac_per_array_block))        
+
         if self.params['alloc'] == 'layer': 
             self.set_layer_alloc() # block alloc was failing when layer was selected, this is a bandaid.
         else:
@@ -92,10 +93,10 @@ class Model:
             nmac[weight] = self.weights[weight].nmac
             factor[weight] = self.weights[weight].factor
                 
-        alloc = branch_and_bound(2 ** 14, nmac, factor, self.mac_per_array_layer, self.params)
-        assert (np.sum(alloc) <= 2 ** 14)
+        alloc = branch_and_bound(24960, nmac, factor, self.mac_per_array_layer, self.params)
+        assert (np.sum(alloc) <= 24960)
         # assert (np.sum(alloc) == 2 ** 14)
-        print ("%d / %d" % (np.sum(alloc), 2 ** 14))
+        print ("%d / %d" % (np.sum(alloc), 24960))
 
         for weight in range(len(self.weights)):
             layer_alloc = alloc[weight] // self.weights[weight].factor
@@ -112,8 +113,8 @@ class Model:
                 factor[block] = nbl
                 block += 1
                 
-        alloc = branch_and_bound(2 ** 14, nmac, factor, self.mac_per_array_block, self.params)
-        assert (np.sum(alloc) <= 2 ** 14)
+        alloc = branch_and_bound(24960, nmac, factor, self.mac_per_array_block, self.params)
+        assert (np.sum(alloc) <= 24960)
 
         block1 = 0
         for weight in range(self.nweight):
@@ -245,6 +246,8 @@ class Conv(Layer):
         nwl, _, nbl, _ = np.shape(self.wb)
         
         if self.params['alloc'] == 'block': 
+            # the sum here is confusing, since for layer 1, block performs better with less arrays.
+            # but it actually makes sense.
             results['array'] = np.sum(self.block_alloc) * nbl
             print ('alloc: %d*%d=%d nmac %d cycle: %d stall: %d' % (np.sum(self.block_alloc), nbl, nbl * np.sum(self.block_alloc), results['nmac'], results['cycle'], results['stall']))
                     
