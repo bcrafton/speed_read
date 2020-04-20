@@ -44,11 +44,11 @@ class BB:
             '''
             # alloc = alloc_floor
             # alloc = np.zeros_like(alloc_floor)
-            alloc = np.zeros(shape=(self.nlayer - layer))            
+            alloc = copy.copy(self.factor[layer:])
             cycles = self.nmac[layer:] / self.mac_per_array[layer:] / alloc
             argmax = np.argmax(cycles)
-            while (np.sum(alloc) + self.factor[argmax]) <= remainder:
-                alloc[argmax] += self.factor[argmax]
+            while (np.sum(alloc) + self.factor[layer + argmax]) <= remainder:
+                alloc[argmax] += self.factor[layer + argmax]
                 cycles = self.nmac[layer:] / self.mac_per_array[layer:] / alloc
                 argmax = np.argmax(cycles)
 
@@ -61,9 +61,11 @@ class BB:
         assert (np.sum(new_alloc) <= self.narray)
         max_cycle = np.max(self.nmac / self.mac_per_array / new_alloc)
 
-        if p: print (np.sum(new_alloc), remainder, upper_bound, max_cycle, cycles)
+        if p: print ('remainder', self.narray - np.sum(new_alloc), 'total', self.narray - np.sum(self.alloc), 'max', max_cycle, 'last', self.factor[argmax])
+        if p: print (cycles)
         # if p: print (np.sum(new_alloc), upper_bound, max_cycle, self.alloc, BB.global_alloc - new_alloc)
-        if p: BB.global_alloc = new_alloc
+        # if p: BB.global_alloc = new_alloc
+        if p: print ()
 
         return max_cycle
 
@@ -135,6 +137,7 @@ def branch_and_bound(narray, nmac, factor, mac_per_array, params):
         branches = branch_and_bound_help(branches, lower_bound)
 
         # print (layer, len(branches), lower_bound, branches[0].value(), branches[0].bound(), end=' ')
+        print ('lower', lower_bound, end=' ')
         branches[0].value(p=True)
         for branch in branches:
             # print (layer, len(branches), lower_bound, branch.value(), branch.bound())
