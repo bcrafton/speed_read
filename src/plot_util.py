@@ -41,7 +41,8 @@ y_energy = np.zeros(shape=(2, 2, 2, 2, num_layers))
 array_util = np.zeros(shape=(2, 2, 2, 2, num_layers))
 
 for key in sorted(results.keys()):
-    (skip, cards, alloc, profile) = key
+    print (key)
+    (skip, cards, alloc, profile, narray) = key
     alloc = 1 if alloc == 'block' else 0
     layer_results = results[key]
 
@@ -92,50 +93,83 @@ for key in sorted(results.keys()):
         
         ############################
 
+
+
 ####################
 
 layers      = np.array(range(1, num_layers+1))
 
-skip_none  = np.around(cycle[1, 0, 0, 0], 3)
-skip_layer = np.around(cycle[1, 0, 0, 1], 3)
-skip_block = np.around(cycle[1, 0, 1, 1], 3)
+skip_none  = np.around(array_util[1, 0, 0, 0],  3)
+skip_layer  = np.around(array_util[1, 0, 0, 1],  3)
+skip_block  = np.around(array_util[1, 0, 1, 1],  3)
 
-cards_none  = np.around(cycle[1, 1, 0, 0], 3)
-cards_layer = np.around(cycle[1, 1, 0, 1], 3)
-cards_block = np.around(cycle[1, 1, 1, 1], 3)
+cards_none = np.around(array_util[1, 1, 0, 0],  3)
+cards_layer = np.around(array_util[1, 1, 0, 1],  3)
+cards_block = np.around(array_util[1, 1, 1, 1],  3)
 
-plt.ylabel('# Cycles')
+####################
+
+plt.rcParams.update({'font.size': 10})
+
+####################
+
+plt.cla()
+plt.clf()
+plt.close()
+
+plt.ylabel('Array Utilization (%)')
 plt.xlabel('Layer #')
-# plt.ylim(bottom=0)
 
 width = 0.2
-plt.bar(x=layers - width, height=skip_none,  width=width, label='skip-none', color='green')
-plt.bar(x=layers,         height=skip_layer, width=width, label='skip-layer', color='blue')
-plt.bar(x=layers + width, height=skip_block, width=width, label='skip-block', color='black')
+plt.bar(x=layers - width, height=skip_none,   width=width, label='weight-based', color='silver')
+plt.bar(x=layers,         height=skip_layer,  width=width, label='performance-based layer-wise', color='royalblue')
+plt.bar(x=layers + width, height=skip_block,  width=width, label='performance-based block-wise', color='black')
 
-# plt.bar(x=layers + width/2,         height=cards_layer, width=width, label='cards-layer')
-# plt.bar(x=layers + width + width/2, height=cards_block, width=width, label='cards-block')
-# plt.bar(x=layers + width + width/2, height=cards_block, width=width, label='cards-none')
+plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc='lower left', ncol=2, mode="expand", borderaxespad=0.)
 
-plt.plot([0., 20.], [np.max(skip_none),  np.max(skip_none)],  "k--", color='green')
-plt.plot([0., 20.], [np.max(skip_layer), np.max(skip_layer)], "k--", color='blue')
+'''
+plt.plot([0., 20.], [np.max(skip_none),  np.max(skip_none)],  "k--", color='silver')
+plt.plot([0., 20.], [np.max(skip_layer), np.max(skip_layer)], "k--", color='royalblue')
 plt.plot([0., 20.], [np.max(skip_block), np.max(skip_block)], "k--", color='black')
+'''
 plt.xticks(layers)
+plt.yticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
 
-# plt.show()
-plt.
+fig = plt.gcf()
+# fig.set_size_inches(9, 9)
+# plt.tight_layout()
+fig.savefig('skip-util.png', dpi=300)
 
+####################
 
+plt.clf()
+plt.cla()
+plt.close()
 
+plt.ylabel('Array Utilization (%)')
+plt.xlabel('Layer #')
 
+width = 0.2
+plt.bar(x=layers - width, height=cards_none,   width=width, label='weight-based ', color='silver')
+plt.bar(x=layers,         height=cards_layer,  width=width, label='performance-based layer-wise', color='royalblue')
+plt.bar(x=layers + width, height=cards_block,  width=width, label='performance-based block-wise', color='black')
 
+plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc='lower left', ncol=2, mode="expand", borderaxespad=0.)
 
+'''
+plt.plot([0., 20.], [np.max(cards_none),  np.max(cards_none)],  "k--", color='silver')
+plt.plot([0., 20.], [np.max(cards_layer), np.max(cards_layer)], "k--", color='royalblue')
+plt.plot([0., 20.], [np.max(cards_block), np.max(cards_block)], "k--", color='black')
+'''
+plt.xticks(layers)
+plt.yticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
 
+fig = plt.gcf()
+# fig.set_size_inches(9, 9)
+# plt.tight_layout()
+fig.savefig('cards-util.png', dpi=300)
 
-
-
-
-
+####################
 
 
 
