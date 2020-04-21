@@ -1846,7 +1846,62 @@ go back and figure out what we shudnt have changed.
 
 might we have an issue with pim.c/pim_sync.c and how 32768 ? 
 
+-----
 
+alright, next implementaton challenge is what to do about left over rows.
+
+first we think what we should do with them
+second figure out how to model this in BB.
+
+well realize that there is nothing you can do with them if they are the bottleneck, they will constantly be used by layer 1.
+
+what are the alternatives then ? 
+> smaller arrays ? 
+> size layers appropriately ? 
+> they actually just accept the poor memory efficiency. 
+> densenet also uses 7x7 filters.
+
+yeah there is actually pretty much nothing u can do here.
+wud say the best thing you can do is re-train a 6x6 filter.
+
+-----
+
+what would be the hardo, overdesign approach ? 
+> split 7x7x3 evenly across 2, use redundant weights in the scenario one finishes early ?
+> you could use it for a different layer, but it just dosnt make that much sense ...
+> allow an array to serve as dual purpose duplicate essentially ? so different ifmaps can be scheduled to it.
+
+what if you merge two layers together ? 
+> like layer 1 and 2.
+> yeah that might actually be the best thing you can do.
+
+-----
+
+i guess its another question of figuring out what the constraints are.
+> i dont think it makes sense to split each array into 2x64
+> if we can mix 2 layers then we can do cool stuff.
+
+-----
+
+ideas given constraints:
+1) 128x128 7x7x3 -> split evenly accross 2, use redundant weights for when arrays are finished to help with other workloads.
+2) Mixing two layers. All arrays process layer 1, then process layer 2.
+3) Make it 6x6x3
+4) Get 64x128 arrays.
+
+-----
+
+is it necessary to do any of these ? 
+> probably just (1).
+
+if we could mix layers
+i dont think u cud do arbitrary partitioning, think the min partition size would be 32 rows.
+modeling the performance of these arrays would suck.
+because u wud only use the second half of the partition once the first half finished. 
+
+yeah mixing layers could be such a pain.
+
+-----
 
 
 

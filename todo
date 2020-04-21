@@ -25,29 +25,16 @@ done
 > move rpr out of conv
 > is pooling necessary ?
   > yes.
+  
+> plots - with/without PE sync. allocation just on zero counts, not profiling.
+> resnet
 
-future / not doing:
--------
-> is there a relationship between the number of rows turned on and the 1s turned on in that row ? 
-  store weight density of that row ... or some bit weighted density i.e. 7 more important than 1.
-
-todo
--------
 > make sure Ho/Wo and yh/yw are correct.
 > ResNet ? 
 > BatchNorm
 > Intermediate Accuracy #s would also be good.
--------
-> run inference, make sure acc is good.
-> parse thru code trying to find (nan, 1/0, numerical instability)
--------
+
 > better architecture sim
-> device-to-device variance, not read-to-read
-> there was 1 more thing ...
-> 8 col/adc is good for x/w thing.
-  > means we can pick our x/w pretty much however
-  > also means we dont have to split at all.
--------
 
 > find an upperbound on speed we can go.
   > (total 1s in all data) / (total arrays * 8)
@@ -56,36 +43,42 @@ todo
   > yeah this really isnt too helpful ... its roughly 1300.
 
 > fix the hacks = [block][bl]
-> make sure this is correct
 
 > be able to run {naive, layer-wise, block-wise}
   > plot them.
 
-> need to run ResNet.
+future / not doing:
+-------
+> is there a relationship between the number of rows turned on and the 1s turned on in that row ? 
+  store weight density of that row ... or some bit weighted density i.e. 7 more important than 1.
+
+> is there a way we can perform pim operations on the gpu ?
+  > where compuation is same as our c kernel but we do some hack to run real fast on the gpu ? 
+
+todo
+-------
+> parse thru code trying to find (nan, 1/0, numerical instability)
+> device-to-device variance, not read-to-read
+> 8 col/adc is good for x/w thing.
+  > means we can pick our x/w pretty much however
+  > also means we dont have to split at all.
 
 -------
 
 priorities:
+> need to figure out what to do for left over PE memory.
+  > cant just leave it there when we have 9000 arrays allocated.
+
 > how can we verify this shit ? 
   > clean up code
   > above all else, we need to make sure our shit is right.
 
-> plots - with/without PE sync. allocation just on zero counts, not profiling.
-> resnet
-
 > compare with PE sync, account for PD constraints.
   > 1: 16 array per block ? 64 array per block ?
   > 2: the same blocks must be used together, i.e. you cannot just send any input data anywhere.
+  > rule = cant go over PE sync boundry.
 
-is there a way we can perform pim operations on the gpu ?
-where compuation is same as our c kernel but we do some hack to run real fast on the gpu ? 
-and still get metrics.
-
-> building a robust simulator could be really useful.
-
-> when we bring back pe_sync, verify it works same as 6115-7.
-
--------
+----
 
 ResNet18
 > tb_resnet.py
@@ -101,6 +94,9 @@ ResNet18
 -------
 
 little doubt we wud have solved this problem much faster, IF we had layed down with laptop in room byself.
+
+
+
 
 
 
