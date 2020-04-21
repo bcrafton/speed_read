@@ -152,10 +152,11 @@ plt.plot(lut.keys(), ys[(0, 0, 'block', 1)], marker='.', label='Baseline')
 plt.plot(lut.keys(), ys[(1, 0, 'block', 1)], marker='.', label='Zero Skip')
 '''
 
-plt.plot(lut.keys(), ys[(1, 0, 'block', 1)], marker='.', label='Perf-Based Block-wise')
-plt.plot(lut.keys(), ys[(1, 0, 'layer', 1)], marker='.', label='Perf-Based Layer-wise')
-plt.plot(lut.keys(), ys[(1, 0, 'layer', 0)], marker='.', label='Weight-Based')
-plt.plot(lut.keys(), ys[(0, 0, 'layer', 1)], marker='.', label='Baseline')
+x = sorted(lut.keys())
+plt.plot(x, ys[(1, 0, 'block', 1)], marker='.', label='Perf-Based Block-wise')
+plt.plot(x, ys[(1, 0, 'layer', 1)], marker='.', label='Perf-Based Layer-wise')
+plt.plot(x, ys[(1, 0, 'layer', 0)], marker='.', label='Weight-Based')
+plt.plot(x, ys[(0, 0, 'layer', 1)], marker='.', label='Baseline')
 
 ############################
 
