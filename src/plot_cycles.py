@@ -50,7 +50,7 @@ for key in sorted(results.keys()):
     for layer in range(num_layers):
     
         rdict = merge_dicts(layer_results[layer])
-        
+                
         ############################
         
         y_mean[skip][cards][alloc][profile][layer] = np.mean(rdict['mean'])
@@ -86,8 +86,22 @@ for key in sorted(results.keys()):
         
         ############################
 
+        block_cycle = np.mean(rdict['block_cycle'], axis=0)
+        if alloc:
+            # print (np.mean(rdict['cycle']), block_cycle)
+            y_stall = np.sum()
+            
+        ############################
+        # nope, this isnt good enof either.
+        # we need the real stall ...
+
         y_cycle = np.mean(rdict['cycle'])
-        y_stall = np.mean(rdict['stall'])
+
+        if alloc:
+            y_stall = np.sum(np.mean(rdict['cycle']) - np.mean(rdict['block_cycle'], axis=0))
+        else:
+            y_stall = np.mean(rdict['stall'])
+
         y_array = np.mean(rdict['array'])
         array_util[skip][cards][alloc][profile][layer] = (y_array * y_cycle - y_stall) / (y_array * max_cycle)
         

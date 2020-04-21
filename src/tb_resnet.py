@@ -168,7 +168,7 @@ x, y = init_x(num_example=1)
 weights = np.load('resnet18_quant_weights.npy', allow_pickle=True).item()
 
 num_runs = len(param_sweep)
-parallel_runs = 8
+parallel_runs = 4
 for run in range(0, num_runs, parallel_runs):
     threads = []
     manager = multiprocessing.Manager()

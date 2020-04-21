@@ -74,7 +74,10 @@ class Model:
         num_layers = len(self.layers)
 
         pred = [None] * num_examples
-        results = [[] for weight in range(self.nweight)] 
+        # results = [[] for weight in range(self.nweight)] 
+        results = {}
+        for weight in range(self.nweight):
+            results[weight] = []
 
         for example in range(num_examples):
             pred[example] = x[example]
@@ -83,6 +86,9 @@ class Model:
                 assert (np.all((pred[example] % 1) == 0))
                 for r in result:
                     results[r['id']].append(r)
+                    
+        results['block_mac'] = self.mac_per_array_block
+        results['layer_mac'] = self.mac_per_array_layer
 
         return pred, results
 
@@ -219,8 +225,7 @@ class Conv(Layer):
         # 1) tensorflow to compute y_ref
         # 2) save {x,y1,y2,...} as tb from tensorflow 
         y_ref = conv_ref(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2, relu_flag=self.relu_flag)
-        # y, metrics = cconv(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2, params=self.params)
-        y, metrics = self.conv(x=x)
+        y, results = self.conv(x=x)
 
         y_min = np.min(y - y_ref)
         y_max = np.max(y - y_ref)
@@ -231,20 +236,12 @@ class Conv(Layer):
         # print ('y_mean', y_mean, 'y_std', y_std)
         
         # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
-        results = {}
+        # results = {}
         results['id']    = self.weight_id
         results['nmac']  = self.nmac
-        results['adc']   = metrics[0:8]
-        results['cycle'] = metrics[8]
-        results['ron']   = metrics[9]
-        results['roff']  = metrics[10]
-        results['wl']    = metrics[11]
         results['std']   = y_std
         results['mean']  = y_mean
-        results['stall'] = metrics[12]
         
-        results['block_cycle'] = metrics[13:]
-
         nwl, _, nbl, _ = np.shape(self.wb)
         
         if self.params['alloc'] == 'block': 
@@ -330,7 +327,23 @@ class Conv(Layer):
         y = np.clip(y, -128, 127)
         '''
         
-        return y, metrics
+        #########################
+        
+        # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
+        results = {}
+        results['adc']   = metrics[0:8]
+        results['cycle'] = metrics[8]
+        results['ron']   = metrics[9]
+        results['roff']  = metrics[10]
+        results['wl']    = metrics[11]
+        results['stall'] = metrics[12]
+        results['block_cycle'] = metrics[13:]
+        results['density'] = np.count_nonzero(patches) / np.prod(np.shape(patches)) * (self.params['wl'] / min(self.fh * self.fw * self.fc, self.params['wl']))
+        results['block_density'] = np.count_nonzero(patches, axis=(0,2,3)) / (npatch * self.params['wl'] * self.params['bpa'])
+        
+        #########################
+        
+        return y, results
         
     def cut(self):
         
