@@ -1903,8 +1903,12 @@ yeah mixing layers could be such a pain.
 
 -----
 
+trying to figure out how to get utilization.
+doing something with MAC isnt going to work.
 
+performance and stalls are different because of zero skipping.
 
+-----
 
 
 

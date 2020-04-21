@@ -215,7 +215,7 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int* b
 
       // here is our issue.
       if (block_done[block]) {
-        metrics[METRIC_STALL] += 1;
+        metrics[METRIC_STALL] += NBL;
         continue;
       }
       else { 
