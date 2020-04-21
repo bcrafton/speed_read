@@ -21,12 +21,13 @@ def merge_dicts(list_of_dicts):
 
 ####################
 
-num_layers = 6
+num_layers = 20
 results = np.load('results.npy', allow_pickle=True).item()
 
 ####################
 
-key = list(results.keys())[0]
+# key = list(results.keys())[0]
+key = (1, 0, 'block', 1, 24576.0)
 (skip, cards, alloc, profile, narray) = key
 alloc = 1 if alloc == 'block' else 0
 layer_results = results[key]
@@ -54,22 +55,27 @@ for layer in range(num_layers):
 ####################
     
 # plt.plot(density, layer_results['layer_mac'], marker='o')
-plt.scatter(density, layer_results['layer_mac'], marker='o')
+total_mac = np.ones(shape=num_layers)
+total_mac = total_mac * 128 * 16
+total_mac[0] = 7 * 7 * 3 / 2 * 16
+plt.scatter(density, total_mac / layer_results['layer_mac'], marker='o')
     
+'''
 for layer in range(num_layers):
     print (layer, density[layer], layer_results['layer_mac'][layer])
     plt.annotate(str(layer + 1), (density[layer][0] + np.max(density) * 0.01, layer_results['layer_mac'][layer]))
-    
+'''
+
 ####################
     
 plt.ylim(bottom=0)
-plt.ylabel('MAC/Cycle/Array')
+plt.ylabel('Cycle / Array')
 plt.xlabel('Percent (%) 1s')
 # plt.show()
 
 fig = plt.gcf()
-fig.set_size_inches(3.5, 3.)
-plt.tight_layout()
+# fig.set_size_inches(3.5, 3.)
+# plt.tight_layout()
 fig.savefig('density_vs_perf1.png', dpi=300)
 
 ####################

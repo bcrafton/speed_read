@@ -21,13 +21,14 @@ def merge_dicts(list_of_dicts):
 
 ####################
 
-num_layers = 6
+num_layers = 20
 results = np.load('results.npy', allow_pickle=True).item()
 
 ####################
 
-key = list(results.keys())[0]
-(skip, cards, alloc, profile) = key
+# key = list(results.keys())[0]
+key = (1, 0, 'block', 1, 24576.0)
+(skip, cards, alloc, profile, narray) = key
 alloc = 1 if alloc == 'block' else 0
 layer_results = results[key]
 
@@ -35,7 +36,7 @@ layer_results = results[key]
 # think it has to do with stalls, since block-wise only counts actice cycles.
 # and there are probably 45 duplicates.
 print (layer_results.keys())
-print (layer_results['layer_mac'])
+# print (layer_results['layer_mac'])
 # print (layer_results['block_mac'])
 
 density = []
@@ -51,10 +52,24 @@ for layer in range(num_layers):
     
 ####################
 
-x = block_density[4][0]
-y = layer_results['block_mac'][20:29]
-print (x)
-print (y)
+s = 0
+for layer in range(num_layers):
+    e = s + len(block_density[layer][0])
+    # print (layer, s, e)
+    print (layer, (s, e), layer_results['block_mac'][s:e])
+    s = e
+
+####################
+
+# x = block_density[16][0]
+# y = layer_results['block_mac'][137:173]
+
+x = block_density[15][0]
+y = 128 * 16 / layer_results['block_mac'][119:137]
+
+# print (x)
+# print (y)
+
 plt.scatter(x, y, marker='o')
     
 '''
@@ -66,13 +81,13 @@ for layer in range(num_layers):
 ####################
     
 # plt.ylim(bottom=0)
-plt.ylabel('MAC/Cycle/Array')
+plt.ylabel('Cycle / Array')
 plt.xlabel('Percent (%) 1s')
 # plt.show()
 
 fig = plt.gcf()
-fig.set_size_inches(3.5, 3.)
-plt.tight_layout()
+# fig.set_size_inches(3.5, 3.)
+# plt.tight_layout()
 fig.savefig('density_vs_perf2.png', dpi=300)
 
 ####################
