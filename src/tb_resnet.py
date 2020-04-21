@@ -28,15 +28,15 @@ def quantize_np(x):
   return x, scale
 
 def init_x(num_example):
-    dataset = np.load('imagenet.npy', allow_pickle=True).item()
+    dataset = np.load('resnet18_activations.npy', allow_pickle=True).item()
     xs, ys = dataset['x'], dataset['y']
     assert (np.shape(xs) == (10, 224, 224, 3))
 
     # TODO: make sure we are using the right input images and weights
-    xs = xs / 255. 
+    # xs = xs / 255. 
     # xs = xs - np.array([0.485, 0.456, 0.406])
-    xs = xs / np.array([0.229, 0.224, 0.225])
-    xs, scale = quantize_np(xs)
+    # xs = xs / np.array([0.229, 0.224, 0.225])
+    # xs, scale = quantize_np(xs)
     
     xs = xs[0:num_example]
     ys = ys[0:num_example]
@@ -68,22 +68,24 @@ param_sweep = {
 'bpw': 8,
 'adc': 8,
 'adc_mux': 8,
-'skip': [0, 1],
+'skip': [1],
 'cards': [0],
 'alloc': ['layer', 'block'],
-'profile': [0, 1],
+# 'profile': [0, 1],
 'stall': 0,
 'wl': 128,
 'bl': 128,
 'offset': 128,
 # 'narray': [2 ** 14, 24960, 2 ** 15],
-'narray': [5472, 2 ** 13, 1.5 * 2 ** 13, 2 ** 14, 1.5 * 2 ** 14],
+'narray': [1.5 * 2 ** 14],
 # 'narray': [5472],
 # seems like you gotta change e_mu based on this.
 # set e_mu = 0.15
 # set sigma = 0.05
 'sigma': [0.05], 
 'err_sigma': 0.,
+
+'profile': [1],
 }
 
 param_sweep = perms(param_sweep)
@@ -168,7 +170,7 @@ x, y = init_x(num_example=1)
 weights = np.load('resnet18_quant_weights.npy', allow_pickle=True).item()
 
 num_runs = len(param_sweep)
-parallel_runs = 4
+parallel_runs = 8
 for run in range(0, num_runs, parallel_runs):
     threads = []
     manager = multiprocessing.Manager()

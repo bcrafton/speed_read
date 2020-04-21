@@ -256,14 +256,28 @@ class Conv(Layer):
 
         ########################
 
+        y = y_ref
+
+        y = y + self.b
         if self.relu_flag:
             y = relu(y)
-
         y = avg_pool(y, self.p)
         y = y / self.q
-        y = np.floor(y)
+        y = np.round(y)
         y = np.clip(y, -128, 127)
         
+        ########################
+        '''
+        y_ref_ref = np.load('resnet18_activations.npy', allow_pickle=True).item()[self.layer_id]
+
+        print (np.shape(y_ref_ref[0]), np.std(y_ref_ref[0]), np.shape(y), np.std(y))        
+        
+        plt.imshow(y_ref_ref[0,:,:,0])
+        plt.show()
+
+        plt.imshow(y[:,:,0])
+        plt.show()
+        '''
         ########################
 
         return y, [results]
@@ -488,6 +502,7 @@ class AvgPool(Layer):
         assert (self.k == self.s)
 
     def forward(self, x):
+        # max pool and avg pool mess things up a bit because they dont do the right padding in tensorflow.
         y = avg_pool(x, self.k)
         y = np.clip(np.floor(y), -128, 127)
         return y, []
@@ -522,12 +537,27 @@ class MaxPool(Layer):
         self.yh, self.yw, self.yc = self.output_size
 
     def forward(self, x):
-
+        # max pool and avg pool mess things up a bit because they dont do the right padding in tensorflow.
         x = np.pad(array=x, pad_width=[[self.pad,self.pad], [self.pad,self.pad], [0,0]], mode='constant')
         y = np.zeros(shape=self.output_size)
         for h in range(self.yh):
             for w in range(self.yw):
                 y[h, w, :] = np.max( x[h*self.s:(h*self.s+self.k), w*self.s:(w*self.s+self.k), :], axis=(0, 1) )
+
+
+        ######################################
+        '''
+        y_ref_ref = np.load('resnet18_activations.npy', allow_pickle=True).item()[self.layer_id]
+
+        print (np.shape(y_ref_ref[0]), np.std(y_ref_ref[0]), np.shape(y), np.std(y))        
+        
+        plt.imshow(y_ref_ref[0,:,:,0])
+        plt.show()
+
+        plt.imshow(y[:,:,0])
+        plt.show()
+        '''
+        ######################################
 
         return y, []
 
