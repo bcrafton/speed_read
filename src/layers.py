@@ -476,7 +476,7 @@ class Block2(Layer):
         
 #############
 
-class MaxPool(Layer):
+class AvgPool(Layer):
     def __init__(self, input_size, kernel_size, stride, params, weights):
         self.layer_id = Layer.layer_id
         Layer.layer_id += 1
@@ -484,6 +484,8 @@ class MaxPool(Layer):
         self.input_size = input_size
         self.k = kernel_size
         self.s = stride
+        
+        assert (self.k == self.s)
 
     def forward(self, x):
         y = avg_pool(x, self.k)
@@ -504,9 +506,44 @@ class MaxPool(Layer):
 
 #############
 
+class MaxPool(Layer):
+    def __init__(self, input_size, kernel_size, stride, params, weights):
+        self.layer_id = Layer.layer_id
+        Layer.layer_id += 1
+        
+        self.input_size = input_size
+        self.xh, self.xw, self.xc = self.input_size
+        
+        self.k = kernel_size
+        self.pad = self.k // 2
+        self.s = stride
+        
+        self.output_size = input_size[0] // stride, input_size[1] // stride, input_size[2]
+        self.yh, self.yw, self.yc = self.output_size
 
+    def forward(self, x):
 
+        x = np.pad(array=x, pad_width=[[self.pad,self.pad], [self.pad,self.pad], [0,0]], mode='constant')
+        y = np.zeros(shape=self.output_size)
+        for h in range(self.yh):
+            for w in range(self.yw):
+                y[h, w, :] = np.max( x[h*self.s:(h*self.s+self.k), w*self.s:(w*self.s+self.k), :], axis=(0, 1) )
 
+        return y, []
+
+    def nblock(self):
+        return 0
+
+    def set_block_alloc(self, block_alloc):
+        pass
+
+    def set_layer_alloc(self, layer_alloc):
+        pass
+        
+    def weights(self):
+        return []
+
+#############
 
 
 
