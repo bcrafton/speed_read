@@ -136,8 +136,8 @@ plt.xticks(layers)
 plt.yticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
 
 fig = plt.gcf()
-# fig.set_size_inches(9, 9)
-# plt.tight_layout()
+fig.set_size_inches(8., 2.5)
+plt.tight_layout()
 fig.savefig('skip-util.png', dpi=300)
 
 ####################

@@ -256,7 +256,8 @@ class Conv(Layer):
 
         ########################
 
-        y = y_ref
+        # y = y_ref
+        assert (y_std <= 0)
 
         y = y + self.b
         if self.relu_flag:
