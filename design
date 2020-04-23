@@ -1910,6 +1910,44 @@ performance and stalls are different because of zero skipping.
 
 -----
 
+> need to compute expected mean and std from this new scale method.
+  > well the problem i think is 2 fold
+ 
+1) we dont know how we will scale, will we use 1.5 ? will we use 11 or 12 ? 
+2) we computed expected error by doing [-adc, adc] for all e.
+   but now we dont have that
+   and we wud have to mix our scale equation into the mix.
+   
+can we get out of this looping around calculating e using [-adc, adc] ?
+> or can we get it done with calculating e this way ? 
+
+so its like:
+given (p, var, adc, rpr)
+figure out the expected error.
+
+where scale would be calculated from (adc, rpr)
+
+for all possible states:
+  for all possible errors:
+    calc prob
+    
+okay this isnt so bad.
+but we have to include this scale idea.
+and the amount we would be off by will change.
+
+it almost feels like we didnt do this right ...
+we shud start a small python setup
+so we can test things out and verify
+
+yeah thats really the way forward here, start a python script where we can try things out.
+
+-----
+
+
+
+
+
+
 
 
 

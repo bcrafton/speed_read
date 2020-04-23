@@ -46,6 +46,20 @@ done
 
 > be able to run {naive, layer-wise, block-wise}
   > plot them.
+  
+ResNet18
+> tb_resnet.py
+> load imagenet data samples ~5 from validation set.
+> need to support negative weights
+> need to write code for residual blocks.
+
+> only explore branches that arnt +1 over upper bound. dosnt make sense otherwise.
+> probably can do something similar with lower bound search.
+  > little doubt we wud have solved this problem much faster, IF we had layed down with laptop in room byself.
+
+> 8 col/adc is good for x/w thing.
+  > means we can pick our x/w pretty much however
+  > also means we dont have to split at all.
 
 future / not doing:
 -------
@@ -55,13 +69,11 @@ future / not doing:
 > is there a way we can perform pim operations on the gpu ?
   > where compuation is same as our c kernel but we do some hack to run real fast on the gpu ? 
 
+> parse thru code trying to find (nan, 1/0, numerical instability)
+
 todo
 -------
-> parse thru code trying to find (nan, 1/0, numerical instability)
 > device-to-device variance, not read-to-read
-> 8 col/adc is good for x/w thing.
-  > means we can pick our x/w pretty much however
-  > also means we dont have to split at all.
 
 -------
 
@@ -73,27 +85,20 @@ priorities:
   > clean up code
   > above all else, we need to make sure our shit is right.
 
+> verify:
+  > %1s
+  > stalls for utilization calculation.
+
 > compare with PE sync, account for PD constraints.
   > 1: 16 array per block ? 64 array per block ?
   > 2: the same blocks must be used together, i.e. you cannot just send any input data anywhere.
   > rule = cant go over PE sync boundry.
 
-----
-
-ResNet18
-> tb_resnet.py
-> load imagenet data samples ~5 from validation set.
-> need to support negative weights
-> need to write code for residual blocks.
+> cards - shift + scale.
 
 -------
 
-> only explore branches that arnt +1 over upper bound. dosnt make sense otherwise.
-> probably can do something similar with lower bound search.
 
--------
-
-little doubt we wud have solved this problem much faster, IF we had layed down with laptop in room byself.
 
 
 
