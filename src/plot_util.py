@@ -134,6 +134,7 @@ plt.plot([0., 20.], [np.max(skip_block), np.max(skip_block)], "k--", color='blac
 '''
 plt.xticks(layers)
 plt.yticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+plt.grid(True, axis='y', linestyle='dotted')
 
 fig = plt.gcf()
 fig.set_size_inches(8., 2.5)
@@ -163,10 +164,11 @@ plt.plot([0., 20.], [np.max(cards_block), np.max(cards_block)], "k--", color='bl
 '''
 plt.xticks(layers)
 plt.yticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+plt.grid(True, axis='y', linestyle='dotted')
 
 fig = plt.gcf()
-# fig.set_size_inches(9, 9)
-# plt.tight_layout()
+fig.set_size_inches(8., 2.5)
+plt.tight_layout()
 fig.savefig('cards-util.png', dpi=300)
 
 ####################
