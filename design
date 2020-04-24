@@ -1910,9 +1910,10 @@ performance and stalls are different because of zero skipping.
 
 -----
 
+> min_cycle = np.sum(self.nmac / self.mac_per_array) / remainder
+> use this.
 
-
-
+to get the upper bound. 
 
 
 
