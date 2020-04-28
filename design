@@ -1943,6 +1943,49 @@ yeah thats really the way forward here, start a python script where we can try t
 
 -----
 
+so instead of saying scale/shift
+we want to just say: affine transformation.
+and then do them together.
+
+the problem with scaling
+is say we do:
+rpr=10
+adc=8
+well then we have to do 1.2 scale 
+not sure if that is a problem or not...
+
+dont think it will be too bad
+because ADC will always be power of 2
+so we can just use shift
+then do (* 10 / 8)
+
+-----
+
+where this idea will cause issues 
+is with variance
+because with variance
+we did not do variance with floating point.
+we just got error using a lookup table.
+
+but now we want to use this variable ADC range
+so we are going to have to go to floating point.
+or at the very least keep variance as a separate variable and accumulate that in floating point
+AND then not clip the psum value or w.e.
+
+yeah def think best to keep psum as integer
+but then again we do variance after each readout.
+so maybe it wud be fine
+because that is the granularity we are doing this affine_adc with.
+
+but we do need to change the way we are doing variance.
+instead of this percent of time we get an error
+we have to change it to instead be a floating point.
+and then figure out if its inside the new bounds which have been extended to (rpr/adc)
+
+-----
+
+
+
 
 
 
