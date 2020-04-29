@@ -1984,6 +1984,114 @@ and then figure out if its inside the new bounds which have been extended to (rp
 
 -----
 
+so we figured out:
+> pim.c
+> test_error.py
+
+now we need to figure out the equation to estimate error this way.
+> rpr.py
+
+for pim.c 
+we do want to make a adc function
+that takes number on states
+and the variance
+and spits out some good estimation
+
+rather than this round, min function thing we got going on now.
+
+-----
+
+for bias and scale,
+really dont get how we choose these.
+i mean shouldnt we choose them ? 
+
+i am thinking for rpr=10, adc=8
+its not so obvious 
+which 2 states are going to get rounded up or rounded down.
+
+if we do the error thing from before. 
+you basically just have to add error for every time we are in that state.
+not that big of a change.
+sorta like how we handled when s > adc ...
+
+------
+
+but yeah its definitely important
+pick the states
+that are used the least frequently.
+
+and those should be the states we ignore. 
+
+------
+
+there is really so much more you can do with array level stats.
+
+like why use p=0.7
+why not look at all the p's in all the columns. 
+
+yeah use the activations not just some single column approximation.
+
+------
+
+picking the right place to start is hard.
+
+1) how to pick scale and bias.
+2) use p=0.7, there is no activation stats ... zero-skipping.
+3) looking at output statistics, because that will tell which states we need the least.
+4) which comes first ? (rpr), (scale, bias)
+
+if it is the case that for: rpr=10, adc=8
+that (0, 1) are least common.
+do we just use a bias and no scale ? 
+
+and for rpr=16, adc=8:
+what do we do here ? 
+
+------
+
+so i guess we are looking to best fit the affine adc to activation data. 
+how is this done ? 
+
+------
+
+!!!
+1) so we will sweep the rpr.
+2) then figure out the affine adc for each rpr.
+3) then compute expected mean and variance.
+
+is this the right answer ? 
+did we make any false assumptions ?
+
+we cant really invert some matrix here unfort.
+because it has to be integers ...
+
+------
+
+we should compute the (scale, bias) given output statistics to get the best fit.
+
+------
+
+If you recall awhile ago I wanted to try scaling the ADC rather than using the dynamic bias technique we use in counting cards.
+Meaning if (rpr=12, adc=8) each ADC state would now be equal to 1.5 or w.e.
+
+I am trying to do that now, but I think it is necessary to use both a scale and a bias. So my idea is that we would keep the same algorithm with an additional for loop where we do:
+for all rpr:
+  for all (scale, bias) given rpr:
+    choose 1 with lowest (mu, std)
+
+But I was wondering if there was a way to just compute scale and bias. Naturally least squares makes the most sense, but it has to be constrained to integers. Well except for the scaling value where we would have to do something weird like:
+output*10/8 or w.e.
+
+So I think the problem statement here is:
+Given that rpr > adc,
+how do we select the best 8 states
+constrained to what we can represent by integer scale and bias.
+
+Any thoughts ?
+
+------
+
+
 
 
 
