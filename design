@@ -2091,16 +2091,94 @@ Any thoughts ?
 
 ------
 
+"Integer Least Squares" is a thing.
 
+https://stackoverflow.com/questions/43163682/integer-linear-least-squares
+https://towardsdatascience.com/integer-programming-in-python-1cbdfa240df2
 
+looks like these would have us use ILP.
 
+------
 
+If we can feed it a large vector of data
+and have it pick the (scale, bias) that minimize least squares error
+we wud be golden.
 
+> then we cud use that as our error approx ? 
+> or wud we still want to do the loop for all (state, error)
 
+------
 
+Hmm, well I think floating point would be too expensive for the additional benefit especially on smaller 128x128 arrays. We could do something like come up with some fixed point format, where we use 12 bits to accumulate instead of 8 where each bit = 1/2^4, and then round back to 8 at the end.
 
+And I guess we don't need this scale and bias because we can use a lookup table ... like the ADC's output is the input to a LUT ... or whatever allows us to implement this mapping the most efficiently. 
 
+Let me know if you come up with any ideas. I'll probably try some Python experiments out. I have a feeling this will perform better than the dynamic technique and also be easier to implement. 
 
+------
+
+alright so what are the actual constraints we want to try first with ? 
+
+> integer [bias, numerator, denominator]
+> 12 bit fixed point ... 1/16.
+
+> do the points need to be linearly separated. 
+> feel like this must be common sampling/signal processing problem ...
+
+well this is really a quantization problem isnt it ?
+same thing we did with quantized neural networks
+
+how does a flash ADC work lol ? 
+> https://www.youtube.com/watch?v=NASkjo7s8f4
+straightforward.
+
+okay then so we could put the thresholds wherever we want ? 
+assuming we can get a reference there ...
+
+------
+
+> so where do we put our references ?
+> what are constraints on scaling them ? 
+  > what we can represent with scale + bias ? 
+  > using a LUT ? 
+  
+this problem is definitely solved somewhere else.
+> k-means
+
+I think at first, dont constrain the problem.
+find the 8 best points
+then after that figure out what the constraints need to be.
+
+------
+
+So I am pretty sure we want to use k-means to get an unconstrained solution.
+Then afterwards we can do something else.
+
+playing around with this:
+'''
+var = 0.2
+adc = 8
+rpr = 16
+p = 0.8
+samples = 100000
+'''
+
+yielded:
+min=5
+max=16
+
+which is interesting...
+only 13 unique states.
+despite doubling our adc range.
+
+------
+
+so does this mean our problem is constrained k-means ? 
+well not really right ? 
+dosnt it matter what our result is after k-means as well ? 
+... important question to answer.
+
+------
 
 
 
