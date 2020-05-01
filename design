@@ -2189,6 +2189,20 @@ it picks the whole numbers because they yield zero error.
 
 ------
 
+> okay so now we want to look at actual data.
+
+so this data will be tricky.
+
+> pick a layer.
+> go through and select rows where activation was 1.
+> then sum along them to give us the distributions we want to fit.
+
+BUT the difference is 
+we want to break it down by ADC read, not full 128 column.
+
+------
+
+
 
 
 
