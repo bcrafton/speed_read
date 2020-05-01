@@ -2202,9 +2202,11 @@ we want to break it down by ADC read, not full 128 column.
 
 ------
 
+can we do this specific to each column ? 
+can we configure this on the fly ? 
+> only turning on 8 rows, so what do I do ?
 
-
-
+------
 
 
 
