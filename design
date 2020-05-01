@@ -2209,6 +2209,26 @@ meaning - if I only turn on 8/16 rows, can I change my ADC thresholds ?
 
 ------
 
+what is the next step for this ? 
+
+well we can do 1 of 2:
+> assume we can dynamically configure
+> assume we cannot
+
+with both ways the step forward is the same.
+> integrate with convolution basically.
+> figure out how to even use these centroids.
+> compute expected mean ? quantization will cause a mean I assume.
+
+yeah so we have to build the framework first.
+then we can try dynamic configuration of the ADCs
+
+------
+
+
+
+
+
 
 
 
