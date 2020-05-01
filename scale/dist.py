@@ -3,6 +3,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 
+#########################
+
+RPR = 12
+ADC = 8
+
+#########################
+
 x = np.load('../src/resnet18_activations.npy', allow_pickle=True).item()
 # print (x.keys())
 x2 = x[3][0]
@@ -126,7 +133,7 @@ for p in range(npatch):
                 wlsum += 1
                 psum += w[i][j]
                 
-            if wlsum == 16:
+            if wlsum == RPR:
                 wlsum = 0
                 psums[i].append(psum)
                 psum = np.zeros(shape=(nbl, bl))
@@ -139,17 +146,20 @@ print (np.shape(psums[0]))
 
 x = psums[0]
 x = np.array(x)
-x = np.reshape(x[:, 0, 0], (-1, 1))
+x = np.reshape(x[:, :, :], (-1, 1))
 
-plt.hist(x)
-plt.show()
+values, counts = np.unique(x, return_counts=True)
+# plt.hist(x)
+# plt.show()
+print (values, counts)
 
 #########################
 
-kmeans = KMeans(n_clusters=8, init='k-means++', max_iter=300, n_init=10, random_state=0)
+kmeans = KMeans(n_clusters=ADC, init='k-means++', max_iter=10000, n_init=10, random_state=0)
 kmeans.fit(x)
 
-print (kmeans.cluster_centers_[:, 0])
+centroids = np.round(kmeans.cluster_centers_[:, 0], 2)
+print (centroids)
 
 #########################
 

@@ -98,8 +98,33 @@ priorities:
 
 -------
 
+> affine ADC + cards + breaking barriers.
+  > go to 256x256
+  > 3-bit ADC 
+  > argue area is nearly the same as 128x128
+  > we will absolutely crush prior work.
+  
+> Yu always turns on 128 rows with 5-bit ADC 
+  > wonder if errors ever happen
+  
+-------
 
+can we do this specific to each column ? 
+can we configure this on the fly ? 
 
+meaning - if I only turn on 8/16 rows, can I change my ADC thresholds ?
+
+-------
+
+if we can do 1 of 2 things:
+> bias the ADC when less rows are turned on
+> dynamically configure the ADC thresholds
+then we can get some insane performance.
+
+if we cannot do some trick like this, 
+we still need to figure out what we can pull off.
+
+-------
 
 
 
