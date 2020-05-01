@@ -2121,6 +2121,7 @@ alright so what are the actual constraints we want to try first with ?
 
 > integer [bias, numerator, denominator]
 > 12 bit fixed point ... 1/16.
+  > then just divide by 16 at the end ... but atleast we get to add up all the partials.
 
 > do the points need to be linearly separated. 
 > feel like this must be common sampling/signal processing problem ...
@@ -2178,7 +2179,19 @@ well not really right ?
 dosnt it matter what our result is after k-means as well ? 
 ... important question to answer.
 
+
+nah that doesnt even make sense.
+
 ------
+
+kmeans is absolutely the right answer to this.
+it picks the whole numbers because they yield zero error.
+
+------
+
+
+
+
 
 
 
