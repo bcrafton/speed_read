@@ -2225,11 +2225,22 @@ then we can try dynamic configuration of the ADCs
 
 ------
 
+1)
+need a new profile function basically
+that will run through activations
+and figure out the centroids
 
+2)
+pass centroids to pim.c 
+add an ADC function that can do this and variance.
+> this = threshold arbitrary values to [0..7]
+  > then scale them back to whatever they are supposed to be using some function implemntation.
 
+3)
+update rpr.py to compute expected (std, mean)
+pick one that matches our constraints.
 
-
-
+------
 
 
 
