@@ -16,6 +16,8 @@ cmd = "gcc pim.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o pim.so"; 
 cmd = "gcc pim_sync.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o pim_sync.so"; os.system(cmd)
 
 from layers import *
+from conv import *
+from block import *
 from defines import *
 
 ####
