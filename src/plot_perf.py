@@ -160,6 +160,17 @@ plt.plot(x, ys[(0, 0, 'layer', 1)], marker='.', label='Baseline')
 
 ############################
 
+perf_based_block_wise = ys[(1, 0, 'block', 1)]
+perf_based_layer_wise = ys[(1, 0, 'layer', 1)]
+weight_based = ys[(1, 0, 'layer', 0)]
+baseline = ys[(0, 0, 'layer', 1)]
+
+print (perf_based_block_wise / perf_based_layer_wise)
+print (perf_based_block_wise / weight_based)
+print (perf_based_block_wise / baseline)
+
+############################
+
 # print (ys[(1, 0, 'layer', 1)] / ys[(0, 0, 'layer', 1)])
 
 # print (cycle[(0, 0, 'layer', 1, 2 ** 14)])

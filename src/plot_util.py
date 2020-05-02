@@ -97,7 +97,19 @@ for key in sorted(results.keys()):
 
 ####################
 
-layers      = np.array(range(1, num_layers+1))
+layers = np.array(range(1, num_layers+1))
+
+####################
+
+skip_none_array  = np.around(array[1, 0, 0, 0],  3)
+skip_layer_array  = np.around(array[1, 0, 0, 1],  3)
+skip_block_array  = np.around(array[1, 0, 1, 1],  3)
+
+cards_none_array = np.around(array[1, 1, 0, 0],  3)
+cards_layer_array = np.around(array[1, 1, 0, 1],  3)
+cards_block_array = np.around(array[1, 1, 1, 1],  3)
+
+####################
 
 skip_none  = np.around(array_util[1, 0, 0, 0],  3)
 skip_layer  = np.around(array_util[1, 0, 0, 1],  3)
@@ -106,6 +118,22 @@ skip_block  = np.around(array_util[1, 0, 1, 1],  3)
 cards_none = np.around(array_util[1, 1, 0, 0],  3)
 cards_layer = np.around(array_util[1, 1, 0, 1],  3)
 cards_block = np.around(array_util[1, 1, 1, 1],  3)
+
+####################
+
+print ()
+print (skip_block / skip_layer)
+print (skip_block / skip_none)
+
+'''
+this is wild, how do we get these #s ? 
+looks like we calculated something this way instead of observing it.
+well utilization is a function of the max cycle across all layers so it sorta makes sense.
+if we were going to discuss utilization i dont think we wud be looking at these prints below.
+'''
+print ()
+print ((skip_block_array * skip_block) / (skip_layer_array * skip_layer))
+print ((skip_block_array * skip_block) / (skip_none_array * skip_none))
 
 ####################
 
