@@ -3,7 +3,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
-from conv_utils import conv_output_length
+from conv_utils import *
 from cdot import *
 from dot_ref import *
 from defines import *
