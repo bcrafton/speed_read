@@ -2241,6 +2241,7 @@ update rpr.py to compute expected (std, mean)
 pick one that matches our constraints.
 > for this computation, i believe we will use actual values rather than computing with statistics.
 > better to use actual values, then use some average and then compute with stats.
+  > well hold on there. we cannot use np.random.normal() ... we need to compute with distributions not samples.
 
 4) 
 dynamically configure ADCs
@@ -2248,6 +2249,45 @@ dynamically configure ADCs
 different thresholds for each column ?
 
 ------
+
+> might be a good time to clean this code up.
+
+1) 
+struggling here bc we have pretty bad code.
+we need to call this function every time we want to try a new rpr.
+> every layer gets its own rpr.
+> so for every new rpr() we try we have to run this function.
+
+thinking - it wud be better to run self.conv(). change comp -> dont rail at 8, can do that in Python. this way we can get fast profiles.
+
+------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
