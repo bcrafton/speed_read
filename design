@@ -2239,6 +2239,13 @@ add an ADC function that can do this and variance.
 3)
 update rpr.py to compute expected (std, mean)
 pick one that matches our constraints.
+> for this computation, i believe we will use actual values rather than computing with statistics.
+> better to use actual values, then use some average and then compute with stats.
+
+4) 
+dynamically configure ADCs
+1) bias current 2) variable threshold ADC
+different thresholds for each column ?
 
 ------
 
