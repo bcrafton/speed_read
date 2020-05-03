@@ -2,6 +2,7 @@
 import math
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
 
 from conv_utils import *
 from cdot import *
@@ -261,6 +262,74 @@ class Conv(Layer):
         ########################
 
         return wb
+        
+        
+    def dist(self, x):
+        x = self.transform_inputs(x)
+        
+        npatch, nwl, wl, bpa = np.shape(x)
+        nwl, wl, nbl, bl = np.shape(self.wb)
+        
+        x = np.transpose(x, (0,3,1,2))
+        x = np.reshape(x, (npatch * bpa, nwl, wl))
+
+        print (np.shape(x), np.std(x))
+        print (np.shape(self.wb), np.std(self.wb))
+
+        #########################
+        
+        psums = [[] for _ in range(nwl)] 
+
+        for p in range(npatch):
+            for i in range(nwl):
+                wlsum = 0
+                psum = np.zeros(shape=(nbl, bl))
+                
+                for j in range(wl):
+                
+                    if x[p][i][j]:
+                        wlsum += 1
+                        psum += self.wb[i][j]
+                        
+                    # damn it. rpr is 2d array ...
+                    # well we cannot control xb
+                    # but we can do what we did before with p
+                    # and split them up correctly by wb.
+                    
+                    # well we actually can control xb
+                    # because we are feeding in the activations we have
+                    # so - i wud say we want to evaluate all the rpr's and collect 
+                    # distributions outright.
+                    if wlsum == 12: # self.params['rpr']:
+                        wlsum = 0
+                        psums[i].append(psum)
+                        psum = np.zeros(shape=(nbl, bl))
+                
+                psums[i].append(psum)
+        
+        #########################
+
+        x = psums[0]
+        x = np.array(x)
+        x = np.reshape(x[:, :, :], (-1, 1))
+
+        values, counts = np.unique(x, return_counts=True)
+        # plt.hist(x)
+        # plt.show()
+        print (values)
+        print (counts)
+
+        #########################
+
+        kmeans = KMeans(n_clusters=self.params['adc'], init='k-means++', max_iter=1000, n_init=50, random_state=0)
+        kmeans.fit(x)
+
+        centroids = np.round(kmeans.cluster_centers_[:, 0], 2)
+        print (centroids)
+        
+        assert (False)
+                
+        #########################
         
     def weights(self):
         return [self]

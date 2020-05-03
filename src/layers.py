@@ -41,6 +41,7 @@ class Model:
         self.set_block_alloc()
 
     def profile(self, x):
+
         num_examples, _, _, _ = np.shape(x)
         num_layers = len(self.layers)
 
@@ -53,6 +54,9 @@ class Model:
         for example in range(num_examples):
             pred[example] = x[example]
             for layer in range(num_layers):
+                self.layers[layer].dist(x=pred[example])
+                assert (False)
+            
                 pred[example], result = self.layers[layer].forward(x=pred[example])
                 assert (np.all((pred[example] % 1) == 0))
                 for r in result:

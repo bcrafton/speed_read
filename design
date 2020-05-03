@@ -2337,11 +2337,11 @@ we are supposed to remove this part anyways lol.
 > so we will loop over rpr options.
 > each time need to call collect, get centroids, compute expected (std, mean)
 
+alright - call dist(x) instead of profile or w.e. 
+want to see the same plot we were seeing before.
 
-
-
-
-
+> why we going so slow ? 
+  > so hard to focus for some reason.
 
 
 
