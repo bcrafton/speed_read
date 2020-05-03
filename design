@@ -2322,8 +2322,20 @@ well i think u have to do the same thing as before - that is where u loop throug
 
 ------
 
+> collapse the p thing to just use self.wb ... dont worry about different bits
+  > put a todo there saying each {w bit, block} should get its own rpr.
+  
+well actually rpr does take the p array,
+so idk.
 
+we are supposed to remove this part anyways lol.
 
+> okay maybe leave it as it is and put the block comment
+
+------
+
+> so we will loop over rpr options.
+> each time need to call collect, get centroids, compute expected (std, mean)
 
 
 

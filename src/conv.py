@@ -73,6 +73,11 @@ class Conv(Layer):
 
         nrow = self.fh * self.fw * self.fc
         p = np.max(col_density, axis=0)
+        # [0.74829932 0.74829932 0.74829932 0.74829932 0.74829932 0.74829932 0.74829932 0.79591837]
+        # this should be specific to the block as well.
+        
+        #########################
+        
         self.params['rpr'] = rpr(nrow=nrow, p=p, q=self.q, params=self.params)
         
         #########################
@@ -132,18 +137,6 @@ class Conv(Layer):
         y = np.round(y)
         y = np.clip(y, -128, 127)
         
-        ########################
-        '''
-        y_ref_ref = np.load('resnet18_activations.npy', allow_pickle=True).item()[self.layer_id]
-
-        print (np.shape(y_ref_ref[0]), np.std(y_ref_ref[0]), np.shape(y), np.std(y))        
-        
-        plt.imshow(y_ref_ref[0,:,:,0])
-        plt.show()
-
-        plt.imshow(y[:,:,0])
-        plt.show()
-        '''
         ########################
 
         return y, [results]
