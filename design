@@ -2381,8 +2381,40 @@ pick the best one using this information.
 
 ------
 
+for all xb
+    for all wb
+        dist(x)
+        
+want to pick our centroids specific to (xb, wb)
+will of course improve stuff.
 
+that does mean we need to switch adc thresholds or add bias tho...
+> yeah there are so many groups we can make that would benefit from their own centroids.
 
+------
+
+but we cannot have so many groups.
+can we even have more than 1 for this initial trial ?
+
+well each (xb, wb) gets its own rpr
+so i imagine each one gets its own cetroids.
+
+what else was supposed to get its own centroid ? 
+wernt we just planning on doing centroid by layer ?
+>> can this be done independent of cards ? 
+
+well counting cards = rpr
+so i dont think so.
+
+------
+
+so we need to compute centroids for each (xb, wb)
+> but i think we can pre-compute all the distributions forutnately. 
+> ah very good point.
+> for all rpr, for all xb
+> everything will be the same.
+
+------
 
 
 
