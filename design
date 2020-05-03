@@ -2373,11 +2373,13 @@ rpr just needs to be passed in, not inside of params.
 
 ------
 
+> profile_rpr(x)
+> each time call dist
+  > return centroids, std, mu
 
+pick the best one using this information.
 
-
-
-
+------
 
 
 

@@ -265,8 +265,7 @@ class Conv(Layer):
         ########################
 
         return wb
-        
-        
+                
     def dist(self, x):
         x = self.transform_inputs(x)
         
@@ -334,10 +333,46 @@ class Conv(Layer):
                 
         #########################
 
+    def profile_rpr(self, x):
 
+    # def rpr(nrow, p, q, params):
+        rpr_lut = np.zeros(shape=(8, 8), dtype=np.int32)
+        for wb in range(params['bpw']):
+            for xb in range(params['bpa']):
+                rpr_lut[xb][wb] = params['adc']
+            
+        if not (params['skip'] and params['cards']):
+            '''
+            for key in sorted(rpr_lut.keys()):
+                print (key, rpr_lut[key])
+            print (np.average(list(rpr_lut.values())))
+            '''
+            return rpr_lut
+        
+        # counting cards:
+        # ===============
+        for wb in range(params['bpw']):
+            for xb in range(params['bpa']):
+                rpr_low = 1
+                rpr_high = 16
+                for rpr in range(rpr_low, rpr_high + 1):
+                    scale = 2**(wb - 1) * 2**(xb - 1)
+                    mu, std = prob_err(p[wb], params['sigma'], params['adc'], rpr, np.ceil(nrow / rpr))
+                    e = (scale / q) * 5 * std
+                    e_mu = (scale / q) * mu
 
+                    if rpr == rpr_low:
+                        rpr_lut[xb][wb] = rpr
+                    if (e < 1.) and (np.absolute(e_mu) < 0.15):
+                    # if e < 1.:
+                        rpr_lut[xb][wb] = rpr
 
-
+        '''
+        for key in sorted(rpr_lut.keys()):
+            print (key, rpr_lut[key])
+        print (np.average(list(rpr_lut.values())))
+        '''
+        return rpr_lut
 
 
 
