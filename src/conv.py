@@ -57,12 +57,21 @@ class Conv(Layer):
         # assert(self.q > 0)
         
         #########################
+        
+        self.wb = self.transform_weights()
+        nwl, _, nbl, _ = np.shape(self.wb) 
+        self.factor = nwl * nbl
+        
+        self.nwl = nwl
+        self.nbl = nbl
+        
+        #########################
 
         self.params = params.copy()
         self.params['var'] = lut_var(params['sigma'], 32)
         
         #########################
-        
+        '''
         w_offset = self.w + params['offset']
         wb = []
         for bit in range(params['bpw']):
@@ -80,16 +89,7 @@ class Conv(Layer):
         #########################
         
         self.params['rpr'] = rpr(nrow=nrow, p=p, q=self.q, params=self.params)
-        
-        #########################
-        
-        self.wb = self.transform_weights()
-        nwl, _, nbl, _ = np.shape(self.wb) 
-        self.factor = nwl * nbl
-        
-        self.nwl = nwl
-        self.nbl = nbl
-        
+        '''
         #########################
 
     def forward(self, x):
@@ -321,7 +321,7 @@ class Conv(Layer):
 
         #########################
 
-        kmeans = KMeans(n_clusters=self.params['adc'], init='k-means++', max_iter=1000, n_init=50, random_state=0)
+        kmeans = KMeans(n_clusters=self.params['adc'], init='k-means++', max_iter=300, n_init=5, random_state=0)
         kmeans.fit(x)
 
         centroids = np.round(kmeans.cluster_centers_[:, 0], 2)

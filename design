@@ -2343,6 +2343,51 @@ want to see the same plot we were seeing before.
 > why we going so slow ? 
   > so hard to focus for some reason.
 
+------
+
+> write a function that can compute: (std, mean)
+> ignore p.
+> have this distribution, have our centroids.
+
+> know the percent of time we are going to get these #s. 
+  dont have to worry anymore about p(w=1 | x=1)
+  
+so how do we compute this error ? 
+> p(s) ... using the distribution
+> p(e | s) ... using distribution, variance, and centroids
+
+------
+
+the plan is to compute all these for a wide range of rpr.
+and to do it for different x-bits.
+
+otherwise how wud it look ? 
+> it wud be like
+> for all rpr:
+  > dist(x)
+  
+well maybe thats not bad actually.
+because we can probably use less rpr by pulling out as soon as we get (std, mu) we dont like.
+
+rpr just needs to be passed in, not inside of params.
+
+------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
