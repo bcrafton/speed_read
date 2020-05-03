@@ -2262,21 +2262,65 @@ thinking - it wud be better to run self.conv(). change comp -> dont rail at 8, c
 
 ------
 
+where do we start with (1) ? 
+'''
+w_offset = self.w + params['offset']
+wb = []
+for bit in range(params['bpw']):
+    wb.append(np.bitwise_and(np.right_shift(w_offset, bit), 1))
+...
+...
+self.params['rpr'] = rpr(nrow=nrow, p=p, q=self.q, params=self.params)
+'''   
+> this code exists in conv constructor...
+> def dont this anymore.
+> transform weights()
+> transform inputs()
 
+> check to make sure that adc_scale actually works before we do all this shit.
+  > currently running stuff on Desktop.
+  > works fine.
 
+------
 
+so if we look at what p is from that code above.
 
+[0.74829932 0.74829932 0.74829932 0.74829932 0.74829932 0.74829932 0.74829932 0.79591837]
+> we get this.
+> its a little weird how consistent it is across bits ...
+> but if we get the right answer, its fine ? 
 
+so we cant quite just use self.wb to get the same results here
+> AND why wouldnt you do this idea by block rather than by layer ?
+> def makes more sense to do it by block rather than layer.
 
+its almost like we should constuct convolutions and dense matrices from blocks
+not from arrays.
+create another layer of hierarchy.
 
+------
 
+well ignoring that point, how do we proceed ? 
+well we cud not even do rpr by bit and just squash it.
+that would clean that part of the code up.
 
+------
 
+> self.params['rpr'] = rpr(nrow=nrow, p=p, q=self.q, params=self.params)
+> so this is the call we make for rpr.
 
+we want to stop giving it: p
+and we want to start using the activation information we get from: collect
 
+and collect will give distributions of the output
+then we can call kmeans and get our centroids.
 
+from there, how do we compute expected (mean, variance) ? 
 
+well i think u have to do the same thing as before - that is where u loop through all possible error options given variance and the current state.
+> the only thing that changes is the percent of chance of getting that state is not a function of p.
 
+------
 
 
 

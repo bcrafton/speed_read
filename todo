@@ -126,8 +126,14 @@ we still need to figure out what we can pull off.
 
 -------
 
+so if we look at what p :
+[0.74829932 0.74829932 0.74829932 0.74829932 0.74829932 0.74829932 0.74829932 0.79591837]
+> its a little weird how consistent it is across bits ...
+> but if we get the right answer, its fine ? 
+> AND why wouldnt you do this idea by block rather than by layer ?
+> def makes more sense to do it by block rather than layer.
 
-
+-------
 
 
 
