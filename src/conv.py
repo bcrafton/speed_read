@@ -92,6 +92,15 @@ class Conv(Layer):
         '''
         #########################
 
+    def set_block_alloc(self, block_alloc):
+        self.block_alloc = block_alloc
+
+    def set_layer_alloc(self, layer_alloc):
+        self.layer_alloc = layer_alloc
+        
+    def weights(self):
+        return [self]
+
     def forward(self, x):
         # 1) tensorflow to compute y_ref
         # 2) save {x,y1,y2,...} as tb from tensorflow 
@@ -142,12 +151,6 @@ class Conv(Layer):
 
         return y, [results]
         
-    def set_block_alloc(self, block_alloc):
-        self.block_alloc = block_alloc
-
-    def set_layer_alloc(self, layer_alloc):
-        self.layer_alloc = layer_alloc
-
     def conv(self, x):
 
         yh = (self.xh - self.fh + self.s + self.p1 + self.p2) // self.s
@@ -330,11 +333,7 @@ class Conv(Layer):
         assert (False)
                 
         #########################
-        
-    def weights(self):
-        return [self]
-        
-#########################
+
 
 
 
