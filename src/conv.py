@@ -82,7 +82,7 @@ class Conv(Layer):
         
         #########################
         
-        self.wb = self.cut()
+        self.wb = self.transform_weights()
         nwl, _, nbl, _ = np.shape(self.wb) 
         self.factor = nwl * nbl
         
@@ -152,6 +152,43 @@ class Conv(Layer):
         yh = (self.xh - self.fh + self.s + self.p1 + self.p2) // self.s
         yw = yh
         
+        patches = self.transform_inputs(x)
+        npatch, nwl, wl, nbit = np.shape(patches)
+        
+        #########################
+        
+        if   self.params['alloc'] == 'block': alloc = self.block_alloc
+        elif self.params['alloc'] == 'layer': alloc = self.layer_alloc
+        
+        y, metrics = pim(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], alloc, self.params)
+        y = np.reshape(y, (yh, yw, self.fn))
+        
+        # we shud move this into forward, do it after the y - y_ref. 
+        assert(np.all(np.absolute(y) < 2 ** 23))
+
+        #########################
+        
+        # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
+        results = {}
+        results['adc']   = metrics[0:8]
+        results['cycle'] = metrics[8]
+        results['ron']   = metrics[9]
+        results['roff']  = metrics[10]
+        results['wl']    = metrics[11]
+        results['stall'] = metrics[12]
+        results['block_cycle'] = metrics[13:]
+        results['density'] = np.count_nonzero(patches) / np.prod(np.shape(patches)) * (self.params['wl'] / min(self.fh * self.fw * self.fc, self.params['wl']))
+        results['block_density'] = np.count_nonzero(patches, axis=(0,2,3)) / (npatch * self.params['wl'] * self.params['bpa'])
+        
+        #########################
+        
+        return y, results
+        
+    def transform_inputs(self, x):
+    
+        yh = (self.xh - self.fh + self.s + self.p1 + self.p2) // self.s
+        yw = yh
+        
         #########################
         
         x = np.pad(array=x, pad_width=[[self.p1,self.p2], [self.p1,self.p2], [0,0]], mode='constant')
@@ -181,44 +218,9 @@ class Conv(Layer):
         
         #########################
         
-        if   self.params['alloc'] == 'block': alloc = self.block_alloc
-        elif self.params['alloc'] == 'layer': alloc = self.layer_alloc
+        return patches
         
-        y, metrics = pim(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], alloc, self.params)
-        y = np.reshape(y, (yh, yw, self.fn))
-        
-        # we shud move this into forward, do it after the y - y_ref. 
-        assert(np.all(np.absolute(y) < 2 ** 23))
-
-        '''
-        if self.relu_flag:
-            y = relu(y)
-
-        y = avg_pool(y, self.p)
-        y = y / self.q
-        y = np.floor(y)
-        y = np.clip(y, -128, 127)
-        '''
-        
-        #########################
-        
-        # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
-        results = {}
-        results['adc']   = metrics[0:8]
-        results['cycle'] = metrics[8]
-        results['ron']   = metrics[9]
-        results['roff']  = metrics[10]
-        results['wl']    = metrics[11]
-        results['stall'] = metrics[12]
-        results['block_cycle'] = metrics[13:]
-        results['density'] = np.count_nonzero(patches) / np.prod(np.shape(patches)) * (self.params['wl'] / min(self.fh * self.fw * self.fc, self.params['wl']))
-        results['block_density'] = np.count_nonzero(patches, axis=(0,2,3)) / (npatch * self.params['wl'] * self.params['bpa'])
-        
-        #########################
-        
-        return y, results
-        
-    def cut(self):
+    def transform_weights(self):
         
         # nrow, nwl, wl, xb = np.shape(x)
         # nwl, wl, nbl, bl = np.shape(w) 
