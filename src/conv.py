@@ -18,21 +18,26 @@ from layers import *
 def prob_err(p, var, adc, rpr, row):
     assert (np.all(p <= 1.))
 
+    # this assumes that our values start at zero and end at zero + len(values)
+    # which is true at the moment, but we should fix this.
+    # for s in values: 
+    # p[s] ... where p wud be a dictionary.
     def prob_err_help(e, p, var, adc, rpr):
         psum = 0
         for s in range(1, rpr + 1):
-            bin = binom.pmf(s, rpr, p)
-            psum += ((s + e) < adc) * bin * (norm.cdf(e + 0.5, 0, var * np.sqrt(s)) - norm.cdf(e - 0.5, 0, var * np.sqrt(s)))
-            psum += ((s + e) == adc) * bin * (1 - norm.cdf(adc - s - 0.5, 0, var * np.sqrt(s)))
+            # bin = binom.pmf(s, rpr, p)
+            psum += ((s + e) < adc) * p[s] * (norm.cdf(e + 0.5, 0, var * np.sqrt(s)) - norm.cdf(e - 0.5, 0, var * np.sqrt(s)))
+            psum += ((s + e) == adc) * p[s] * (1 - norm.cdf(adc - s - 0.5, 0, var * np.sqrt(s)))
 
+        # think we can ignore the zero case...
         # zero case:
-        psum += ((e - 0.5 < 0) * (0 < e + 0.5)) * binom.pmf(0, rpr, p)
+        # psum += ((e - 0.5 < 0) * (0 < e + 0.5)) * binom.pmf(0, rpr, p)
         return psum
     
-    s = np.array(range(-rpr, rpr+1))
-    pe = prob_err_help(s, p, var, adc, rpr)
-    mu = np.sum(pe * s)
-    std = np.sqrt(np.sum(pe * (s - mu) ** 2))
+    e = np.array(range(-rpr, rpr+1))
+    pe = prob_err_help(e, p, var, adc, rpr)
+    mu = np.sum(pe * e)
+    std = np.sqrt(np.sum(pe * (e - mu) ** 2))
 
     mu = mu * row
     std = np.sqrt(std ** 2 * row)
@@ -383,16 +388,14 @@ class Conv(Layer):
                 for rpr_thresh in range(rpr_low, rpr_high + 1):
                     scale = 2**(wb - 1) * 2**(xb - 1)
                     
-                    p = np.max(rpr_dist[rpr_thresh]['values']) / rpr_thresh
-                    assert (p <= 1.)
+                    # p = np.max(rpr_dist[rpr_thresh]['values']) / rpr_thresh
+                    # assert (p <= 1.)
+                    p = rpr_dist[rpr_thresh]['counts'] / np.cumsum(rpr_dist[rpr_thresh]['counts'])
                     
                     mu, std = prob_err(p, self.params['sigma'], self.params['adc'], rpr_thresh, np.ceil(nrow / rpr_thresh))
                     e = (scale / self.q) * 5 * std
                     e_mu = (scale / self.q) * mu
                     
-                    # print (e, e_mu, scale, self.q, std, mu, p, np.ceil(nrow / rpr_thresh))
-                    # nan nan 64 2683 nan nan
-
                     if rpr_thresh == rpr_low:
                         rpr_lut[xb][wb] = rpr_thresh
                     if (e < 1.) and (np.absolute(e_mu) < 0.15):
