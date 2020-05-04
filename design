@@ -2451,9 +2451,30 @@ but we wud eventually care about wb and rpr.
   > we dont care about the different wb just yet.
   > AND at the end of the day, I think the most important grouping will just be the number of wordlines we turn on.
 
+------
 
+just gotta set up bare min framework for adc scale.
+which means hitting all 4 points from above.
 
+-------
 
+we are now seeing - rpr = 16, values = [0..16]
+before i thought the highest we wud see is 75% ??
+
+thats because we did this:
+> wb_cols = np.reshape(wb, (self.fh * self.fw * self.fc, self.fn, params['bpw']))
+> col_density = np.mean(wb_cols, axis=0)
+
+which was not in groups of 128, not the whole filter
+well hold on there actually.
+because for first layer its not that much larger.
+in fact its just like 1.1 cols.
+
+well the difference is we considered groups of 16 now
+we turn on 16 rows with 1s
+so it is possible that this happens.
+
+-------
 
 
 
