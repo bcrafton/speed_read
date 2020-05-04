@@ -2478,10 +2478,20 @@ so it is possible that this happens.
 
 the new goal is changing prob_err to use the real p.
 
+-------
 
+1) need a new profile function basically
+2) pass centroids to pim.c 
+3) update rpr.py to compute expected (std, mean)
+   > add centroids
+   > prob_err dictionary.
+4) dynamically configure ADCs
+5) centroids for [different number of wordlines enabled, xb, wb]
 
+-------
 
-
+> so we really need to find an efficient way to compute centroids then.
+> 
 
 
 

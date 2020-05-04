@@ -22,6 +22,7 @@ def prob_err(p, var, adc, rpr, row):
     # which is true at the moment, but we should fix this.
     # for s in values: 
     # p[s] ... where p wud be a dictionary.
+    # TODO:
     def prob_err_help(e, p, var, adc, rpr):
         psum = 0
         for s in range(1, rpr + 1):
