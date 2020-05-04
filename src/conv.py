@@ -11,6 +11,7 @@ from defines import *
 from var import *
 
 from layers import *
+from rpr import *
 
 #########################
 
@@ -266,7 +267,7 @@ class Conv(Layer):
 
         return wb
                 
-    def dist(self, x):
+    def dist(self, x, rpr_thresh):
         x = self.transform_inputs(x)
         
         npatch, nwl, wl, bpa = np.shape(x)
@@ -275,13 +276,9 @@ class Conv(Layer):
         x = np.transpose(x, (0,3,1,2))
         x = np.reshape(x, (npatch * bpa, nwl, wl))
 
-        print (np.shape(x), np.std(x))
-        print (np.shape(self.wb), np.std(self.wb))
-
         #########################
         
-        psums = [[] for _ in range(nwl)] 
-
+        psums = []
         for p in range(npatch):
             for i in range(nwl):
                 wlsum = 0
@@ -293,49 +290,42 @@ class Conv(Layer):
                         wlsum += 1
                         psum += self.wb[i][j]
                         
-                    # damn it. rpr is 2d array ...
-                    # well we cannot control xb
-                    # but we can do what we did before with p
-                    # and split them up correctly by wb.
-                    
-                    # well we actually can control xb
-                    # because we are feeding in the activations we have
-                    # so - i wud say we want to evaluate all the rpr's and collect 
-                    # distributions outright.
-                    if wlsum == 12: # self.params['rpr']:
+                    if wlsum == rpr_thresh: 
                         wlsum = 0
-                        psums[i].append(psum)
+                        psums.append(psum)
                         psum = np.zeros(shape=(nbl, bl))
                 
-                psums[i].append(psum)
+                psums.append(psum)
         
         #########################
 
-        x = psums[0]
-        x = np.array(x)
-        x = np.reshape(x[:, :, :], (-1, 1))
+        psums = np.array(psums)
+        psums = np.reshape(psums, (-1, 1))
 
-        values, counts = np.unique(x, return_counts=True)
-        # plt.hist(x)
-        # plt.show()
-        print (values)
-        print (counts)
-
+        values, counts = np.unique(psums, return_counts=True)
+        
         #########################
 
         kmeans = KMeans(n_clusters=self.params['adc'], init='k-means++', max_iter=300, n_init=5, random_state=0)
-        kmeans.fit(x)
-
+        kmeans.fit(psums)
         centroids = np.round(kmeans.cluster_centers_[:, 0], 2)
-        print (centroids)
         
-        assert (False)
-                
         #########################
-
+        
+        return values, counts, centroids
+                
     def profile_rpr(self, x):
+    
+        rpr_low = 1
+        rpr_high = 16
+        rpr_dist = []
+        for rpr_thresh in range(rpr_low, rpr_high + 1):
+            values, counts, centroids = self.dist(x=x, rpr_thresh=rpr_thresh)
+            rpr_dist.append( (values, counts, centroids) )
+            
+        assert (False)
 
-    # def rpr(nrow, p, q, params):
+        # def rpr(nrow, p, q, params):
         rpr_lut = np.zeros(shape=(8, 8), dtype=np.int32)
         for wb in range(params['bpw']):
             for xb in range(params['bpa']):
@@ -353,8 +343,6 @@ class Conv(Layer):
         # ===============
         for wb in range(params['bpw']):
             for xb in range(params['bpa']):
-                rpr_low = 1
-                rpr_high = 16
                 for rpr in range(rpr_low, rpr_high + 1):
                     scale = 2**(wb - 1) * 2**(xb - 1)
                     mu, std = prob_err(p[wb], params['sigma'], params['adc'], rpr, np.ceil(nrow / rpr))

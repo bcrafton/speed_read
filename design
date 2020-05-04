@@ -2416,6 +2416,56 @@ so we need to compute centroids for each (xb, wb)
 
 ------
 
+loop through 
+> pre-compute distributions.
+
+go look at profile_rpr.
+... for wb in range(params['bpw']):
+... for xb in range(params['bpa']): 
+... for rpr in range(rpr_low, rpr_high + 1):
+
+so we want to do different centroids for each (xb, wb) ? 
+the more we do, the more overhead exists.
+
+> well dont bother with xb, zero skipping.
+  > its possible xb wud help with bottom of array problem BUT better to just solve that with storing for rpr when bottom of array problem.
+
+------
+
+so i guess i wudnt even bother with wb, xb, or rpr
+but we wud eventually care about wb and rpr.
+
+------
+
+1) get the distribution for all (layer-wise, not xb, wb, or rpr)
+2) look at prob_err - replace p and binomial, keep var and cdf
+   bin = binom.pmf(s, rpr, p)
+   bin = dist[s] / np.cumsum(dist)
+
+   this will work just fine.
+   everything else remains the same.
+
+------
+
+> we only need to collect (values, counts, centroids) for rpr.
+  > we dont care about the different wb just yet.
+  > AND at the end of the day, I think the most important grouping will just be the number of wordlines we turn on.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

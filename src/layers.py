@@ -8,7 +8,6 @@ from var import *
 from conv_utils import *
 
 from scipy.stats import norm, binom
-from rpr import rpr
 
 from BB import branch_and_bound
 from AA import array_allocation
@@ -54,7 +53,8 @@ class Model:
         for example in range(num_examples):
             pred[example] = x[example]
             for layer in range(num_layers):
-                self.layers[layer].dist(x=pred[example])
+                # self.layers[layer].dist(x=pred[example], rpr_thresh=12)
+                self.layers[layer].profile_rpr(x=pred[example])
                 assert (False)
             
                 pred[example], result = self.layers[layer].forward(x=pred[example])
