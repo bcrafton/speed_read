@@ -57,6 +57,11 @@ class Conv(Layer):
         # assert(self.q > 0)
         
         #########################
+
+        self.params = params.copy()
+        self.params['var'] = lut_var(params['sigma'], 32)
+        
+        #########################
         
         self.wb = self.transform_weights()
         nwl, _, nbl, _ = np.shape(self.wb) 
@@ -64,11 +69,6 @@ class Conv(Layer):
         
         self.nwl = nwl
         self.nbl = nbl
-        
-        #########################
-
-        self.params = params.copy()
-        self.params['var'] = lut_var(params['sigma'], 32)
         
         #########################
         '''
