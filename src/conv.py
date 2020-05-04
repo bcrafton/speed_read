@@ -278,6 +278,10 @@ class Conv(Layer):
 
         #########################
         
+        # in the future, we will want to store these by:
+        # rpr (the number of word lines that were turned on)
+        # xb, wb ... less important but will see some co-variance.
+        
         psums = []
         for p in range(npatch):
             for i in range(nwl):
