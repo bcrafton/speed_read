@@ -2531,6 +2531,25 @@ but yeah i think ADC will become a for loop that drops out once error increases.
 -------
 
 centroids - how do we come up with a reasonable approximation while we wait on a good solution ? 
+> weighted k-means seems okay.
+
+-------
+
+next:
+> pim.c > run with centroids
+> rpr.py > approximate error for rpr, now computing centroids.
+
+-------
+
+have we made too many changes to debug ? 
+idk so many things are dependent on one another
+its not like we can do 1 thing at a time.
+
+dont think we have to revert anything
+just make previous code work is all...
+> with lut_var.
+
+-------
 
 
 

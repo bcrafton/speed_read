@@ -15,7 +15,10 @@ from layers import *
 
 #########################
 
-def prob_err(p, var, adc, rpr, row):
+# need to consider:
+# variance error
+# quantization error -> use to be mean error
+def prob_err(p, var, adc, rpr, adc_thresh, row):
     assert (np.all(p <= 1.))
 
     # this assumes that our values start at zero and end at zero + len(values)
@@ -393,7 +396,7 @@ class Conv(Layer):
                     # assert (p <= 1.)
                     p = rpr_dist[rpr_thresh]['counts'] / np.cumsum(rpr_dist[rpr_thresh]['counts'])
                     
-                    mu, std = prob_err(p, self.params['sigma'], self.params['adc'], rpr_thresh, np.ceil(nrow / rpr_thresh))
+                    mu, std = prob_err(p, self.params['sigma'], self.params['adc'], rpr_thresh, rpr_dist[rpr_thresh]['centroids'], np.ceil(nrow / rpr_thresh))
                     e = (scale / self.q) * 5 * std
                     e_mu = (scale / self.q) * mu
                     
