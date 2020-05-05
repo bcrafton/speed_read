@@ -2563,7 +2563,10 @@ copy and revert:
 okay hopefully lut_var will work.
 need to 
 
+-------
 
+how was pim_sync.c even running ? 
+we doing floats now ...
 
 
 
