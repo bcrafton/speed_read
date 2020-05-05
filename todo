@@ -139,16 +139,16 @@ will have to think about how this and compression work together.
 
 -------
 
-1) need a new profile function basically
+1) lut_var - ppf ? or can we continue to do the error thing ? 
+2) need a new profile function basically
    > get rid of python function, use pim.c and change comps[]
-2) pass centroids to pim.c 
-3) update rpr.py to compute expected (std, mean)
-   > add centroids
-   > prob_err dictionary.
-4) lut_var - ppf ? or can we continue to do the error thing ? 
-5) compute centroids, constraints
+3) compute centroids, constraints
    > uniform distributed ?
    > fractions ?
+4) update rpr.py to compute expected (std, mean)
+   > add centroids
+   > prob_err dictionary.
+5) pass centroids to pim.c 
 
 
 6) dynamically configure ADCs
