@@ -2530,6 +2530,9 @@ but yeah i think ADC will become a for loop that drops out once error increases.
 
 -------
 
+centroids - how do we come up with a reasonable approximation while we wait on a good solution ? 
+
+
 
 
 
