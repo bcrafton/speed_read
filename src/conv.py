@@ -347,10 +347,10 @@ class Conv(Layer):
         if rpr_thresh <= self.params['adc']:
             centroids = np.array(range(self.params['adc']))
         else:
-            centroids = np.array(range(self.params['adc']))
-            # kmeans = KMeans(n_clusters=self.params['adc'], init='k-means++', max_iter=100, n_init=5, random_state=0)
-            # kmeans.fit(psums)
-            # centroids = np.round(kmeans.cluster_centers_[:, 0], 2)
+            values, counts = np.unique(psums, return_counts=True)
+            kmeans = KMeans(n_clusters=self.params['adc'], init='k-means++', max_iter=100, n_init=5, random_state=0)
+            kmeans.fit(values.reshape(-1,1), counts)
+            centroids = np.round(kmeans.cluster_centers_[:, 0], 2)
         
         #########################
         
@@ -366,7 +366,7 @@ class Conv(Layer):
         for rpr_thresh in range(rpr_low, rpr_high + 1):
             values, counts, centroids = self.dist(x=x, rpr_thresh=rpr_thresh)
             rpr_dist[rpr_thresh] = {'values': values, 'counts': counts, 'centroids': centroids}
-            print (rpr_thresh, values)
+            print (rpr_thresh, values, centroids)
             
         # def rpr(nrow, p, q, params):
         rpr_lut = np.zeros(shape=(8, 8), dtype=np.int32)
