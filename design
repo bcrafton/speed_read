@@ -2491,19 +2491,44 @@ the new goal is changing prob_err to use the real p.
 -------
 
 > so we really need to find an efficient way to compute centroids then.
-> 
+> this dude is saying use quantile.
+  > not the right answer i dont think.
 
+-------
 
+how do we add this to pim.c
+> int* adc_thresh
 
+> how do do nearest in a list ? 
+  > well we shudnt have to do this
+    > our thresholds should have a pattern that will make this easy.
 
+-------
 
+centroids:
+> will they be uniformly distributed ? 
+> will there be fractions ? 
 
+> DONT consider scale/bias ... that would come afterwards.
 
+-------
 
+so i dont think they need to be uniformly distributed 
+which makes the nearest neighbor thing harder.
 
+> thats a lot of ops ... well its only for every pim operation.
 
+but yeah i think ADC will become a for loop that drops out once error increases. 
 
+-------
 
+> okay we got eval_adc.
+> how do we do variance with this tho ? 
+  > keep lut_var ... but make the values floating point values just sampling a normal distribution
+  > then we just add one of them.
+  > then call the adc function, have it take a float value 
+
+-------
 
 
 

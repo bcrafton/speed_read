@@ -140,6 +140,7 @@ will have to think about how this and compression work together.
 -------
 
 1) need a new profile function basically
+   > get rid of python function, use pim.c and change comps[]
 2) pass centroids to pim.c 
 3) update rpr.py to compute expected (std, mean)
    > add centroids

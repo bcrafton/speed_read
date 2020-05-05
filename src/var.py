@@ -2,6 +2,7 @@
 import numpy as np
 from scipy.stats import norm
 
+'''
 def lut_var(var, states):
     lut = np.zeros(shape=(states + 1, 1000), dtype=np.int32)
     for s in range(1, states + 1):
@@ -27,3 +28,25 @@ def lut_var(var, states):
         lut[s, :] = e
         
     return lut
+'''
+
+# https://stackoverflow.com/questions/20626994/how-to-calculate-the-inverse-of-the-normal-cumulative-distribution-function-in-p
+
+def lut_var(var, states):
+    lut = np.zeros(shape=(states + 1, 1000), dtype=np.int32)
+    for s in range(1, states + 1):
+        std = var * np.sqrt(s)
+        # cannot do 0 or 1, these are np.inf.
+        # norm.cdf([-3, -2, -1, 0, 1, 2, 3], loc=0, scale=1)
+        minval = norm.cdf(-3, loc=0, scale=1)
+        maxval = norm.cdf(3, loc=0, scale=1)
+        lut[s, :] = norm.ppf(q=np.linspace(minval, maxval, 1000), loc=0., scale=std)
+        
+    return lut
+    
+    
+    
+    
+    
+    
+    
