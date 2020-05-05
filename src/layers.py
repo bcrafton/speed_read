@@ -38,9 +38,27 @@ class Model:
         self.mac_per_array_layer = [2.] * self.nweight
         self.set_layer_alloc()
         
-        print ('nblock', self.nblock)
+        # print ('nblock', self.nblock)
         self.mac_per_array_block = [2.] * self.nblock
         self.set_block_alloc()
+
+        #########################
+
+        self.layer_nmac = np.zeros(shape=self.nweight, dtype=np.int32)
+        for weight in range(self.nweight):
+            self.layer_nmac[weight] = self.weights[weight].nmac
+
+        #########################
+
+        self.block_nmac = np.zeros(shape=self.nblock, dtype=np.int32)
+        block = 0
+        for weight in range(self.nweight):
+            nwl, _, nbl, _ = np.shape(self.weights[weight].wb) 
+            for wl in range(nwl):
+                self.block_nmac[block] = self.weights[weight].nmac // nwl
+                block += 1
+
+        #########################
 
     def profile(self, x):
         num_examples, _, _, _ = np.shape(x)
@@ -64,10 +82,14 @@ class Model:
         self.mac_per_array_layer = np.mean(mac_per_array_layer, axis=0)
         self.mac_per_array_block = np.mean(mac_per_array_block, axis=0)
         
+        #########################
+
         if self.params['alloc'] == 'layer': 
             self.set_layer_alloc() # block alloc was failing when layer was selected, this is a bandaid.
         else:
             self.set_block_alloc()
+
+        #########################
 
     def forward(self, x, y):
         num_examples, _, _, _ = np.shape(x)
@@ -89,6 +111,9 @@ class Model:
                     
         results['block_mac'] = self.mac_per_array_block
         results['layer_mac'] = self.mac_per_array_layer
+
+        results['block_nmac'] = self.block_nmac
+        results['layer_nmac'] = self.layer_nmac
 
         return pred, results
 

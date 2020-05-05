@@ -68,9 +68,9 @@ param_sweep = {
 'bpw': 8,
 'adc': 8,
 'adc_mux': 8,
-'skip': [0, 1],
+'skip': [1],
 'cards': [0],
-'alloc': ['layer', 'block'],
+'alloc': ['block'],
 # 'profile': [0, 1],
 'stall': 0,
 'wl': 128,
@@ -85,7 +85,7 @@ param_sweep = {
 'sigma': [0.05], 
 'err_sigma': 0.,
 
-'profile': [0, 1],
+'profile': [1],
 }
 
 param_sweep = perms(param_sweep)

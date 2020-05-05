@@ -36,6 +36,9 @@ cycle = {}
 nmac = {}
 array = {}
 
+block_mac = {}
+layer_mac = {}
+
 ron = {}
 roff = {}
 adc = {}
@@ -96,6 +99,16 @@ for key in sorted(results.keys()):
     nmac[key] = y_nmac
     array[key] = y_array
 
+    block_mac[key] = results[key]['block_mac']
+    layer_mac[key] = results[key]['layer_mac']
+
+    block_mac[key] = results[key]['block_nmac']
+    # layer_mac[key] = results[key]['layer_mac']
+
+    # print (results[key]['block_mac'])
+    # print (nmac[key])
+    # print (array[key])
+
 ############################
 
 lut = {
@@ -118,6 +131,24 @@ for key in cycle.keys():
     
     ys[config][lut[narray]] = perf * 100e6 / 1e12
     
+############################
+'''
+# np.sum(self.nmac / self.mac_per_array) / remainder
+ideal = np.zeros(shape=np.shape(list(lut.keys())))
+for array in lut.keys():
+    # (skip, cards, alloc, profile, narray) = key
+    key = (1, 0, 'block', 1, array)
+    ideal[ lut[array] ] = np.sum(nmac[key]) * 100e6 / 1e12 / (np.sum(nmac[key] / layer_mac[key]) / array)
+'''
+############################
+
+# np.sum(self.nmac / self.mac_per_array) / remainder
+ideal = np.zeros(shape=np.shape(list(lut.keys())))
+for array in lut.keys():
+    # (skip, cards, alloc, profile, narray) = key
+    key = (1, 0, 'block', 1, array)
+    ideal[ lut[array] ] = np.sum(nmac[key]) * 100e6 / 1e12 / (np.sum(nmac[key] / layer_mac[key]) / array)
+
 ############################
 
 '''
@@ -153,10 +184,11 @@ plt.plot(lut.keys(), ys[(1, 0, 'block', 1)], marker='.', label='Zero Skip')
 '''
 
 x = sorted(lut.keys())
+plt.plot(x, ideal,                  marker='.', label='Ideal')
 plt.plot(x, ys[(1, 0, 'block', 1)], marker='.', label='Perf-Based Block-wise')
-plt.plot(x, ys[(1, 0, 'layer', 1)], marker='.', label='Perf-Based Layer-wise')
-plt.plot(x, ys[(1, 0, 'layer', 0)], marker='.', label='Weight-Based')
-plt.plot(x, ys[(0, 0, 'layer', 1)], marker='.', label='Baseline')
+#plt.plot(x, ys[(1, 0, 'layer', 1)], marker='.', label='Perf-Based Layer-wise')
+#plt.plot(x, ys[(1, 0, 'layer', 0)], marker='.', label='Weight-Based')
+#plt.plot(x, ys[(0, 0, 'layer', 1)], marker='.', label='Baseline')
 
 ############################
 
