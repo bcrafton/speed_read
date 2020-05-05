@@ -2551,8 +2551,13 @@ just make previous code work is all...
 
 -------
 
+copy and revert:
+> cdot.py
+> conv.py
+> layers.py
+> pim.c
+> var.py
 
-
-
+-------
 
 

@@ -90,6 +90,33 @@ param_sweep = {
 'profile': [1],
 }
 
+'''
+param_sweep = {
+'bpa': 8,
+'bpw': 8,
+'adc': 8,
+'adc_mux': 8,
+'skip': [0, 1],
+'cards': [0],
+'alloc': ['layer', 'block'],
+# 'profile': [0, 1],
+'stall': 0,
+'wl': 128,
+'bl': 128,
+'offset': 128,
+# 'narray': [2 ** 14, 24960, 2 ** 15],
+'narray': [5472, 2 ** 13, 1.5 * 2 ** 13, 2 ** 14, 1.5 * 2 ** 14],
+# 'narray': [5472],
+# seems like you gotta change e_mu based on this.
+# set e_mu = 0.15
+# set sigma = 0.05
+'sigma': [0.05], 
+'err_sigma': 0.,
+
+'profile': [0, 1],
+}
+'''
+
 param_sweep = perms(param_sweep)
 
 ####
