@@ -147,6 +147,10 @@ will have to think about how this and compression work together.
    > prob_err dictionary.
 4) dynamically configure ADCs
 5) centroids for [different number of wordlines enabled, xb, wb]
+6) lut_var - ppf ? or can we continue to do the error thing ? 
+7) compute centroids, constraints
+   > uniform distributed ?
+   > fractions ?
 
 -------
 
