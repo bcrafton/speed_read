@@ -145,12 +145,14 @@ will have to think about how this and compression work together.
 3) update rpr.py to compute expected (std, mean)
    > add centroids
    > prob_err dictionary.
-4) dynamically configure ADCs
-5) centroids for [different number of wordlines enabled, xb, wb]
-6) lut_var - ppf ? or can we continue to do the error thing ? 
-7) compute centroids, constraints
+4) lut_var - ppf ? or can we continue to do the error thing ? 
+5) compute centroids, constraints
    > uniform distributed ?
    > fractions ?
+
+
+6) dynamically configure ADCs
+7) centroids for [different number of wordlines enabled, xb, wb]
 
 -------
 
