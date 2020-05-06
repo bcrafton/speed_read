@@ -51,6 +51,7 @@ def kmeans(values, counts, n_clusters=8, max_iter=10, n_init=50, err_func=mean_s
         # each mean is adjusted by 1/N * frequency of value.
         s = 1.0 * np.equal(0,d - np.min(d, axis=1).reshape((-1,1)))
         s = s * np.sum(s, axis=1).reshape((-1,1)) * probs.reshape((-1,1))
+        # Brian: added this to prevent divide by zero.
         s = s / np.clip( np.sum(s, axis=0).reshape((1,-1)), 1e-6, np.inf)
         
         # Now recompute cluster centers:

@@ -52,7 +52,8 @@ def exp_err(s, p, var, adc, rpr):
     mu = np.sum(p * pe * e)
     std = np.sqrt(np.sum(p * pe * (e - mu) ** 2))
 
-    print (rpr, (np.sum(np.absolute(e)), np.sum(pe), np.sum(p)), (mu, std))
+    # print (rpr, (np.sum(np.absolute(e)), np.sum(pe), np.sum(p)), (mu, std))
+    print (rpr, (mu, std))
     
     return mu, std
 
@@ -389,8 +390,8 @@ class Conv(Layer):
     
         nrow = self.fh * self.fw * self.fc
     
-        rpr_low = 8
-        rpr_high = 10
+        rpr_low = 1
+        rpr_high = 16
         
         rpr_dist = {}
         for rpr in range(rpr_low, rpr_high + 1):
