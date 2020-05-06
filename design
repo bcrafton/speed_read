@@ -2568,6 +2568,33 @@ need to
 how was pim_sync.c even running ? 
 we doing floats now ...
 
+-------
+
+really hope we did: resnet18_activations.npy
+these correctly.
+the layer_id shit is tricky
+with blocks being ooo and stuff.
+
+-------
+
+yup its actually preventing this from working
+because we cannot load [x-1] here...
+
+-------
+
+alright so we can just do it at the start of forward 
+seems to work ? 
+need to include the centroids tho.
+
+> return rpr
+> return centroids
+
+why are all the rpr's the same ?
+
+
+
+
+
 
 
 

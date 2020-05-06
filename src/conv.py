@@ -2,6 +2,7 @@
 import math
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
 
 from conv_utils import *
 from cdot import *
@@ -10,7 +11,41 @@ from defines import *
 from var import *
 
 from layers import *
-from rpr import *
+# from rpr import *
+
+#########################
+
+# need to consider:
+# variance error
+# quantization error -> use to be mean error
+def prob_err(p, var, adc, rpr, adc_thresh, row):
+    assert (np.all(p <= 1.))
+
+    # this assumes that our values start at zero and end at zero + len(values)
+    # which is true at the moment, but we should fix this.
+    # for s in values: 
+    # p[s] ... where p wud be a dictionary.
+    # TODO:
+    def prob_err_help(e, p, var, adc, rpr):
+        psum = 0
+        for s in range(1, rpr + 1):
+            # bin = binom.pmf(s, rpr, p)
+            psum += ((s + e) < adc) * p[s] * (norm.cdf(e + 0.5, 0, var * np.sqrt(s)) - norm.cdf(e - 0.5, 0, var * np.sqrt(s)))
+            psum += ((s + e) == adc) * p[s] * (1 - norm.cdf(adc - s - 0.5, 0, var * np.sqrt(s)))
+
+        # think we can ignore the zero case...
+        # zero case:
+        # psum += ((e - 0.5 < 0) * (0 < e + 0.5)) * binom.pmf(0, rpr, p)
+        return psum
+    
+    e = np.array(range(-rpr, rpr+1))
+    pe = prob_err_help(e, p, var, adc, rpr)
+    mu = np.sum(pe * e)
+    std = np.sqrt(np.sum(pe * (e - mu) ** 2))
+
+    mu = mu * row
+    std = np.sqrt(std ** 2 * row)
+    return mu, std
 
 #########################
 
@@ -71,7 +106,7 @@ class Conv(Layer):
         self.nbl = nbl
         
         #########################
-
+        '''
         w_offset = self.w + params['offset']
         wb = []
         for bit in range(params['bpw']):
@@ -89,7 +124,18 @@ class Conv(Layer):
         #########################
         
         self.params['rpr'] = rpr(nrow=nrow, p=p, q=self.q, params=self.params)
+        '''
+        #########################
+        '''
+        sample_x = np.load('resnet18_activations.npy', allow_pickle=True).item()
+        if self.layer_id == 0:
+            sample_x = sample_x['x'][0]
+        else:
+            sample_x = sample_x[self.layer_id - 1][0]
         
+        print (np.shape(sample_x))
+        rpr_lut = self.profile_rpr(x=sample_x)
+        '''
         #########################
 
     def set_block_alloc(self, block_alloc):
@@ -153,6 +199,9 @@ class Conv(Layer):
         
     def conv(self, x):
 
+        rpr_lut = self.profile_rpr(x=x)
+        self.params['rpr'] = rpr_lut
+
         yh = (self.xh - self.fh + self.s + self.p1 + self.p2) // self.s
         yw = yh
         
@@ -199,7 +248,8 @@ class Conv(Layer):
         patches = []
         for h in range(yh):
             for w in range(yw):
-                patch = np.reshape(x[h*self.s:(h*self.s+self.fh), w*self.s:(w*self.s+self.fw), :], -1)
+                patch = x[h*self.s:(h*self.s+self.fh), w*self.s:(w*self.s+self.fw), :]
+                patch = np.reshape(patch, self.fh * self.fw * self.fc)
                 patches.append(patch)
                 
         #########################
@@ -265,7 +315,118 @@ class Conv(Layer):
         ########################
 
         return wb
+                
+    def dist(self, x, rpr_thresh):
+        x = self.transform_inputs(x)
+        
+        npatch, nwl, wl, bpa = np.shape(x)
+        nwl, wl, nbl, bl = np.shape(self.wb)
+        
+        x = np.transpose(x, (0,3,1,2))
+        x = np.reshape(x, (npatch * bpa, nwl, wl))
 
+        #########################
+        
+        # in the future, we will want to store these by:
+        # rpr (the number of word lines that were turned on)
+        # xb, wb ... less important but will see some co-variance.
+        
+        psums = []
+        for p in range(npatch):
+            for i in range(nwl):
+                wlsum = 0
+                psum = np.zeros(shape=(nbl, bl))
+                
+                for j in range(wl):
+                
+                    if x[p][i][j]:
+                        wlsum += 1
+                        psum += self.wb[i][j]
+                        
+                    if wlsum == rpr_thresh: 
+                        wlsum = 0
+                        psums.append(psum)
+                        psum = np.zeros(shape=(nbl, bl))
+                
+                psums.append(psum)
+        
+        #########################
+
+        psums = np.array(psums)
+        psums = np.reshape(psums, (-1, 1))
+        values, counts = np.unique(psums, return_counts=True)
+        
+        # lol wtf is this idea:
+        # psums = np.around(counts * (100 / np.min(counts)))
+        # psums = np.reshape(psums, (-1, 1))
+        
+        #########################
+
+        if rpr_thresh <= self.params['adc']:
+            centroids = np.array(range(self.params['adc']))
+        else:
+            values, counts = np.unique(psums, return_counts=True)
+            kmeans = KMeans(n_clusters=self.params['adc'], init='k-means++', max_iter=100, n_init=5, random_state=0)
+            kmeans.fit(values.reshape(-1,1), counts)
+            centroids = np.round(kmeans.cluster_centers_[:, 0], 2)
+        
+        #########################
+        
+        return values, counts, centroids
+                
+    def profile_rpr(self, x):
+    
+        nrow = self.fh * self.fw * self.fc
+    
+        rpr_low = 8
+        rpr_high = 8
+        rpr_dist = {}
+        for rpr_thresh in range(rpr_low, rpr_high + 1):
+            values, counts, centroids = self.dist(x=x, rpr_thresh=rpr_thresh)
+            rpr_dist[rpr_thresh] = {'values': values, 'counts': counts, 'centroids': centroids}
+            print (rpr_thresh, values, centroids)
+            
+        # def rpr(nrow, p, q, params):
+        rpr_lut = np.zeros(shape=(8, 8), dtype=np.int32)
+        for wb in range(self.params['bpw']):
+            for xb in range(self.params['bpa']):
+                rpr_lut[xb][wb] = self.params['adc']
+            
+        if not (self.params['skip'] and self.params['cards']):
+            '''
+            for key in sorted(rpr_lut.keys()):
+                print (key, rpr_lut[key])
+            print (np.average(list(rpr_lut.values())))
+            '''
+            return rpr_lut
+        
+        # counting cards:
+        # ===============
+        for wb in range(self.params['bpw']):
+            for xb in range(self.params['bpa']):
+                for rpr_thresh in range(rpr_low, rpr_high + 1):
+                    scale = 2**(wb - 1) * 2**(xb - 1)
+                    
+                    # p = np.max(rpr_dist[rpr_thresh]['values']) / rpr_thresh
+                    # assert (p <= 1.)
+                    p = rpr_dist[rpr_thresh]['counts'] / np.cumsum(rpr_dist[rpr_thresh]['counts'])
+                    
+                    mu, std = prob_err(p, self.params['sigma'], self.params['adc'], rpr_thresh, rpr_dist[rpr_thresh]['centroids'], np.ceil(nrow / rpr_thresh))
+                    e = (scale / self.q) * 5 * std
+                    e_mu = (scale / self.q) * mu
+                    
+                    if rpr_thresh == rpr_low:
+                        rpr_lut[xb][wb] = rpr_thresh
+                    if (e < 1.) and (np.absolute(e_mu) < 0.15):
+                    # if e < 1.:
+                        rpr_lut[xb][wb] = rpr_thresh
+
+        '''
+        for key in sorted(rpr_lut.keys()):
+            print (key, rpr_lut[key])
+        print (np.average(list(rpr_lut.values())))
+        '''
+        return rpr_lut
 
 
 
