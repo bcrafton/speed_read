@@ -2636,6 +2636,31 @@ for s in (1, rpr):
 
 -------
 
+adc_thresh should be a floor function I believe
+so when we pass adc_thresh, this should be accounted for.
+then we can do:
+cdf(adc_thresh[i-1], adc_thresh[i])
+
+i think we need a separate python script to get this prob_err calculation right.
+
+-------
+
+can use psums.npy -> (ADC=8, RPR=12)
+then we compute centroids
+then we can compute the error.
+
+is this the best way ?
+well we dont need to use psums
+we can create our own distribution
+
+yeah lets do that instead.
+
+-------
+
+
+
+
+
 
 
 
