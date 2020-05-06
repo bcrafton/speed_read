@@ -12,20 +12,8 @@ psums = np.load('psums.npy', allow_pickle=True)
 values, counts = np.unique(psums, return_counts=True)
 
 # just use these, not this 300MB npy file.
-print (values)
-print (counts)
+print (values, counts)
 
-print ()
-
-#########################
-'''
-kmeans = KMeans(n_clusters=8, init='k-means++', max_iter=100, n_init=5, random_state=0)
-# kmeans.fit(values.reshape(-1, 1), counts)
-# kmeans.fit(values.reshape(-1, 1), np.ones_like(counts))
-kmeans.fit(psums.reshape(-1, 1))
-centroids = np.round(kmeans.cluster_centers_[:, 0], 2)
-print (sorted(centroids))
-'''
 #########################
 
 # How far is each pt from the nearest centroid?
@@ -42,7 +30,7 @@ def mean_abs_err(dist, freq):
     return(np.sum(np.absolute(dist) * freq))
 
 # A "sparse" k-means implementation
-def kmeans(values, counts, n_clusters=8, max_iter=10, n_init=50, err_func=mean_sq_err):
+def kmeans(values, counts, n_clusters=8,max_iter=10,n_init=50,err_func=mean_sq_err):
     
     # In case we need these:
     probs = counts/np.sum(counts)
@@ -51,7 +39,7 @@ def kmeans(values, counts, n_clusters=8, max_iter=10, n_init=50, err_func=mean_s
     def k_means_pp():
         weighted_probs = probs
         clusters = np.zeros(n_clusters)
-        for c in range(n_clusters):
+        for c in range(1, n_clusters):
             # 1: choose new cluster center using weighted chance
             clusters[c] = rand.choice(values, p=weighted_probs)
             # 2: compute new weights
@@ -69,12 +57,13 @@ def kmeans(values, counts, n_clusters=8, max_iter=10, n_init=50, err_func=mean_s
         # Turn this into a weighted selector matrix:
         # If a value is equal distance between N means,
         # each mean is adjusted by 1/N * frequency of value.
-        s = 1.0 * np.equal(0,d - np.min(d, axis=1).reshape((-1,1)))
+        s = 1.0*np.equal(0,d - np.min(d, axis=1).reshape((-1,1)))
         s = s * np.sum(s, axis=1).reshape((-1,1)) * probs.reshape((-1,1))
         s /= np.sum(s,axis=0).reshape((1,-1))
         
         # Now recompute cluster centers:
-        cl = np.sum(s*values.reshape((-1,1)), axis=0)     
+        cl = np.sum(s*values.reshape((-1,1)), axis=0)
+        cl[0] = 0
         
         return(cl)                    
     
@@ -89,13 +78,11 @@ def kmeans(values, counts, n_clusters=8, max_iter=10, n_init=50, err_func=mean_s
                 min_err = mse
                 min_cntrs = cl
     
-    print(sorted(min_cntrs))
-    # print(err_func(distance(values, min_cntrs), probs))
-    # print(err_func(distance(values, np.asarray([0, 1, 3, 4, 5, 6, 7, 8])), probs))     
-    
-kmeans(values, counts, err_func=mean_sq_err)
-# kmeans(values, counts, err_func=mean_abs_err)
+    return(min_cntrs)         
 
+min_cntrs = kmeans(values, counts, err_func=mean_sq_err)
 
-
-
+probs = counts/np.sum(counts)
+print(min_cntrs)
+print(mean_sq_err(distance(values, min_cntrs), probs))
+print(mean_sq_err(distance(values, np.asarray([0, 1, 3, 4, 5, 6, 7, 8])), probs))   
