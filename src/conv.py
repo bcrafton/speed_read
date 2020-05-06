@@ -169,7 +169,9 @@ class Conv(Layer):
         y_std = np.std(y - y_ref)
         # assert (self.s == 1)
         
-        # print ('y_mean', y_mean, 'y_std', y_std)
+        print ('y_mean', y_mean, 'y_std', y_std)
+        print (np.min(y), np.max(y), np.min(y_ref), np.max(y_ref))
+        assert (False)
         
         # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
         # results = {}
@@ -223,7 +225,7 @@ class Conv(Layer):
         if   self.params['alloc'] == 'block': alloc = self.block_alloc
         elif self.params['alloc'] == 'layer': alloc = self.layer_alloc
         
-        y, metrics = pim(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], alloc, self.params)
+        y, metrics = pim(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], alloc, self.centroids, self.params)
         y = np.reshape(y, (yh, yw, self.fn))
         
         # we shud move this into forward, do it after the y - y_ref. 
@@ -390,8 +392,10 @@ class Conv(Layer):
     
         nrow = self.fh * self.fw * self.fc
     
-        rpr_low = 1
-        rpr_high = 16
+        rpr_low = 6
+        rpr_high = 8
+        
+        self.centroids = np.zeros(shape=(rpr_high + 1, self.params['adc'] + 1))
         
         rpr_dist = {}
         for rpr in range(rpr_low, rpr_high + 1):
@@ -401,6 +405,7 @@ class Conv(Layer):
             # WOW - row=(nrow / rpr) is huge over approx for this.
             mu, std = exp_err(s=s, p=p, var=self.params['sigma'], adc=centroids, rpr=rpr)
             rpr_dist[rpr] = {'mu': mu, 'std': std, 'centroids': centroids}
+            self.centroids[rpr] = centroids
             
         # def rpr(nrow, p, q, params):
         rpr_lut = np.zeros(shape=(8, 8), dtype=np.int32)

@@ -133,6 +133,32 @@ int sat_error(float p, int adc, int rpr)
   return e;
 }
 
+//////////////////////////////////////////////
+
+// should be passing floor thresholds here, not midpoints.
+
+int eval_adc(float x, int adc, int rpr, float* adc_thresh)
+{
+  int offset = rpr * adc;
+
+
+  int minarg = offset;
+  float mindiff = abs(x - adc_thresh[minarg]);
+  
+  for (int i=1; i<adc; i++) {
+    int idx = offset + i;  
+    float diff = abs(x - adc_thresh[idx]);
+    minarg = (diff < mindiff) ? idx : minarg;
+    mindiff = (diff < mindiff) ? diff : mindiff;
+    
+    // printf("%d %d: %f %f\n", i, rpr, x, adc_thresh[idx]);
+  }
+  
+  return adc_thresh[minarg];
+}
+
+//////////////////////////////////////////////
+
 /*
 metrics
 ------
@@ -157,7 +183,7 @@ wl
 #define METRIC_STALL 12
 #define METRIC_BLOCK_CYCLE 13
 
-int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, int* metrics, int* block_map, int adc, int skip, int R, int B, int C, int NWL, int NBL, int WL, int BL)
+int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, int* metrics, int* block_map, float* adc_thresh, int adc, int skip, int R, int B, int C, int NWL, int NBL, int WL, int BL)
 {
   // x = nrow, nwl, wl, xb
   // f = nwl, wl, nbl, bl
@@ -184,8 +210,8 @@ int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, int* metrics, int*
   int** wl_total = array2D();
   
   int*** pdot = array3D();
-  int*** pdot_sum = array3D();
-  int*** sat = array3D();
+  // int*** pdot_sum = array3D();
+  // int*** sat = array3D();
 
   for (int block=0; block<B; block++) {
     int wl = block_map[block];
@@ -286,22 +312,25 @@ int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, int* metrics, int*
           int var_addr = pdot[block][bl][bl_ptr] * 1000 + key;
           float var = lut_var[var_addr];
 
+          /*
           if (!((var >= -3) && (var <= 3))) {
             printf("%f\n", var);
             assert ((var >= -3) && (var <= 3));
           }
+          */
           
           metrics[METRIC_RON] += pdot[block][bl][bl_ptr];
           metrics[METRIC_ROFF] += rows - pdot[block][bl][bl_ptr];
 
           // pdot[block][bl][bl_ptr] = min(max(pdot[block][bl][bl_ptr] + var, 0), adc);
           float pdot_var = pdot[block][bl][bl_ptr] + var;
-          pdot[block][bl][bl_ptr] = min(max((int) round(pdot_var), 0), adc);
+          // pdot[block][bl][bl_ptr] = min(max((int) round(pdot_var), 0), adc);
+          pdot[block][bl][bl_ptr] = eval_adc(pdot_var, adc + 1, rpr, adc_thresh);
           y[r[block] * C + c] += (pdot[block][bl][bl_ptr] << (wb + xb[block]));
           
           if (wl_sum[block][bl] >= adc) {
-            sat[block][bl][bl_ptr] += (pdot[block][bl][bl_ptr] == adc);
-            pdot_sum[block][bl][bl_ptr] += pdot[block][bl][bl_ptr];
+            // sat[block][bl][bl_ptr] += (pdot[block][bl][bl_ptr] == adc);
+            // pdot_sum[block][bl][bl_ptr] += pdot[block][bl][bl_ptr];
           }
         }
 
@@ -314,6 +343,7 @@ int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, int* metrics, int*
         // assert(metrics[comps] < 1e9);
         metrics[METRIC_WL] += wl_sum[block][bl];
 
+        /*
         if (wl_ptr[block][bl] == WL) {
           for (int adc_ptr=0; adc_ptr<BL; adc_ptr+=8) {
             int bl_ptr = adc_ptr + col[block];
@@ -331,7 +361,7 @@ int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, int* metrics, int*
             }
           }
         }
-
+        */
       
         if (wl_ptr[block][bl] == WL) {
           wl_ptr[block][bl] = 0;
@@ -377,8 +407,8 @@ int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, int* metrics, int*
   } // while (!done) {
 
   free3D(pdot);
-  free3D(pdot_sum);
-  free3D(sat);
+  // free3D(pdot_sum);
+  // free3D(sat);
 
   return metrics[METRIC_CYCLE];  
 }
