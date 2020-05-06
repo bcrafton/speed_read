@@ -32,12 +32,6 @@ def pim(x, w, y_shape, lut_var, lut_rpr, alloc, adc_thresh, params):
     adc_thresh = np.ascontiguousarray(adc_thresh, np.float32)
     metrics = np.ascontiguousarray(metrics, np.int32)
 
-    '''
-    print (adc_thresh)
-    print (lut_rpr)
-    assert (False)
-    '''
-
     ########
 
     if params['alloc'] == 'block':
