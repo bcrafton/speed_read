@@ -2590,6 +2590,51 @@ need to include the centroids tho.
 > return centroids
 
 why are all the rpr's the same ?
+> across layers
+
+-------
+
+so because we use different rpr for each [xb, wb]
+we need to get different centroids for each [xb, wb]
+
+centroids are bound to the rpr we are using
+which means we are passing in a 3d array. 
+> lut_rpr -> lut_centroids.
+
+but we cud just compute centroids for different rpr.
+we dont need 64 centroids is what we are saying
+although we can have that many if we want.
+
+-------
+
+> compute error with centroids.
+> pass centroids in.
+
+-------
+
+what happens when adc_thresh = 11.5
+> then we can get 0.5 error.
+> well - this will eventually get quantized, so not truly 0.5, more or less who knows.
+
+-------
+
+seems like we need to change how we compute the error.
+
+for a given state
+> what are the errors we can get ? 
+> what are the odds of getting those error.
+
+we can only get an error for an ADC state we can detect.
+huh - so its like 
+what are the chances of landing in the correct state
+and what are the chances of landing in all the other states.
+
+-------
+
+for s in (1, rpr):
+    (error of each adc_state) * (prob of landing in that adc_state)
+
+-------
 
 
 

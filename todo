@@ -138,13 +138,13 @@ so if we look at what p :
 will have to think about how this and compression work together.
 
 -------
-
 1) lut_var - ppf ? or can we continue to do the error thing ? 
 2) need a new profile function basically
    > get rid of python function, use pim.c and change comps[]
 3) compute centroids, constraints
    > uniform distributed ?
    > fractions ?
+-------
 4) update rpr.py to compute expected (std, mean)
    > add centroids
    > prob_err dictionary.
@@ -153,7 +153,6 @@ will have to think about how this and compression work together.
 
 6) dynamically configure ADCs
 7) centroids for [different number of wordlines enabled, xb, wb]
-
 -------
 
 
