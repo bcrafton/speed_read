@@ -11,37 +11,42 @@ from defines import *
 from var import *
 
 from layers import *
-# from rpr import *
 
 #########################
 
-# need to consider:
-# variance error
-# quantization error -> use to be mean error
-def prob_err(p, var, adc, rpr, adc_thresh, row):
-    assert (np.all(p <= 1.))
-
-    # this assumes that our values start at zero and end at zero + len(values)
-    # which is true at the moment, but we should fix this.
-    # for s in values: 
-    # p[s] ... where p wud be a dictionary.
-    # TODO:
-    def prob_err_help(e, p, var, adc, rpr):
-        psum = 0
-        for s in range(1, rpr + 1):
-            # bin = binom.pmf(s, rpr, p)
-            psum += ((s + e) < adc) * p[s] * (norm.cdf(e + 0.5, 0, var * np.sqrt(s)) - norm.cdf(e - 0.5, 0, var * np.sqrt(s)))
-            psum += ((s + e) == adc) * p[s] * (1 - norm.cdf(adc - s - 0.5, 0, var * np.sqrt(s)))
-
-        # think we can ignore the zero case...
-        # zero case:
-        # psum += ((e - 0.5 < 0) * (0 < e + 0.5)) * binom.pmf(0, rpr, p)
-        return psum
+def adc_range(adc):
+    adc_low = np.zeros_like(adc)
+    adc_high = np.zeros_like(adc)
     
-    e = np.array(range(-rpr, rpr+1))
-    pe = prob_err_help(e, p, var, adc, rpr)
-    mu = np.sum(pe * e)
-    std = np.sqrt(np.sum(pe * (e - mu) ** 2))
+    adc_low[0] = -1e2
+    adc_high[-1] = 1e2
+    
+    for s in range(len(adc) - 1):
+        adc_high[s] = (adc[s] + adc[s + 1]) / 2
+        adc_low[s + 1] = (adc[s] + adc[s + 1]) / 2
+
+    return adc_low, adc_high
+    
+#########################
+
+def exp_err(s, p, var, adc, rpr, row):
+    assert (np.all(p <= 1.))
+    assert (len(s) == len(p))
+
+    adc = sorted(adc)
+    adc = np.reshape(adc, (-1, 1))
+    adc_low, adc_high = adc_range(adc)
+
+    pe = norm.cdf(adc_high, s, var * np.sqrt(s) + 1e-6) - norm.cdf(adc_low, s, var * np.sqrt(s) + 1e-6)
+    e = s - adc
+    
+    # print (s)
+    # print (adc)
+    # print (e)
+    # print (np.round(p * pe * e, 2))
+
+    mu = np.sum(p * pe * e)
+    std = np.sqrt(np.sum(p * pe * (e - mu) ** 2))
 
     mu = mu * row
     std = np.sqrt(std ** 2 * row)
@@ -316,7 +321,7 @@ class Conv(Layer):
 
         return wb
                 
-    def dist(self, x, rpr_thresh):
+    def dist(self, x, rpr):
         x = self.transform_inputs(x)
         
         npatch, nwl, wl, bpa = np.shape(x)
@@ -343,7 +348,7 @@ class Conv(Layer):
                         wlsum += 1
                         psum += self.wb[i][j]
                         
-                    if wlsum == rpr_thresh: 
+                    if wlsum == rpr: 
                         wlsum = 0
                         psums.append(psum)
                         psum = np.zeros(shape=(nbl, bl))
@@ -362,7 +367,7 @@ class Conv(Layer):
         
         #########################
 
-        if rpr_thresh <= self.params['adc']:
+        if rpr <= self.params['adc']:
             centroids = np.array(range(self.params['adc']))
         else:
             values, counts = np.unique(psums, return_counts=True)
@@ -379,12 +384,12 @@ class Conv(Layer):
         nrow = self.fh * self.fw * self.fc
     
         rpr_low = 8
-        rpr_high = 8
+        rpr_high = 10
         rpr_dist = {}
-        for rpr_thresh in range(rpr_low, rpr_high + 1):
-            values, counts, centroids = self.dist(x=x, rpr_thresh=rpr_thresh)
-            rpr_dist[rpr_thresh] = {'values': values, 'counts': counts, 'centroids': centroids}
-            print (rpr_thresh, values, centroids)
+        for rpr in range(rpr_low, rpr_high + 1):
+            values, counts, centroids = self.dist(x=x, rpr=rpr)
+            rpr_dist[rpr] = {'values': values, 'counts': counts, 'centroids': centroids}
+            # print (rpr, values, centroids)
             
         # def rpr(nrow, p, q, params):
         rpr_lut = np.zeros(shape=(8, 8), dtype=np.int32)
@@ -404,22 +409,27 @@ class Conv(Layer):
         # ===============
         for wb in range(self.params['bpw']):
             for xb in range(self.params['bpa']):
-                for rpr_thresh in range(rpr_low, rpr_high + 1):
+                for rpr in range(rpr_low, rpr_high + 1):
                     scale = 2**(wb - 1) * 2**(xb - 1)
                     
-                    # p = np.max(rpr_dist[rpr_thresh]['values']) / rpr_thresh
+                    # p = np.max(rpr_dist[rpr]['values']) / rpr
                     # assert (p <= 1.)
-                    p = rpr_dist[rpr_thresh]['counts'] / np.cumsum(rpr_dist[rpr_thresh]['counts'])
+                    p = rpr_dist[rpr]['counts'] / np.cumsum(rpr_dist[rpr]['counts'])
+                    s = rpr_dist[rpr]['values']
                     
-                    mu, std = prob_err(p, self.params['sigma'], self.params['adc'], rpr_thresh, rpr_dist[rpr_thresh]['centroids'], np.ceil(nrow / rpr_thresh))
+                    # mu, std = prob_err(p, self.params['sigma'], self.params['adc'], rpr, rpr_dist[rpr]['centroids'], np.ceil(nrow / rpr))
+                    mu, std = exp_err(s=s, p=p, var=self.params['sigma'], adc=rpr_dist[rpr]['centroids'], rpr=rpr, row=np.ceil(nrow / rpr))
+                    
                     e = (scale / self.q) * 5 * std
                     e_mu = (scale / self.q) * mu
                     
-                    if rpr_thresh == rpr_low:
-                        rpr_lut[xb][wb] = rpr_thresh
+                    print ((wb, xb), 'rpr', rpr, 'e', e, 'e_mu', e_mu)
+                    
+                    if rpr == rpr_low:
+                        rpr_lut[xb][wb] = rpr
                     if (e < 1.) and (np.absolute(e_mu) < 0.15):
                     # if e < 1.:
-                        rpr_lut[xb][wb] = rpr_thresh
+                        rpr_lut[xb][wb] = rpr
 
         '''
         for key in sorted(rpr_lut.keys()):
