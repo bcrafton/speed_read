@@ -135,12 +135,10 @@ int sat_error(float p, int adc, int rpr)
 
 //////////////////////////////////////////////
 
-// should be passing floor thresholds here, not midpoints.
-
+/*
 int eval_adc(float x, int adc, int rpr, float* adc_thresh)
 {
   int offset = rpr * adc;
-
 
   int minarg = offset;
   float mindiff = abs(x - adc_thresh[minarg]);
@@ -155,6 +153,23 @@ int eval_adc(float x, int adc, int rpr, float* adc_thresh)
   }
   
   return adc_thresh[minarg];
+}
+*/
+
+//////////////////////////////////////////////
+
+// should be passing floor thresholds here, not midpoints.
+int eval_adc(float x, int adc, int rpr, float* adc_thresh)
+{
+  int offset = rpr * adc;
+
+  for (int i=0; i<adc; i++) {
+    int idx = offset + i;
+    if (x < adc_thresh[idx]) {
+      return adc_thresh[idx];
+    }
+  }
+  return adc_thresh[offset + adc - 1];
 }
 
 //////////////////////////////////////////////

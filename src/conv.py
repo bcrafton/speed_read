@@ -31,6 +31,19 @@ def adc_range(adc):
     
 #########################
 
+def adc_floor(adc):
+    # make sure you pick the right type, zeros_like copies type.
+    adc_thresh = np.zeros_like(adc, dtype=np.float32)
+    
+    for s in range(len(adc) - 1):
+        adc_thresh[s] = (adc[s] + adc[s + 1]) / 2
+
+    adc_thresh[-1] = adc[-1]
+    
+    return adc_thresh
+
+#########################
+
 def exp_err(s, p, var, adc, rpr):
     assert (np.all(p <= 1.))
     assert (len(s) == len(p))
@@ -170,7 +183,6 @@ class Conv(Layer):
         # assert (self.s == 1)
         
         print ('y_mean', y_mean, 'y_std', y_std)
-        print (np.min(y), np.max(y), np.min(y_ref), np.max(y_ref))
         assert (False)
         
         # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
@@ -405,6 +417,8 @@ class Conv(Layer):
             # WOW - row=(nrow / rpr) is huge over approx for this.
             mu, std = exp_err(s=s, p=p, var=self.params['sigma'], adc=centroids, rpr=rpr)
             rpr_dist[rpr] = {'mu': mu, 'std': std, 'centroids': centroids}
+            
+            centroids = adc_floor(centroids)
             self.centroids[rpr] = centroids
             
         # def rpr(nrow, p, q, params):

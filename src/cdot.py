@@ -57,6 +57,8 @@ def pim(x, w, y_shape, lut_var, lut_rpr, alloc, adc_thresh, params):
         block_map = np.ascontiguousarray(block_map.flatten(), np.int32)
     
     ########
+    
+    print (adc_thresh)
 
     if params['alloc'] == 'block':
         psum = pim_lib.pim(
