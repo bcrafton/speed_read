@@ -2657,7 +2657,16 @@ yeah lets do that instead.
 
 -------
 
+so new problem
+is this zero issue
+we automatically get 0
+but its hard to convey that to the kmeans solver.
 
+and thus for adc=8, rpr=8
+we only get 8 centroids
+and lose.
+
+-------
 
 
 
