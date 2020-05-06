@@ -2668,8 +2668,9 @@ and lose.
 
 -------
 
-
-
+we can easily do integer k-means
+just by always rounding the centroid.
+then do some evaluation of what the best precision is.
 
 
 

@@ -8,16 +8,6 @@ import numpy.random as rand
 
 #########################
 
-psums = np.load('psums.npy', allow_pickle=True)
-values, counts = np.unique(psums, return_counts=True)
-
-# just use these, not this 300MB npy file.
-print (values)
-print (counts)
-print ()
-
-#########################
-
 # How far is each pt from the nearest centroid ?
 def distance(truth, test):
     truth = np.reshape(truth, (-1,1))
@@ -59,12 +49,12 @@ def kmeans(values, counts, n_clusters=8, max_iter=10, n_init=50, err_func=mean_s
         # Turn this into a weighted selector matrix:
         # If a value is equal distance between N means,
         # each mean is adjusted by 1/N * frequency of value.
-        s = 1.0*np.equal(0,d - np.min(d, axis=1).reshape((-1,1)))
+        s = 1.0 * np.equal(0,d - np.min(d, axis=1).reshape((-1,1)))
         s = s * np.sum(s, axis=1).reshape((-1,1)) * probs.reshape((-1,1))
-        s /= np.sum(s,axis=0).reshape((1,-1))
+        s = s / np.clip( np.sum(s, axis=0).reshape((1,-1)), 1e-6, np.inf)
         
         # Now recompute cluster centers:
-        cl = np.sum(s*values.reshape((-1,1)), axis=0)
+        cl = np.sum(s * values.reshape((-1,1)), axis=0)
         cl[0] = 0
         
         return(cl)                    
@@ -81,13 +71,6 @@ def kmeans(values, counts, n_clusters=8, max_iter=10, n_init=50, err_func=mean_s
                 min_cntrs = cl
     
     return(min_cntrs)         
-
-min_cntrs = kmeans(values, counts, n_clusters=9, err_func=mean_sq_err)
-print (sorted(min_cntrs))
-# probs = counts/np.sum(counts)
-# print(mean_sq_err(distance(values, min_cntrs), probs))
-# print(mean_sq_err(distance(values, np.asarray([0, 1, 3, 4, 5, 6, 7, 8])), probs))
-
 
 
 

@@ -2,7 +2,8 @@
 import math
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.cluster import KMeans
+# from sklearn.cluster import KMeans
+from kmeans import kmeans
 
 from conv_utils import *
 from cdot import *
@@ -15,8 +16,9 @@ from layers import *
 #########################
 
 def adc_range(adc):
-    adc_low = np.zeros_like(adc)
-    adc_high = np.zeros_like(adc)
+    # make sure you pick the right type, zeros_like copies type.
+    adc_low = np.zeros_like(adc, dtype=np.float32)
+    adc_high = np.zeros_like(adc, dtype=np.float32)
     
     adc_low[0] = -1e2
     adc_high[-1] = 1e2
@@ -29,7 +31,7 @@ def adc_range(adc):
     
 #########################
 
-def exp_err(s, p, var, adc, rpr, row):
+def exp_err(s, p, var, adc, rpr):
     assert (np.all(p <= 1.))
     assert (len(s) == len(p))
 
@@ -40,16 +42,18 @@ def exp_err(s, p, var, adc, rpr, row):
     pe = norm.cdf(adc_high, s, var * np.sqrt(s) + 1e-6) - norm.cdf(adc_low, s, var * np.sqrt(s) + 1e-6)
     e = s - adc
     
-    # print (s)
-    # print (adc)
+    # print (s.flatten())
+    # print (adc.flatten())
     # print (e)
     # print (np.round(p * pe * e, 2))
+    # print (adc_low.flatten())
+    # print (adc_high.flatten())
 
     mu = np.sum(p * pe * e)
     std = np.sqrt(np.sum(p * pe * (e - mu) ** 2))
 
-    mu = mu * row
-    std = np.sqrt(std ** 2 * row)
+    print (rpr, (np.sum(np.absolute(e)), np.sum(pe), np.sum(p)), (mu, std))
+    
     return mu, std
 
 #########################
@@ -368,12 +372,14 @@ class Conv(Layer):
         #########################
 
         if rpr <= self.params['adc']:
-            centroids = np.array(range(self.params['adc']))
+            # wow, you have to be careful with int/float. this being int had massive issues.
+            centroids = np.arange(0, self.params['adc'] + 1, step=1, dtype=np.float32)
         else:
             values, counts = np.unique(psums, return_counts=True)
-            kmeans = KMeans(n_clusters=self.params['adc'], init='k-means++', max_iter=100, n_init=5, random_state=0)
-            kmeans.fit(values.reshape(-1,1), counts)
-            centroids = np.round(kmeans.cluster_centers_[:, 0], 2)
+            # kmeans = KMeans(n_clusters=self.params['adc'], init='k-means++', max_iter=100, n_init=5, random_state=0)
+            # kmeans.fit(values.reshape(-1,1), counts)
+            # centroids = np.round(kmeans.cluster_centers_[:, 0], 2)
+            centroids = kmeans(values=values, counts=counts, n_clusters=self.params['adc'] + 1)
         
         #########################
         
@@ -385,11 +391,15 @@ class Conv(Layer):
     
         rpr_low = 8
         rpr_high = 10
+        
         rpr_dist = {}
         for rpr in range(rpr_low, rpr_high + 1):
             values, counts, centroids = self.dist(x=x, rpr=rpr)
-            rpr_dist[rpr] = {'values': values, 'counts': counts, 'centroids': centroids}
-            # print (rpr, values, centroids)
+            p = counts / np.cumsum(counts)
+            s = values
+            # WOW - row=(nrow / rpr) is huge over approx for this.
+            mu, std = exp_err(s=s, p=p, var=self.params['sigma'], adc=centroids, rpr=rpr)
+            rpr_dist[rpr] = {'mu': mu, 'std': std, 'centroids': centroids}
             
         # def rpr(nrow, p, q, params):
         rpr_lut = np.zeros(shape=(8, 8), dtype=np.int32)
@@ -410,20 +420,12 @@ class Conv(Layer):
         for wb in range(self.params['bpw']):
             for xb in range(self.params['bpa']):
                 for rpr in range(rpr_low, rpr_high + 1):
+                
                     scale = 2**(wb - 1) * 2**(xb - 1)
-                    
-                    # p = np.max(rpr_dist[rpr]['values']) / rpr
-                    # assert (p <= 1.)
-                    p = rpr_dist[rpr]['counts'] / np.cumsum(rpr_dist[rpr]['counts'])
-                    s = rpr_dist[rpr]['values']
-                    
-                    # mu, std = prob_err(p, self.params['sigma'], self.params['adc'], rpr, rpr_dist[rpr]['centroids'], np.ceil(nrow / rpr))
-                    mu, std = exp_err(s=s, p=p, var=self.params['sigma'], adc=rpr_dist[rpr]['centroids'], rpr=rpr, row=np.ceil(nrow / rpr))
+                    mu, std = rpr_dist[rpr]['mu'], rpr_dist[rpr]['std']
                     
                     e = (scale / self.q) * 5 * std
                     e_mu = (scale / self.q) * mu
-                    
-                    print ((wb, xb), 'rpr', rpr, 'e', e, 'e_mu', e_mu)
                     
                     if rpr == rpr_low:
                         rpr_lut[xb][wb] = rpr
