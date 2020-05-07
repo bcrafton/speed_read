@@ -64,30 +64,37 @@ for layer in range(num_layers):
 # x = block_density[16][0]
 # y = layer_results['block_mac'][137:173]
 
-x = block_density[15][0]
-y = 128 * 16 / layer_results['block_mac'][119:137]
+x1 = block_density[15][0] * 100
+y1 = 128 * 16 / layer_results['block_mac'][119:137]
+
+x2 = block_density[10][0] * 100
+y2 = 128 * 16 / layer_results['block_mac'][55:64]
 
 # print (x)
 # print (y)
 
-plt.scatter(x, y, marker='o')
-    
-'''
-for layer in range(num_layers):
-    print (layer, density[layer], layer_results['layer_mac'][layer])
-    plt.annotate(str(layer + 1), (density[layer][0] + np.max(density) * 0.01, layer_results['layer_mac'][layer]))
-'''
+plt.scatter(x1, y1, marker='+', color='blue')
+plt.scatter(x2, y2, marker='x', color='black')
     
 ####################
-    
-# plt.ylim(bottom=0)
-plt.ylabel('Cycle / Array')
-plt.xlabel('Percent (%) 1s')
-# plt.show()
 
 fig = plt.gcf()
-# fig.set_size_inches(3.5, 3.)
-# plt.tight_layout()
+ax = plt.gca()
+
+# plt.ylim(bottom=0)
+# plt.ylabel('Cycle / Array')
+# plt.xlabel('Percent (%) 1s')
+# plt.show()
+
+plt.grid(True, linestyle='dotted')
+plt.xticks([3, 4, 5, 6, 7, 8])
+plt.yticks([90, 100, 110, 120, 130])
+
+ax.axes.xaxis.set_ticklabels([])
+ax.axes.yaxis.set_ticklabels([])
+
+fig.set_size_inches(3.5, 3.)
+plt.tight_layout()
 fig.savefig('density_vs_perf2.png', dpi=300)
 
 ####################

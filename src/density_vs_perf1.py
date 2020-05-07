@@ -58,16 +58,10 @@ for layer in range(num_layers):
 total_mac = np.ones(shape=num_layers)
 total_mac = total_mac * 128 * 16
 total_mac[0] = 7 * 7 * 3 / 2 * 16
-plt.scatter(density, total_mac / layer_results['layer_mac'], marker='o')
-    
-'''
-for layer in range(num_layers):
-    print (layer, density[layer], layer_results['layer_mac'][layer])
-    plt.annotate(str(layer + 1), (density[layer][0] + np.max(density) * 0.01, layer_results['layer_mac'][layer]))
-'''
+plt.scatter(np.array(density) * 100, total_mac / layer_results['layer_mac'], marker='+', color='blue')
 
 ####################
-    
+'''
 plt.ylim(bottom=0)
 plt.ylabel('Cycle / Array')
 plt.xlabel('Percent (%) 1s')
@@ -77,12 +71,29 @@ fig = plt.gcf()
 # fig.set_size_inches(3.5, 3.)
 # plt.tight_layout()
 fig.savefig('density_vs_perf1.png', dpi=300)
-
+'''
 ####################
 
+fig = plt.gcf()
+ax = plt.gca()
 
+# plt.ylim(bottom=0)
+# plt.ylabel('Cycle / Array')
+# plt.xlabel('Percent (%) 1s')
+# plt.show()
 
+plt.grid(True, linestyle='dotted')
+plt.xticks([0, 5, 10, 15, 20, 25, 30])
+# plt.yticks([90, 100, 110, 120, 130])
 
+ax.axes.xaxis.set_ticklabels([])
+ax.axes.yaxis.set_ticklabels([])
+
+fig.set_size_inches(3.5, 3.)
+plt.tight_layout()
+fig.savefig('density_vs_perf1.png', dpi=300)
+
+####################
 
 
 
