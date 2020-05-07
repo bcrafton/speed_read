@@ -2706,7 +2706,67 @@ okay pretty sure we know whats going wrong.
 
 but rounding down wudnt increase the mean ...
 
+how could the mean be 20,000 higher ...
+> 20,000 is before quantization by 2300, so its really only 10.
 
+-------
+
+uhh, we are returning fractions.
+0.5, 1.5, ect
+
+i guess they are getting rounded down so its sorta fine, but idk.
+> yeah it actually works out for RPR=8 case I guess ? 
+
+wud this actually work for 8 ? 
+
+-------
+
+still dont know the problem for why we are so off tho.
+
+[[0.        0.        0.        0.        0.        0.        0.
+  0.        0.       ]
+ [0.        0.        0.        0.        0.        0.        0.
+  0.        0.       ]
+ [0.        0.        0.        0.        0.        0.        0.
+  0.        0.       ]
+ [0.        0.        0.        0.        0.        0.        0.
+  0.        0.       ]
+ [0.        0.        0.        0.        0.        0.        0.
+  0.        0.       ]
+ [0.        0.        0.        0.        0.        0.        0.
+  0.        0.       ]
+ [0.        0.        0.        0.        0.        0.        0.
+  0.        0.       ]
+ [0.        0.        0.        0.        0.        0.        0.
+  0.        0.       ]
+ [0.5       1.5       2.5       3.5       4.5       5.5       6.5
+  7.5       8.       ]
+ [0.5       1.5       2.5       3.5       4.5       5.5       6.5
+  7.7635784 8.527157 ]
+ [0.5       1.5       2.5       3.5       4.5       5.5       6.6591067
+  8.406918  9.495623 ]]
+
+-------
+
+hmmm maybe actually i can see how the round up happens
+
+can definitely see some nasty issues happening here:
+[5.5 6.6591067 8.406918 9.495623]
+
+but i dont see them going away ...
+
+why would rounding increase the mean ? 
+
+-------
+
+okay i can see why we get errors
+but what i dont get
+is why does rpr not compute them correctly ? 
+
+well, lets divide mean and std by q.
+
+
+-------
 
 
 

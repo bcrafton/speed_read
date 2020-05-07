@@ -185,7 +185,7 @@ class Conv(Layer):
         y_std = np.std(y - y_ref)
         # assert (self.s == 1)
         
-        print ('y_mean', y_mean, 'y_std', y_std)
+        print ('y_mean', y_mean / self.q, 'y_std', y_std / self.q)
         assert (False)
         
         # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
@@ -408,8 +408,8 @@ class Conv(Layer):
     
         nrow = self.fh * self.fw * self.fc
     
-        rpr_low = 1
-        rpr_high = 16
+        rpr_low = 4
+        rpr_high = 24
         
         self.centroids = np.zeros(shape=(rpr_high + 1, self.params['adc'] + 1))
         
@@ -448,8 +448,9 @@ class Conv(Layer):
                     scale = 2**(wb - 1) * 2**(xb - 1)
                     mu, std = rpr_dist[rpr]['mu'], rpr_dist[rpr]['std']
                     
-                    e = (scale / self.q) * 5 * std
+                    e = (scale / self.q) * 64 * std
                     e_mu = (scale / self.q) * mu
+                    print (scale, e, e_mu)
                     
                     if rpr == rpr_low:
                         rpr_lut[xb][wb] = rpr
