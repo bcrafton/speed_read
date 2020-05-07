@@ -150,6 +150,7 @@ will have to think about how this and compression work together.
 5) pass centroids to pim.c 
 6) dynamically configure ADCs
 7) centroids for [different number of wordlines enabled, xb, wb]
+8) (nrow/rpr) -> (nrow * p / rpr) ... where p is the (%) of 1s in activataions
 -------
 
 
