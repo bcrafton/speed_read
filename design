@@ -2677,6 +2677,37 @@ then do some evaluation of what the best precision is.
 make sure this is good:
 > https://github.com/bcrafton/speed_read/commit/6a7aeb509368fbaa5fc17335fb347cee5cb59f57
 
+-------
+
+oh wow, new problem is obvious
+> centroids for rpr=9 -> [ 2. 3. 4. 3.5 3. 6.7635784 5.7635784  5. 7. ]
+> there are horrible choices !!!
+
+it makes the guesses actually worse, should not have more than 1 number bound to 3
+
+oh wait, what ? 
+now i am seeing this for rpr=9
+ [ 0.5 1.5 2.5 3.5 4.5 5.5 6.5 7.7635784 8.527157]
+ 
+OHH, its because we sorted it before pushing it through adc_floor.
+
+-------
+
+okay pretty sure we know whats going wrong.
+> mean = 20,000
+> we are not applying offset correctly ? 
+  > no actually, dont think thats it.
+> we are def rounding down 
+  > pdot[block][bl][bl_ptr] = eval_adc(pdot_var, adc + 1, rpr, adc_thresh);
+  > pdot = int
+  > eval_adc = int ... so it rounds the adc_thresh inside of it
+
+-------
+
+but rounding down wudnt increase the mean ...
+
+
+
 
 
 

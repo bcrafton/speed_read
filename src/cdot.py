@@ -59,6 +59,7 @@ def pim(x, w, y_shape, lut_var, lut_rpr, alloc, adc_thresh, params):
     ########
     
     print (adc_thresh)
+    print (lut_rpr)
 
     if params['alloc'] == 'block':
         psum = pim_lib.pim(

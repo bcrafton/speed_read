@@ -44,7 +44,7 @@ def adc_floor(adc):
 
 #########################
 
-def exp_err(s, p, var, adc, rpr):
+def exp_err(s, p, var, adc, rpr, row):
     assert (np.all(p <= 1.))
     assert (len(s) == len(p))
 
@@ -64,6 +64,9 @@ def exp_err(s, p, var, adc, rpr):
 
     mu = np.sum(p * pe * e)
     std = np.sqrt(np.sum(p * pe * (e - mu) ** 2))
+
+    mu = mu * row
+    std = np.sqrt(std ** 2 * row)
 
     # print (rpr, (np.sum(np.absolute(e)), np.sum(pe), np.sum(p)), (mu, std))
     print (rpr, (mu, std))
@@ -395,6 +398,7 @@ class Conv(Layer):
             # kmeans.fit(values.reshape(-1,1), counts)
             # centroids = np.round(kmeans.cluster_centers_[:, 0], 2)
             centroids = kmeans(values=values, counts=counts, n_clusters=self.params['adc'] + 1)
+            centroids = sorted(centroids)
         
         #########################
         
@@ -404,8 +408,8 @@ class Conv(Layer):
     
         nrow = self.fh * self.fw * self.fc
     
-        rpr_low = 6
-        rpr_high = 8
+        rpr_low = 1
+        rpr_high = 16
         
         self.centroids = np.zeros(shape=(rpr_high + 1, self.params['adc'] + 1))
         
@@ -415,7 +419,7 @@ class Conv(Layer):
             p = counts / np.cumsum(counts)
             s = values
             # WOW - row=(nrow / rpr) is huge over approx for this.
-            mu, std = exp_err(s=s, p=p, var=self.params['sigma'], adc=centroids, rpr=rpr)
+            mu, std = exp_err(s=s, p=p, var=self.params['sigma'], adc=centroids, rpr=rpr, row=np.ceil(nrow / rpr))
             rpr_dist[rpr] = {'mu': mu, 'std': std, 'centroids': centroids}
             
             centroids = adc_floor(centroids)
