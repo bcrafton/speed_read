@@ -21,7 +21,6 @@ class Block1(Layer):
         self.s = stride
         
         self.params = params.copy()
-        self.params['var'] = lut_var(params['sigma'], 32)
 
         input_size1 = input_size
         input_size2 = (input_size1[0] // stride, input_size1[1] // stride, input_size1[2])
@@ -61,7 +60,6 @@ class Block2(Layer):
         self.s = stride
         
         self.params = params.copy()
-        self.params['var'] = lut_var(params['sigma'], 32)
 
         assert (self.f1 == input_size[2])
         input_size1 = input_size

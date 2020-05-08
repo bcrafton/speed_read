@@ -227,6 +227,7 @@ int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, int* metrics, int*
   int*** pdot = array3D();
   // int*** pdot_sum = array3D();
   // int*** sat = array3D();
+  int*** psum = array3D();
 
   for (int block=0; block<B; block++) {
     int wl = block_map[block];
@@ -281,6 +282,7 @@ int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, int* metrics, int*
         int rows = min(rpr, WL - wl_ptr[block][bl]);
 
         clear_vector(pdot[block][bl]);
+        clear_vector(psum[block][bl]);
         wl_sum[block][bl] = 0;
 
         if (skip) {
@@ -320,7 +322,7 @@ int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, int* metrics, int*
           int wb = col[block];
 
           if (wb == 0) {
-            y[r[block] * C + c] -= ((wl_sum[block][bl] * 128) << xb[block]);
+            y[r[block] * C + c] -= 4 * ((wl_sum[block][bl] * 128) << xb[block]);
           }
           
           int key = rand() % 1000;
@@ -340,8 +342,8 @@ int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, int* metrics, int*
           // pdot[block][bl][bl_ptr] = min(max(pdot[block][bl][bl_ptr] + var, 0), adc);
           float pdot_var = pdot[block][bl][bl_ptr] + var;
           // pdot[block][bl][bl_ptr] = min(max((int) round(pdot_var), 0), adc);
-          pdot[block][bl][bl_ptr] = eval_adc(pdot_var, adc + 1, rpr, adc_state, adc_thresh);
-          y[r[block] * C + c] += (pdot[block][bl][bl_ptr] << (wb + xb[block]));
+          psum[block][bl][bl_ptr] = eval_adc(pdot_var, adc + 1, rpr, adc_state, adc_thresh);
+          y[r[block] * C + c] += (psum[block][bl][bl_ptr] << (wb + xb[block]));
           
           if (wl_sum[block][bl] >= adc) {
             // sat[block][bl][bl_ptr] += (pdot[block][bl][bl_ptr] == adc);
@@ -424,6 +426,7 @@ int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, int* metrics, int*
   free3D(pdot);
   // free3D(pdot_sum);
   // free3D(sat);
+  free3D(psum);
 
   return metrics[METRIC_CYCLE];  
 }

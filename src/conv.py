@@ -120,7 +120,7 @@ class Conv(Layer):
         #########################
 
         self.params = params.copy()
-        self.params['var'] = lut_var(params['sigma'], 32)
+        self.params['var'] = lut_var(params['sigma'], 64)
         
         #########################
         
@@ -186,7 +186,8 @@ class Conv(Layer):
         # assert (self.s == 1)
         
         print ('y_mean', y_mean / self.q, 'y_std', y_std / self.q)
-        assert (False)
+        if self.weight_id == 2:
+            assert (False)
         
         # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
         # results = {}
@@ -242,6 +243,7 @@ class Conv(Layer):
         
         y, metrics = pim(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], alloc, self.adc_state, self.adc_thresh, self.params)
         y = np.reshape(y, (yh, yw, self.fn))
+        y = y / 4
         
         # we shud move this into forward, do it after the y - y_ref. 
         assert(np.all(np.absolute(y) < 2 ** 23))
@@ -408,8 +410,8 @@ class Conv(Layer):
     
         nrow = self.fh * self.fw * self.fc
     
-        rpr_low = 6
-        rpr_high = 12
+        rpr_low = 4
+        rpr_high = 64
         
         self.adc_state = np.zeros(shape=(rpr_high + 1, self.params['adc'] + 1))
         self.adc_thresh = np.zeros(shape=(rpr_high + 1, self.params['adc'] + 1))
@@ -423,7 +425,7 @@ class Conv(Layer):
             mu, std = exp_err(s=s, p=p, var=self.params['sigma'], adc=centroids, rpr=rpr, row=np.ceil(nrow / rpr))
             rpr_dist[rpr] = {'mu': mu, 'std': std, 'centroids': centroids}
             
-            self.adc_state[rpr] = centroids
+            self.adc_state[rpr] = 4 * np.array(centroids)
             self.adc_thresh[rpr] = adc_floor(centroids)
             
         # def rpr(nrow, p, q, params):
@@ -451,7 +453,7 @@ class Conv(Layer):
                     
                     e = (scale / self.q) * 64 * std
                     e_mu = (scale / self.q) * mu
-                    print (scale, e, e_mu)
+                    # print (scale, e, e_mu)
                     
                     if rpr == rpr_low:
                         rpr_lut[xb][wb] = rpr

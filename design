@@ -2765,8 +2765,33 @@ is why does rpr not compute them correctly ?
 
 well, lets divide mean and std by q.
 
+-------
+
+okay so issues with fixed point and rounding.
+let pdot remain as it is
+create new variable: psum ? 
+
+so normally what we do is this: 
+psum[block][bl][bl_ptr] = eval_adc(pdot_var, adc + 1, rpr, adc_state, adc_thresh);
+y[r[block] * C + c] += (pdot[block][bl][bl_ptr] << (wb + xb[block]));
+
+BUT the issue is that
+if we instantly update y, we will lose floating point information
+if we *4 to get fixed point, we will have to know when to divide y by 4.
+
+but regardless, you are going to have issues with y_offset
+because it needs to be shifted by 4 if they are to be mixed.
+
+issue with waiting till y is done
+is that we dont sync at the end of a y
+blocks just move on to the next one...
 
 -------
+
+
+
+
+
 
 
 
