@@ -22,7 +22,8 @@ comp_pJ = 22. * 1e-12 / 32. / 16.
 
 num_layers = 20
 num_comparator = 8
-results = np.load('results.npy', allow_pickle=True).item()
+results = np.load('results-old.npy', allow_pickle=True).item()
+print (results.keys())
 
 ####################
 
@@ -178,19 +179,22 @@ print (perf_based_block_wise / baseline)
 
 ############################
 
-# plt.ylim(bottom=0, top=1e4)
-plt.xticks( list(lut.keys()) )
-plt.legend()
-plt.grid(True, linestyle='dotted')
-#plt.show()
+fig = plt.gcf()
+ax = plt.gca()
 
-plt.xlabel('Arrays / Design')
-plt.ylabel('Performance (TMAC/s)')
+plt.xticks( list(lut.keys()) )
+plt.grid(True, linestyle='dotted')
+
+# plt.legend()
+# plt.xlabel('Arrays / Design')
+# plt.ylabel('Performance (TMAC/s)')
+
+ax.axes.xaxis.set_ticklabels([])
+ax.axes.yaxis.set_ticklabels([])
 
 ############################
 
-fig = plt.gcf()
-fig.set_size_inches(4, 3)
+fig.set_size_inches(3.5, 3.)
 plt.tight_layout()
 fig.savefig('perf.png', dpi=300)
 

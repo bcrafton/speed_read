@@ -21,7 +21,7 @@ comp_pJ = 22. * 1e-12 / 32. / 16.
 
 num_layers = 20
 num_comparator = 8
-results = np.load('results.npy', allow_pickle=True).item()
+results = np.load('results-old.npy', allow_pickle=True).item()
 
 y_mean = np.zeros(shape=(2, 2, 2, 2, num_layers))
 y_std = np.zeros(shape=(2, 2, 2, 2, num_layers))
@@ -115,10 +115,6 @@ skip_none  = np.around(array_util[1, 0, 0, 0],  3)
 skip_layer  = np.around(array_util[1, 0, 0, 1],  3)
 skip_block  = np.around(array_util[1, 0, 1, 1],  3)
 
-cards_none = np.around(array_util[1, 1, 0, 0],  3)
-cards_layer = np.around(array_util[1, 1, 0, 1],  3)
-cards_block = np.around(array_util[1, 1, 1, 1],  3)
-
 ####################
 
 print ()
@@ -145,59 +141,31 @@ plt.cla()
 plt.clf()
 plt.close()
 
-plt.ylabel('Array Utilization (%)')
-plt.xlabel('Layer #')
+fig = plt.gcf()
+ax = plt.gca()
 
 width = 0.2
 plt.bar(x=layers - width, height=skip_none,   width=width, label='weight-based', color='silver')
 plt.bar(x=layers,         height=skip_layer,  width=width, label='performance-based layer-wise', color='royalblue')
 plt.bar(x=layers + width, height=skip_block,  width=width, label='performance-based block-wise', color='black')
 
-plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc='lower left', ncol=2, mode="expand", borderaxespad=0.)
+# plt.ylabel('Array Utilization (%)')
+# plt.xlabel('Layer #')
+# plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc='lower left', ncol=2, mode="expand", borderaxespad=0.)
 
-'''
-plt.plot([0., 20.], [np.max(skip_none),  np.max(skip_none)],  "k--", color='silver')
-plt.plot([0., 20.], [np.max(skip_layer), np.max(skip_layer)], "k--", color='royalblue')
-plt.plot([0., 20.], [np.max(skip_block), np.max(skip_block)], "k--", color='black')
-'''
 plt.xticks(layers)
 plt.yticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
-plt.grid(True, axis='y', linestyle='dotted')
+# plt.grid(True, axis='y', linestyle='dotted', color='black')
+# plt.grid(True, axis='y', linestyle=(0, (5, 10)), color='black')
+plt.grid(True, axis='y', linestyle=(0, (5, 8)), color='black')
+# plt.grid(True, axis='y', linestyle='--', color='black')
 
-fig = plt.gcf()
+ax.axes.xaxis.set_ticklabels([])
+ax.axes.yaxis.set_ticklabels([])
+
 fig.set_size_inches(8., 2.5)
 plt.tight_layout()
 fig.savefig('skip-util.png', dpi=300)
-
-####################
-
-plt.clf()
-plt.cla()
-plt.close()
-
-plt.ylabel('Array Utilization (%)')
-plt.xlabel('Layer #')
-
-width = 0.2
-plt.bar(x=layers - width, height=cards_none,   width=width, label='weight-based ', color='silver')
-plt.bar(x=layers,         height=cards_layer,  width=width, label='performance-based layer-wise', color='royalblue')
-plt.bar(x=layers + width, height=cards_block,  width=width, label='performance-based block-wise', color='black')
-
-plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc='lower left', ncol=2, mode="expand", borderaxespad=0.)
-
-'''
-plt.plot([0., 20.], [np.max(cards_none),  np.max(cards_none)],  "k--", color='silver')
-plt.plot([0., 20.], [np.max(cards_layer), np.max(cards_layer)], "k--", color='royalblue')
-plt.plot([0., 20.], [np.max(cards_block), np.max(cards_block)], "k--", color='black')
-'''
-plt.xticks(layers)
-plt.yticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
-plt.grid(True, axis='y', linestyle='dotted')
-
-fig = plt.gcf()
-fig.set_size_inches(8., 2.5)
-plt.tight_layout()
-fig.savefig('cards-util.png', dpi=300)
 
 ####################
 
