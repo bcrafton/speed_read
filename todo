@@ -142,17 +142,16 @@ will have to think about how this and compression work together.
 2) need a new profile function basically
    > get rid of python function, use pim.c and change comps[]
 4) update rpr.py to compute expected (std, mean)
--------
 3) compute centroids, constraints
    > uniform distributed ?, fractions ?
    > include a fixed zero centroid!
--------
 5) pass centroids to pim.c 
-6) dynamically configure ADCs
-7) centroids for [different number of wordlines enabled, xb, wb]
-8) (nrow/rpr) -> (nrow * p / rpr) ... where p is the (%) of 1s in activataions
 -------
-
+6) dynamically configure ADCs - bias or changing thresholds
+7) centroids for [different number of wordlines enabled, xb, wb]
+8) figure out rounding + fixed point stuff 
+-------
+?) (nrow/rpr) -> (nrow * p / rpr) ... where p is the (%) of 1s in activataions
 
 
 
