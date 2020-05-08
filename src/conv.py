@@ -409,9 +409,14 @@ class Conv(Layer):
     def profile_rpr(self, x):
     
         nrow = self.fh * self.fw * self.fc
+        
+        patches = self.transform_inputs(x)
+        npatch, nwl, wl, bpa = np.shape(patches)
+        # p_avg = np.max(np.mean(x, axis=2))
+        p_avg = np.mean(x)
     
-        rpr_low = 4
-        rpr_high = 64
+        rpr_low = 1
+        rpr_high = 32
         
         self.adc_state = np.zeros(shape=(rpr_high + 1, self.params['adc'] + 1))
         self.adc_thresh = np.zeros(shape=(rpr_high + 1, self.params['adc'] + 1))
@@ -422,7 +427,7 @@ class Conv(Layer):
             p = counts / np.cumsum(counts)
             s = values
             # WOW - row=(nrow / rpr) is huge over approx for this.
-            mu, std = exp_err(s=s, p=p, var=self.params['sigma'], adc=centroids, rpr=rpr, row=np.ceil(nrow / rpr))
+            mu, std = exp_err(s=s, p=p, var=self.params['sigma'], adc=centroids, rpr=rpr, row=np.ceil(p_avg * nrow / rpr))
             rpr_dist[rpr] = {'mu': mu, 'std': std, 'centroids': centroids}
             
             self.adc_state[rpr] = 4 * np.array(centroids)
