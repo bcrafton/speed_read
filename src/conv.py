@@ -69,7 +69,7 @@ def exp_err(s, p, var, adc, rpr, row):
     std = np.sqrt(std ** 2 * row)
 
     # print (rpr, (np.sum(np.absolute(e)), np.sum(pe), np.sum(p)), (mu, std))
-    print (rpr, (mu, std))
+    print (rpr, (mu, std), adc.flatten())
     
     return mu, std
 
@@ -240,7 +240,7 @@ class Conv(Layer):
         if   self.params['alloc'] == 'block': alloc = self.block_alloc
         elif self.params['alloc'] == 'layer': alloc = self.layer_alloc
         
-        y, metrics = pim(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], alloc, self.centroids, self.params)
+        y, metrics = pim(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], alloc, self.adc_state, self.adc_thresh, self.params)
         y = np.reshape(y, (yh, yw, self.fn))
         
         # we shud move this into forward, do it after the y - y_ref. 
@@ -408,10 +408,11 @@ class Conv(Layer):
     
         nrow = self.fh * self.fw * self.fc
     
-        rpr_low = 4
-        rpr_high = 24
+        rpr_low = 6
+        rpr_high = 12
         
-        self.centroids = np.zeros(shape=(rpr_high + 1, self.params['adc'] + 1))
+        self.adc_state = np.zeros(shape=(rpr_high + 1, self.params['adc'] + 1))
+        self.adc_thresh = np.zeros(shape=(rpr_high + 1, self.params['adc'] + 1))
         
         rpr_dist = {}
         for rpr in range(rpr_low, rpr_high + 1):
@@ -422,8 +423,8 @@ class Conv(Layer):
             mu, std = exp_err(s=s, p=p, var=self.params['sigma'], adc=centroids, rpr=rpr, row=np.ceil(nrow / rpr))
             rpr_dist[rpr] = {'mu': mu, 'std': std, 'centroids': centroids}
             
-            centroids = adc_floor(centroids)
-            self.centroids[rpr] = centroids
+            self.adc_state[rpr] = centroids
+            self.adc_thresh[rpr] = adc_floor(centroids)
             
         # def rpr(nrow, p, q, params):
         rpr_lut = np.zeros(shape=(8, 8), dtype=np.int32)

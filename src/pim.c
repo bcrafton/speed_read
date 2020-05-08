@@ -159,17 +159,17 @@ int eval_adc(float x, int adc, int rpr, float* adc_thresh)
 //////////////////////////////////////////////
 
 // should be passing floor thresholds here, not midpoints.
-int eval_adc(float x, int adc, int rpr, float* adc_thresh)
+int eval_adc(float x, int adc, int rpr, float* adc_state, float* adc_thresh)
 {
   int offset = rpr * adc;
 
   for (int i=0; i<adc; i++) {
     int idx = offset + i;
     if (x < adc_thresh[idx]) {
-      return adc_thresh[idx];
+      return adc_state[idx];
     }
   }
-  return adc_thresh[offset + adc - 1];
+  return adc_state[offset + adc - 1];
 }
 
 //////////////////////////////////////////////
@@ -198,7 +198,7 @@ wl
 #define METRIC_STALL 12
 #define METRIC_BLOCK_CYCLE 13
 
-int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, int* metrics, int* block_map, float* adc_thresh, int adc, int skip, int R, int B, int C, int NWL, int NBL, int WL, int BL)
+int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, int* metrics, int* block_map, float* adc_state, float* adc_thresh, int adc, int skip, int R, int B, int C, int NWL, int NBL, int WL, int BL)
 {
   // x = nrow, nwl, wl, xb
   // f = nwl, wl, nbl, bl
@@ -340,7 +340,7 @@ int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, int* metrics, int*
           // pdot[block][bl][bl_ptr] = min(max(pdot[block][bl][bl_ptr] + var, 0), adc);
           float pdot_var = pdot[block][bl][bl_ptr] + var;
           // pdot[block][bl][bl_ptr] = min(max((int) round(pdot_var), 0), adc);
-          pdot[block][bl][bl_ptr] = eval_adc(pdot_var, adc + 1, rpr, adc_thresh);
+          pdot[block][bl][bl_ptr] = eval_adc(pdot_var, adc + 1, rpr, adc_state, adc_thresh);
           y[r[block] * C + c] += (pdot[block][bl][bl_ptr] << (wb + xb[block]));
           
           if (wl_sum[block][bl] >= adc) {
@@ -401,7 +401,7 @@ int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, int* metrics, int*
                     block_sync = block_sync & block_done[i];
                   }
 
-                  done = block_sync;                  
+                  done = block_sync;
                 }
               }
               else {

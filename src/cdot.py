@@ -13,7 +13,7 @@ pim_sync_lib.pim.restype = ctypes.c_int
 
 ###########################
 
-def pim(x, w, y_shape, lut_var, lut_rpr, alloc, adc_thresh, params):
+def pim(x, w, y_shape, lut_var, lut_rpr, alloc, adc_state, adc_thresh, params):
     nrow, nwl, wl, xb = np.shape(x)
     nwl, wl, nbl, bl = np.shape(w) # nwl, nbl, wl, bl
     nrow, ncol = y_shape
@@ -29,6 +29,7 @@ def pim(x, w, y_shape, lut_var, lut_rpr, alloc, adc_thresh, params):
     y = np.ascontiguousarray(y, np.int32)
     lut_var = np.ascontiguousarray(lut_var, np.float32)
     lut_rpr = np.ascontiguousarray(lut_rpr, np.int32)
+    adc_state = np.ascontiguousarray(adc_state, np.float32)
     adc_thresh = np.ascontiguousarray(adc_thresh, np.float32)
     metrics = np.ascontiguousarray(metrics, np.int32)
 
@@ -58,6 +59,7 @@ def pim(x, w, y_shape, lut_var, lut_rpr, alloc, adc_thresh, params):
     
     ########
     
+    print (adc_state)
     print (adc_thresh)
     print (lut_rpr)
 
@@ -69,7 +71,8 @@ def pim(x, w, y_shape, lut_var, lut_rpr, alloc, adc_thresh, params):
         ctypes.c_void_p(lut_var.ctypes.data), 
         ctypes.c_void_p(lut_rpr.ctypes.data), 
         ctypes.c_void_p(metrics.ctypes.data), 
-        ctypes.c_void_p(block_map.ctypes.data), 
+        ctypes.c_void_p(block_map.ctypes.data),
+        ctypes.c_void_p(adc_state.ctypes.data), 
         ctypes.c_void_p(adc_thresh.ctypes.data), 
         ctypes.c_int(params['adc']),
         ctypes.c_int(params['skip']),
