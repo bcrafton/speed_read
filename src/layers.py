@@ -233,7 +233,7 @@ class Conv(Layer):
         y_std = np.std(y - y_ref)
         # assert (self.s == 1)
         
-        # print ('y_mean', y_mean, 'y_std', y_std)
+        # print ('y_mean', y_mean, 'y_std', y_std, 'non-zero', np.count_nonzero(y_ref))
         
         # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
         # results = {}
@@ -262,9 +262,9 @@ class Conv(Layer):
         y = y + self.b
         if self.relu_flag:
             y = relu(y)
-        y = avg_pool(y, self.p)
+        # y = avg_pool(y, self.p)
         y = y / self.q
-        y = np.round(y)
+        y = np.floor(y)
         y = np.clip(y, -128, 127)
         
         ########################
@@ -355,6 +355,8 @@ class Conv(Layer):
         results['block_cycle'] = metrics[13:]
         results['density'] = np.count_nonzero(patches) / np.prod(np.shape(patches)) * (self.params['wl'] / min(self.fh * self.fw * self.fc, self.params['wl']))
         results['block_density'] = np.count_nonzero(patches, axis=(0,2,3)) / (npatch * self.params['wl'] * self.params['bpa'])
+
+        # print ( results['density'] )
         
         #########################
         
@@ -506,6 +508,7 @@ class AvgPool(Layer):
         # max pool and avg pool mess things up a bit because they dont do the right padding in tensorflow.
         y = avg_pool(x, self.k)
         y = np.clip(np.floor(y), -128, 127)
+        # y = np.clip(y, -128, 127)
         return y, []
 
     def nblock(self):

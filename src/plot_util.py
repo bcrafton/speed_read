@@ -19,9 +19,9 @@ def merge_dicts(list_of_dicts):
 
 comp_pJ = 22. * 1e-12 / 32. / 16.
 
-num_layers = 20
+num_layers = 10
 num_comparator = 8
-results = np.load('results-old.npy', allow_pickle=True).item()
+results = np.load('results.npy', allow_pickle=True).item()
 
 y_mean = np.zeros(shape=(2, 2, 2, 2, num_layers))
 y_std = np.zeros(shape=(2, 2, 2, 2, num_layers))

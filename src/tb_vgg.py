@@ -59,7 +59,7 @@ def perms(param):
     return params
 
 ####
-
+'''
 param_sweep = {
 'bpa': 8,
 'bpw': 8,
@@ -84,6 +84,31 @@ param_sweep = {
 
 'profile': [1],
 }
+'''
+param_sweep = {
+'bpa': 8,
+'bpw': 8,
+'adc': 8,
+'adc_mux': 8,
+'skip': [0, 1],
+'cards': [0],
+'alloc': ['layer', 'block'],
+# 'profile': [0, 1],
+'stall': 0,
+'wl': 128,
+'bl': 128,
+'offset': 128,
+# 'narray': [2 ** 14, 24960, 2 ** 15],
+'narray': [5472, 2 ** 13, 1.5 * 2 ** 13, 2 ** 14, 1.5 * 2 ** 14],
+# 'narray': [5472],
+# seems like you gotta change e_mu based on this.
+# set e_mu = 0.15
+# set sigma = 0.05
+'sigma': [0.05], 
+'err_sigma': 0.,
+
+'profile': [0, 1],
+}
 
 param_sweep = perms(param_sweep)
 
@@ -98,17 +123,17 @@ def create_model(weights, params):
     Conv(input_size=(32, 32, 64),  filter_size=(3,3,64,128),  pool=1, stride=1, pad1=1, pad2=1, params=params, weights=weights),
     Conv(input_size=(32, 32, 128), filter_size=(3,3,128,128), pool=1, stride=1, pad1=1, pad2=1, params=params, weights=weights),
     
-    AvgPool(input_size=(32, 32, 128), kernel_size=2, stride=2, params=params, weights=weights),
+    MaxPool(input_size=(32, 32, 128), kernel_size=2, stride=2, params=params, weights=weights),
     
     Conv(input_size=(16, 16, 128), filter_size=(3,3,128,256), pool=1, stride=1, pad1=1, pad2=1, params=params, weights=weights),
     Conv(input_size=(16, 16, 256), filter_size=(3,3,256,256), pool=1, stride=1, pad1=1, pad2=1, params=params, weights=weights),
     
-    AvgPool(input_size=(16, 16, 512), kernel_size=2, stride=2, params=params, weights=weights),
+    MaxPool(input_size=(16, 16, 256), kernel_size=2, stride=2, params=params, weights=weights),
     
     Conv(input_size=(8, 8, 256), filter_size=(3,3,256,512), pool=1, stride=1, pad1=1, pad2=1, params=params, weights=weights),
     Conv(input_size=(8, 8, 512), filter_size=(3,3,512,512), pool=1, stride=1, pad1=1, pad2=1, params=params, weights=weights),
     
-    AvgPool(input_size=(8, 8, 512), kernel_size=2, stride=2, params=params, weights=weights),
+    MaxPool(input_size=(8, 8, 512), kernel_size=2, stride=2, params=params, weights=weights),
     
     Conv(input_size=(4, 4, 512), filter_size=(3,3,512,512), pool=1, stride=1, pad1=1, pad2=1, params=params, weights=weights),
     Conv(input_size=(4, 4, 512), filter_size=(3,3,512,512), pool=1, stride=1, pad1=1, pad2=1, params=params, weights=weights)

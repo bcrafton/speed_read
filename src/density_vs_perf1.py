@@ -21,7 +21,7 @@ def merge_dicts(list_of_dicts):
 
 ####################
 
-num_layers = 20
+num_layers = 10
 results = np.load('results.npy', allow_pickle=True).item()
 
 ####################
@@ -57,7 +57,7 @@ for layer in range(num_layers):
 # plt.plot(density, layer_results['layer_mac'], marker='o')
 total_mac = np.ones(shape=num_layers)
 total_mac = total_mac * 128 * 16
-total_mac[0] = 7 * 7 * 3 / 2 * 16
+total_mac[0] = 3 * 3 * 3 * 16
 plt.scatter(np.array(density) * 100, total_mac / layer_results['layer_mac'], marker='+', color='blue')
 
 ####################
@@ -83,11 +83,11 @@ ax = plt.gca()
 # plt.show()
 
 plt.grid(True, linestyle='dotted')
-plt.xticks([0, 5, 10, 15, 20, 25, 30])
+# plt.xticks([0, 5, 10, 15, 20, 25, 30])
 # plt.yticks([90, 100, 110, 120, 130])
 
-ax.axes.xaxis.set_ticklabels([])
-ax.axes.yaxis.set_ticklabels([])
+# ax.axes.xaxis.set_ticklabels([])
+# ax.axes.yaxis.set_ticklabels([])
 
 fig.set_size_inches(3.5, 3.)
 plt.tight_layout()
