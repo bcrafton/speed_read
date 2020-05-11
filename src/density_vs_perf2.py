@@ -93,7 +93,7 @@ plt.yticks([90, 100, 110, 120, 130])
 ax.axes.xaxis.set_ticklabels([])
 ax.axes.yaxis.set_ticklabels([])
 
-fig.set_size_inches(3.5, 3.)
+fig.set_size_inches(3.5, 2.25)
 plt.tight_layout()
 fig.savefig('density_vs_perf2.png', dpi=300)
 

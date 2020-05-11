@@ -89,7 +89,7 @@ plt.xticks([0, 5, 10, 15, 20, 25, 30])
 ax.axes.xaxis.set_ticklabels([])
 ax.axes.yaxis.set_ticklabels([])
 
-fig.set_size_inches(3.5, 3.)
+fig.set_size_inches(3.5, 2.25)
 plt.tight_layout()
 fig.savefig('density_vs_perf1.png', dpi=300)
 

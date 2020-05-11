@@ -163,7 +163,7 @@ plt.grid(True, axis='y', linestyle=(0, (5, 8)), color='black')
 ax.axes.xaxis.set_ticklabels([])
 ax.axes.yaxis.set_ticklabels([])
 
-fig.set_size_inches(8., 2.5)
+fig.set_size_inches(8., 1.75)
 plt.tight_layout()
 fig.savefig('skip-util.png', dpi=300)
 
