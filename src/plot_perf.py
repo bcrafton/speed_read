@@ -194,7 +194,7 @@ ax.axes.yaxis.set_ticklabels([])
 
 ############################
 
-fig.set_size_inches(3.5, 3.)
+fig.set_size_inches(3.5, 1.75)
 plt.tight_layout()
 fig.savefig('perf.png', dpi=300)
 
