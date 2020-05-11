@@ -83,7 +83,7 @@ for key in sorted(results.keys()):
         y_mean[layer] = np.mean(rdict['mean'])
         y_std[layer] = np.mean(rdict['std'])
 
-        print (y_mean[layer], y_std[layer])
+        # print ('mean', y_mean[layer], 'std', y_std[layer])
         
         ############################
         
@@ -91,6 +91,18 @@ for key in sorted(results.keys()):
         y_nmac[layer] = np.mean(rdict['nmac'])
         y_array[layer] = np.mean(rdict['array'])
         y_mac_per_cycle[layer]  = np.sum(rdict['nmac']) / np.sum(rdict['cycle'])
+
+        y_ron = np.sum(rdict['ron'])
+        y_roff = np.sum(rdict['roff'])
+        y_adc = np.sum(rdict['adc'], axis=0)
+        
+        # y_energy[layer] += y_ron * 2e-16
+        # y_energy[layer] += y_roff * 2e-16
+        y_energy[layer] += np.sum(y_adc * np.array([1,2,3,4,5,6,7,8]) * comp_pJ)
+
+        y_mac_per_pJ[layer] = np.sum(rdict['nmac']) / 1e12 / np.sum(y_energy[layer])
+        
+        print (layer, y_mac_per_pJ[layer])
 
     ###################################
 
@@ -155,7 +167,7 @@ plt.plot(lut.keys(), ys[(1, 0, 'block', 1)], marker='.', label='Zero Skip')
 '''
 
 x = sorted(lut.keys())
-plt.plot(x, ys[(1, 0, 'block', 1)], marker='.', label='Perf-Based Block-wise')
+plt.plot(x, ys[(1, 1, 'block', 1)], marker='.', label='Perf-Based Block-wise')
 # plt.plot(x, ys[(1, 0, 'layer', 1)], marker='.', label='Perf-Based Layer-wise')
 # plt.plot(x, ys[(1, 0, 'layer', 0)], marker='.', label='Weight-Based')
 # plt.plot(x, ys[(0, 0, 'layer', 1)], marker='.', label='Baseline')

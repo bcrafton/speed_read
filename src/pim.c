@@ -17,9 +17,9 @@
 
 // make sure (bl <= 1024), malloc would be too slow.
 // if we just pick a size large enough we will be okay
-#define VECTOR_SIZE 128 // number bl per array
+#define VECTOR_SIZE 256 // number bl per array
 #define ARRAY_SIZE 32 // 512 / 16 = 32
-#define BLOCK_SIZE 2048 // number of blocks 
+#define BLOCK_SIZE 4096 // number of blocks 
 
 //////////////////////////////////////////////
 
@@ -198,7 +198,7 @@ wl
 #define METRIC_STALL 12
 #define METRIC_BLOCK_CYCLE 13
 
-int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, int* metrics, int* block_map, float* adc_state, float* adc_thresh, int adc, int skip, int R, int B, int C, int NWL, int NBL, int WL, int BL)
+int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, long* metrics, int* block_map, float* adc_state, float* adc_thresh, int adc, int skip, int R, int B, int C, int NWL, int NBL, int WL, int BL)
 {
   // x = nrow, nwl, wl, xb
   // f = nwl, wl, nbl, bl

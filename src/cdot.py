@@ -31,7 +31,7 @@ def pim(x, w, y_shape, lut_var, lut_rpr, alloc, adc_state, adc_thresh, params):
     lut_rpr = np.ascontiguousarray(lut_rpr, np.int32)
     adc_state = np.ascontiguousarray(adc_state, np.float32)
     adc_thresh = np.ascontiguousarray(adc_thresh, np.float32)
-    metrics = np.ascontiguousarray(metrics, np.int32)
+    metrics = np.ascontiguousarray(metrics, np.int64)
 
     ########
 

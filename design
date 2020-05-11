@@ -2806,12 +2806,17 @@ so what next ?
   
 -------
 
+what is the correct ratio between adc/array
 
+> 128x128 array = 0.0003 mm^2
+> 16 5 bit ADC = 0.0036 mm^2
 
+> 128x128 array = 0.37 pJ
+> 16 5 bit ADC = 22.45 pJ
 
+hmm so there is clear diff between power and area.
 
-
-
+-------
 
 
 
