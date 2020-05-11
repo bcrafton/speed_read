@@ -3,7 +3,6 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
-from defines import *
 from var import *
 from conv_utils import *
 

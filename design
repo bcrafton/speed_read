@@ -2788,6 +2788,25 @@ blocks just move on to the next one...
 
 -------
 
+so what next ? 
+> well finish fixed point
+> then {dynamic reconfig + centroids for different rows enabled}
+
+-------
+
+> y[r[block] * C + c] -= 4 * ((wl_sum[block][bl] * 128) << xb[block]);
+> y = y / 4
+> self.adc_state[rpr] = 4 * np.array(centroids)
+
+-------
+
+> so how do we polish this ? 
+
+
+
+
+
+
 
 
 
