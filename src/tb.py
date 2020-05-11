@@ -18,7 +18,6 @@ cmd = "gcc pim_sync.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o pim_
 from layers import *
 from conv import *
 from block import *
-from defines import *
 
 ####
 
@@ -149,40 +148,6 @@ param_sweep = perms(param_sweep)
 ####
 
 def create_model(weights, params):
-    '''
-    layers=[
-    conv_block((7,7,3,64), 2, noise=None, weights=weights),
-    
-    max_pool(2, 3),
-
-    res_block1(64,   64, 1, noise=None, weights=weights),
-    res_block1(64,   64, 1, noise=None, weights=weights),
-
-    res_block2(64,   128, 2, noise=None, weights=weights),
-    res_block1(128,  128, 1, noise=None, weights=weights),
-
-    res_block2(128,  256, 2, noise=None, weights=weights),
-    res_block1(256,  256, 1, noise=None, weights=weights),
-
-    res_block2(256,  512, 2, noise=None, weights=weights),
-    res_block1(512,  512, 1, noise=None, weights=weights),
-
-    avg_pool(7, 7),
-    dense_block(512, 1000, noise=None, weights=weights)
-    ]
-    '''
-    '''
-    layers = [
-    Conv(input_size=(32,32, 3), filter_size=(3,3, 3,64), pool=1, stride=1, pad1=1, pad2=1, params=params, weights=weights[0]),
-    Conv(input_size=(32,32,64), filter_size=(3,3,64,64), pool=2, stride=1, pad1=1, pad2=1, params=params, weights=weights[1]),
-
-    Conv(input_size=(16,16,64),  filter_size=(3,3, 64,128), pool=1, stride=1, pad1=1, pad2=1, params=params, weights=weights[2]),
-    Conv(input_size=(16,16,128), filter_size=(3,3,128,128), pool=2, stride=1, pad1=1, pad2=1, params=params, weights=weights[3]),
-
-    Conv(input_size=(8,8,128), filter_size=(3,3,128,256), pool=1, stride=1, pad1=1, pad2=1, params=params, weights=weights[4]),
-    Conv(input_size=(8,8,256), filter_size=(3,3,256,256), pool=2, stride=1, pad1=1, pad2=1, params=params, weights=weights[5])
-    ]
-    '''
     layers=[
     Conv(input_size=(224, 224, 3), filter_size=(7,7,3,64), pool=1, stride=2, pad1=3, pad2=3, params=params, weights=weights),
     

@@ -8,7 +8,6 @@ from kmeans import kmeans
 from conv_utils import *
 from cdot import *
 from dot_ref import *
-from defines import *
 from var import *
 
 from layers import *
@@ -186,8 +185,8 @@ class Conv(Layer):
         # assert (self.s == 1)
         
         print ('y_mean', y_mean / self.q, 'y_std', y_std / self.q)
-        if self.weight_id == 2:
-            assert (False)
+        # if self.weight_id == 2:
+        #     assert (False)
         
         # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
         # results = {}
