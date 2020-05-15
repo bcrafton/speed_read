@@ -19,13 +19,11 @@ def merge_dicts(list_of_dicts):
 
 comp_pJ = 22. * 1e-12 / 32. / 16.
 
-num_layers = 7
+num_layers = 20
 num_comparator = 8
 results = np.load('results.npy', allow_pickle=True).item()
 
-print (results)
-
-results_tf = np.load('results_tf.npy', allow_pickle=True).item()
+# results_tf = np.load('results_tf.npy', allow_pickle=True).item()
 
 x = np.array([0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15])
 
@@ -44,10 +42,10 @@ y_adc = np.zeros(shape=(2, 2, len(x), num_layers, num_comparator))
 
 y_energy = np.zeros(shape=(2, 2, len(x), num_layers))
 
-acc = results_tf['acc_tf']
+# acc = results_tf['acc_tf']
 
 for key in sorted(results.keys()):
-    (skip, cards, sigma) = key
+    (skip, cards, alloc, profile, narray, sigma) = key
     layer_results = results[key]
 
     for layer in range(num_layers):
@@ -88,62 +86,64 @@ for key in sorted(results.keys()):
 # print (np.around(y_mac_per_pJ[1, 0],  3))
 # print (np.around(y_mac_per_pJ[1, 1],  3))
 
-
-
 ####################
 
-plot_layer = 5
+plot_layer = 10
 
 ####################
 
 plt.cla()
 ax = plt.gca()
-plt.plot(x, y_mac_per_cycle[0, 0, :, plot_layer], color='green', marker="D", markersize=5, label='baseline')
+# plt.plot(x, y_mac_per_cycle[0, 0, :, plot_layer], color='green', marker="D", markersize=5, label='baseline')
 plt.plot(x, y_mac_per_cycle[1, 0, :, plot_layer], color='blue', marker="s", markersize=5, label='skip')
 plt.plot(x, y_mac_per_cycle[1, 1, :, plot_layer], color='black', marker="^", markersize=6, label='cards')
-plt.ylim(bottom=0, top=250)
+# plt.ylim(bottom=0, top=250)
 plt.xticks([0.08, 0.12])
 # plt.yticks([])
-ax.axes.xaxis.set_ticklabels([])
-ax.axes.yaxis.set_ticklabels([])
+# ax.axes.xaxis.set_ticklabels([])
+# ax.axes.yaxis.set_ticklabels([])
 plt.grid(True, linestyle='dotted')
 fig = plt.gcf()
-fig.set_size_inches(4., 2.5)
+# fig.set_size_inches(4., 2.5)
 plt.tight_layout()
-fig.savefig('mac_per_cylce.png', dpi=300)
+plt.legend()
+fig.savefig('mac_per_cycle.png', dpi=300)
 
 plt.cla()
 ax = plt.gca()
-plt.plot(x, y_mac_per_pJ[0, 0, :, plot_layer], color='green', marker="D", markersize=5, label='baseline')
+# plt.plot(x, y_mac_per_pJ[0, 0, :, plot_layer], color='green', marker="D", markersize=5, label='baseline')
 plt.plot(x, y_mac_per_pJ[1, 0, :, plot_layer], color='blue', marker="s", markersize=5, label='skip')
 plt.plot(x, y_mac_per_pJ[1, 1, :, plot_layer], color='black', marker="^", markersize=6, label='cards')
-plt.ylim(bottom=0, top=8)
+# plt.ylim(bottom=0, top=8)
 plt.xticks([0.08, 0.12])
 # plt.yticks([])
-ax.axes.xaxis.set_ticklabels([])
-ax.axes.yaxis.set_ticklabels([])
+# ax.axes.xaxis.set_ticklabels([])
+# ax.axes.yaxis.set_ticklabels([])
 plt.grid(True, linestyle='dotted')
 fig = plt.gcf()
-fig.set_size_inches(4., 2.5)
+# fig.set_size_inches(4., 2.5)
 plt.tight_layout()
+plt.legend()
 fig.savefig('mac_per_pJ.png', dpi=300)
 
 plt.cla()
 ax = plt.gca()
-plt.plot(x, y_std[0, 0, :, plot_layer], color='green', marker="D", markersize=5, label='baseline')
+# plt.plot(x, y_std[0, 0, :, plot_layer], color='green', marker="D", markersize=5, label='baseline')
 plt.plot(x, y_std[1, 0, :, plot_layer], color='blue', marker="s", markersize=5, label='skip')
 plt.plot(x, y_std[1, 1, :, plot_layer], color='black', marker="^", markersize=6, label='cards')
-plt.ylim(top=5)
+# plt.ylim(top=5)
 plt.xticks([0.08, 0.12])
 # plt.yticks([])
-ax.axes.xaxis.set_ticklabels([])
-ax.axes.yaxis.set_ticklabels([])
+# ax.axes.xaxis.set_ticklabels([])
+# ax.axes.yaxis.set_ticklabels([])
 plt.grid(True, linestyle='dotted')
 fig = plt.gcf()
-fig.set_size_inches(4., 2.5)
+# fig.set_size_inches(4., 2.5)
 plt.tight_layout()
+plt.legend()
 fig.savefig('mse.png', dpi=300)
 
+'''
 plt.cla()
 ax = plt.gca()
 plt.plot(x, acc[0, 0, :], color='green', marker="D", markersize=5, label='baseline')
@@ -159,11 +159,12 @@ fig = plt.gcf()
 fig.set_size_inches(4., 2.5)
 plt.tight_layout()
 fig.savefig('acc.png', dpi=300)
+'''
 
 ####################
 
-print (np.around(y_mac_per_pJ[1, 1, :, plot_layer] / y_mac_per_pJ[1, 0, :, plot_layer], 3))
-print (np.around(y_mac_per_cycle[1, 1, :, plot_layer] / y_mac_per_cycle[1, 0, :, plot_layer], 3))
+# print (np.around(y_mac_per_pJ[1, 1, :, plot_layer] / y_mac_per_pJ[1, 0, :, plot_layer], 3))
+# print (np.around(y_mac_per_cycle[1, 1, :, plot_layer] / y_mac_per_cycle[1, 0, :, plot_layer], 3))
 
 ####################
 

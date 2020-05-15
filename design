@@ -1932,7 +1932,11 @@ then figure out which tier it belongs in.
 
 -----
 
+do we make plot4 work, then change the results.npy architecture ? 
+> also do multiple examples.
+> and verify BB plots still work.
 
+-----
 
 
 
