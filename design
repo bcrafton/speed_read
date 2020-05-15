@@ -1915,6 +1915,40 @@ performance and stalls are different because of zero skipping.
 
 to get the upper bound. 
 
+-----
+
+CC updates - making plot4 work again for ResNet18 ... power vs variance
+> whole network, single layer
+  > using new allocations
+
+multiple examples
+restructure results dictionary / .npy file
+> model / layer / example
+
+look @ everything that goes into results.
+then figure out which tier it belongs in.
+
+>> want these changes to be easily integratable with adc_scale8
+
+-----
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
