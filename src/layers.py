@@ -31,14 +31,16 @@ class Model:
 
         self.block_map = []
         self.nblock = 0
+        narray = 0
         for w, weight in enumerate(self.weights):
             self.block_map.append(slice(self.nblock, self.nblock + weight.nwl))
             self.nblock += weight.nwl
+            narray += weight.nwl * weight.nbl
 
         self.mac_per_array_layer = [2.] * self.nweight
         self.set_layer_alloc()
         
-        print ('nblock', self.nblock)
+        print ('nblock: %d narray: %d' % (self.nblock, narray))
         self.mac_per_array_block = [2.] * self.nblock
         self.set_block_alloc()
 

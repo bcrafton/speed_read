@@ -100,7 +100,7 @@ for key in sorted(results.keys()):
 ############################
 
 lut = {
-5472: 0, 
+4600: 0, 
 2 ** 13: 1, 
 1.5 * 2 ** 13: 2, 
 2 ** 14: 3, 
@@ -194,9 +194,9 @@ ax.axes.yaxis.set_ticklabels([])
 
 ############################
 
-fig.set_size_inches(3.5, 3.)
+fig.set_size_inches(3.5, 1.75)
 plt.tight_layout()
-fig.savefig('perf.png', dpi=300)
+fig.savefig('vgg_perf.png', dpi=300)
 
 ############################
 
