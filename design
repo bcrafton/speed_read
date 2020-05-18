@@ -1938,7 +1938,9 @@ do we make plot4 work, then change the results.npy architecture ?
 
 -----
 
-
+so very clear, resnet is not behaving with counting cards.
+we shud probably check cifar still works fine.
+and then not bother fixing this and just moving to centroids
 
 
 
