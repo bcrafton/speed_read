@@ -2818,6 +2818,22 @@ hmm so there is clear diff between power and area.
 
 -------
 
+for counting cards:
+the only way we get energy efficiency 
+is by turning on more rows than we can read right ? 
+
+if we shut off ADCs we dont need, then there is no special benefit ? 
+> right i think so.
+
+so there will be huge EE benefit IF 
+we can improve RPR then.
+
+-------
+
+so RPR = EE.
+> moving ADC threshold.
+
+
 
 
 

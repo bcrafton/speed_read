@@ -415,7 +415,7 @@ class Conv(Layer):
         p_avg = np.mean(x)
     
         rpr_low = 1
-        rpr_high = 32
+        rpr_high = 64
         
         self.adc_state = np.zeros(shape=(rpr_high + 1, self.params['adc'] + 1))
         self.adc_thresh = np.zeros(shape=(rpr_high + 1, self.params['adc'] + 1))

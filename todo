@@ -148,7 +148,9 @@ will have to think about how this and compression work together.
 5) pass centroids to pim.c 
 -------
 6) dynamically configure ADCs - bias or changing thresholds
+   > but dont need to do for all w,b,rpr,wl ... only store some of the centroids ... reuse rpr/wl
 7) centroids for [different number of wordlines enabled, xb, wb]
+   > but dont need to do for all w,b,rpr,wl ... only store some of the centroids ... reuse rpr/wl
 8) figure out rounding + fixed point stuff 
 -------
 ?) (nrow/rpr) -> (nrow * p / rpr) ... where p is the (%) of 1s in activataions
