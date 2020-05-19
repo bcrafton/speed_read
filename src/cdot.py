@@ -71,7 +71,7 @@ def cconv(x, f, b, q, pool, stride, pad1, pad2, params):
         for w in range(Wo):
             patch = np.reshape(x[h*stride:(h*stride+Fh), w*stride:(w*stride+Fw), :], -1)
             patches.append(patch)
-            
+
     ##################################################
 
     patches = np.stack(patches, axis=0)
@@ -87,6 +87,9 @@ def cconv(x, f, b, q, pool, stride, pad1, pad2, params):
         patches = np.concatenate((patches, zeros), axis=1)
         
     patches = np.reshape(patches, (npatch, -1, params['wl'], params['bpa']))
+
+    # if params['sigma'] == 0.15:
+    #     print (np.average(patches))
 
     ##################################################
     

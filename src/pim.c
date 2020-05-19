@@ -137,7 +137,7 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
           int wl_total = 0;
           int wl_ptr = 0;
           while (wl_ptr < WL) {
-            int rows = min(rpr, WL - wl_ptr);
+            // int rows = min(rpr, WL - wl_ptr);
             
             /*
             int remainder=0;
@@ -151,7 +151,7 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
             clear(pdot);
             int wl_sum = 0;
             if (skip) {
-              while ((wl_ptr < WL) && (wl_sum + x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr * 8) + xb] <= rows)) {
+              while ((wl_ptr < WL) && (wl_sum + x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr * 8) + xb] <= rpr)) {
                 if (x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr * 8) + xb]) {
                   wl_sum += 1;
                   for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
@@ -198,7 +198,7 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
               }
 
               metrics[METRIC_RON] += pdot[bl_ptr];
-              metrics[METRIC_ROFF] += rows - pdot[bl_ptr];
+              metrics[METRIC_ROFF] += wl_sum - pdot[bl_ptr];
               
               pdot[bl_ptr] = min(max(pdot[bl_ptr] + var, 0), adc);
               y[r * C + c] += (pdot[bl_ptr] << (wb + xb));
@@ -213,11 +213,11 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int ad
 
             // int comps = min(rows, adc) - 1;
             // int comps = min(remainder, min(rows, adc) - 1);
-            int comps = min(wl_sum, min(rows, adc) - 1);
-            if (!((comps >= 0) && (comps < adc))) {
-              printf("comps: %d wl_sum: %d rows: %d adc: %d\n", comps, wl_sum, rows, adc);
-              assert((comps >= 0) && (comps < adc));
-            }
+            int comps = max(0, min(wl_sum, adc) - 1);
+            //if (!((comps >= 0) && (comps < adc))) {
+            //  printf("comps: %d wl_sum: %d rows: %d adc: %d\n", comps, wl_sum, rows, adc);
+            //  assert((comps >= 0) && (comps < adc));
+            //}
 
             metrics[comps] += BL;
             assert(metrics[comps] < 1e9);

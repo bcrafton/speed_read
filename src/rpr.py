@@ -59,15 +59,15 @@ def rpr(nrow, p, q, params):
             rpr_low = 1
             rpr_high = 16
             for rpr in range(rpr_low, rpr_high + 1):
-                scale = 2**(wb - 1) * 2**(xb - 1)
+                scale = 2**wb * 2**xb
                 mu, std = prob_err(p[wb], params['sigma'], params['adc'], rpr, np.ceil(nrow / rpr))
-                e = (scale / q) * 5 * std
+                e = (scale / q) * std
                 e_mu = (scale / q) * mu
 
                 if rpr == rpr_low:
                     rpr_lut[(xb, wb)] = rpr
                 # if (e < 1.) and (np.absolute(e_mu) < 0.1):
-                if e < 1.:
+                if (e < 1.) and (e_mu < 1.):
                     rpr_lut[(xb, wb)] = rpr
 
     '''

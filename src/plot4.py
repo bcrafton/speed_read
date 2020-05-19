@@ -19,7 +19,7 @@ def merge_dicts(list_of_dicts):
 
 comp_pJ = 22. * 1e-12 / 32. / 16.
 
-num_layers = 7
+num_layers = 6
 num_comparator = 8
 results = np.load('results.npy', allow_pickle=True).item()
 results_tf = np.load('results_tf.npy', allow_pickle=True).item()
@@ -46,7 +46,9 @@ acc = results_tf['acc_tf']
 for key in sorted(results.keys()):
     (skip, cards, sigma) = key
     layer_results = results[key]
-
+    
+    print (key)
+    print ('--------------')
     for layer in range(num_layers):
         example_results = merge_dicts(layer_results[layer])
         sigma_index = np.where(x == sigma)[0][0]
@@ -69,6 +71,8 @@ for key in sorted(results.keys()):
 
         y_mac_per_pJ[skip][cards][sigma_index][layer] = np.sum(example_results['nmac']) / 1e12 / np.sum(y_energy[skip][cards][sigma_index][layer])
 
+        print (y_adc[skip][cards][sigma_index][layer])
+
 ####################
 
 #print (np.around(y_mac_per_cycle[0, 0], 1))
@@ -85,8 +89,6 @@ for key in sorted(results.keys()):
 # print (np.around(y_mac_per_pJ[1, 0],  3))
 # print (np.around(y_mac_per_pJ[1, 1],  3))
 
-
-
 ####################
 
 plot_layer = 5
@@ -95,14 +97,14 @@ plot_layer = 5
 
 plt.cla()
 ax = plt.gca()
-plt.plot(x, y_mac_per_cycle[0, 0, :, plot_layer], color='green', marker="D", markersize=5, label='baseline')
+#plt.plot(x, y_mac_per_cycle[0, 0, :, plot_layer], color='green', marker="D", markersize=5, label='baseline')
 plt.plot(x, y_mac_per_cycle[1, 0, :, plot_layer], color='blue', marker="s", markersize=5, label='skip')
 plt.plot(x, y_mac_per_cycle[1, 1, :, plot_layer], color='black', marker="^", markersize=6, label='cards')
 plt.ylim(bottom=0, top=250)
 plt.xticks([0.08, 0.12])
 # plt.yticks([])
-ax.axes.xaxis.set_ticklabels([])
-ax.axes.yaxis.set_ticklabels([])
+# ax.axes.xaxis.set_ticklabels([])
+# ax.axes.yaxis.set_ticklabels([])
 plt.grid(True, linestyle='dotted')
 fig = plt.gcf()
 fig.set_size_inches(4., 2.5)
@@ -111,14 +113,14 @@ fig.savefig('mac_per_cylce.png', dpi=300)
 
 plt.cla()
 ax = plt.gca()
-plt.plot(x, y_mac_per_pJ[0, 0, :, plot_layer], color='green', marker="D", markersize=5, label='baseline')
+#plt.plot(x, y_mac_per_pJ[0, 0, :, plot_layer], color='green', marker="D", markersize=5, label='baseline')
 plt.plot(x, y_mac_per_pJ[1, 0, :, plot_layer], color='blue', marker="s", markersize=5, label='skip')
 plt.plot(x, y_mac_per_pJ[1, 1, :, plot_layer], color='black', marker="^", markersize=6, label='cards')
 plt.ylim(bottom=0, top=8)
 plt.xticks([0.08, 0.12])
 # plt.yticks([])
-ax.axes.xaxis.set_ticklabels([])
-ax.axes.yaxis.set_ticklabels([])
+# ax.axes.xaxis.set_ticklabels([])
+# ax.axes.yaxis.set_ticklabels([])
 plt.grid(True, linestyle='dotted')
 fig = plt.gcf()
 fig.set_size_inches(4., 2.5)
@@ -127,14 +129,14 @@ fig.savefig('mac_per_pJ.png', dpi=300)
 
 plt.cla()
 ax = plt.gca()
-plt.plot(x, y_std[0, 0, :, plot_layer], color='green', marker="D", markersize=5, label='baseline')
+#plt.plot(x, y_std[0, 0, :, plot_layer], color='green', marker="D", markersize=5, label='baseline')
 plt.plot(x, y_std[1, 0, :, plot_layer], color='blue', marker="s", markersize=5, label='skip')
 plt.plot(x, y_std[1, 1, :, plot_layer], color='black', marker="^", markersize=6, label='cards')
-plt.ylim(top=5)
+# plt.ylim(top=5)
 plt.xticks([0.08, 0.12])
 # plt.yticks([])
-ax.axes.xaxis.set_ticklabels([])
-ax.axes.yaxis.set_ticklabels([])
+# ax.axes.xaxis.set_ticklabels([])
+# ax.axes.yaxis.set_ticklabels([])
 plt.grid(True, linestyle='dotted')
 fig = plt.gcf()
 fig.set_size_inches(4., 2.5)
@@ -143,14 +145,14 @@ fig.savefig('mse.png', dpi=300)
 
 plt.cla()
 ax = plt.gca()
-plt.plot(x, acc[0, 0, :], color='green', marker="D", markersize=5, label='baseline')
+#plt.plot(x, acc[0, 0, :], color='green', marker="D", markersize=5, label='baseline')
 plt.plot(x, acc[1, 0, :], color='blue', marker="s", markersize=5, label='skip')
 plt.plot(x, acc[1, 1, :], color='black', marker="^", markersize=6, label='cards')
 plt.ylim(bottom=0, top=1)
 plt.xticks([0.08, 0.12])
 # plt.yticks([])
-ax.axes.xaxis.set_ticklabels([])
-ax.axes.yaxis.set_ticklabels([])
+# ax.axes.xaxis.set_ticklabels([])
+# ax.axes.yaxis.set_ticklabels([])
 plt.grid(True, linestyle='dotted')
 fig = plt.gcf()
 fig.set_size_inches(4., 2.5)

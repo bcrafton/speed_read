@@ -129,6 +129,10 @@ class Conv(Layer):
         #########################
 
     def forward(self, x):
+        # print (self.layer_id, self.params['sigma'])
+        # print (get_lut_rpr(self.params['rpr']))
+        # print ('------')
+
         # 1) tensorflow to compute y_ref
         # 2) save {x,y1,y2,...} as tb from tensorflow 
         y_ref   = conv_ref(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2)
@@ -152,7 +156,7 @@ class Conv(Layer):
         results['std']   = y_std
         results['mean']  = y_mean
 
-        return y, results
+        return y_ref, results
         
 #########################
         
