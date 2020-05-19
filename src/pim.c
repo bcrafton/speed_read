@@ -303,7 +303,7 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int* b
           }
         }
 
-        int comps = max(1, min(wl_sum[block][bl] - 1, adc - 1));
+        int comps = max(0, min(wl_sum[block][bl] - 1, adc - 1));
         //if (!((comps >= 0) && (comps < adc))) {
         //  printf("comps: %d wl_sum: %d rows: %d adc: %d\n", comps, wl_sum, rows, adc);
         //  assert((comps >= 0) && (comps < adc));

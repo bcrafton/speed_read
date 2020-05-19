@@ -1952,9 +1952,10 @@ check the rpr table
 perf/w ~ sum(rpr - adc)
 especially when using y_ref.
 
+-----
 
-
-
+well, why would cards go below skip ? 
+it should be fine with the comparators ...
 
 
 
