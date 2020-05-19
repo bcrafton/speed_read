@@ -42,6 +42,8 @@ y_adc = np.zeros(shape=(2, 2, len(x), num_layers, num_comparator))
 
 y_energy = np.zeros(shape=(2, 2, len(x), num_layers))
 
+y_array = np.zeros(shape=(2, 2, len(x), num_layers))
+
 # acc = results_tf['acc_tf']
 
 for key in sorted(results.keys()):
@@ -69,6 +71,10 @@ for key in sorted(results.keys()):
         # print (skip, cards, y_adc[skip][cards][sigma_index][layer] * np.array([1,2,3,4,5,6,7,8]))
 
         y_mac_per_pJ[skip][cards][sigma_index][layer] = np.sum(example_results['nmac']) / 1e12 / np.sum(y_energy[skip][cards][sigma_index][layer])
+
+        y_array[skip][cards][sigma_index][layer] = np.mean(example_results['array'])
+        
+        print (y_adc[skip][cards][sigma_index][layer])
 
 ####################
 
@@ -98,7 +104,8 @@ ax = plt.gca()
 plt.plot(x, y_mac_per_cycle[1, 0, :, plot_layer], color='blue', marker="s", markersize=5, label='skip')
 plt.plot(x, y_mac_per_cycle[1, 1, :, plot_layer], color='black', marker="^", markersize=6, label='cards')
 # plt.ylim(bottom=0, top=250)
-plt.xticks([0.08, 0.12])
+# plt.xticks([0.08, 0.12])
+plt.xticks([0.05, 0.10, 0.15])
 # plt.yticks([])
 # ax.axes.xaxis.set_ticklabels([])
 # ax.axes.yaxis.set_ticklabels([])
@@ -115,7 +122,8 @@ ax = plt.gca()
 plt.plot(x, y_mac_per_pJ[1, 0, :, plot_layer], color='blue', marker="s", markersize=5, label='skip')
 plt.plot(x, y_mac_per_pJ[1, 1, :, plot_layer], color='black', marker="^", markersize=6, label='cards')
 # plt.ylim(bottom=0, top=8)
-plt.xticks([0.08, 0.12])
+# plt.xticks([0.08, 0.12])
+plt.xticks([0.05, 0.10, 0.15])
 # plt.yticks([])
 # ax.axes.xaxis.set_ticklabels([])
 # ax.axes.yaxis.set_ticklabels([])
@@ -132,7 +140,8 @@ ax = plt.gca()
 # plt.plot(x, y_std[1, 0, :, plot_layer], color='blue', marker="s", markersize=5, label='skip')
 plt.plot(x, y_std[1, 1, :, plot_layer], color='black', marker="^", markersize=6, label='cards')
 # plt.ylim(top=5)
-plt.xticks([0.08, 0.12])
+# plt.xticks([0.08, 0.12])
+plt.xticks([0.05, 0.10, 0.15])
 # plt.yticks([])
 # ax.axes.xaxis.set_ticklabels([])
 # ax.axes.yaxis.set_ticklabels([])
@@ -163,8 +172,13 @@ fig.savefig('acc.png', dpi=300)
 
 ####################
 
-# print (np.around(y_mac_per_pJ[1, 1, :, plot_layer] / y_mac_per_pJ[1, 0, :, plot_layer], 3))
-# print (np.around(y_mac_per_cycle[1, 1, :, plot_layer] / y_mac_per_cycle[1, 0, :, plot_layer], 3))
+print (np.around(y_mac_per_pJ[1, 1, :, plot_layer] / y_mac_per_pJ[1, 0, :, plot_layer], 3))
+print (np.around(y_mac_per_cycle[1, 1, :, plot_layer] / y_mac_per_cycle[1, 0, :, plot_layer], 3))
+
+print (np.around(y_array[1, 1, :, plot_layer] / y_array[1, 0, :, plot_layer], 3))
+
+# print (y_array[1, 1, :, plot_layer])
+# print (y_array[1, 0, :, plot_layer])
 
 ####################
 

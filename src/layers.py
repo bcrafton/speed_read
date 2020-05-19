@@ -38,7 +38,7 @@ class Model:
         self.mac_per_array_layer = [2.] * self.nweight
         self.set_layer_alloc()
         
-        print ('nblock', self.nblock)
+        # print ('nblock', self.nblock)
         self.mac_per_array_block = [2.] * self.nblock
         self.set_block_alloc()
 
@@ -103,7 +103,7 @@ class Model:
         alloc = array_allocation(self.params['narray'], nmac, factor, self.mac_per_array_layer, self.params)
         assert (np.sum(alloc) <= self.params['narray'])
         # assert (np.sum(alloc) == 2 ** 14)
-        print ("%d / %d" % (np.sum(alloc), self.params['narray']))
+        # print ("%d / %d" % (np.sum(alloc), self.params['narray']))
 
         for weight in range(len(self.weights)):
             layer_alloc = alloc[weight] // self.weights[weight].factor
@@ -176,10 +176,13 @@ class Conv(Layer):
         maxval = pow(2, params['bpw'] - 1)
         minval = -1 * maxval
 
-        self.w, self.b, self.q = weights[self.layer_id]['f'], weights[self.layer_id]['b'], weights[self.layer_id]['q']
+        self.w, self.b, self.q = weights[self.layer_id] # weights[self.layer_id]['f'], weights[self.layer_id]['b'], weights[self.layer_id]['q']
         assert (np.all(self.w >= minval))
         assert (np.all(self.w <= maxval))
         # check shape
+        
+        print (np.shape(self.w), self.filter_size)
+        
         assert(np.shape(self.w) == self.filter_size)
         assert(np.shape(self.b) == (self.fn,))
         assert(np.shape(self.q) == ())
@@ -227,13 +230,18 @@ class Conv(Layer):
             y = relu(y)
         y = avg_pool(y, self.p)
         y = y / self.q
-        y = np.round(y)
+        y = np.floor(y)
         y = np.clip(y, -128, 127)
         return y
 
     def forward(self, x):
         # 1) tensorflow to compute y_ref
         # 2) save {x,y1,y2,...} as tb from tensorflow 
+
+        # print (self.weight_id, self.params['sigma'])
+        # print (self.params['rpr'])
+        # print ('---------')
+
         y_ref = conv_ref(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2, relu_flag=self.relu_flag)
         y, results = self.conv(x=x)
 
@@ -261,11 +269,11 @@ class Conv(Layer):
             # the sum here is confusing, since for layer 1, block performs better with less arrays.
             # but it actually makes sense.
             results['array'] = np.sum(self.block_alloc) * nbl
-            print ('alloc: %d*%d=%d nmac %d cycle: %d stall: %d' % (np.sum(self.block_alloc), nbl, nbl * np.sum(self.block_alloc), results['nmac'], results['cycle'], results['stall']))
+            # print ('alloc: %d*%d=%d nmac %d cycle: %d stall: %d' % (np.sum(self.block_alloc), nbl, nbl * np.sum(self.block_alloc), results['nmac'], results['cycle'], results['stall']))
                     
         elif self.params['alloc'] == 'layer': 
             results['array'] = self.layer_alloc * nwl * nbl
-            print ('alloc: %d*%d=%d nmac %d cycle: %d stall: %d' % (self.layer_alloc, nwl * nbl, nwl * nbl * self.layer_alloc, results['nmac'], results['cycle'], results['stall']))
+            # print ('alloc: %d*%d=%d nmac %d cycle: %d stall: %d' % (self.layer_alloc, nwl * nbl, nwl * nbl * self.layer_alloc, results['nmac'], results['cycle'], results['stall']))
 
         ########################
 
@@ -335,6 +343,9 @@ class Conv(Layer):
             patches = np.concatenate((patches, zeros), axis=1)
             
         patches = np.reshape(patches, (npatch, -1, self.params['wl'], self.params['bpa']))
+        
+        # if self.params['sigma'] == 0.15:
+        #     print (np.average(patches))
         
         #########################
         

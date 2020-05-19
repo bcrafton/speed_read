@@ -1957,6 +1957,170 @@ especially when using y_ref.
 well, why would cards go below skip ? 
 it should be fine with the comparators ...
 
+-----
+
+so this is def weird
+because we are using very high rpr, but barely beating zero skipping
+
+this cud just be low 1's density ...
+
+-----
+
+seeing that large power improvement in layers [1,2,3,4]
+
+okay wow, so this is easily observed in "density_vs_perf1.py"
+where final layer = 2%.
+
+can we find this figure from before ? 
+
+hmm... if u go to: "breaking-barriers-1"
+we def see higher zero percentages.
+
+we see smallest number = ~9%
+so what the fuck happened with the last layer ?
+were we looking at outputs of the arrays here ? 
+
+oh wait
+u were looking at the block figure.
+look at the first figure ... the layer figure.
+
+this is ~2% 1's it seems like
+> just not sure how we generated this ...
+> cannot find the "density_vs_perf1.py" file anywhere before resnet3
+> it does only have 6 layers in resnet3 ...
+> https://github.com/bcrafton/speed_read/blob/6dbaea509f266a9bf1e01e0d530095d5961ab49f/src/density_vs_perf1.py
+
+probably is cifar
+and probably is the file we want.
+
+-----
+
+wondering then how we got high energy improvements ? 
+> if we had 2% zeros ...
+> we wud expect to see very small improvements ... what we are currently seeing.
+> BUT we saw 27%
+> what did we see for the other layers ? 
+
+energy_dbg
+> int comps = min(wl_sum, min(rows, adc) - 1);
+
+resnet 5:
+> int comps = min(wl_sum[block][bl], min(rows, adc) - 1);
+
+cc_update:
+> would wl_sum ever be 0 ? 
+> only if entire column was zero ... which is entirely possible.
+> hmm, we should definitely account for this.
+> int comps = max(0, min(wl_sum[block][bl] - 1, adc - 1));
+
+-----
+
+do we want to go back and figure out power/performance ? 
+> okay so two things
+  > we used y, not y_ref
+  > the comps calcuation before
+  
+> ALSO: 1s in lsb != 1s in msb != average 1s
+  > 1s in msb much less common
+  > therefor the rpr=16 for lsb will be able to gain more perforamnce advantage.
+
+-----
+
+> y_ref vs y had 0 impact on things.
+> and in our current simulation, we have same zeros thing
+
+-----
+
+cc_update = 1.35 vs 1.29
+energy_dbg = 8 vs 6
+
+what the fuck ? 
+figure these points out.
+
+so we are off by a factor of 8
+which makes me thing it is col/adc.
+
+nah thats not really how it works.
+
+we just collect ADC = [1,2,3..8]
+then divide by TMAC in the layer
+how can we off by 8 then ? 
+easy
+we were doing 8 columns at a time ...
+
+-----
+
+nah that dosnt make any sense tho.
+> metrics[comps] += BL;
+> check it, current simulation is actually wrong.
+
+-----
+
+okay so new problem = 
+> why do we have better MAC/W than original ? 
+> why is original still 25% difference between CC and Zero-skip for layer 5 ? 
+
+well i wud say both of these are on the original, not our current sim.
+> so shudnt we look at those ? 
+
+wowowow
+perf = 1.389
+power = 1.043
+> 5% variance.
+> cc_update
+
+does this make any sense ?
+well realize that perf
+dosnt mean that much
+given we may allocate more for CC.
+
+yeah so it is allocated more arrays and perf dosnt mean shit.
+
+-----
+
+> so we switched it from:
+  > xb**2 - 1 to xb**2
+
+now we are seeing:
+13% .. 9%
+for MAC/W
+
+still so much higher ...
+we see 4% .. 3% in new CC.
+
+check the rpr ?
+
+-----
+
+it was just the weights
+problem now is 
+
+we have the same percent 1s which gives us good idea that they match
+but power is still off.
+
+well
+zero skipping MAC/W is the same
+the difference here
+is CC.
+
+taking a look at the ADCs.
+we have slightly more adc counts in new CC versus old CC.
+and this is true for all layers ...
+
+OH - well that is likely just RPR.
+because we will have different RPR I believe.
+
+great, yeah thats why.
+so we are all matched up now.
+
+-----
+
+>>> allow 0 ADC states
+>>> in error -> account for relu, bias
+>>> need to find references for ADC power.
+    > why rely on these papers, when we can just find stuff ourself ?
+
+-----
 
 
 

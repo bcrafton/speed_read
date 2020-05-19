@@ -308,7 +308,8 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int* b
         //  printf("comps: %d wl_sum: %d rows: %d adc: %d\n", comps, wl_sum, rows, adc);
         //  assert((comps >= 0) && (comps < adc));
         //}
-        metrics[comps] += BL;
+        assert ((BL % 8) == 0);
+        metrics[comps] += BL / 8;
         // assert(metrics[comps] < 1e9);
         metrics[METRIC_WL] += wl_sum[block][bl];
 

@@ -21,14 +21,15 @@ def merge_dicts(list_of_dicts):
 
 ####################
 
-num_layers = 20
+num_layers = 6
 results = np.load('results.npy', allow_pickle=True).item()
 
 ####################
 
 # key = list(results.keys())[0]
-key = (1, 0, 'block', 1, 24576.0)
-(skip, cards, alloc, profile, narray) = key
+print (results.keys())
+key = (1, 1, 'block', 1, 8192.0, 0.05)
+(skip, cards, alloc, profile, narray, sigma) = key
 alloc = 1 if alloc == 'block' else 0
 layer_results = results[key]
 
@@ -57,7 +58,7 @@ for layer in range(num_layers):
 # plt.plot(density, layer_results['layer_mac'], marker='o')
 total_mac = np.ones(shape=num_layers)
 total_mac = total_mac * 128 * 16
-total_mac[0] = 7 * 7 * 3 / 2 * 16
+total_mac[0] = 3 * 3 * 3 * 16
 plt.scatter(np.array(density) * 100, total_mac / layer_results['layer_mac'], marker='+', color='blue')
 
 ####################
