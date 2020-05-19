@@ -176,7 +176,7 @@ class Conv(Layer):
         maxval = pow(2, params['bpw'] - 1)
         minval = -1 * maxval
 
-        self.w, self.b, self.q = weights[self.layer_id]['f'], weights[self.layer_id]['b'], weights[self.layer_id]['y']
+        self.w, self.b, self.q = weights[self.layer_id]['f'], weights[self.layer_id]['b'], weights[self.layer_id]['q']
         assert (np.all(self.w >= minval))
         assert (np.all(self.w <= maxval))
         # check shape
@@ -221,11 +221,24 @@ class Conv(Layer):
         
         #########################
 
+    def act(self, y):
+        y = y + self.b
+        if self.relu_flag:
+            y = relu(y)
+        y = avg_pool(y, self.p)
+        y = y / self.q
+        y = np.round(y)
+        y = np.clip(y, -128, 127)
+        return y
+
     def forward(self, x):
         # 1) tensorflow to compute y_ref
         # 2) save {x,y1,y2,...} as tb from tensorflow 
         y_ref = conv_ref(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2, relu_flag=self.relu_flag)
         y, results = self.conv(x=x)
+
+        y = self.act(y)
+        y_ref = self.act(y_ref)
 
         y_min = np.min(y - y_ref)
         y_max = np.max(y - y_ref)
@@ -256,9 +269,10 @@ class Conv(Layer):
 
         ########################
 
-        # y = y_ref
+        y = y_ref
         # assert (y_std <= 0)
 
+        '''
         y = y + self.b
         if self.relu_flag:
             y = relu(y)
@@ -266,7 +280,8 @@ class Conv(Layer):
         y = y / self.q
         y = np.round(y)
         y = np.clip(y, -128, 127)
-        
+        '''        
+
         ########################
         '''
         y_ref_ref = np.load('resnet18_activations.npy', allow_pickle=True).item()[self.layer_id]

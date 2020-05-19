@@ -1942,10 +1942,15 @@ so very clear, resnet is not behaving with counting cards.
 we shud probably check cifar still works fine.
 and then not bother fixing this and just moving to centroids
 
+-----
 
+reason why power is crashing
+is because our mse is sooo low.
+we are giving it zero wiggle room.
 
-
-
+check the rpr table
+perf/w ~ sum(rpr - adc)
+especially when using y_ref.
 
 
 

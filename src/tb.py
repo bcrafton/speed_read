@@ -65,14 +65,22 @@ param_sweep = {
 'adc_mux': 8,
 'skip': [1],
 'cards': [0, 1],
-'alloc': ['block', 'layer'],
-'profile': [0, 1],
+'alloc': ['block'],
+# 'profile': [0, 1],
 'stall': 0,
 'wl': 128,
 'bl': 128,
 'offset': 128,
-'sigma': [0.08], # seems like you gotta change e_mu based on this.
+# 'narray': [2 ** 14, 24960, 2 ** 15],
+'narray': [2 ** 13],
+# 'narray': [5472],
+# seems like you gotta change e_mu based on this.
+# set e_mu = 0.15
+# set sigma = 0.05
+'sigma': [0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15],
 'err_sigma': 0.,
+
+'profile': [1],
 }
 
 param_sweep = perms(param_sweep)
@@ -81,14 +89,14 @@ param_sweep = perms(param_sweep)
 
 def create_model(weights, params):
     layers = [
-    Conv(input_size=(32,32, 3), filter_size=(3,3, 3,64), pool=1, stride=1, pad1=1, pad2=1, params=params, weights=weights[0]),
-    Conv(input_size=(32,32,64), filter_size=(3,3,64,64), pool=2, stride=1, pad1=1, pad2=1, params=params, weights=weights[1]),
+    Conv(input_size=(32,32, 3), filter_size=(3,3, 3,64), pool=1, stride=1, pad1=1, pad2=1, params=params, weights=weights),
+    Conv(input_size=(32,32,64), filter_size=(3,3,64,64), pool=2, stride=1, pad1=1, pad2=1, params=params, weights=weights),
 
-    Conv(input_size=(16,16,64),  filter_size=(3,3, 64,128), pool=1, stride=1, pad1=1, pad2=1, params=params, weights=weights[2]),
-    Conv(input_size=(16,16,128), filter_size=(3,3,128,128), pool=2, stride=1, pad1=1, pad2=1, params=params, weights=weights[3]),
+    Conv(input_size=(16,16,64),  filter_size=(3,3, 64,128), pool=1, stride=1, pad1=1, pad2=1, params=params, weights=weights),
+    Conv(input_size=(16,16,128), filter_size=(3,3,128,128), pool=2, stride=1, pad1=1, pad2=1, params=params, weights=weights),
 
-    Conv(input_size=(8,8,128), filter_size=(3,3,128,256), pool=1, stride=1, pad1=1, pad2=1, params=params, weights=weights[4]),
-    Conv(input_size=(8,8,256), filter_size=(3,3,256,256), pool=2, stride=1, pad1=1, pad2=1, params=params, weights=weights[5])
+    Conv(input_size=(8,8,128), filter_size=(3,3,128,256), pool=1, stride=1, pad1=1, pad2=1, params=params, weights=weights),
+    Conv(input_size=(8,8,256), filter_size=(3,3,256,256), pool=2, stride=1, pad1=1, pad2=1, params=params, weights=weights)
     ]
 
     model = Model(layers=layers, params=params)
@@ -102,7 +110,7 @@ def run_command(x, y, weights, params, return_dict):
     if params['profile']:
         model.profile(x=x)
     _, result = model.forward(x=x, y=y)
-    return_dict[(params['skip'], params['cards'], params['alloc'], params['profile'])] = result
+    return_dict[(params['skip'], params['cards'], params['alloc'], params['profile'], params['narray'], params['sigma'])] = result
 
 ####
 

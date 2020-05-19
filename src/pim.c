@@ -237,13 +237,13 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int* b
                 
         /////////////////////////////////////
         
-        int rows = min(rpr, WL - wl_ptr[block][bl]);
+        // int rows = min(rpr, WL - wl_ptr[block][bl]);
 
         clear_vector(pdot[block][bl]);
         wl_sum[block][bl] = 0;
 
         if (skip) {
-          while ((wl_ptr[block][bl] < WL) && (wl_sum[block][bl] + x[(r[block] * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[block][bl] * 8) + xb[block]] <= rows)) {
+          while ((wl_ptr[block][bl] < WL) && (wl_sum[block][bl] + x[(r[block] * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[block][bl] * 8) + xb[block]] <= rpr)) {
             if (x[(r[block] * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[block][bl] * 8) + xb[block]]) {
               wl_sum[block][bl] += 1;
               for (int adc_ptr=0; adc_ptr<BL; adc_ptr+=8) {
@@ -292,7 +292,7 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int* b
           }
           
           metrics[METRIC_RON] += pdot[block][bl][bl_ptr];
-          metrics[METRIC_ROFF] += rows - pdot[block][bl][bl_ptr];
+          metrics[METRIC_ROFF] += wl_sum[block][bl] - pdot[block][bl][bl_ptr];
 
           pdot[block][bl][bl_ptr] = min(max(pdot[block][bl][bl_ptr] + var, 0), adc);
           y[r[block] * C + c] += (pdot[block][bl][bl_ptr] << (wb + xb[block]));
@@ -303,7 +303,7 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int* b
           }
         }
 
-        int comps = min(wl_sum[block][bl], min(rows, adc) - 1);
+        int comps = max(1, min(wl_sum[block][bl] - 1, adc - 1));
         //if (!((comps >= 0) && (comps < adc))) {
         //  printf("comps: %d wl_sum: %d rows: %d adc: %d\n", comps, wl_sum, rows, adc);
         //  assert((comps >= 0) && (comps < adc));

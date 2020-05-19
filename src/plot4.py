@@ -19,7 +19,7 @@ def merge_dicts(list_of_dicts):
 
 comp_pJ = 22. * 1e-12 / 32. / 16.
 
-num_layers = 20
+num_layers = 6
 num_comparator = 8
 results = np.load('results.npy', allow_pickle=True).item()
 
@@ -88,7 +88,7 @@ for key in sorted(results.keys()):
 
 ####################
 
-plot_layer = 10
+plot_layer = 5
 
 ####################
 
@@ -129,7 +129,7 @@ fig.savefig('mac_per_pJ.png', dpi=300)
 plt.cla()
 ax = plt.gca()
 # plt.plot(x, y_std[0, 0, :, plot_layer], color='green', marker="D", markersize=5, label='baseline')
-plt.plot(x, y_std[1, 0, :, plot_layer], color='blue', marker="s", markersize=5, label='skip')
+# plt.plot(x, y_std[1, 0, :, plot_layer], color='blue', marker="s", markersize=5, label='skip')
 plt.plot(x, y_std[1, 1, :, plot_layer], color='black', marker="^", markersize=6, label='cards')
 # plt.ylim(top=5)
 plt.xticks([0.08, 0.12])
