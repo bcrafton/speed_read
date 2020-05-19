@@ -176,7 +176,7 @@ class Conv(Layer):
         maxval = pow(2, params['bpw'] - 1)
         minval = -1 * maxval
 
-        self.w, self.b, self.q = weights[self.layer_id]['f'], weights[self.layer_id]['b'], weights[self.layer_id]['q']
+        self.w, self.b, self.q = weights[self.layer_id]['f'], weights[self.layer_id]['b'], weights[self.layer_id]['y']
         assert (np.all(self.w >= minval))
         assert (np.all(self.w <= maxval))
         # check shape
