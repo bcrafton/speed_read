@@ -172,7 +172,10 @@ class Conv(Layer):
     def weights(self):
         return [self]
 
-    def forward(self, x):
+    def forward(self, x, profile=False):
+        if profile:
+            self.params['rpr'] = self.profile_rpr(x=x)
+
         # 1) tensorflow to compute y_ref
         # 2) save {x,y1,y2,...} as tb from tensorflow 
         y_ref = conv_ref(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2, relu_flag=self.relu_flag)
@@ -225,9 +228,6 @@ class Conv(Layer):
         return y, [results]
         
     def conv(self, x):
-
-        rpr_lut = self.profile_rpr(x=x)
-        self.params['rpr'] = rpr_lut
 
         yh = (self.xh - self.fh + self.s + self.p1 + self.p2) // self.s
         yw = yh

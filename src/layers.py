@@ -51,7 +51,7 @@ class Model:
         for example in range(num_examples):
             pred[example] = x[example]
             for layer in range(num_layers):
-                pred[example], result = self.layers[layer].forward(x=pred[example])
+                pred[example], result = self.layers[layer].forward(x=pred[example], profile=True)
                 assert (np.all((pred[example] % 1) == 0))
                 for r in result:
                     mac_per_array_layer[example][r['id']] = (r['nmac'] / self.weights[r['id']].factor) / (r['cycle'] * self.weights[r['id']].layer_alloc)
@@ -136,7 +136,7 @@ class Layer:
     def __init__(self):
         assert(False)
         
-    def forward(self, x):   
+    def forward(self, x, profile=False):   
         assert(False)
 
     def rpr(self):
@@ -155,7 +155,7 @@ class AvgPool(Layer):
         
         assert (self.k == self.s)
 
-    def forward(self, x):
+    def forward(self, x, profile=False):
         # max pool and avg pool mess things up a bit because they dont do the right padding in tensorflow.
         y = avg_pool(x, self.k)
         y = np.clip(np.floor(y), -128, 127)
@@ -190,7 +190,7 @@ class MaxPool(Layer):
         self.output_size = input_size[0] // stride, input_size[1] // stride, input_size[2]
         self.yh, self.yw, self.yc = self.output_size
 
-    def forward(self, x):
+    def forward(self, x, profile=False):
         # max pool and avg pool mess things up a bit because they dont do the right padding in tensorflow.
         x = np.pad(array=x, pad_width=[[self.pad,self.pad], [self.pad,self.pad], [0,0]], mode='constant')
         y = np.zeros(shape=self.output_size)

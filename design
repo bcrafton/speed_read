@@ -2820,6 +2820,64 @@ hmm so there is clear diff between power and area.
 
 alright so basially just need to make "dist" efficient.
 
+-------
+
+this requires higher level changes
+we want to do profile_rpr, then profile_alloc
+profile_rpr does not require using pim.c, Conv(layer), or w.e.
+
+we do need the inputs to each layer tho.
+1) load them
+2) get them from conv/conf_ref
+
+want to eliminate (1)
+next decision is:
+profile_rpr before profile_alloc
+or profile_rpr merged with profile_alloc
+
+-------
+
+so the merged version
+basically, we are thinking this:
+(1)
+> pred[example], result = self.layers[layer].forward(x=pred[example], profile=True)
+
+keep everything the same, but add a flag that says whether to compute rpr or not.
+
+we can also do this:
+(2)
+self.layers[layer].profile_rpr(x=pred[example])
+pred[example], result = self.layers[layer].forward(x=pred[example])
+
+again keep everything the same, just tell it whether to compute rpr or not in model.profile(x)
+
+-------
+
+profile_rpr before profile_alloc
+would be adding a new function in model
+(3)
+profile_rpr
+that would use the conv_ref function
+to make things go faster.
+
+-------
+
+neither of these right or wrong ... both fine.
+
+lets keep what we have.
+but remember these as options
+
+so next step 
+is doing all dist in 1 go
+preferably in C.
+
+
+
+
+
+
+
+
 
 
 
