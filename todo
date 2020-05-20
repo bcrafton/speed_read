@@ -122,9 +122,11 @@ new changes:
 
 -------
 
+// TODO: we should skip to the next xb if this occurs.
+// because we wouldnt waste a cycle like this.
+// currently this just prevents us from adding power, but the better fix is just moving to xb++.
 
-
-
+-------
 
 
 

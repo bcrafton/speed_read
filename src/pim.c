@@ -305,6 +305,10 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, long* metrics, int* 
 
         // int comps = max(0, min(wl_sum[block][bl] - 1, adc - 1));
 
+        // TODO: we should skip to the next xb if this occurs.
+        // because we wouldnt waste a cycle like this.
+        // currently this just prevents us from adding power, but the better fix is just moving to xb++.
+
         if (wl_sum[block][bl] == 0) {
         }
         else {
