@@ -2932,9 +2932,15 @@ the reason approx.py its so fast, is because we are using rpr=12.
 > assuming no covariance
 > figure out what expected #s are.
 
+-------
 
-
-
+this is a disaster.
+requires that cards=0 needs this 10b accumulation shit
+each algorithm should get its own c implementation
+> baseline
+> zero skip
+> counting cards
+> centroids
 
 
 
