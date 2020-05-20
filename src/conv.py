@@ -180,7 +180,10 @@ class Conv(Layer):
 
     def forward(self, x, profile=False):
         if profile:
-            self.params['rpr'] = self.profile_rpr(x=x)
+            if self.params['cards']:
+                self.params['rpr'] = self.profile_rpr(x=x)
+            else:
+                self.params['rpr'] = self.params['adc']
 
         # 1) tensorflow to compute y_ref
         # 2) save {x,y1,y2,...} as tb from tensorflow 
