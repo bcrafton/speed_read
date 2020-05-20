@@ -354,13 +354,41 @@ class Conv(Layer):
         x = np.reshape(x, (npatch * bpa, nwl, wl))
 
         #########################
+
+        '''
+        def update_count(count, psum):
+            for p in psum.reshape(-1):
+                if p in count: count[p] += 1
+                else:          count[p] = 1
+        '''
+
+        '''
+        def update_count(psums, psum):
+            values, counts = np.unique(psum, return_counts=True)
+            for i in range(len(values)):
+                if values[i] in psums.keys(): psums[i] += counts[i]
+                else:                         psums[i] = counts[i]
+        '''
+
+        def update_count(psums, psum):
+            values, counts = np.unique(psum, return_counts=True)
+            for i in range(len(values)):
+                v = int(values[i])
+                psums[v] += counts[i]
+
+        #########################
         
         # in the future, we will want to store these by:
         # rpr (the number of word lines that were turned on)
         # xb, wb ... less important but will see some co-variance.
         
-        psums = []
+        # this is so unbearably slow for rpr=1:8
+        # but we actually need these numbers to compute {mu, std}
+        # what can we do to make it run faster ? 
+
+        psums = np.zeros(shape=rpr+1)
         for p in range(npatch):
+
             for i in range(nwl):
                 wlsum = 0
                 psum = np.zeros(shape=(nbl, bl))
@@ -371,22 +399,17 @@ class Conv(Layer):
                         wlsum += 1
                         psum += self.wb[i][j]
                         
-                    if wlsum == rpr: 
+                    if wlsum == rpr:
+                        update_count(psums, psum)
                         wlsum = 0
-                        psums.append(psum)
                         psum = np.zeros(shape=(nbl, bl))
-                
-                psums.append(psum)
         
+                    update_count(psums, psum)
+
         #########################
 
-        psums = np.array(psums)
-        psums = np.reshape(psums, (-1, 1))
-        values, counts = np.unique(psums, return_counts=True)
-        
-        # lol wtf is this idea:
-        # psums = np.around(counts * (100 / np.min(counts)))
-        # psums = np.reshape(psums, (-1, 1))
+        values = np.array(range(0, rpr+1))
+        counts = psums
         
         #########################
 
@@ -394,7 +417,7 @@ class Conv(Layer):
             # wow, you have to be careful with int/float. this being int had massive issues.
             centroids = np.arange(0, self.params['adc'] + 1, step=1, dtype=np.float32)
         else:
-            values, counts = np.unique(psums, return_counts=True)
+            # values, counts = np.unique(psums, return_counts=True)
             # kmeans = KMeans(n_clusters=self.params['adc'], init='k-means++', max_iter=100, n_init=5, random_state=0)
             # kmeans.fit(values.reshape(-1,1), counts)
             # centroids = np.round(kmeans.cluster_centers_[:, 0], 2)

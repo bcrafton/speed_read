@@ -24,6 +24,8 @@ num_layers = 20
 num_comparator = 8
 results = np.load('results.npy', allow_pickle=True).item()
 
+print (results.keys())
+
 ####################
 
 mean = {}
