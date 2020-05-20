@@ -12,6 +12,8 @@ from var import *
 
 from layers import *
 
+from cprofile import profile
+
 #########################
 
 def adc_range(adc):
@@ -97,6 +99,10 @@ class Conv(Layer):
         self.relu_flag = relu_flag
 
         assert (self.s == 1 or self.p == 1)
+
+        self.yh = (self.xh - self.fh + self.s + self.p1 + self.p2) // self.s
+        self.yw = self.yh
+
         self.nmac = (self.fh * self.fw * self.fc * self.fn) * (self.xh * self.xw) // (self.s ** 2)
 
         maxval = pow(2, params['bpw'] - 1)
@@ -428,24 +434,32 @@ class Conv(Layer):
         
         return values, counts, centroids
                 
-    def profile_rpr(self, x):
-    
+    def profile_rpr(self, x):    
         nrow = self.fh * self.fw * self.fc
         
         patches = self.transform_inputs(x)
         npatch, nwl, wl, bpa = np.shape(patches)
         # p_avg = np.max(np.mean(x, axis=2))
         p_avg = np.mean(x)
-    
+
         rpr_low = 1
         rpr_high = 32
-        
+        _, all_counts = profile(patches, self.wb, (self.yh * self.yw, self.fn), rpr_high, self.params)
+            
         self.adc_state = np.zeros(shape=(rpr_high + 1, self.params['adc'] + 1))
         self.adc_thresh = np.zeros(shape=(rpr_high + 1, self.params['adc'] + 1))
         
         rpr_dist = {}
         for rpr in range(rpr_low, rpr_high + 1):
-            values, counts, centroids = self.dist(x=x, rpr=rpr)
+            # values, counts, centroids = self.dist(x=x, rpr=rpr)
+            counts = all_counts[rpr][0:rpr+1]
+            values = np.array(range(rpr+1))
+            if rpr <= self.params['adc']:
+                centroids = np.arange(0, self.params['adc'] + 1, step=1, dtype=np.float32)
+            else:
+                centroids = kmeans(values=values, counts=counts, n_clusters=self.params['adc'] + 1)
+                centroids = sorted(centroids)
+            
             p = counts / np.cumsum(counts)
             s = values
             # WOW - row=(nrow / rpr) is huge over approx for this.
@@ -471,20 +485,22 @@ class Conv(Layer):
         
         # counting cards:
         # ===============
+        # TODO: we need to account for post processing.
+        # (y - y_ref) also has (relu, bias) that we are ignoring.
         for wb in range(self.params['bpw']):
             for xb in range(self.params['bpa']):
                 for rpr in range(rpr_low, rpr_high + 1):
                 
-                    scale = 2**(wb - 1) * 2**(xb - 1)
+                    scale = 2**wb * 2**xb
                     mu, std = rpr_dist[rpr]['mu'], rpr_dist[rpr]['std']
                     
                     e = (scale / self.q) * 64 * std
-                    e_mu = (scale / self.q) * mu
+                    e_mu = (scale / self.q) * 64 * mu
                     # print (scale, e, e_mu)
                     
                     if rpr == rpr_low:
                         rpr_lut[xb][wb] = rpr
-                    if (e < 1.) and (np.absolute(e_mu) < 0.15):
+                    if (e < 1.) and (np.absolute(e_mu) < 1.):
                     # if e < 1.:
                         rpr_lut[xb][wb] = rpr
 

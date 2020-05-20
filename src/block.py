@@ -29,8 +29,8 @@ class Block1(Layer):
         self.conv2 = Conv(input_size2, (3,3,self.f2,self.f2), 1, 1,      pad1=1, pad2=1, params=params, weights=weights, relu_flag=False)
 
     def forward(self, x, profile=False):
-        y1, r1 = self.conv1.forward(x)
-        y2, r2 = self.conv2.forward(y1)        
+        y1, r1 = self.conv1.forward(x, profile=profile)
+        y2, r2 = self.conv2.forward(y1, profile=profile)
         y3 = relu(x + y2)
         
         result = []
@@ -70,9 +70,9 @@ class Block2(Layer):
         self.conv3 = Conv(input_size1, (1,1,self.f1,self.f2), 1, stride, pad1=0, pad2=0, params=params, weights=weights, relu_flag=False)
 
     def forward(self, x, profile=False):
-        y1, r1 = self.conv1.forward(x)
-        y2, r2 = self.conv2.forward(y1)
-        y3, r3 = self.conv3.forward(x)
+        y1, r1 = self.conv1.forward(x, profile=profile)
+        y2, r2 = self.conv2.forward(y1, profile=profile)
+        y3, r3 = self.conv3.forward(x, profile=profile)
         y4 = relu(y2 + y3)
         
         result = []

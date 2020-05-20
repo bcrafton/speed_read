@@ -2881,6 +2881,54 @@ profile.c:
 
 -------
 
+okay so profile.c still takes forever to run.
+what can we do to fix this ?
+
+dosnt feel like it shud take so long.
+its not that complex of a computation
+
+options:
+1) reducing sample size
+2) loading distributions each time
+3) can we do an approximation of {values, counts} ? 
+>> we also need to verify that our counts are correct ...
+
+ideas for approximation.
+yeah this problem is going to persist as we want to get more and more specific with data.
+
+-------
+
+i think we can probably get a super good approximation.
+
+create a p for each w-col
+then compute p 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
