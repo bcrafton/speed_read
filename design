@@ -2131,5 +2131,26 @@ https://github.com/bcrafton/speed_read/commits/adc_scale8
 
 adc_scale8 is using ~80% system memory ... wtf.
 
+adc_scale8 is not comparable at all with cc_update1
+we changed soo many things, its hopeless to do a diff to update.
+
+> so why exactly did we go back ? 
+  > ??
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
