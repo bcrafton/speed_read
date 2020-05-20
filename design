@@ -2900,12 +2900,29 @@ yeah this problem is going to persist as we want to get more and more specific w
 
 i think we can probably get a super good approximation.
 
-create a p for each w-col
-then compute p 
+p(w_col)
+p(x_row)
 
+we cannot assume gaussian tho ...
+does it need to be ?
+the only thing we wont be able to capture is covariance.
 
+treat each column as a separate entity. 
+> p(w_col)
 
+right now, we compress everything into a {values, counts}
+so looking at column level, talking about covariance
+> seems even too in depth.
 
+-------
+
+side script.
+run this function with rpr=8
+or can load that npy file i think.
+
+then get approx for count, values.
+
+-------
 
 
 
