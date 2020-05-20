@@ -157,7 +157,7 @@ wl
 #define METRIC_STALL 12
 #define METRIC_BLOCK_CYCLE 13
 
-int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, int* metrics, int* block_map, int adc, int skip, int R, int B, int C, int NWL, int NBL, int WL, int BL)
+int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, long* metrics, int* block_map, int adc, int skip, int R, int B, int C, int NWL, int NBL, int WL, int BL)
 {
   // x = nrow, nwl, wl, xb
   // f = nwl, wl, nbl, bl

@@ -29,7 +29,7 @@ def pim(x, w, y_shape, lut_var, lut_rpr, alloc, params):
     y = np.ascontiguousarray(y, np.int32)
     lut_var = np.ascontiguousarray(lut_var, np.int32)
     lut_rpr = np.ascontiguousarray(lut_rpr, np.int32)
-    metrics = np.ascontiguousarray(metrics, np.int32)
+    metrics = np.ascontiguousarray(metrics, np.int64)
 
     ########
 
@@ -79,6 +79,7 @@ def pim(x, w, y_shape, lut_var, lut_rpr, alloc, params):
     ########
     
     if params['alloc'] == 'layer':
+        assert (False)
         psum = pim_sync_lib.pim(
         ctypes.c_void_p(x.ctypes.data), 
         ctypes.c_void_p(w.ctypes.data), 
