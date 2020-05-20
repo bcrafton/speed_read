@@ -2122,10 +2122,14 @@ so we are all matched up now.
 
 -----
 
+adc_scale8 = adc_scale7 + 2 commits
 
+https://github.com/bcrafton/speed_read/commits/adc_scale7
+https://github.com/bcrafton/speed_read/commits/adc_scale8
 
+-----
 
-
+adc_scale8 is using ~80% system memory ... wtf.
 
 
 
