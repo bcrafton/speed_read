@@ -2871,12 +2871,15 @@ so next step
 is doing all dist in 1 go
 preferably in C.
 
+-------
 
+profile.c:
+1) finish it.
+2) return y so we can verify we did it correctly.
+3) get distributions for different (x, w) combinations
+4) get distributions for different (x, w, rpr, #wl enabled)
 
-
-
-
-
+-------
 
 
 
