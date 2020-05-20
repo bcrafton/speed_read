@@ -303,14 +303,17 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, long* metrics, int* 
           }
         }
 
-        int comps = max(0, min(wl_sum[block][bl] - 1, adc - 1));
-        //if (!((comps >= 0) && (comps < adc))) {
-        //  printf("comps: %d wl_sum: %d rows: %d adc: %d\n", comps, wl_sum, rows, adc);
-        //  assert((comps >= 0) && (comps < adc));
-        //}
-        assert ((BL % 8) == 0);
-        metrics[comps] += BL / 8;
-        // assert(metrics[comps] < 1e9);
+        // int comps = max(0, min(wl_sum[block][bl] - 1, adc - 1));
+
+        if (wl_sum[block][bl] == 0) {
+        }
+        else {
+          int comps = min(wl_sum[block][bl] - 1, adc - 1);
+          assert((comps >= 0) && (comps < adc));
+          assert ((BL % 8) == 0);
+          metrics[comps] += BL / 8;
+        }
+
         metrics[METRIC_WL] += wl_sum[block][bl];
 
         if (wl_ptr[block][bl] == WL) {
