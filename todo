@@ -109,8 +109,18 @@ What other results we need for CC ?
 
 -------
 
+> new changes + old reverts
+> resnet 18 good results
+> centroids method
 
+new changes:
+>>> allow 0 ADC states
+>>> in error -> account for relu, bias
 
+> need to find references for ADC power.
+  > why rely on these papers, when we can just find stuff ourself ?
+
+-------
 
 
 
