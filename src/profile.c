@@ -42,7 +42,6 @@ int profile(int* x, int* w, int* y, long* count, int max_rpr, int R, int C, int 
         for (int bl=0; bl<NBL; bl++) {
           for (int xb=0; xb<8; xb++) {
             
-            int wl_total = 0;
             int wl_ptr = 0;
             while (wl_ptr < WL) {
               
