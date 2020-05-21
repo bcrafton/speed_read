@@ -2944,7 +2944,7 @@ each algorithm should get its own c implementation
 
 -------
 
-this branch never made it into adc_scale9:
+this commit never made it into adc_scale9:
 > https://github.com/bcrafton/speed_read/commit/e8dc16535de43fc0997a8c0eccc201d98b216484
 > meld pim.c ../../speed_read1/src/pim.c
 
@@ -2952,6 +2952,89 @@ this branch never made it into adc_scale9:
 
 > want more 1s ... better improvement over zero skipping
 > want lower power ADC metrics ... check papers online.
+> power comes from {array size, leakage, sum(rpr - adc), ~percentage of zeros}
+
+> fix eval_adc ... think this is breaking out MSE.
+> zero skipping same as CC ... that hack we put in.
+> dont skip adc update, skip straight to next xb
+> (e, e_mu) - account for bias and relu
+> centroids by # of wordlines
+> faster profiling ADC expected
+> C code for each algorithm to make things cleaner.
+
+our direction got skewed again after trying to make ADC profiling faster ...
+... where do we go now ? 
+
+-------
+
+a lot of things depend on getting good centroid approximations and are more computationally challenging than what we currently have.
+> makes sense to make this work well.
+
+> we can just have many methods of calculating centroids ? 
+> then use a switch to select which one is used ? 
+
+-------
+
+think of the x's as binomial distribtutions
+then think of the w's as 1 or 0
+which means each column
+is just the sum of these distributions
+
+i mean its not even a binomial distribution
+its just 0 or 1.
+
+but thats not right
+becuase that means we will always get the same shit.
+so it is like the sum of all these distributions together.
+
+how can we sum all these 128 distributions together, then create expected number of rows turned on 
+
+... also consider that given the different distributions
+different numbers of groups of RPR will be required...
+so everything really does have to be kept as percentge/distribution
+
+-------
+
+0.53 + 0.52 + 0.56 ...
+but each is a percentage chance of getting 1
+can we average them ? then throw them into binomial ? 
+
+but if we come up with percentages
+things wont get quantized and we shud be fine.
+
+is the only thing that matters the number of 1's per column ? 
+if we keep distributions
+cant we just figure out the numbers later ? 12, 12, 6 or w.e.
+
+-------
+
+its like a giant tree
+u have to compute chances of getting a cumulative 0 from all cells
+then (1,2,3,4)
+
+yeah and so the only form of covariance
+will be the input vectors
+
+so is there an easier way to compute these odds ? 
+
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

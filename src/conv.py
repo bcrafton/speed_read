@@ -480,7 +480,8 @@ class Conv(Layer):
                 centroids = kmeans(values=values, counts=counts, n_clusters=self.params['adc'] + 1)
                 centroids = sorted(centroids)
             
-            p = counts / np.cumsum(counts)
+            # p = counts / np.cumsum(counts)
+            p = counts / np.sum(counts)
             s = values
             # WOW - row=(nrow / rpr) is huge over approx for this.
             mu, std = exp_err(s=s, p=p, var=self.params['sigma'], adc=centroids, rpr=rpr, row=np.ceil(p_avg * nrow / rpr))

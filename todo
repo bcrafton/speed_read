@@ -154,7 +154,9 @@ will have to think about how this and compression work together.
 ?) (nrow/rpr) -> (nrow * p / rpr) ... where p is the (%) of 1s in activataions
 ?) increase the array size.
 
+-------
 
+>>> look at cc_update1 for other todo items
 
 
 
