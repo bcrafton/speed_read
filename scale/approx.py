@@ -118,8 +118,8 @@ x = np.reshape(x, (npatch * bpa, nwl, wl))
 w = cut(w2, 8, 128, 128)
 nwl, wl, nbl, bl = np.shape(w)
 
-print (np.shape(x), np.std(x))
-print (np.shape(w), np.std(w))
+# print (np.shape(x), np.std(x))
+# print (np.shape(w), np.std(w))
 
 #########################
 
@@ -151,13 +151,14 @@ psums = np.reshape(psums, (-1, 1))
 
 values, counts = np.unique(psums, return_counts=True)
 
-print (values)
-print (counts)
+# print (values)
+# print (counts)
 
 #########################
 
+print (counts / np.sum(counts))
 
-
+#########################
 
 
 

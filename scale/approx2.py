@@ -114,7 +114,7 @@ nwl, wl, nbl, bl = np.shape(w)
 
 # print (np.shape(x))
 # (12544, 2, 128, 8)
-
+RPR
 # print (np.shape(w))
 # (2, 128, 4, 128)
 
@@ -157,11 +157,17 @@ print (np.shape(out))
 
 ############################
 
+N, P = np.shape(out)
 
+outputs = np.zeros(shape=RPR+1)
+for o in range(P):
+    count = o // RPR
+    remainder = o % RPR
 
+    outputs[RPR]       += np.sum(out[:, o]) * count
+    outputs[remainder] += np.sum(out[:, o])
 
-
-
+print (outputs / np.sum(outputs))
 
 
 
