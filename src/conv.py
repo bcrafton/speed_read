@@ -178,17 +178,35 @@ class Conv(Layer):
     def weights(self):
         return [self]
 
+    def act(self, y):
+        y = y + self.b
+        if self.relu_flag:
+            y = relu(y)
+        y = avg_pool(y, self.p)
+        y = y / self.q
+        y = np.round(y)
+        y = np.clip(y, -128, 127)
+        return y
+
     def forward(self, x, profile=False):
         if profile:
             if self.params['cards']:
                 self.params['rpr'] = self.profile_rpr(x=x)
             else:
-                self.params['rpr'] = self.params['adc']
+                self.params['rpr'] = self.params['adc'] * np.ones(shape=(8, 8), dtype=np.int32)
+                centroids = np.arange(0, self.params['adc'] + 1, step=1, dtype=np.float32)
+                self.adc_state = np.zeros(shape=(32 + 1, self.params['adc'] + 1))
+                self.adc_state[ self.params['adc'] ] = 4 * np.array(centroids)
+                self.adc_thresh = np.zeros(shape=(32 + 1, self.params['adc'] + 1))
+                self.adc_thresh[ self.params['adc'] ] = adc_floor(centroids)
 
         # 1) tensorflow to compute y_ref
         # 2) save {x,y1,y2,...} as tb from tensorflow 
         y_ref = conv_ref(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2, relu_flag=self.relu_flag)
         y, results = self.conv(x=x)
+
+        y = self.act(y)
+        y_ref = self.act(y_ref)
 
         y_min = np.min(y - y_ref)
         y_max = np.max(y - y_ref)
@@ -196,7 +214,7 @@ class Conv(Layer):
         y_std = np.std(y - y_ref)
         # assert (self.s == 1)
         
-        print ('y_mean', y_mean / self.q, 'y_std', y_std / self.q)
+        # print ('y_mean', y_mean / self.q, 'y_std', y_std / self.q)
         # if self.weight_id == 2:
         #     assert (False)
         
@@ -221,9 +239,10 @@ class Conv(Layer):
 
         ########################
 
-        # y = y_ref
+        y = y_ref
         # assert (y_std <= 0)
-
+        
+        '''
         y = y + self.b
         if self.relu_flag:
             y = relu(y)
@@ -231,7 +250,7 @@ class Conv(Layer):
         y = y / self.q
         y = np.round(y)
         y = np.clip(y, -128, 127)
-        
+        '''
         ########################
 
         return y, [results]
@@ -497,8 +516,10 @@ class Conv(Layer):
                     scale = 2**wb * 2**xb
                     mu, std = rpr_dist[rpr]['mu'], rpr_dist[rpr]['std']
                     
-                    e = (scale / self.q) * 64 * std
-                    e_mu = (scale / self.q) * 64 * mu
+                    # e = (scale / self.q) * 64 * std
+                    # e_mu = (scale / self.q) * 64 * mu
+                    e = (scale / self.q) * 5 * std
+                    e_mu = (scale / self.q) * 5 * mu
                     # print (scale, e, e_mu)
                     
                     if rpr == rpr_low:

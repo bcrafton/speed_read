@@ -174,6 +174,23 @@ int eval_adc(float x, int adc, int rpr, float* adc_state, float* adc_thresh)
 
 //////////////////////////////////////////////
 
+int comps_enabled(int wl, int adc, int rpr, float* adc_state, float* adc_thresh)
+{
+  assert(adc == 8);
+
+  int offset = rpr * adc;
+
+  for (int i=1; i<=adc; i++) {
+    int idx = offset + i;
+    if (wl * 4 < adc_state[idx]) {
+      return i;
+    }
+  }
+  return adc;
+}
+
+//////////////////////////////////////////////
+
 /*
 metrics
 ------
@@ -279,14 +296,18 @@ int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, long* metrics, int
                 
         /////////////////////////////////////
         
-        int rows = min(rpr, WL - wl_ptr[block][bl]);
+        // 2 power problems here.
+        // WL - wl_ptr[block][bl] ... is just the bottom of the array
+        // we want to know how many 1's are left ...
+        // can remove rows, and just use wl_sum to figure out comps.
+        // int rows = min(rpr, WL - wl_ptr[block][bl]);
 
         clear_vector(pdot[block][bl]);
         clear_vector(psum[block][bl]);
         wl_sum[block][bl] = 0;
 
         if (skip) {
-          while ((wl_ptr[block][bl] < WL) && (wl_sum[block][bl] + x[(r[block] * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[block][bl] * 8) + xb[block]] <= rows)) {
+          while ((wl_ptr[block][bl] < WL) && (wl_sum[block][bl] + x[(r[block] * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[block][bl] * 8) + xb[block]] <= rpr)) {
             if (x[(r[block] * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[block][bl] * 8) + xb[block]]) {
               wl_sum[block][bl] += 1;
               for (int adc_ptr=0; adc_ptr<BL; adc_ptr+=8) {
@@ -337,18 +358,13 @@ int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, long* metrics, int
           */
           
           metrics[METRIC_RON] += pdot[block][bl][bl_ptr];
-          metrics[METRIC_ROFF] += rows - pdot[block][bl][bl_ptr];
+          metrics[METRIC_ROFF] += wl_sum[block][bl] - pdot[block][bl][bl_ptr];
 
           // pdot[block][bl][bl_ptr] = min(max(pdot[block][bl][bl_ptr] + var, 0), adc);
           float pdot_var = pdot[block][bl][bl_ptr] + var;
           // pdot[block][bl][bl_ptr] = min(max((int) round(pdot_var), 0), adc);
           psum[block][bl][bl_ptr] = eval_adc(pdot_var, adc + 1, rpr, adc_state, adc_thresh);
           y[r[block] * C + c] += (psum[block][bl][bl_ptr] << (wb + xb[block]));
-          
-          if (wl_sum[block][bl] >= adc) {
-            // sat[block][bl][bl_ptr] += (pdot[block][bl][bl_ptr] == adc);
-            // pdot_sum[block][bl][bl_ptr] += pdot[block][bl][bl_ptr];
-          }
         }
 
         // int comps = max(0, min(wl_sum[block][bl] - 1, adc - 1));
@@ -360,33 +376,14 @@ int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, long* metrics, int
         if (wl_sum[block][bl] == 0) {
         }
         else {
-          int comps = min(wl_sum[block][bl] - 1, adc - 1);
+          // int comps = min(wl_sum[block][bl] - 1, adc - 1);
+          int comps = comps_enabled(wl_sum[block][bl], adc, rpr, adc_state, adc_thresh) - 1;          
           assert((comps >= 0) && (comps < adc));
           assert ((BL % 8) == 0);
           metrics[comps] += BL / 8;
         }
 
         metrics[METRIC_WL] += wl_sum[block][bl];
-
-        /*
-        if (wl_ptr[block][bl] == WL) {
-          for (int adc_ptr=0; adc_ptr<BL; adc_ptr+=8) {
-            int bl_ptr = adc_ptr + col[block];
-            int c = (bl_ptr + bl * BL) / 8;
-            int wb = col[block];
-
-            if (wl_total[block][bl]) {
-              float p = ((float) pdot_sum[block][bl][bl_ptr]) / ((float) wl_total[block][bl]);
-              p = min(max(p, 0.), 1.);
-              int e = sat_error(p, adc, rpr);
-              y[r[block] * C + c] -= ((sat[block][bl][bl_ptr] * e) << (wb + xb[block]));
-              
-              sat[block][bl][bl_ptr] = 0;
-              pdot_sum[block][bl][bl_ptr] = 0;
-            }
-          }
-        }
-        */
       
         if (wl_ptr[block][bl] == WL) {
           wl_ptr[block][bl] = 0;

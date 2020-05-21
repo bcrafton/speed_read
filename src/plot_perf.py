@@ -51,6 +51,7 @@ for key in sorted(results.keys()):
 
     ###################################
 
+    print (key)
     (skip, cards, alloc, profile, narray) = key
     layer_results = results[key]
 
@@ -104,13 +105,18 @@ for key in sorted(results.keys()):
 
         y_mac_per_pJ[layer] = np.sum(rdict['nmac']) / 1e12 / np.sum(y_energy[layer])
         
-        print (layer, y_mac_per_pJ[layer])
+        print (layer, 'mac/pJ', y_mac_per_pJ[layer], 'std', y_std[layer], 'nmac', np.sum(rdict['nmac']))
 
     ###################################
 
     cycle[key] = y_cycle
     nmac[key] = y_nmac
     array[key] = y_array
+    mac_per_pJ[key] = y_mac_per_pJ
+
+############################
+
+print (mac_per_pJ[(1, 1, 'block', 1, 8192)] / mac_per_pJ[(1, 0, 'block', 1, 8192)])
 
 ############################
 

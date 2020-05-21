@@ -125,7 +125,7 @@ param_sweep = {
 'adc': 8,
 'adc_mux': 8,
 'skip': [1],
-'cards': [1],
+'cards': [0, 1],
 'alloc': ['block'],
 # 'profile': [0, 1],
 'stall': 0,
@@ -133,12 +133,12 @@ param_sweep = {
 'bl': 256,
 'offset': 128,
 # 'narray': [2 ** 14, 24960, 2 ** 15],
-'narray': [2 ** 14],
+'narray': [2 ** 13],
 # 'narray': [5472],
 # seems like you gotta change e_mu based on this.
 # set e_mu = 0.15
 # set sigma = 0.05
-'sigma': [0.05], 
+'sigma': [0.08], 
 'err_sigma': 0.,
 
 'profile': [1],
