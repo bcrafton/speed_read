@@ -214,9 +214,7 @@ class Conv(Layer):
         y_std = np.std(y - y_ref)
         # assert (self.s == 1)
         
-        # print ('y_mean', y_mean / self.q, 'y_std', y_std / self.q)
-        # if self.weight_id == 2:
-        #     assert (False)
+        print ('y_mean', y_mean, 'y_std', y_std, 'y_max', y_max, 'y_min', y_min)
         
         # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
         # results = {}
@@ -465,7 +463,7 @@ class Conv(Layer):
         p_avg = np.mean(x)
 
         rpr_low = 1
-        rpr_high = 32
+        rpr_high = 64
         _, all_counts = profile(patches, self.wb, (self.yh * self.yw, self.fn), rpr_high, self.params)
             
         self.adc_state = np.zeros(shape=(rpr_high + 1, self.params['adc'] + 1))

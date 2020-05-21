@@ -2948,7 +2948,10 @@ this branch never made it into adc_scale9:
 > https://github.com/bcrafton/speed_read/commit/e8dc16535de43fc0997a8c0eccc201d98b216484
 > meld pim.c ../../speed_read1/src/pim.c
 
+-------
 
+> want more 1s ... better improvement over zero skipping
+> want lower power ADC metrics ... check papers online.
 
 
 

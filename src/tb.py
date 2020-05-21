@@ -7,6 +7,7 @@ import tensorflow as tf
 import threading
 import time
 import copy
+import matplotlib.pyplot as plt
 
 import multiprocessing
 from multiprocessing import Process
@@ -40,8 +41,8 @@ def init_x(num_example):
     # xs = xs / np.array([0.229, 0.224, 0.225])
     # xs, scale = quantize_np(xs)
     
-    xs = xs[0:num_example]
-    ys = ys[0:num_example]
+    xs = xs[9:10]
+    ys = ys[9:10]
     return xs, ys
 
 ####
@@ -188,6 +189,19 @@ results = {}
 
 start = time.time()
 x, y = init_x(num_example=1)
+
+##########################
+'''
+plt.hist(x.reshape(-1))
+plt.show()
+
+plt.imshow(x[0] / 255)
+plt.show()
+
+assert (False)
+'''
+##########################
+
 # TODO: make sure we are using the right input images and weights
 weights = np.load('resnet18_quant_weights.npy', allow_pickle=True).item()
 
