@@ -2954,13 +2954,18 @@ this commit never made it into adc_scale9:
 > want lower power ADC metrics ... check papers online.
 > power comes from {array size, leakage, sum(rpr - adc), ~percentage of zeros}
 
-> fix eval_adc ... think this is breaking out MSE.
+> fix eval_adc 
+  > think this is breaking out MSE.
+  > check eval_adc in pim.c
+  > check exp_err in conv.py
+
 > zero skipping same as CC ... that hack we put in.
 > dont skip adc update, skip straight to next xb
 > (e, e_mu) - account for bias and relu
 > centroids by # of wordlines
 > faster profiling ADC expected
 > C code for each algorithm to make things cleaner.
+> 1024x128 arrays.
 
 our direction got skewed again after trying to make ADC profiling faster ...
 ... where do we go now ? 
