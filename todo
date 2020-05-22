@@ -178,5 +178,32 @@ will have to think about how this and compression work together.
 our direction got skewed again after trying to make ADC profiling faster ...
 ... where do we go now ? 
 
+-------
+
+> load {counts, values} as samples 
+  > its real data, we dont have to approximate ... think its best way to go.
+  > write separate code for this
+
+> somehow verify {eval_adc, comps_enabled}
+  > was thinking separate test bench ...
+  > but we want to test the actual tables that are produced ...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

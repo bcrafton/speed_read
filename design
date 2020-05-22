@@ -3024,9 +3024,15 @@ so is there an easier way to compute these odds ?
 
 -------
 
+something is definitely wrong with our power numbers.
+we had a bunch of 64s
+in that last one.
+and its telling me less power efficiency ??
 
+> definitely has to do with eval_adc.
+> or comps_enabled or w.e.
 
-
+but it will be useful to see the luts and centroids that were used.
 
 
 

@@ -178,11 +178,11 @@ int comps_enabled(int wl, int adc, int rpr, float* adc_state, float* adc_thresh)
 {
   assert(adc == 8);
 
-  int offset = rpr * adc;
+  int offset = rpr * (adc + 1);
 
   for (int i=1; i<=adc; i++) {
     int idx = offset + i;
-    if (wl * 4 < adc_state[idx]) {
+    if (wl * 4 <= adc_state[idx]) {
       return i;
     }
   }
