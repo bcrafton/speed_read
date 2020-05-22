@@ -1,0 +1,118 @@
+
+#include <stdio.h>
+#include <stdlib.h> 
+#include <string.h>
+#include <math.h>
+#include <assert.h>
+
+#ifndef max
+#define max(a,b)            (((a) > (b)) ? (a) : (b))
+#endif
+
+#ifndef min
+#define min(a,b)            (((a) < (b)) ? (a) : (b))
+#endif
+
+//////////////////////////////////////////////
+
+// make sure (bl <= 1024), malloc would be too slow.
+// if we just pick a size large enough we will be okay
+#define VECTOR_SIZE 1024
+#define RPR_SIZE 128
+
+void clear(int* v, int size)
+{
+  memset(v, 0, sizeof(int) * size);
+}
+
+//////////////////////////////////////////////
+
+int profile(int* x, int* w, int* y, long* count, int max_rpr, int R, int C, int NWL, int NBL, int WL, int BL)
+{
+
+  int pdot[RPR_SIZE * VECTOR_SIZE];
+  int wl_sum[RPR_SIZE];
+  
+  clear(pdot, RPR_SIZE * VECTOR_SIZE);
+  clear(wl_sum, RPR_SIZE);
+
+  // x = nrow, nwl, wl, xb
+  // f = nwl, wl, nbl, bl
+  // y = nrow, ncol
+  
+  for (int r=0; r<R; r++) {
+    printf("%d\n", r);
+    for (int wl=0; wl<NWL; wl++) {
+      for (int bl=0; bl<NBL; bl++) {
+        for (int xb=0; xb<8; xb++) {
+          for (int wl_ptr=0; wl_ptr<WL; wl_ptr++) {
+            if (x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr * 8) + xb]) {
+
+              for (int rpr=1; rpr<=max_rpr; rpr++) {
+                wl_sum[rpr] += 1;
+                for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
+                  pdot[rpr * VECTOR_SIZE + bl_ptr] += w[(wl * WL * NBL * BL) + (wl_ptr * NBL * BL) + (bl * BL) + bl_ptr];
+                }
+                
+                if (wl_sum[rpr] == rpr) {
+                  wl_sum[rpr] = 0;
+                  for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
+                    int val = pdot[rpr * VECTOR_SIZE + bl_ptr];
+                    count[rpr * (max_rpr+1) + val] += 1;
+                    pdot[rpr * VECTOR_SIZE + bl_ptr] = 0;
+                  }
+                }
+              } 
+              
+            } // if (x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr * 8) + xb]) {
+          } // for (int wl_ptr=0; wl_ptr<WL; wl_ptr++) {
+          
+          for (int rpr=1; rpr<=max_rpr; rpr++) {
+            wl_sum[rpr] = 0;
+            for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
+              int val = pdot[rpr * VECTOR_SIZE + bl_ptr];
+              count[rpr * (max_rpr+1) + val] += 1;
+              pdot[rpr * VECTOR_SIZE + bl_ptr] = 0;
+            }
+          }
+          
+        } // for (int xb=0; xb<8; xb++) {
+      } // for (int bl=0; bl<BL; bl++) {
+    } // for (int wl=0; wl<WL; wl++) {
+  } // for (int r=0; r<R; r++) {
+ 
+  return 1;  
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
