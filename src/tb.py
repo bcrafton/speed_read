@@ -126,7 +126,6 @@ param_sweep = {
 'adc': 8,
 'adc_mux': 8,
 'skip': [1],
-'cards': [0, 1],
 'alloc': ['block'],
 # 'profile': [0, 1],
 'stall': 0,
@@ -139,9 +138,10 @@ param_sweep = {
 # seems like you gotta change e_mu based on this.
 # set e_mu = 0.15
 # set sigma = 0.05
-'sigma': [0.08], 
+'sigma': [0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15],
 'err_sigma': 0.,
 
+'cards': [0, 1],
 'profile': [1],
 }
 
@@ -181,7 +181,7 @@ def run_command(x, y, weights, params, return_dict):
     if params['profile']:
         model.profile(x=x)
     _, result = model.forward(x=x, y=y)
-    return_dict[(params['skip'], params['cards'], params['alloc'], params['profile'], params['narray'])] = result
+    return_dict[(params['skip'], params['cards'], params['alloc'], params['profile'], params['narray'], params['sigma'])] = result
 
 ####
 

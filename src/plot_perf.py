@@ -52,8 +52,8 @@ for key in sorted(results.keys()):
 
     ###################################
 
-    print (key)
-    (skip, cards, alloc, profile, narray) = key
+    # print (key)
+    (skip, cards, alloc, profile, narray, sigma) = key
     layer_results = results[key]
 
     ###################################
@@ -120,9 +120,9 @@ for key in sorted(results.keys()):
     # total_mac_per_pJ = np.sum(y_nmac) / np.sum(y_nmac / y_mac_per_pJ)
     total_mac_per_pJ = np.sum(y_nmac) / 1e12 / np.sum(y_energy)
 
-    print (y_mac_per_pJ)
-    print (y_density)
-    print (total_mac_per_pJ)
+    # print (y_mac_per_pJ)
+    # print (y_density)
+    print (sigma, cards, total_mac_per_pJ)
     # print (y_energy)
 
 ############################
@@ -141,7 +141,7 @@ lut = {
 
 ys = {}
 for key in cycle.keys():
-    (skip, cards, alloc, profile, narray) = key
+    (skip, cards, alloc, profile, narray, sigma) = key
     ncycle = np.max(cycle[key])
     perf = np.sum(nmac[key]) / np.max(cycle[key])
 
