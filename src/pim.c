@@ -161,15 +161,17 @@ int eval_adc(float x, int adc, int rpr, float* adc_thresh)
 // should be passing floor thresholds here, not midpoints.
 int eval_adc(float x, int adc, int rpr, float* adc_state, float* adc_thresh)
 {
-  int offset = rpr * adc;
+  assert(adc == 8);
 
-  for (int i=0; i<adc; i++) {
+  int offset = rpr * (adc + 1);
+
+  for (int i=0; i<=adc; i++) {
     int idx = offset + i;
     if (x < adc_thresh[idx]) {
       return adc_state[idx];
     }
   }
-  return adc_state[offset + adc - 1];
+  return adc_state[offset + adc];
 }
 
 //////////////////////////////////////////////
@@ -363,7 +365,7 @@ int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, long* metrics, int
           // pdot[block][bl][bl_ptr] = min(max(pdot[block][bl][bl_ptr] + var, 0), adc);
           float pdot_var = pdot[block][bl][bl_ptr] + var;
           // pdot[block][bl][bl_ptr] = min(max((int) round(pdot_var), 0), adc);
-          psum[block][bl][bl_ptr] = eval_adc(pdot_var, adc + 1, rpr, adc_state, adc_thresh);
+          psum[block][bl][bl_ptr] = eval_adc(pdot_var, adc, rpr, adc_state, adc_thresh);
           y[r[block] * C + c] += (psum[block][bl][bl_ptr] << (wb + xb[block]));
         }
 
