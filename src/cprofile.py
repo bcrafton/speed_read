@@ -10,14 +10,14 @@ profile_lib.profile.restype = ctypes.c_int
 
 ###########################
 
-def profile(x, w, y_shape, max_rpr, params):
+def profile(x, w, y_shape, rpr_low, rpr_high, params):
 
     nrow, nwl, wl, xb = np.shape(x)
     nwl, wl, nbl, bl = np.shape(w) # nwl, nbl, wl, bl
     nrow, ncol = y_shape
         
     y = np.zeros(shape=y_shape)
-    count = np.zeros(shape=(max_rpr+1, max_rpr+1))
+    count = np.zeros(shape=(rpr_high+1, rpr_high+1))
     
     x = np.ascontiguousarray(x, np.int32)
     w = np.ascontiguousarray(w, np.int32)
@@ -31,7 +31,7 @@ def profile(x, w, y_shape, max_rpr, params):
     ctypes.c_void_p(w.ctypes.data), 
     ctypes.c_void_p(y.ctypes.data), 
     ctypes.c_void_p(count.ctypes.data),
-    ctypes.c_int(max_rpr),
+    ctypes.c_int(rpr_high),
     ctypes.c_int(nrow),
     ctypes.c_int(ncol),
     ctypes.c_int(nwl),

@@ -3034,8 +3034,12 @@ and its telling me less power efficiency ??
 
 but it will be useful to see the luts and centroids that were used.
 
+-------
 
+> {profile_rpr, profile_alloc}
+> nah this dosnt make sense
 
+we want to do profile_adc
 
 
 

@@ -38,6 +38,21 @@ class Model:
         self.mac_per_array_block = [2.] * self.nblock
         self.set_block_alloc()
 
+    def profile_adc(self, x):
+        num_examples, _, _, _ = np.shape(x)
+        num_layers = len(self.layers)
+        counts = {}
+
+        for example in range(num_examples):
+            y = x[example]
+            for layer in range(num_layers):
+                y, adc_counts = self.layers[layer].profile_adc(x=y)
+                assert (np.all((y % 1) == 0))
+                if adc_counts:
+                    counts[layer] = adc_counts
+
+        return pred, counts
+
     def profile(self, x):
         num_examples, _, _, _ = np.shape(x)
         num_layers = len(self.layers)
@@ -155,6 +170,10 @@ class AvgPool(Layer):
         
         assert (self.k == self.s)
 
+    def profile_adc(self, x):
+        y, _ = self.forward(x)
+        return y, None
+
     def forward(self, x, profile=False):
         # max pool and avg pool mess things up a bit because they dont do the right padding in tensorflow.
         y = avg_pool(x, self.k)
@@ -190,6 +209,10 @@ class MaxPool(Layer):
         self.output_size = input_size[0] // stride, input_size[1] // stride, input_size[2]
         self.yh, self.yw, self.yc = self.output_size
 
+    def profile_adc(self, x):
+        y, _ = self.forward(x)
+        return y, None
+
     def forward(self, x, profile=False):
         # max pool and avg pool mess things up a bit because they dont do the right padding in tensorflow.
         x = np.pad(array=x, pad_width=[[self.pad,self.pad], [self.pad,self.pad], [0,0]], mode='constant')
@@ -197,7 +220,6 @@ class MaxPool(Layer):
         for h in range(self.yh):
             for w in range(self.yw):
                 y[h, w, :] = np.max( x[h*self.s:(h*self.s+self.k), w*self.s:(w*self.s+self.k), :], axis=(0, 1) )
-
 
         ######################################
         '''
