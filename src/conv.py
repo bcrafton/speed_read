@@ -534,7 +534,9 @@ class Conv(Layer):
         '''
         return rpr_lut
 
-    def profile_adc(x, rpr_low, rpr_high):
+    def profile_adc(self, x):
+        rpr_low = 1
+        rpr_high = 64
         patches = self.transform_inputs(x)
         _, all_counts = profile(patches, self.wb, (self.yh * self.yw, self.fn), rpr_low, rpr_high, self.params)
         y_ref = conv_ref(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2, relu_flag=self.relu_flag)

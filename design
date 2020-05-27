@@ -3041,6 +3041,12 @@ but it will be useful to see the luts and centroids that were used.
 
 we want to do profile_adc
 
+-------
+
+we can easily run all these things in parallel.
+just let conv_ref run
+then do 8 different profile.c in parallel or so.
+
 
 
 

@@ -48,7 +48,7 @@ class Model:
             for layer in range(num_layers):
                 y, adc_counts = self.layers[layer].profile_adc(x=y)
                 assert (np.all((y % 1) == 0))
-                if adc_counts:
+                if adc_counts is not None:
                     counts[layer] = adc_counts
 
         return pred, counts

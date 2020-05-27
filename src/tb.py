@@ -87,9 +87,9 @@ param_sweep = {
 'err_sigma': 0.,
 
 # 'sigma': [0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15],
-'sigma': [0.06, 0.08, 0.10, 0.12, 0.14, 0.16, 0.18, 0.20],
+'sigma': [0.05],
 
-'cards': [0, 1],
+'cards': [1],
 'profile': [1],
 }
 
@@ -123,11 +123,6 @@ def create_model(weights, params):
 
 ####
 
-model = create_model(weights, params)
-profile = model.profile_adc(x=x)
-
-####
-
 def run_command(x, y, weights, params, return_dict):
     print (params)
     model = create_model(weights, params)
@@ -157,6 +152,10 @@ assert (False)
 
 # TODO: make sure we are using the right input images and weights
 weights = np.load('resnet18_quant_weights.npy', allow_pickle=True).item()
+
+model = create_model(weights, param_sweep[0])
+profile = model.profile_adc(x=x)
+assert (False)
 
 num_runs = len(param_sweep)
 parallel_runs = 8
