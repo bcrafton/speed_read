@@ -188,9 +188,36 @@ our direction got skewed again after trying to make ADC profiling faster ...
   > was thinking separate test bench ...
   > but we want to test the actual tables that are produced ...
 
+-------
 
+integrate cc_update1.
+we want to be able to do everything in the same branch.
 
+> what needs to be pulled up ?
+> if we implement old algorithm, we can just back-verify.
 
+yeah think we want to do this before any of the new changes.
+also we should allow:
+> binomial
+> profiled data
+
+refer to notebook for wholistic view.
+
+-------
+
+this is the time to clean stuff up.
+will actually make things go faster.
+
+-------
+
+okay so we want to do this ^
+but it makes sense to finish doing profile first.
+
+then we can pick our profile method
+in the dictionary.
+and use p(1) for dynamic bias calculation.
+
+-------
 
 
 
