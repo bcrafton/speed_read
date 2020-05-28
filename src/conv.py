@@ -77,7 +77,7 @@ def exp_err(s, p, var, adc, rpr, row):
 #########################
 
 class Conv(Layer):
-    def __init__(self, input_size, filter_size, pool, stride, pad1, pad2, params, weights, relu_flag=True):
+    def __init__(self, input_size, filter_size, pool, stride, pad1, pad2, weights, relu_flag=True):
         self.layer_id = Layer.layer_id
         Layer.layer_id += 1
         self.weight_id = Layer.weight_id
@@ -105,12 +105,7 @@ class Conv(Layer):
 
         self.nmac = (self.fh * self.fw * self.fc * self.fn) * (self.xh * self.xw) // (self.s ** 2)
 
-        maxval = pow(2, params['bpw'] - 1)
-        minval = -1 * maxval
-
         self.w, self.b, self.q = weights[self.layer_id]['f'], weights[self.layer_id]['b'], weights[self.layer_id]['y']
-        assert (np.all(self.w >= minval))
-        assert (np.all(self.w <= maxval))
         # check shape
         assert(np.shape(self.w) == self.filter_size)
         assert(np.shape(self.b) == (self.fn,))
@@ -121,53 +116,33 @@ class Conv(Layer):
         self.q = self.q.astype(int)
         # q must be larger than 0
         # assert(self.q > 0)
-        
+
         #########################
 
+    def init(self, params):
         self.params = params.copy()
-        self.params['var'] = lut_var(params['sigma'], 64)
-        
-        #########################
-        
+
+        maxval = pow(2, params['bpw'] - 1)
+        minval = -1 * maxval
+
+        assert (np.all(self.w >= minval))
+        assert (np.all(self.w <= maxval))
+
         self.wb = self.transform_weights()
         nwl, _, nbl, _ = np.shape(self.wb) 
         self.factor = nwl * nbl
-        
         self.nwl = nwl
         self.nbl = nbl
-        
-        #########################
-        '''
-        w_offset = self.w + params['offset']
-        wb = []
-        for bit in range(params['bpw']):
-            wb.append(np.bitwise_and(np.right_shift(w_offset, bit), 1))
-        wb = np.stack(wb, axis=-1)
 
-        wb_cols = np.reshape(wb, (self.fh * self.fw * self.fc, self.fn, params['bpw']))
-        col_density = np.mean(wb_cols, axis=0)
+        self.params['var'] = lut_var(params['sigma'], 64)
 
-        nrow = self.fh * self.fw * self.fc
-        p = np.max(col_density, axis=0)
-        # [0.74829932 0.74829932 0.74829932 0.74829932 0.74829932 0.74829932 0.74829932 0.79591837]
-        # this should be specific to the block as well.
-        
-        #########################
-        
-        self.params['rpr'] = rpr(nrow=nrow, p=p, q=self.q, params=self.params)
-        '''
-        #########################
-        '''
-        sample_x = np.load('resnet18_activations.npy', allow_pickle=True).item()
-        if self.layer_id == 0:
-            sample_x = sample_x['x'][0]
-        else:
-            sample_x = sample_x[self.layer_id - 1][0]
-        
-        print (np.shape(sample_x))
-        rpr_lut = self.profile_rpr(x=sample_x)
-        '''
-        #########################
+    def profile_adc(self, x):
+        rpr_low = 1
+        rpr_high = 64
+        patches = self.transform_inputs(x)
+        _, all_counts = profile(patches, self.wb, (self.yh * self.yw, self.fn), rpr_low, rpr_high, self.params)
+        y_ref = conv_ref(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2, relu_flag=self.relu_flag)
+        return y_ref, {self.layer_id: all_counts}
 
     def set_block_alloc(self, block_alloc):
         self.block_alloc = block_alloc
@@ -449,14 +424,6 @@ class Conv(Layer):
         print (np.average(list(rpr_lut.values())))
         '''
         return rpr_lut
-
-    def profile_adc(self, x):
-        rpr_low = 1
-        rpr_high = 64
-        patches = self.transform_inputs(x)
-        _, all_counts = profile(patches, self.wb, (self.yh * self.yw, self.fn), rpr_low, rpr_high, self.params)
-        y_ref = conv_ref(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2, relu_flag=self.relu_flag)
-        return y_ref, {self.layer_id: all_counts}
 
 
         

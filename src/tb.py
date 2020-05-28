@@ -97,35 +97,35 @@ param_sweep = perms(param_sweep)
 
 ####
 
-def create_model(weights, params):
+def create_model(weights):
     layers=[
-    Conv(input_size=(224, 224, 3), filter_size=(7,7,3,64), pool=1, stride=2, pad1=3, pad2=3, params=params, weights=weights),
+    Conv(input_size=(224, 224, 3), filter_size=(7,7,3,64), pool=1, stride=2, pad1=3, pad2=3, weights=weights),
     
-    MaxPool(input_size=(112, 112, 64), kernel_size=3, stride=2, params=params, weights=weights),
+    MaxPool(input_size=(112, 112, 64), kernel_size=3, stride=2, weights=weights),
     
-    Block1(input_size=(56, 56, 64), filter_size=(64, 64), stride=1, params=params, weights=weights),
-    Block1(input_size=(56, 56, 64), filter_size=(64, 64), stride=1, params=params, weights=weights),
+    Block1(input_size=(56, 56, 64), filter_size=(64, 64), stride=1, weights=weights),
+    Block1(input_size=(56, 56, 64), filter_size=(64, 64), stride=1, weights=weights),
     
-    Block2(input_size=(56, 56, 64),  filter_size=(64,  128), stride=2, params=params, weights=weights),
-    Block1(input_size=(28, 28, 128), filter_size=(128, 128), stride=1, params=params, weights=weights),
+    Block2(input_size=(56, 56, 64),  filter_size=(64,  128), stride=2, weights=weights),
+    Block1(input_size=(28, 28, 128), filter_size=(128, 128), stride=1, weights=weights),
     
-    Block2(input_size=(28, 28, 128), filter_size=(128, 256), stride=2, params=params, weights=weights),
-    Block1(input_size=(14, 14, 256), filter_size=(256, 256), stride=1, params=params, weights=weights),
+    Block2(input_size=(28, 28, 128), filter_size=(128, 256), stride=2, weights=weights),
+    Block1(input_size=(14, 14, 256), filter_size=(256, 256), stride=1, weights=weights),
     
-    Block2(input_size=(14, 14, 256), filter_size=(256, 512), stride=2, params=params, weights=weights),
-    Block1(input_size=(  7, 7, 512), filter_size=(512, 512), stride=1, params=params, weights=weights),
+    Block2(input_size=(14, 14, 256), filter_size=(256, 512), stride=2, weights=weights),
+    Block1(input_size=(  7, 7, 512), filter_size=(512, 512), stride=1, weights=weights),
     
-    AvgPool(input_size=(7, 7, 512), kernel_size=7, stride=7, params=params, weights=weights),
+    AvgPool(input_size=(7, 7, 512), kernel_size=7, stride=7, weights=weights),
     ]
 
-    model = Model(layers=layers, params=params)
+    model = Model(layers=layers)
     return model
 
 ####
 
-def run_command(x, y, weights, params, return_dict):
+def run_command(x, y, model, params, return_dict):
     print (params)
-    model = create_model(weights, params)
+    model.init(params)
     if params['profile']:
         model.profile(x=x)
     _, result = model.forward(x=x, y=y)
@@ -152,8 +152,7 @@ assert (False)
 
 # TODO: make sure we are using the right input images and weights
 weights = np.load('resnet18_quant_weights.npy', allow_pickle=True).item()
-
-model = create_model(weights, param_sweep[0])
+model = create_model(weights)
 profile = model.profile_adc(x=x)
 
 num_runs = len(param_sweep)
@@ -163,7 +162,7 @@ for run in range(0, num_runs, parallel_runs):
     manager = multiprocessing.Manager()
     return_dict = manager.dict()
     for parallel_run in range(min(parallel_runs, num_runs - run)):
-        args = (np.copy(x), np.copy(y), copy.copy(weights), param_sweep[run + parallel_run], return_dict)
+        args = (np.copy(x), np.copy(y), copy.copy(model), param_sweep[run + parallel_run], return_dict)
         t = multiprocessing.Process(target=run_command, args=args)
         threads.append(t)
         t.start()

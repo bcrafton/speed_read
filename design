@@ -3072,6 +3072,23 @@ actually - kinda hate both equally. so dont care so much.
 
 well ideally i think we wud break off conv layer and the CIM weight matrix.
 
+-------
+
+andddd... after all that we run into the last issue
+transform_inputs and transform_weights
+are needed for profile_adc
+
+which makes total sense.
+so next options are:
+
+> 2 different params ... {op, envm}
+  > what if we want to do different wl/bl sizes ? 
+> separate {conv, dense, pool, ect} framework JUST for profile_adc.
+> other ideas ?
+  > u need some information to profile the adcs.
+  > sometimes we want to change those parameters.
+
+-------
 
 
 

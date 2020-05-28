@@ -14,11 +14,14 @@ from AA import array_allocation
 #########################
 
 class Model:
-    def __init__(self, layers, params):
+    def __init__(self, layers):
         self.layers = layers
-        self.params = params
-
         self.nlayer = len(self.layers)
+
+    def init(self, params):
+        self.params = params
+        for layer in self.layers:
+            layer.init(params)
 
         self.weights = []
         for layer in self.layers:
@@ -159,7 +162,7 @@ class Layer:
 #########################
 
 class AvgPool(Layer):
-    def __init__(self, input_size, kernel_size, stride, params, weights):
+    def __init__(self, input_size, kernel_size, stride, weights):
         self.layer_id = Layer.layer_id
         Layer.layer_id += 1
         
@@ -168,6 +171,9 @@ class AvgPool(Layer):
         self.s = stride
         
         assert (self.k == self.s)
+
+    def init(self, params):
+        self.params = params.copy()
 
     def profile_adc(self, x):
         y, _ = self.forward(x)
@@ -194,7 +200,7 @@ class AvgPool(Layer):
 #############
 
 class MaxPool(Layer):
-    def __init__(self, input_size, kernel_size, stride, params, weights):
+    def __init__(self, input_size, kernel_size, stride, weights):
         self.layer_id = Layer.layer_id
         Layer.layer_id += 1
         
@@ -208,6 +214,9 @@ class MaxPool(Layer):
         self.output_size = input_size[0] // stride, input_size[1] // stride, input_size[2]
         self.yh, self.yw, self.yc = self.output_size
 
+    def init(self, params):
+        self.params = params.copy()
+
     def profile_adc(self, x):
         y, _ = self.forward(x)
         return y, {}
@@ -219,20 +228,6 @@ class MaxPool(Layer):
         for h in range(self.yh):
             for w in range(self.yw):
                 y[h, w, :] = np.max( x[h*self.s:(h*self.s+self.k), w*self.s:(w*self.s+self.k), :], axis=(0, 1) )
-
-        ######################################
-        '''
-        y_ref_ref = np.load('resnet18_activations.npy', allow_pickle=True).item()[self.layer_id]
-
-        print (np.shape(y_ref_ref[0]), np.std(y_ref_ref[0]), np.shape(y), np.std(y))        
-        
-        plt.imshow(y_ref_ref[0,:,:,0])
-        plt.show()
-
-        plt.imshow(y[:,:,0])
-        plt.show()
-        '''
-        ######################################
 
         return y, []
 
