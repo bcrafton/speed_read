@@ -3047,15 +3047,30 @@ we can easily run all these things in parallel.
 just let conv_ref run
 then do 8 different profile.c in parallel or so.
 
+-------
 
+so new problem
+is we want to be able to initialize a network
+then:
+1) then call 'profile_adc'
+   > run and save, or load.
+2) create all our test cases with different params
 
+-------
 
+so we can just have an init function.
+and pass the params in later.
 
+is there a better way ? 
+> only thing i can think of
+> is an entirely different model structure.
+  > like an entirely different {conv, dense, pool, ect} framework JUST for profile_adc.
 
+-------
 
+actually - kinda hate both equally. so dont care so much.
 
-
-
+well ideally i think we wud break off conv layer and the CIM weight matrix.
 
 
 
