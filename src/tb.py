@@ -155,7 +155,6 @@ weights = np.load('resnet18_quant_weights.npy', allow_pickle=True).item()
 
 model = create_model(weights, param_sweep[0])
 profile = model.profile_adc(x=x)
-assert (False)
 
 num_runs = len(param_sweep)
 parallel_runs = 8

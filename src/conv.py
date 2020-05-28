@@ -540,7 +540,7 @@ class Conv(Layer):
         patches = self.transform_inputs(x)
         _, all_counts = profile(patches, self.wb, (self.yh * self.yw, self.fn), rpr_low, rpr_high, self.params)
         y_ref = conv_ref(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2, relu_flag=self.relu_flag)
-        return y_ref, all_counts
+        return y_ref, {self.layer_id: all_counts}
 
 
         

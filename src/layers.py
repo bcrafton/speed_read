@@ -48,10 +48,9 @@ class Model:
             for layer in range(num_layers):
                 y, adc_counts = self.layers[layer].profile_adc(x=y)
                 assert (np.all((y % 1) == 0))
-                if adc_counts is not None:
-                    counts[layer] = adc_counts
+                counts.update(adc_counts)
 
-        return pred, counts
+        return y, counts
 
     def profile(self, x):
         num_examples, _, _, _ = np.shape(x)
@@ -172,7 +171,7 @@ class AvgPool(Layer):
 
     def profile_adc(self, x):
         y, _ = self.forward(x)
-        return y, None
+        return y, {}
 
     def forward(self, x, profile=False):
         # max pool and avg pool mess things up a bit because they dont do the right padding in tensorflow.
@@ -211,7 +210,7 @@ class MaxPool(Layer):
 
     def profile_adc(self, x):
         y, _ = self.forward(x)
-        return y, None
+        return y, {}
 
     def forward(self, x, profile=False):
         # max pool and avg pool mess things up a bit because they dont do the right padding in tensorflow.
