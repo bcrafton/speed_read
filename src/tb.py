@@ -66,56 +66,48 @@ def perms(param):
 
 ####
 
-param_sweep = {
+array_params = {
 'bpa': 8,
 'bpw': 8,
 'adc': 8,
 'adc_mux': 8,
-'skip': [1],
-'alloc': ['block'],
-# 'profile': [0, 1],
-'stall': 0,
 'wl': 256,
 'bl': 256,
 'offset': 128,
-# 'narray': [2 ** 14, 24960, 2 ** 15],
+}
+
+arch_params = {
+'skip': [1],
+'alloc': ['block'],
 'narray': [2 ** 13],
-# 'narray': [5472],
-# seems like you gotta change e_mu based on this.
-# set e_mu = 0.15
-# set sigma = 0.05
-'err_sigma': 0.,
-
-# 'sigma': [0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15],
 'sigma': [0.05],
-
 'cards': [1],
 'profile': [1],
 }
 
-param_sweep = perms(param_sweep)
+load_profile_adc = 1
+
+param_sweep = perms(arch_params)
 
 ####
 
 def create_model(weights):
     layers=[
-    Conv(input_size=(224, 224, 3), filter_size=(7,7,3,64), pool=1, stride=2, pad1=3, pad2=3, weights=weights),
+    Conv(input_size=(224, 224, 3), filter_size=(7,7,3,64), pool=1, stride=2, pad1=3, pad2=3, params=array_params, weights=weights),
     
-    MaxPool(input_size=(112, 112, 64), kernel_size=3, stride=2, weights=weights),
+    MaxPool(input_size=(112, 112, 64), kernel_size=3, stride=2, params=array_params, weights=weights),
     
-    Block1(input_size=(56, 56, 64), filter_size=(64, 64), stride=1, weights=weights),
-    Block1(input_size=(56, 56, 64), filter_size=(64, 64), stride=1, weights=weights),
+    Block1(input_size=(56, 56, 64), filter_size=(64, 64), stride=1, params=array_params, weights=weights),
+    Block1(input_size=(56, 56, 64), filter_size=(64, 64), stride=1, params=array_params, weights=weights),
     
-    Block2(input_size=(56, 56, 64),  filter_size=(64,  128), stride=2, weights=weights),
-    Block1(input_size=(28, 28, 128), filter_size=(128, 128), stride=1, weights=weights),
+    Block2(input_size=(56, 56, 64),  filter_size=(64,  128), stride=2, params=array_params, weights=weights),
+    Block1(input_size=(28, 28, 128), filter_size=(128, 128), stride=1, params=array_params, weights=weights),
     
-    Block2(input_size=(28, 28, 128), filter_size=(128, 256), stride=2, weights=weights),
-    Block1(input_size=(14, 14, 256), filter_size=(256, 256), stride=1, weights=weights),
+    Block2(input_size=(28, 28, 128), filter_size=(128, 256), stride=2, params=array_params, weights=weights),
+    Block1(input_size=(14, 14, 256), filter_size=(256, 256), stride=1, params=array_params, weights=weights),
     
-    Block2(input_size=(14, 14, 256), filter_size=(256, 512), stride=2, weights=weights),
-    Block1(input_size=(  7, 7, 512), filter_size=(512, 512), stride=1, weights=weights),
-    
-    AvgPool(input_size=(7, 7, 512), kernel_size=7, stride=7, weights=weights),
+    Block2(input_size=(14, 14, 256), filter_size=(256, 512), stride=2, params=array_params, weights=weights),
+    Block1(input_size=(  7, 7, 512), filter_size=(512, 512), stride=1, params=array_params, weights=weights),
     ]
 
     model = Model(layers=layers)
@@ -128,6 +120,7 @@ def run_command(x, y, model, params, return_dict):
     model.init(params)
     if params['profile']:
         model.profile(x=x)
+    
     _, result = model.forward(x=x, y=y)
     return_dict[(params['skip'], params['cards'], params['alloc'], params['profile'], params['narray'], params['sigma'])] = result
 
@@ -139,21 +132,17 @@ start = time.time()
 x, y = init_x(num_example=1)
 
 ##########################
-'''
-plt.hist(x.reshape(-1))
-plt.show()
-
-plt.imshow(x[0] / 255)
-plt.show()
-
-assert (False)
-'''
-##########################
 
 # TODO: make sure we are using the right input images and weights
 weights = np.load('resnet18_quant_weights.npy', allow_pickle=True).item()
 model = create_model(weights)
-profile = model.profile_adc(x=x)
+
+if not load_profile_adc:
+    profile = model.profile_adc(x=x)
+    np.save('profile_adc', profile)
+else:
+    profile = np.load('profile_adc.npy', allow_pickle=True).item()
+    model.set_profile_adc(profile)
 
 num_runs = len(param_sweep)
 parallel_runs = 8

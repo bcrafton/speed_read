@@ -11,7 +11,7 @@ from conv import *
 #########################
 
 class Block1(Layer):
-    def __init__(self, input_size, filter_size, stride, weights):
+    def __init__(self, input_size, filter_size, stride, params, weights):
         self.layer_id = Layer.layer_id
         Layer.layer_id += 1
         
@@ -22,13 +22,17 @@ class Block1(Layer):
         input_size1 = input_size
         input_size2 = (input_size1[0] // stride, input_size1[1] // stride, input_size1[2])
 
-        self.conv1 = Conv(input_size1, (3,3,self.f1,self.f2), 1, stride, pad1=1, pad2=1, weights=weights)
-        self.conv2 = Conv(input_size2, (3,3,self.f2,self.f2), 1, 1,      pad1=1, pad2=1, weights=weights, relu_flag=False)
+        self.conv1 = Conv(input_size1, (3,3,self.f1,self.f2), 1, stride, pad1=1, pad2=1, params=params, weights=weights)
+        self.conv2 = Conv(input_size2, (3,3,self.f2,self.f2), 1, 1,      pad1=1, pad2=1, params=params, weights=weights, relu_flag=False)
 
     def init(self, params):
         self.params = params.copy()
         self.conv1.init(self.params)
         self.conv2.init(self.params)
+        
+    def set_profile_adc(self, counts):
+        self.conv1.set_profile_adc(counts)
+        self.conv2.set_profile_adc(counts)
 
     def profile_adc(self, x):
         y1, r1 = self.conv1.profile_adc(x)
@@ -62,7 +66,7 @@ class Block1(Layer):
 #############
 
 class Block2(Layer):
-    def __init__(self, input_size, filter_size, stride, weights):
+    def __init__(self, input_size, filter_size, stride, params, weights):
         self.layer_id = Layer.layer_id
         Layer.layer_id += 1
         
@@ -74,15 +78,20 @@ class Block2(Layer):
         input_size1 = input_size
         input_size2 = (input_size1[0] // stride, input_size1[1] // stride, self.f2)
 
-        self.conv1 = Conv(input_size1, (3,3,self.f1,self.f2), 1, stride, pad1=1, pad2=1, weights=weights)
-        self.conv2 = Conv(input_size2, (3,3,self.f2,self.f2), 1, 1,      pad1=1, pad2=1, weights=weights, relu_flag=False)
-        self.conv3 = Conv(input_size1, (1,1,self.f1,self.f2), 1, stride, pad1=0, pad2=0, weights=weights, relu_flag=False)
+        self.conv1 = Conv(input_size1, (3,3,self.f1,self.f2), 1, stride, pad1=1, pad2=1, params=params, weights=weights)
+        self.conv2 = Conv(input_size2, (3,3,self.f2,self.f2), 1, 1,      pad1=1, pad2=1, params=params, weights=weights, relu_flag=False)
+        self.conv3 = Conv(input_size1, (1,1,self.f1,self.f2), 1, stride, pad1=0, pad2=0, params=params, weights=weights, relu_flag=False)
 
     def init(self, params):
         self.params = params.copy()
         self.conv1.init(self.params)
         self.conv2.init(self.params)
         self.conv3.init(self.params)
+        
+    def set_profile_adc(self, counts):
+        self.conv1.set_profile_adc(counts)
+        self.conv2.set_profile_adc(counts)
+        self.conv3.set_profile_adc(counts)
 
     def profile_adc(self, x):
         y1, r1 = self.conv1.profile_adc(x)

@@ -77,7 +77,7 @@ def exp_err(s, p, var, adc, rpr, row):
 #########################
 
 class Conv(Layer):
-    def __init__(self, input_size, filter_size, pool, stride, pad1, pad2, weights, relu_flag=True):
+    def __init__(self, input_size, filter_size, pool, stride, pad1, pad2, params, weights, relu_flag=True):
         self.layer_id = Layer.layer_id
         Layer.layer_id += 1
         self.weight_id = Layer.weight_id
@@ -98,6 +98,8 @@ class Conv(Layer):
         self.p2 = pad2
         self.relu_flag = relu_flag
 
+        self.params = params.copy()
+
         assert (self.s == 1 or self.p == 1)
 
         self.yh = (self.xh - self.fh + self.s + self.p1 + self.p2) // self.s
@@ -117,12 +119,7 @@ class Conv(Layer):
         # q must be larger than 0
         # assert(self.q > 0)
 
-        #########################
-
-    def init(self, params):
-        self.params = params.copy()
-
-        maxval = pow(2, params['bpw'] - 1)
+        maxval = pow(2, self.params['bpw'] - 1)
         minval = -1 * maxval
 
         assert (np.all(self.w >= minval))
@@ -134,15 +131,23 @@ class Conv(Layer):
         self.nwl = nwl
         self.nbl = nbl
 
+        #########################
+
+    def init(self, params):
+        self.params.update(params)
         self.params['var'] = lut_var(params['sigma'], 64)
+
+    def set_profile_adc(self, counts):
+        self.all_counts = counts[self.layer_id]
 
     def profile_adc(self, x):
         rpr_low = 1
         rpr_high = 64
         patches = self.transform_inputs(x)
-        _, all_counts = profile(patches, self.wb, (self.yh * self.yw, self.fn), rpr_low, rpr_high, self.params)
+        _, self.all_counts = profile(patches, self.wb, (self.yh * self.yw, self.fn), rpr_low, rpr_high, self.params)
         y_ref = conv_ref(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2, relu_flag=self.relu_flag)
-        return y_ref, {self.layer_id: all_counts}
+        y_ref = self.act(y_ref)
+        return y_ref, {self.layer_id: self.all_counts}
 
     def set_block_alloc(self, block_alloc):
         self.block_alloc = block_alloc
@@ -355,7 +360,7 @@ class Conv(Layer):
 
         rpr_low = 1
         rpr_high = 64
-        _, all_counts = profile(patches, self.wb, (self.yh * self.yw, self.fn), rpr_low, rpr_high, self.params)
+        # _, all_counts = profile(patches, self.wb, (self.yh * self.yw, self.fn), rpr_low, rpr_high, self.params)
             
         self.adc_state = np.zeros(shape=(rpr_high + 1, self.params['adc'] + 1))
         self.adc_thresh = np.zeros(shape=(rpr_high + 1, self.params['adc'] + 1))
@@ -363,7 +368,7 @@ class Conv(Layer):
         rpr_dist = {}
         for rpr in range(rpr_low, rpr_high + 1):
             # values, counts, centroids = self.dist(x=x, rpr=rpr)
-            counts = all_counts[rpr][0:rpr+1]
+            counts = self.all_counts[rpr][0:rpr+1]
             values = np.array(range(rpr+1))
             if rpr <= self.params['adc']:
                 centroids = np.arange(0, self.params['adc'] + 1, step=1, dtype=np.float32)

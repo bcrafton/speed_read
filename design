@@ -3090,6 +3090,28 @@ so next options are:
 
 -------
 
+so we ran into this weird issue
+was gettign Nan error from kmeans
+
+i believe its because we never ran adc_scale10.
+
+and so in 9, we called profile and it did the profile for:
+adc_scale
+centroids
+
+and so it returned self.act(y_ref)
+
+but the new one just returned y_ref
+which is not complete
+we need self.act(y_ref)
+
+-------
+
+best test would be running adc_scale10.
+
+
+
+
 
 
 
