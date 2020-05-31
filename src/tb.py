@@ -83,6 +83,7 @@ arch_params = {
 'sigma': [0.05],
 'cards': [1],
 'profile': [1],
+'rpr': ['centroids', 'dynamic']
 }
 
 load_profile_adc = 1

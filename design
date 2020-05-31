@@ -3109,6 +3109,42 @@ we need self.act(y_ref)
 
 best test would be running adc_scale10.
 
+-------
+
+what was next here ? 
+we want to integrate the older methods to our new setup.
+
+-------
+
+we are still calling 'profile_rpr' in forward.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

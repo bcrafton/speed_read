@@ -11,8 +11,8 @@ from dot_ref import *
 from var import *
 
 from layers import *
-
 from cprofile import profile
+from rpr import rpr as dynamic_rpr
 
 #########################
 
@@ -137,6 +137,23 @@ class Conv(Layer):
         self.params.update(params)
         self.params['var'] = lut_var(params['sigma'], 64)
 
+        if self.params['rpr'] == 'centroids':
+            pass
+        elif self.params['rpr'] == 'dynamic':
+            ## TODO: cant this be "self.wb" and cant we throw it in a different function ??
+            w_offset = self.w + self.params['offset']
+            wb = []
+            for bit in range(self.params['bpw']):
+                wb.append(np.bitwise_and(np.right_shift(w_offset, bit), 1))
+            wb = np.stack(wb, axis=-1)
+
+            wb_cols = np.reshape(wb, (self.fh * self.fw * self.fc, self.fn, self.params['bpw']))
+            col_density = np.mean(wb_cols, axis=0)
+
+            nrow = self.fh * self.fw * self.fc
+            p = np.max(col_density, axis=0)
+            self.params['rpr'] = dynamic_rpr(nrow=nrow, p=p, q=self.q, params=self.params)
+
     def set_profile_adc(self, counts):
         self.all_counts = counts[self.layer_id]
 
@@ -188,8 +205,8 @@ class Conv(Layer):
         y = self.act(y)
         y_ref = self.act(y_ref)
 
-        y_min = np.min(y - y_ref)
-        y_max = np.max(y - y_ref)
+        y_min = np.min(y_ref)
+        y_max = np.max(y_ref)
         y_mean = np.mean(y - y_ref)
         y_std = np.std(y - y_ref)
         # assert (self.s == 1)
@@ -350,7 +367,9 @@ class Conv(Layer):
 
         return wb
                 
-    def profile_rpr(self, x):    
+    def profile_rpr(self, x):
+        ## okay, so can we remove the x part of this and call this function in init() ... that would be so great.
+
         nrow = self.fh * self.fw * self.fc
         
         patches = self.transform_inputs(x)
@@ -413,8 +432,8 @@ class Conv(Layer):
                     
                     # e = (scale / self.q) * 64 * std
                     # e_mu = (scale / self.q) * 64 * mu
-                    e = (scale / self.q) * 5 * std
-                    e_mu = (scale / self.q) * 5 * mu
+                    e = (scale / self.q) * 64 * std
+                    e_mu = (scale / self.q) * 64 * mu
                     # print (scale, e, e_mu)
                     
                     if rpr == rpr_low:
