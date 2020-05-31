@@ -80,13 +80,13 @@ array_params = {
 arch_params = {
 'skip': [1],
 'alloc': ['block'],
-'narray': [2 ** 13],
-'sigma': [0.05],
+'narray': [2 ** 14],
+'sigma': [0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15],
 'cards': [1],
 'profile': [1],
 # 'rpr': ['centroids', 'dynamic']
-# 'rpr_alloc': ['dynamic']
-'rpr_alloc': ['centroids']
+'rpr_alloc': ['dynamic']
+# 'rpr_alloc': ['centroids']
 }
 
 load_profile_adc = 1
@@ -126,7 +126,7 @@ def run_command(x, y, model, params, return_dict):
         model.profile(x=x)
     
     _, result = model.forward(x=x, y=y)
-    return_dict[(params['skip'], params['cards'], params['alloc'], params['profile'], params['narray'], params['sigma'])] = result
+    return_dict[(params['skip'], params['cards'], params['alloc'], params['profile'], params['narray'], params['sigma'], params['rpr_alloc'])] = result
 
 ####
 
