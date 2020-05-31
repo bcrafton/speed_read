@@ -137,9 +137,10 @@ class Conv(Layer):
         self.params.update(params)
         self.params['var'] = lut_var(params['sigma'], 64)
 
-        if self.params['rpr'] == 'centroids':
-            pass
-        elif self.params['rpr'] == 'dynamic':
+        if self.params['rpr_alloc'] == 'centroids':
+            self.params['rpr'] = self.profile_rpr()
+
+        elif self.params['rpr_alloc'] == 'dynamic':
             ## TODO: cant this be "self.wb" and cant we throw it in a different function ??
             w_offset = self.w + self.params['offset']
             wb = []
@@ -153,6 +154,10 @@ class Conv(Layer):
             nrow = self.fh * self.fw * self.fc
             p = np.max(col_density, axis=0)
             self.params['rpr'] = dynamic_rpr(nrow=nrow, p=p, q=self.q, params=self.params)
+            # print (self.params['rpr'])
+
+        else:
+            assert (False)
 
     def set_profile_adc(self, counts):
         self.all_counts = counts[self.layer_id]
@@ -186,17 +191,6 @@ class Conv(Layer):
         return y
 
     def forward(self, x, profile=False):
-        if profile:
-            if self.params['cards']:
-                self.params['rpr'] = self.profile_rpr(x=x)
-            else:
-                self.params['rpr'] = self.params['adc'] * np.ones(shape=(8, 8), dtype=np.int32)
-                centroids = np.arange(0, self.params['adc'] + 1, step=1, dtype=np.float32)
-                self.adc_state = np.zeros(shape=(32 + 1, self.params['adc'] + 1))
-                self.adc_state[ self.params['adc'] ] = 4 * np.array(centroids)
-                self.adc_thresh = np.zeros(shape=(32 + 1, self.params['adc'] + 1))
-                self.adc_thresh[ self.params['adc'] ] = adc_floor(centroids)
-
         # 1) tensorflow to compute y_ref
         # 2) save {x,y1,y2,...} as tb from tensorflow 
         y_ref = conv_ref(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2, relu_flag=self.relu_flag)
@@ -263,9 +257,16 @@ class Conv(Layer):
         if   self.params['alloc'] == 'block': alloc = self.block_alloc
         elif self.params['alloc'] == 'layer': alloc = self.layer_alloc
         
-        y, metrics = pim(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], alloc, self.adc_state, self.adc_thresh, self.params)
-        y = np.reshape(y, (yh, yw, self.fn))
-        y = y / 4
+        if self.params['rpr_alloc'] == 'centroids':
+            y, metrics = pim(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], alloc, self.adc_state, self.adc_thresh, self.params)
+            y = np.reshape(y, (yh, yw, self.fn))
+            y = y / 4
+        elif self.params['rpr_alloc'] == 'dynamic':
+            y, metrics = pim_dyn(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], alloc, self.params)
+            y = np.reshape(y, (yh, yw, self.fn))
+            # may have (*4) problems somewhere.
+        else:
+            assert (False)
         
         # we shud move this into forward, do it after the y - y_ref. 
         assert(np.all(np.absolute(y) < 2 ** 23))
@@ -367,19 +368,10 @@ class Conv(Layer):
 
         return wb
                 
-    def profile_rpr(self, x):
-        ## okay, so can we remove the x part of this and call this function in init() ... that would be so great.
-
-        nrow = self.fh * self.fw * self.fc
-        
-        patches = self.transform_inputs(x)
-        npatch, nwl, wl, bpa = np.shape(patches)
-        # p_avg = np.max(np.mean(x, axis=2))
-        p_avg = np.mean(x)
+    def profile_rpr(self):
 
         rpr_low = 1
         rpr_high = 64
-        # _, all_counts = profile(patches, self.wb, (self.yh * self.yw, self.fn), rpr_low, rpr_high, self.params)
             
         self.adc_state = np.zeros(shape=(rpr_high + 1, self.params['adc'] + 1))
         self.adc_thresh = np.zeros(shape=(rpr_high + 1, self.params['adc'] + 1))
@@ -398,7 +390,10 @@ class Conv(Layer):
             # p = counts / np.cumsum(counts)
             p = counts / np.sum(counts)
             s = values
-            # WOW - row=(nrow / rpr) is huge over approx for this.
+
+            nrow = self.fh * self.fw * self.fc
+            p_avg = 1. # TODO: we need to set this back to actual p_avg
+
             mu, std = exp_err(s=s, p=p, var=self.params['sigma'], adc=centroids, rpr=rpr, row=np.ceil(p_avg * nrow / rpr))
             rpr_dist[rpr] = {'mu': mu, 'std': std, 'centroids': centroids}
             

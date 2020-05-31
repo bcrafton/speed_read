@@ -3118,10 +3118,18 @@ we want to integrate the older methods to our new setup.
 
 we are still calling 'profile_rpr' in forward.
 
+-------
 
+okay we verified adc_scale10 is broken
+i dont really even know what its doing lol
+it creates a model, runs adc_profile
+never uses either of them
+then it spawns the test creating new models not passig the old ones along.
+> https://github.com/bcrafton/speed_read/blob/adc_scale10/src/tb.py
 
+i think this was just to make sure that we cud do adc_scale separately.
 
-
+-------
 
 
 

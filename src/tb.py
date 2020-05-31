@@ -15,6 +15,7 @@ from multiprocessing import Pool
 
 cmd = "gcc pim.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o pim.so"; os.system(cmd)
 cmd = "gcc pim_sync.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o pim_sync.so"; os.system(cmd)
+cmd = "gcc pim_dyn.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o pim_dyn.so"; os.system(cmd)
 cmd = "gcc profile.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o profile.so"; os.system(cmd)
 
 from layers import *
@@ -71,8 +72,8 @@ array_params = {
 'bpw': 8,
 'adc': 8,
 'adc_mux': 8,
-'wl': 256,
-'bl': 256,
+'wl': 128,
+'bl': 128,
 'offset': 128,
 }
 
@@ -83,7 +84,9 @@ arch_params = {
 'sigma': [0.05],
 'cards': [1],
 'profile': [1],
-'rpr': ['centroids', 'dynamic']
+# 'rpr': ['centroids', 'dynamic']
+# 'rpr_alloc': ['dynamic']
+'rpr_alloc': ['centroids']
 }
 
 load_profile_adc = 1
