@@ -58,14 +58,20 @@ def rpr(nrow, p, q, params):
             rpr_low = 1
             rpr_high = 16
             for rpr in range(rpr_low, rpr_high + 1):
-                scale = 2**(wb - 1) * 2**(xb - 1)
+                # we over approximate error in several ways:
+                # 1) np.ceil(nrow / rpr)
+                # 2) dont consider bias, relu
+                # 3) we keep all 64 (x, w) below (1/64), bound to be far less than 1.
+                scale = 2**wb * 2**xb
                 mu, std = prob_err(p[wb], params['sigma'], params['adc'], rpr, np.ceil(nrow / rpr))
+                # e = (scale / q) * 64 * std
+                # e_mu = (scale / q) * 64 * mu
                 e = (scale / q) * 5 * std
-                e_mu = (scale / q) * mu
+                e_mu = (scale / q) * 5 * mu
 
                 if rpr == rpr_low:
                     rpr_lut[xb][wb] = rpr
-                if (e < 1.) and (np.absolute(e_mu) < 0.15):
+                if (e < 1.) and (np.absolute(e_mu) < 1.):
                 # if e < 1.:
                     rpr_lut[xb][wb] = rpr
 

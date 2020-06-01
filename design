@@ -3135,21 +3135,64 @@ i think this was just to make sure that we cud do adc_scale separately.
 
 -------
 
+plot and verify this shit.
 
+do we also want to verify with CIFAR10 ? 
+feel like they wud make it complete
+yeah i think we want to verify with both.
 
+-------
 
+okay, dang ... these looks pretty darn close.
 
+meld pim_dyn.c ../../speed_read1/src/pim.c
+meld plot4.py ../../speed_read1/src/plot4.py
+meld rpr.py ../../speed_read1/src/rpr.py
 
+-------
 
+i am not sure why we reran with just 20%
+because i dont think we changed anything.
 
+ohh
+right it was the weights and stuff
+we throught we wud see similar min/max.
 
+-------
 
+okay after moving the weights.
+fixing the init_x
+we get the EXACT same min/max
+we get the same cycles/stalls
 
+but we are seeing different:
+y_std, y_mean.
 
+-------
 
+beginning to think its just how we are computing the mean/std
 
+OH, didnt we do randomness differently ? 
 
+yeah the table is all messed up r.n.
 
+cc_update1:
+> think the var was doubled (*500, not 1000)
+> think we should expect to see sharp changes in MSE, when we do this quantized var error LUT
+
+adc_scale12:
+> var in this repo is not accurate for pim_dyn.c
+> passing it a floating point array, when it wants int
+> yeah actually 0 idea how this is working lol.
+  > AHH, we cast it to int inside of cdot.py
+
+-------
+
+i think the right move is to update pim_dyn.c to take floating point values
+but maybe to first verify that with the old lut_var it works the same
+we are basically there.
+
+-------
 
 
 

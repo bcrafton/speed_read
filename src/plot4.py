@@ -47,7 +47,7 @@ y_energy = np.zeros(shape=(2, 2, len(x), num_layers))
 # acc = results_tf['acc_tf']
 
 for key in sorted(results.keys()):
-    (skip, cards, alloc, profile, narray, sigma) = key
+    (skip, cards, alloc, profile, narray, sigma, rpr_alloc) = key
     layer_results = results[key]
 
     for layer in range(num_layers):
@@ -90,7 +90,7 @@ for key in sorted(results.keys()):
 
 ####################
 
-plot_layer = 15
+plot_layer = 5
 
 ####################
 
