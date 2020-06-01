@@ -240,13 +240,13 @@ class Conv(Layer):
         y = self.act(y)
         y_ref = self.act(y_ref)
 
-        y_min = np.min(y - y_ref)
-        y_max = np.max(y - y_ref)
+        y_min = np.min(y_ref)
+        y_max = np.max(y_ref)
         y_mean = np.mean(y - y_ref)
         y_std = np.std(y - y_ref)
         # assert (self.s == 1)
         
-        # print ('y_mean', y_mean, 'y_std', y_std)
+        print ('y_mean', y_mean, 'y_std', y_std, 'y_max', y_max, 'y_min', y_min)
         
         # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
         # results = {}
