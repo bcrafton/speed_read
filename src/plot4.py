@@ -168,6 +168,9 @@ fig.savefig('acc.png', dpi=300)
 
 ####################
 
+# print (y_std[1, 0, :, :])
+print (y_std[1, 1, :, :])
+
 # print (np.around(y_mac_per_pJ[1, 1, :, plot_layer] / y_mac_per_pJ[1, 0, :, plot_layer], 3))
 # print (np.around(y_mac_per_cycle[1, 1, :, plot_layer] / y_mac_per_cycle[1, 0, :, plot_layer], 3))
 
