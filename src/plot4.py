@@ -19,15 +19,15 @@ def merge_dicts(list_of_dicts):
 
 comp_pJ = 22. * 1e-12 / 32. / 16.
 
-num_layers = 20
+num_layers = 6
 num_comparator = 8
 results = np.load('results.npy', allow_pickle=True).item()
 
 # print (results.keys())
 # results_tf = np.load('results_tf.npy', allow_pickle=True).item()
 
-x = np.array([0.06, 0.08, 0.10, 0.12, 0.14, 0.16, 0.18, 0.20])
-# x = np.array([0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15])
+# x = np.array([0.06, 0.08, 0.10, 0.12, 0.14, 0.16, 0.18, 0.20])
+x = np.array([0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15])
 
 y_mean = np.zeros(shape=(2, 2, len(x), num_layers))
 y_std = np.zeros(shape=(2, 2, len(x), num_layers))
