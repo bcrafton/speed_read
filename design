@@ -3211,6 +3211,33 @@ lets see if it actually matches old results
 then lets pull cifar10.npy in
 and see if we can get it to match as well.
 
+-------
+
+sooo 
+remember how we at one point changed from 32,64,128 -> 64,128,256
+and we figured out the hard way
+also changed from: (f,b,q) to dict['f'], dict['b'], dict['q'] ?
+
+well i dont think that we ever commited that
+we just verified it and moved on.
+
+-------
+
+OH right, 
+checkout 
+
+1) cifar_match_new
+2) cifar_match_old
+
+it looks like we branched: cifar_match_new
+from cc_update.
+not cc_update1
+
+might want to do some diffs there ?
+
+-------
+
+
 
 
 
