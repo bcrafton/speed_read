@@ -38,8 +38,8 @@ def init_x(num_example):
     # xs = xs / np.array([0.229, 0.224, 0.225])
     # xs, scale = quantize_np(xs)
     
-    xs = xs[1:2]
-    ys = ys[1:2]
+    xs = xs[0:num_example]
+    ys = ys[0:num_example]
     return xs, ys
 
 ####
@@ -82,7 +82,7 @@ param_sweep = {
 # seems like you gotta change e_mu based on this.
 # set e_mu = 0.15
 # set sigma = 0.05
-'sigma': [0.20],
+'sigma': [0.06, 0.08, 0.10, 0.12, 0.14, 0.16, 0.18, 0.20],
 'err_sigma': 0.,
 
 'profile': [1],

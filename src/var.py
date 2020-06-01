@@ -14,11 +14,11 @@ def lut_var(var, states):
         p2 = norm.cdf( 2.5, 0, std) - norm.cdf( 1.5, 0, std)
         p1 = norm.cdf( 1.5, 0, std) - norm.cdf( 0.5, 0, std)
 
-        p5 = int(round(p5, 3) * 1000)
-        p4 = int(round(p4, 3) * 1000)
-        p3 = int(round(p3, 3) * 1000)
-        p2 = int(round(p2, 3) * 1000)
-        p1 = int(round(p1, 3) * 1000)
+        p5 = int(round(p5, 3) * 500)
+        p4 = int(round(p4, 3) * 500)
+        p3 = int(round(p3, 3) * 500)
+        p2 = int(round(p2, 3) * 500)
+        p1 = int(round(p1, 3) * 500)
         p0 = 1000 - 2 * (p5 + p4 + p3 + p2 + p1)
         
         pos = [5]*p5 + [4]*p4 + [3]*p3 + [2]*p2 + [1]*p1
