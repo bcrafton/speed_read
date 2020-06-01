@@ -90,7 +90,7 @@ for key in sorted(results.keys()):
 
 ####################
 
-plot_layer = 5
+plot_layer = 0
 
 ####################
 

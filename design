@@ -3192,10 +3192,24 @@ i think the right move is to update pim_dyn.c to take floating point values
 but maybe to first verify that with the old lut_var it works the same
 we are basically there.
 
+> okay we so made sure cc_update_match matches with us 
+BEFORE switching to floating point
+
+we see >1 MSE for ResNet18 on layer 1
+
+... we never verified with CIFAR10, 
+but dont know what we were getting for that.
+
+should we back verify with CIFAR10 ? 
+
 -------
 
+yeah lets verify all the way back.
+checkout cc_update1 at that commit
+lets see if it actually matches old results
 
-
+then lets pull cifar10.npy in
+and see if we can get it to match as well.
 
 
 
