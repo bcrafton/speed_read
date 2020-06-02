@@ -66,8 +66,8 @@ def rpr(nrow, p, q, params):
                 mu, std = prob_err(p[wb], params['sigma'], params['adc'], rpr, np.ceil(nrow / rpr))
                 # e = (scale / q) * 64 * std
                 # e_mu = (scale / q) * 64 * mu
-                e = (scale / q) * std
-                e_mu = (scale / q) * mu
+                e = (scale / q) * 5 * std
+                e_mu = (scale / q) * 5 * mu
 
                 if rpr == rpr_low:
                     rpr_lut[xb][wb] = rpr

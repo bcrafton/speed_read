@@ -180,9 +180,7 @@ class Conv(Layer):
         assert (np.all(self.w >= minval))
         assert (np.all(self.w <= maxval))
         # check shape
-        
-        print (np.shape(self.w), self.filter_size)
-        
+                
         assert(np.shape(self.w) == self.filter_size)
         assert(np.shape(self.b) == (self.fn,))
         assert(np.shape(self.q) == ())
@@ -230,7 +228,7 @@ class Conv(Layer):
             y = relu(y)
         y = avg_pool(y, self.p)
         y = y / self.q
-        y = np.floor(y)
+        y = np.round(y)
         y = np.clip(y, -128, 127)
         return y
 
@@ -254,7 +252,7 @@ class Conv(Layer):
         y_std = np.std(y - y_ref)
         # assert (self.s == 1)
         
-        # print ('y_mean', y_mean, 'y_std', y_std)
+        print ('y_mean', y_mean, 'y_std', y_std)
         
         # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
         # results = {}

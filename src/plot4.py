@@ -74,7 +74,7 @@ for key in sorted(results.keys()):
 
         y_array[skip][cards][sigma_index][layer] = np.mean(example_results['array'])
         
-        print (y_adc[skip][cards][sigma_index][layer])
+        # print (y_adc[skip][cards][sigma_index][layer])
 
 ####################
 
@@ -172,10 +172,19 @@ fig.savefig('acc.png', dpi=300)
 
 ####################
 
-print (np.around(y_mac_per_pJ[1, 1, :, plot_layer] / y_mac_per_pJ[1, 0, :, plot_layer], 3))
-print (np.around(y_mac_per_cycle[1, 1, :, plot_layer] / y_mac_per_cycle[1, 0, :, plot_layer], 3))
+'''
+print (y_std[1, 0, :, :])
+print (y_mac_per_cycle[1, 0, :, :])
+print (y_mac_per_pJ[1, 0, :, :])
+'''
+print (y_std[1, 1, :, :])
+print (y_mac_per_cycle[1, 1, :, :])
+print (y_mac_per_pJ[1, 1, :, :])
 
-print (np.around(y_array[1, 1, :, plot_layer] / y_array[1, 0, :, plot_layer], 3))
+# print (np.around(y_mac_per_pJ[1, 1, :, plot_layer] / y_mac_per_pJ[1, 0, :, plot_layer], 3))
+# print (np.around(y_mac_per_cycle[1, 1, :, plot_layer] / y_mac_per_cycle[1, 0, :, plot_layer], 3))
+
+# print (np.around(y_array[1, 1, :, plot_layer] / y_array[1, 0, :, plot_layer], 3))
 
 # print (y_array[1, 1, :, plot_layer])
 # print (y_array[1, 0, :, plot_layer])

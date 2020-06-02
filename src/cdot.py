@@ -30,6 +30,8 @@ def pim(x, w, y_shape, lut_var, lut_rpr, alloc, params):
     lut_var = np.ascontiguousarray(lut_var, np.int32)
     lut_rpr = np.ascontiguousarray(lut_rpr, np.int32)
     metrics = np.ascontiguousarray(metrics, np.int32)
+    
+    print (lut_rpr)
 
     ########
 
