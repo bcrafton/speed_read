@@ -3237,14 +3237,34 @@ might want to do some diffs there ?
 
 -------
 
+why does mse skyrocket when we get to 18% variance ? 
 
+0.16*3 = 0.48
+0.18*3 = 0.54
 
+so essentially, an error becomes inevitable even at rpr=1.
 
+-------
 
+plot_perf.py
+plot4.py
 
+which one did it better ?
 
+-------
 
+OH wow - super powerful note
+if we only turn on 1 rows and we get our a 3.
+we need to cap it.
 
+but what about when it is less ?
+yeah then we are screwed. 
+we need to lower than threshold significantly.
+
+meaning we should set the boundary for 1 to be wayyyy less than half.
+not sure if this will compromise other things tho.
+
+-------
 
 
 
