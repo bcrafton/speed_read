@@ -133,6 +133,8 @@ def pim_dyn(x, w, y_shape, lut_var, lut_rpr, alloc, params):
     lut_rpr = np.ascontiguousarray(lut_rpr, np.int32)
     metrics = np.ascontiguousarray(metrics, np.int64)
 
+    print (lut_rpr)
+
     ########
 
     if params['alloc'] == 'block':

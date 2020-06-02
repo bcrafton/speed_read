@@ -74,19 +74,20 @@ array_params = {
 arch_params = {
 'skip': [1],
 'alloc': ['block'],
-'narray': [2 ** 13],
-'sigma': [0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15],
+'narray': [152],
+'sigma': [0.05],
 'cards': [1],
-'profile': [1],
+'profile': [0],
 'rpr_alloc': ['dynamic']
 }
 
-load_profile_adc = 0
+load_profile_adc = True
 
 param_sweep = perms(arch_params)
 
 ####
 
+'''
 def create_model(weights):
     layers = [
     Conv(input_size=(32,32, 3), filter_size=(3,3, 3,64), pool=1, stride=1, pad1=1, pad2=1, params=array_params, weights=weights),
@@ -97,6 +98,22 @@ def create_model(weights):
 
     Conv(input_size=(8,8,128), filter_size=(3,3,128,256), pool=1, stride=1, pad1=1, pad2=1, params=array_params, weights=weights),
     Conv(input_size=(8,8,256), filter_size=(3,3,256,256), pool=2, stride=1, pad1=1, pad2=1, params=array_params, weights=weights)
+    ]
+
+    model = Model(layers=layers)
+    return model
+'''
+
+def create_model(weights):
+    layers = [
+    Conv(input_size=(32,32, 3), filter_size=(3,3, 3,32), pool=1, stride=1, pad1=1, pad2=1, params=array_params, weights=weights),
+    Conv(input_size=(32,32,32), filter_size=(3,3,32,32), pool=2, stride=1, pad1=1, pad2=1, params=array_params, weights=weights),
+
+    Conv(input_size=(16,16,32), filter_size=(3,3,32,64), pool=1, stride=1, pad1=1, pad2=1, params=array_params, weights=weights),
+    Conv(input_size=(16,16,64), filter_size=(3,3,64,64), pool=2, stride=1, pad1=1, pad2=1, params=array_params, weights=weights),
+
+    Conv(input_size=(8,8, 64), filter_size=(3,3,64, 128), pool=1, stride=1, pad1=1, pad2=1, params=array_params, weights=weights),
+    Conv(input_size=(8,8,128), filter_size=(3,3,128,128), pool=2, stride=1, pad1=1, pad2=1, params=array_params, weights=weights)
     ]
 
     model = Model(layers=layers)
@@ -122,7 +139,7 @@ x, y = init_x(1, (32, 32), 0, 127)
 
 ##########################
 
-weights = np.load('../cifar10_weights.npy', allow_pickle=True).item()
+weights = np.load('../cifar10_weights_old.npy', allow_pickle=True).item()
 model = create_model(weights)
 
 if not load_profile_adc:

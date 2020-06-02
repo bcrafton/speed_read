@@ -3237,6 +3237,51 @@ might want to do some diffs there ?
 
 -------
 
+even cifar_match_new and cifar_match_old are diffing
+i wonder if they diff if we reset them ? 
+
+the diff def coming from pim.c
+if u do a meld:
+meld pim.c ../../speed_read2/src/pim.c
+
+then u can see sooo many changes.
+might be hopeless to pull all the way through it.
+
+do they take the same number of cycles ??
+they should bc the RPR is the same.
+
+this is obviously hard to verify...
+if we cud just set narray to be the min.
+
+-------
+
+it feels like we shud just move on.
+we verified it the best we cud.
+
+-------
+
+okay so the reason why:
+cifar_match_new dosnt match cifar_match_old
+is because _old operated at 128 ADc
+so layers where BL < filters
+we had to operate several things at slower speed.
+
+if u look at layers where this is not necessary
+u will find that we match.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
