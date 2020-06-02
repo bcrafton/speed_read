@@ -379,7 +379,7 @@ int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, long* metrics, int
         }
         else {
           // int comps = min(wl_sum[block][bl] - 1, adc - 1);
-          int comps = comps_enabled(wl_sum[block][bl], adc, rpr, adc_state, adc_thresh) - 1;          
+          int comps = comps_enabled(wl_sum[block][bl], adc, rpr, adc_state, adc_thresh) - 1;
           assert((comps >= 0) && (comps < adc));
           assert ((BL % 8) == 0);
           metrics[comps] += BL / 8;

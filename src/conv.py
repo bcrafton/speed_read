@@ -141,7 +141,8 @@ class Conv(Layer):
             self.params['rpr'] = self.profile_rpr()
 
         elif self.params['rpr_alloc'] == 'dynamic':
-            self.params['var'] = lut_var_dyn(params['sigma'], 64)
+            # self.params['var'] = lut_var_dyn(params['sigma'], 64)
+            self.params['var'] = lut_var(params['sigma'], 64)
         
             ## TODO: cant this be "self.wb" and cant we throw it in a different function ??
             w_offset = self.w + self.params['offset']

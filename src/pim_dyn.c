@@ -17,9 +17,9 @@
 
 // make sure (bl <= 1024), malloc would be too slow.
 // if we just pick a size large enough we will be okay
-#define VECTOR_SIZE 128 // number bl per array
+#define VECTOR_SIZE 256 // number bl per array
 #define ARRAY_SIZE 32 // 512 / 16 = 32
-#define BLOCK_SIZE 2048 // number of blocks 
+#define BLOCK_SIZE 4096 // number of blocks 
 
 //////////////////////////////////////////////
 
@@ -157,7 +157,7 @@ wl
 #define METRIC_STALL 12
 #define METRIC_BLOCK_CYCLE 13
 
-int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, long* metrics, int* block_map, int adc, int skip, int R, int B, int C, int NWL, int NBL, int WL, int BL)
+int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, long* metrics, int* block_map, int adc, int skip, int R, int B, int C, int NWL, int NBL, int WL, int BL)
 {
   // x = nrow, nwl, wl, xb
   // f = nwl, wl, nbl, bl
@@ -284,17 +284,21 @@ int pim(int* x, int* w, int* y, int* lut_var, int* lut_rpr, long* metrics, int* 
           
           int key = rand() % 1000;
           int var_addr = pdot[block][bl][bl_ptr] * 1000 + key;
-          int var = lut_var[var_addr];
+          float var = lut_var[var_addr];
 
+          /*
           if (!((var >= -3) && (var <= 3))) {
-            printf("%d\n", var);
+            printf("%f\n", var);
             assert ((var >= -3) && (var <= 3));
           }
+          */
           
           metrics[METRIC_RON] += pdot[block][bl][bl_ptr];
           metrics[METRIC_ROFF] += wl_sum[block][bl] - pdot[block][bl][bl_ptr];
 
-          pdot[block][bl][bl_ptr] = min(max(pdot[block][bl][bl_ptr] + var, 0), adc);
+          // pdot[block][bl][bl_ptr] = min(max(pdot[block][bl][bl_ptr] + var, 0), adc);
+          float pdot_var = pdot[block][bl][bl_ptr] + var;
+          pdot[block][bl][bl_ptr] = min(max((int) round(pdot_var), 0), adc);
           y[r[block] * C + c] += (pdot[block][bl][bl_ptr] << (wb + xb[block]));
           
           if (wl_sum[block][bl] >= adc) {
