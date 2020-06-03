@@ -202,7 +202,7 @@ print (np.around(MAC_pJ_centroids / MAC_pJ_cards, 3))
 print ('mac / cycle')
 print (np.around(TOPs_centroids / TOPs_cards, 3))
 print ('mse')
-print (np.around(y_std[1, 1, 1, :, :] / y_std[1, 0, 0, :, :], 2))
+print (np.around(y_std[1, 1, 1, :, :] / y_std[1, 1, 0, :, :], 2))
 
 print ('----------')
 print ('----------')
@@ -213,7 +213,7 @@ print (np.around(MAC_pJ_centroids / MAC_pJ_skip, 3))
 print ('mac / cycle')
 print (np.around(TOPs_centroids / TOPs_skip, 3))
 print ('mse')
-print (np.around(y_std[1, 1, 1, :, :] / y_std[1, 1, 0, :, :], 2))
+print (np.around(y_std[1, 1, 1, :, :] / y_std[1, 0, 0, :, :], 2))
 
 ####################
 
