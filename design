@@ -3266,6 +3266,58 @@ not sure if this will compromise other things tho.
 
 -------
 
+plot_perf / plot_util / plot4
+all bin things differently
+but i want scalable solution
+that makes this cleaner.
+
+high dimensional arrays is pretty ideal.
+because then we can do [SKIP][:]
+or w.e.
+
+the dictionary not so great because we cannot prune certain sections.
+
+really should have a good tool to handle these results
+not sure how to do that tho..
+
+-------
+
+
+
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

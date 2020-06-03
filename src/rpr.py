@@ -72,7 +72,6 @@ def rpr(nrow, p, q, params):
                 if rpr == rpr_low:
                     rpr_lut[xb][wb] = rpr
                 if (e < 1.) and (np.absolute(e_mu) < 1.):
-                # if e < 1.:
                     rpr_lut[xb][wb] = rpr
 
     '''

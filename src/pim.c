@@ -158,13 +158,19 @@ int eval_adc(float x, int adc, int rpr, float* adc_thresh)
 
 //////////////////////////////////////////////
 
+// we need to account for RPR=1 case.
+// max output should be 1
+// and the threshold for 1 should be very low.
+// 4 s.d. of on state.
+
 // should be passing floor thresholds here, not midpoints.
 int eval_adc(float x, int adc, int rpr, float* adc_state, float* adc_thresh)
 {
   assert(adc == 8);
 
-  int offset = rpr * (adc + 1);
+  x = min(x, (float) rpr);
 
+  int offset = rpr * (adc + 1);
   for (int i=0; i<=adc; i++) {
     int idx = offset + i;
     if (x < adc_thresh[idx]) {

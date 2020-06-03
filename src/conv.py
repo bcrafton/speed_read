@@ -384,6 +384,7 @@ class Conv(Layer):
             # values, counts, centroids = self.dist(x=x, rpr=rpr)
             counts = self.all_counts[rpr][0:rpr+1]
             values = np.array(range(rpr+1))
+            
             if rpr <= self.params['adc']:
                 centroids = np.arange(0, self.params['adc'] + 1, step=1, dtype=np.float32)
             else:
@@ -402,6 +403,10 @@ class Conv(Layer):
             
             self.adc_state[rpr] = 4 * np.array(centroids)
             self.adc_thresh[rpr] = adc_floor(centroids)
+            
+            if rpr == 1:
+                print (self.adc_thresh[rpr])
+                self.adc_thresh[rpr][0] = 0.2
             
         # def rpr(nrow, p, q, params):
         rpr_lut = np.zeros(shape=(8, 8), dtype=np.int32)
@@ -430,14 +435,13 @@ class Conv(Layer):
                     
                     # e = (scale / self.q) * 64 * std
                     # e_mu = (scale / self.q) * 64 * mu
-                    e = (scale / self.q) * 64 * std
-                    e_mu = (scale / self.q) * 64 * mu
+                    e = (scale / self.q) * 5 * std
+                    e_mu = (scale / self.q) * 5 * mu
                     # print (scale, e, e_mu)
                     
                     if rpr == rpr_low:
                         rpr_lut[xb][wb] = rpr
                     if (e < 1.) and (np.absolute(e_mu) < 1.):
-                    # if e < 1.:
                         rpr_lut[xb][wb] = rpr
 
         '''

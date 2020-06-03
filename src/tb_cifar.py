@@ -59,7 +59,7 @@ def perms(param):
             
     return params
 
-####
+############
 
 array_params = {
 'bpa': 8,
@@ -71,19 +71,33 @@ array_params = {
 'offset': 128,
 }
 
-arch_params = {
+############
+
+arch_params1 = {
 'skip': [1],
 'alloc': ['block'],
 'narray': [2 ** 13],
-'sigma': [0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15],
+'sigma': [0.06, 0.08, 0.10, 0.12, 0.14, 0.16, 0.18, 0.20],
 'cards': [1],
+'profile': [1],
+'rpr_alloc': ['dynamic', 'centroids']
+}
+
+arch_params2 = {
+'skip': [1],
+'alloc': ['block'],
+'narray': [2 ** 13],
+'sigma': [0.06, 0.08, 0.10, 0.12, 0.14, 0.16, 0.18, 0.20],
+'cards': [0],
 'profile': [1],
 'rpr_alloc': ['dynamic']
 }
 
-load_profile_adc = 0
+############
 
-param_sweep = perms(arch_params)
+param_sweep1 = perms(arch_params1)
+param_sweep2 = perms(arch_params2)
+param_sweep = param_sweep1 + param_sweep2
 
 ####
 
@@ -125,6 +139,10 @@ x, y = init_x(1, (32, 32), 0, 127)
 weights = np.load('../cifar10_weights.npy', allow_pickle=True).item()
 model = create_model(weights)
 
+##########################
+
+load_profile_adc = False
+
 if not load_profile_adc:
     profile = model.profile_adc(x=x)
     np.save('profile_adc', profile)
@@ -132,6 +150,7 @@ else:
     profile = np.load('profile_adc.npy', allow_pickle=True).item()
     model.set_profile_adc(profile)
 
+##########################
 
 num_runs = len(param_sweep)
 parallel_runs = 8
