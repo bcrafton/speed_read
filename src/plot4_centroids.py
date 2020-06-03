@@ -82,12 +82,24 @@ plot_layer = 0
 
 ####################
 
+TOPs_skip      = 2 * 700e6 * np.sum(y_mac_per_cycle[1, 0, 0, :, :], axis=1) / 1e12 
+TOPs_cards     = 2 * 700e6 * np.sum(y_mac_per_cycle[1, 1, 0, :, :], axis=1) / 1e12
+TOPs_centroids = 2 * 700e6 * np.sum(y_mac_per_cycle[1, 1, 1, :, :], axis=1) / 1e12
+
+####################
+
+MAC_pJ_skip      = np.sum(y_mac[1, 0, 0, :, :], axis=1) / 1e12 / np.sum(y_energy[1, 0, 0, :, :], axis=1)
+MAC_pJ_cards     = np.sum(y_mac[1, 1, 0, :, :], axis=1) / 1e12 / np.sum(y_energy[1, 1, 0, :, :], axis=1)
+MAC_pJ_centroids = np.sum(y_mac[1, 1, 1, :, :], axis=1) / 1e12 / np.sum(y_energy[1, 1, 1, :, :], axis=1)
+
+####################
+
 plt.cla()
 ax = plt.gca()
 # plt.plot(x, y_mac_per_cycle[0, 0, :, plot_layer], color='green', marker="D", markersize=5, label='baseline')
-plt.plot(x, 2 * 700e6 * np.sum(y_mac_per_cycle[1, 0, 0, :, :], axis=1) / 1e12, color='green', marker="D", markersize=5, label='skip')
-plt.plot(x, 2 * 700e6 * np.sum(y_mac_per_cycle[1, 1, 0, :, :], axis=1) / 1e12, color='blue', marker="s", markersize=6, label='cards')
-plt.plot(x, 2 * 700e6 * np.sum(y_mac_per_cycle[1, 1, 1, :, :], axis=1) / 1e12, color='black', marker="^", markersize=6, label='k-means')
+plt.plot(x, TOPs_skip, color='green', marker="D", markersize=5, label='skip')
+plt.plot(x, TOPs_cards, color='blue', marker="s", markersize=6, label='cards')
+plt.plot(x, TOPs_centroids, color='black', marker="^", markersize=6, label='k-means')
 plt.ylim(bottom=0)
 plt.xticks(x)
 # plt.xticks([0.08, 0.12])
@@ -104,9 +116,9 @@ fig.savefig('TOPs.png', dpi=300)
 plt.cla()
 ax = plt.gca()
 # plt.plot(x, y_mac_per_pJ[0, 0, :, plot_layer], color='green', marker="D", markersize=5, label='baseline')
-plt.plot(x, np.sum(y_mac[1, 0, 0, :, :], axis=1) / 1e12 / np.sum(y_energy[1, 0, 0, :, :], axis=1), color='green', marker="D", markersize=5, label='skip')
-plt.plot(x, np.sum(y_mac[1, 1, 0, :, :], axis=1) / 1e12 / np.sum(y_energy[1, 1, 0, :, :], axis=1), color='blue', marker="s", markersize=6, label='cards')
-plt.plot(x, np.sum(y_mac[1, 1, 1, :, :], axis=1) / 1e12 / np.sum(y_energy[1, 1, 1, :, :], axis=1), color='black', marker="^", markersize=6, label='k-means')
+plt.plot(x, MAC_pJ_skip, color='green', marker="D", markersize=5, label='skip')
+plt.plot(x, MAC_pJ_cards, color='blue', marker="s", markersize=6, label='cards')
+plt.plot(x, MAC_pJ_centroids, color='black', marker="^", markersize=6, label='k-means')
 plt.ylim(bottom=0)
 plt.xticks(x)
 # plt.xticks([0.08, 0.12])
@@ -163,6 +175,7 @@ fig.savefig('acc.png', dpi=300)
 # print ('------')
 # print (y_std[1, 1, :, :])
 
+'''
 print ('mac / pJ')
 print (np.around(y_mac_per_pJ[1, 1, 1, :, plot_layer] / y_mac_per_pJ[1, 0, 0, :, plot_layer], 3))
 print ('mac / cycle')
@@ -180,12 +193,29 @@ print ('mac / cycle')
 print (np.around(y_mac_per_cycle[1, 1, 1, :, plot_layer] / y_mac_per_cycle[1, 1, 0, :, plot_layer], 3))
 print ('mse')
 print (np.around(y_std[1, 1, 1, :, :] / y_std[1, 1, 0, :, :], 2))
+'''
 
 ####################
 
+print ('mac / pJ')
+print (np.around(MAC_pJ_centroids / MAC_pJ_cards, 3))
+print ('mac / cycle')
+print (np.around(TOPs_centroids / TOPs_cards, 3))
+print ('mse')
+print (np.around(y_std[1, 1, 1, :, :] / y_std[1, 0, 0, :, :], 2))
 
+print ('----------')
+print ('----------')
+print ('----------')
 
+print ('mac / pJ')
+print (np.around(MAC_pJ_centroids / MAC_pJ_skip, 3))
+print ('mac / cycle')
+print (np.around(TOPs_centroids / TOPs_skip, 3))
+print ('mse')
+print (np.around(y_std[1, 1, 1, :, :] / y_std[1, 1, 0, :, :], 2))
 
+####################
 
 
 
