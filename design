@@ -3282,7 +3282,26 @@ not sure how to do that tho..
 
 -------
 
+so what is the next thing here ? 
+> better plot code ... plot.py
 
+> handle cases where we get dumb errors that can be avoided.
+  > y > nwl
+  > y = 0.49 ... rounding down to 0.
+  > fix pim_dyn.c 
+
+> we had very little improvement on ResNet18.
+  > had to slow wayyy down to get to 0.1 STD.
+  > do we need to think about variance impact in shallow vs deep layers ? 
+    > wud this not be a paper in itself ? 
+    > yeah similar idea to before with CIM-NET
+    
+so what can we do to get better performance on ResNet
+> well there are a few priors.
+
+1) we need a good ResNet or VGG. High accuracy. Each block should have its own max(y). will give more 1s and higher accuracy.
+2) what is the variance threshold we can tolerate.
+3) we need to see what results we are currently getting with this threshold with our updated changes. AND see if there is anything we can change right now to get perf boost.
 
 -------
 
