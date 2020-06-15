@@ -298,7 +298,7 @@ int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, long* metrics, int
 
           // pdot[block][bl][bl_ptr] = min(max(pdot[block][bl][bl_ptr] + var, 0), adc);
           float pdot_var = pdot[block][bl][bl_ptr] + var;
-          pdot[block][bl][bl_ptr] = min(max((int) round(pdot_var), 0), adc);
+          pdot[block][bl][bl_ptr] = min(max((int) round(pdot_var), 0), min(adc, rpr));
           y[r[block] * C + c] += (pdot[block][bl][bl_ptr] << (wb + xb[block]));
           
           if (wl_sum[block][bl] >= adc) {
