@@ -65,37 +65,45 @@ def perms(param):
             
     return params
 
-####
+############
 
 array_params = {
 'bpa': 8,
 'bpw': 8,
 'adc': 8,
 'adc_mux': 8,
-'wl': 128,
-'bl': 128,
+'wl': 256,
+'bl': 256,
 'offset': 128,
 }
 
-arch_params = {
+############
+
+arch_params1 = {
 'skip': [1],
 'alloc': ['block'],
-'narray': [2 ** 14],
-
-# 'sigma': [0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15],
-'sigma': [0.06, 0.08, 0.10, 0.12, 0.14, 0.16, 0.18, 0.20],
-# 'sigma': [0.20],
-
+'narray': [2 ** 13],
+'sigma': [0.05, 0.10],
 'cards': [1],
 'profile': [1],
-# 'rpr': ['centroids', 'dynamic']
-'rpr_alloc': ['dynamic']
-# 'rpr_alloc': ['centroids']
+'rpr_alloc': ['dynamic', 'centroids']
 }
 
-load_profile_adc = 1
+arch_params2 = {
+'skip': [1],
+'alloc': ['block'],
+'narray': [2 ** 13],
+'sigma': [0.05, 0.10],
+'cards': [0],
+'profile': [1],
+'rpr_alloc': ['dynamic']
+}
 
-param_sweep = perms(arch_params)
+############
+
+param_sweep1 = perms(arch_params1)
+param_sweep2 = perms(arch_params2)
+param_sweep = param_sweep1 + param_sweep2
 
 ####
 
@@ -141,9 +149,12 @@ x, y = init_x(num_example=1)
 
 ##########################
 
-# TODO: make sure we are using the right input images and weights
 weights = np.load('resnet18_quant_weights.npy', allow_pickle=True).item()
 model = create_model(weights)
+
+##########################
+
+load_profile_adc = True
 
 if not load_profile_adc:
     profile = model.profile_adc(x=x)
@@ -151,6 +162,8 @@ if not load_profile_adc:
 else:
     profile = np.load('profile_adc.npy', allow_pickle=True).item()
     model.set_profile_adc(profile)
+
+##########################
 
 num_runs = len(param_sweep)
 parallel_runs = 8
