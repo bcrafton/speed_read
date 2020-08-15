@@ -1,6 +1,7 @@
 
 done
 -------
+-------
 > test bench
 > slow conv reference (8 rows at a time)
 > weight statistic dynamic speed
@@ -61,7 +62,51 @@ ResNet18
   > means we can pick our x/w pretty much however
   > also means we dont have to split at all.
 
+> how can we verify this shit ? 
+  > clean up code
+  > above all else, we need to make sure our shit is right.
+
+> verify:
+  > %1s
+  > stalls for utilization calculation.
+  
+> load {counts, values} as samples 
+  > its real data, we dont have to approximate ... think its best way to go.
+  > write separate code for this
+
+> integrate cc_update1.
+  > we want to be able to do everything in the same branch.
+  > what needs to be pulled up ?
+  > if we implement old algorithm, we can just back-verify.
+  yeah think we want to do this before any of the new changes.
+  also we should allow:
+  > binomial
+  > profiled data
+  refer to notebook for wholistic view.
+  
+> this is the time to clean stuff up.
+  > will actually make things go faster.
+
+> okay so we want to do this ^ (clean ???)
+  > but it makes sense to finish doing profile first.
+  > then we can pick our profile method
+  > in the dictionary.
+  > and use p(1) for dynamic bias calculation.
+
+1) lut_var - ppf ? or can we continue to do the error thing ? 
+2) need a new profile function basically
+   > get rid of python function, use pim.c and change comps[]
+4) update rpr.py to compute expected (std, mean)
+3) compute centroids, constraints
+   > uniform distributed ?, fractions ?
+   > include a fixed zero centroid!
+5) pass centroids to pim.c 
+6) dynamically configure ADCs - bias or changing thresholds
+7) centroids for [different number of wordlines enabled, xb, wb]
+8) figure out rounding + fixed point stuff 
+
 future / not doing:
+-------
 -------
 > is there a relationship between the number of rows turned on and the 1s turned on in that row ? 
   store weight density of that row ... or some bit weighted density i.e. 7 more important than 1.
@@ -71,23 +116,28 @@ future / not doing:
 
 > parse thru code trying to find (nan, 1/0, numerical instability)
 
+No idea:
+-------
+-------
+so if we look at what p :
+[0.74829932 0.74829932 0.74829932 0.74829932 0.74829932 0.74829932 0.74829932 0.79591837]
+> its a little weird how consistent it is across bits ...
+> but if we get the right answer, its fine ? 
+> AND why wouldnt you do this idea by block rather than by layer ?
+> def makes more sense to do it by block rather than layer.
+
+can we do this specific to each column ? 
+can we configure this on the fly ? 
+meaning - if I only turn on 8/16 rows, can I change my ADC thresholds ?
+
 todo
 -------
-> device-to-device variance, not read-to-read
-
 -------
 
-priorities:
+> device-to-device variance, not read-to-read
+
 > need to figure out what to do for left over PE memory.
   > cant just leave it there when we have 9000 arrays allocated.
-
-> how can we verify this shit ? 
-  > clean up code
-  > above all else, we need to make sure our shit is right.
-
-> verify:
-  > %1s
-  > stalls for utilization calculation.
 
 > compare with PE sync, account for PD constraints.
   > 1: 16 array per block ? 64 array per block ?
@@ -96,139 +146,79 @@ priorities:
 
 > cards - shift + scale.
 
--------
-
-> affine ADC + cards + breaking barriers.
-  > go to 256x256
-  > 3-bit ADC 
-  > argue area is nearly the same as 128x128
-  > we will absolutely crush prior work.
-  
-> Yu always turns on 128 rows with 5-bit ADC 
-  > wonder if errors ever happen
-  
--------
-
-can we do this specific to each column ? 
-can we configure this on the fly ? 
-
-meaning - if I only turn on 8/16 rows, can I change my ADC thresholds ?
-
--------
-
-if we can do 1 of 2 things:
-> bias the ADC when less rows are turned on
-> dynamically configure the ADC thresholds
-then we can get some insane performance.
-
-if we cannot do some trick like this, 
-we still need to figure out what we can pull off.
-
--------
-
-so if we look at what p :
-[0.74829932 0.74829932 0.74829932 0.74829932 0.74829932 0.74829932 0.74829932 0.79591837]
-> its a little weird how consistent it is across bits ...
-> but if we get the right answer, its fine ? 
-> AND why wouldnt you do this idea by block rather than by layer ?
-> def makes more sense to do it by block rather than layer.
-
--------
-
-will have to think about how this and compression work together.
-
--------
-1) lut_var - ppf ? or can we continue to do the error thing ? 
-2) need a new profile function basically
-   > get rid of python function, use pim.c and change comps[]
-4) update rpr.py to compute expected (std, mean)
-3) compute centroids, constraints
-   > uniform distributed ?, fractions ?
-   > include a fixed zero centroid!
-5) pass centroids to pim.c 
--------
-6) dynamically configure ADCs - bias or changing thresholds
-7) centroids for [different number of wordlines enabled, xb, wb]
-8) figure out rounding + fixed point stuff 
--------
-?) (nrow/rpr) -> (nrow * p / rpr) ... where p is the (%) of 1s in activataions
-?) increase the array size.
-
--------
-
->>> look at cc_update1 for other todo items
-
-> want more 1s ... better improvement over zero skipping
-> want lower power ADC metrics ... check papers online.
-> power comes from {array size, leakage, sum(rpr - adc), ~percentage of zeros}
-
 > fix eval_adc 
   > think this is breaking out MSE.
   > check eval_adc in pim.c
   > check exp_err in conv.py
+  > somehow verify {eval_adc, comps_enabled}
+    > was thinking separate test bench ...
+    > but we want to test the actual tables that are produced ...
+
 
 > zero skipping same as CC ... that hack we put in.
+
 > dont skip adc update, skip straight to next xb
+
 > (e, e_mu) - account for bias and relu
-> centroids by # of wordlines
-> faster profiling ADC expected
+
 > C code for each algorithm to make things cleaner.
-> 1024x128 arrays.
 
-our direction got skewed again after trying to make ADC profiling faster ...
-... where do we go now ? 
+> centroids by # of wordlines
 
--------
+?) (nrow/rpr) -> (nrow * p / rpr) ... where p is the (%) of 1s in activataions
+?) increase the array size.
 
-> load {counts, values} as samples 
-  > its real data, we dont have to approximate ... think its best way to go.
-  > write separate code for this
-
-> somehow verify {eval_adc, comps_enabled}
-  > was thinking separate test bench ...
-  > but we want to test the actual tables that are produced ...
+> centroids
+  > figure out rounding + fixed point stuff ... make 10b configurable ?
+  > bias for when Nwl != Nrpr
 
 -------
 
-integrate cc_update1.
-we want to be able to do everything in the same branch.
+> read through all these todos ^^^ not just "centroids"
+> kernel of ResNet18 be fixed point and emulate the rest of it.
 
-> what needs to be pulled up ?
-> if we implement old algorithm, we can just back-verify.
+> which branch did we leave off at ??
+  > adc_scale14 ? 
+  > none of other ones matter ? 
+  > https://github.com/bcrafton/speed_read/branches/yours
+  > think we proved match @ cifar_match_adc_scale_new/cifar_match_adc_scale_old
+    > which extended adc_scale13 (cifar_match_adc_scale_new)
+    > so we just continued off adc_scale13
 
-yeah think we want to do this before any of the new changes.
-also we should allow:
-> binomial
-> profiled data
+> Questions about cc_update1:
+  > cifar_match_adc_scale_new
+  > cifar_match_adc_scale_old
+  > adc_scale13
+  > adc_scale14
 
-refer to notebook for wholistic view.
-
--------
-
-this is the time to clean stuff up.
-will actually make things go faster.
-
--------
-
-okay so we want to do this ^
-but it makes sense to finish doing profile first.
-
-then we can pick our profile method
-in the dictionary.
-and use p(1) for dynamic bias calculation.
+> [august] git difftool cifar_match_adc_scale_new [tb_cifar.py]
+  > seems fine to me.
 
 -------
 
 
-
-
-
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
 
 

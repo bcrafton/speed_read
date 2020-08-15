@@ -148,7 +148,7 @@ plt.plot(x, np.mean(y_std[1, 0, 0, :, :], axis=1), color='green', marker="D", ma
 plt.plot(x, np.mean(y_std[1, 1, 0, :, :], axis=1), color='blue', marker="s", markersize=6, label='cards')
 plt.plot(x, np.mean(y_std[1, 1, 1, :, :], axis=1), color='black', marker="^", markersize=6, label='k-means')
 
-# plt.ylim(top=5)
+plt.ylim(bottom=0, top=1)
 plt.xticks(x)
 # plt.xticks([0.08, 0.12])
 # plt.yticks([])
@@ -226,6 +226,18 @@ print ('mac / cycle')
 print (np.around(TOPs_centroids / TOPs_skip, 3))
 print ('mse')
 print (np.around(y_std[1, 1, 1, :, :] / y_std[1, 0, 0, :, :], 2))
+
+print ('----------')
+print ('----------')
+print ('----------')
+
+print ('mac / pJ')
+print (np.around(MAC_pJ_cards / MAC_pJ_skip, 3))
+print ('mac / cycle')
+print (np.around(TOPs_cards / TOPs_skip, 3))
+print ('mse')
+print (np.around(y_std[1, 1, 0, :, :] / y_std[1, 0, 0, :, :], 2))
+
 
 ####################
 
