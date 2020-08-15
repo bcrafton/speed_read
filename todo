@@ -104,6 +104,12 @@ ResNet18
 6) dynamically configure ADCs - bias or changing thresholds
 7) centroids for [different number of wordlines enabled, xb, wb]
 8) figure out rounding + fixed point stuff 
+?) increase the array size.
+
+> need to figure out what to do for left over PE memory.
+  > cant just leave it there when we have 9000 arrays allocated.
+
+> cards - shift + scale
 
 future / not doing:
 -------
@@ -115,6 +121,12 @@ future / not doing:
   > where compuation is same as our c kernel but we do some hack to run real fast on the gpu ? 
 
 > parse thru code trying to find (nan, 1/0, numerical instability)
+
+> compare with PE sync, account for PD constraints.
+  > 1: 16 array per block ? 64 array per block ?
+  > 2: the same blocks must be used together, i.e. you cannot just send any input data anywhere.
+  > rule = cant go over PE sync boundry.
+  >> this is some old shit
 
 No idea:
 -------
@@ -136,16 +148,6 @@ todo
 
 > device-to-device variance, not read-to-read
 
-> need to figure out what to do for left over PE memory.
-  > cant just leave it there when we have 9000 arrays allocated.
-
-> compare with PE sync, account for PD constraints.
-  > 1: 16 array per block ? 64 array per block ?
-  > 2: the same blocks must be used together, i.e. you cannot just send any input data anywhere.
-  > rule = cant go over PE sync boundry.
-
-> cards - shift + scale.
-
 > fix eval_adc 
   > think this is breaking out MSE.
   > check eval_adc in pim.c
@@ -154,10 +156,20 @@ todo
     > was thinking separate test bench ...
     > but we want to test the actual tables that are produced ...
 
-
 > zero skipping same as CC ... that hack we put in.
+  > what does this mean ? 
+  > all these items are added [adc_scale8, adc_scale9]
+    > https://github.com/bcrafton/speed_read/blob/adc_scale8/todo
+    > https://github.com/bcrafton/speed_read/blob/adc_scale9/todo
+    
+  > well it def has to do with these and "cc_update1" stuff:
+    > pim.c
+    > pim_dyn.c
+      > added in adc_scale12
+    > pim_sync.c
 
 > dont skip adc update, skip straight to next xb
+  > wtf is adc_update ? 
 
 > (e, e_mu) - account for bias and relu
 
@@ -166,7 +178,6 @@ todo
 > centroids by # of wordlines
 
 ?) (nrow/rpr) -> (nrow * p / rpr) ... where p is the (%) of 1s in activataions
-?) increase the array size.
 
 > centroids
   > figure out rounding + fixed point stuff ... make 10b configurable ?
