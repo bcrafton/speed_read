@@ -169,7 +169,7 @@ todo
     > pim_sync.c
 
 > dont skip adc update, skip straight to next xb
-  > wtf is adc_update ? 
+  > wtf is adc update ? 
 
 > (e, e_mu) - account for bias and relu
 
