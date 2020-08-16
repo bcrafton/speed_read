@@ -13,6 +13,8 @@ import multiprocessing
 from multiprocessing import Process
 from multiprocessing import Pool
 
+assert (False)
+
 cmd = "gcc pim.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o pim.so"; os.system(cmd)
 cmd = "gcc pim_sync.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o pim_sync.so"; os.system(cmd)
 cmd = "gcc pim_dyn.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o pim_dyn.so"; os.system(cmd)

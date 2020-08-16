@@ -3324,13 +3324,47 @@ yeah so its going to be:
 > python files are such a mess.
 -------
 
-struggling with where to begin.
+good: 
+=====
+AA.py     
+dot_ref.py    
+tb.py
+tb_cifar.py
+block.py  
+conv_utils.py  
+rpr.py       
+var.py
+kmeans.py   
 
+bad:
+====
+conv.py        
+layers.py  
+cdot.py   
+cprofile.py    
 
+pim_sync.c
+pim.c      
+pim_dyn.c  
+profile.c   
 
+-------
 
+so we arnt really having any unique thoughts
+so we just have to do something.
 
+want to support this sync/layers.
 
+do we start at Python or C ? 
+
+-------
+
+Conv / Model 
+> too complex
+
+pim.c / pim_dyn.c
+> need to make pieces modular. 
+> diffs are so small.
 
 
 
