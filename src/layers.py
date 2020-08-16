@@ -8,7 +8,6 @@ from conv_utils import *
 
 from scipy.stats import norm, binom
 
-from BB import branch_and_bound
 from AA import array_allocation
 
 #########################
