@@ -3305,13 +3305,26 @@ so what can we do to get better performance on ResNet
 
 -------
 
+so we cant use pim_sync right now
+which can be re-named pim_layer i suppose
+layer/block allocation.
 
+we do want to have both right ? 
 
+yeah so its going to be:
+-------
+> no skip / skip
+> cc / no cc
+> dynamic / centroids
+> profile / no profile
+> block / layer
+-------
+> how to do sync ? 
+> can we make this modular ? 
+> python files are such a mess.
+-------
 
-
-
-
-
+struggling with where to begin.
 
 
 
