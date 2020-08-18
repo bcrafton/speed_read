@@ -20,6 +20,7 @@ cmd = "gcc profile.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o profi
 from layers import *
 from conv import *
 from block import *
+from model import *
 
 ####
 
