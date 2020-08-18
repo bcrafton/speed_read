@@ -3366,13 +3366,38 @@ pim.c / pim_dyn.c
 > need to make pieces modular. 
 > diffs are so small.
 
+-------
 
+>> much easier to work at desktop machine actually ...
 
+-------
 
+lots of things dont make sense
+> block_map
+not sure what this actually is.
 
+these are the things we want to be cleaning up.
+feels like there shud be a more systematic way of doing this.
+> block_map should be created and then not need to be modified again later.
 
+we shud have functions that return the correct data structures for what we are trying to do.
 
+so definitely feeling like we want to change python stuff first.
 
+-------
+> dynamic / centroids
+  > both of these should use ADC, NOT p=0.75
+  > altho we might need them for the paper ?
+  > or can we change the math to just use ADC ?
+   
+  > this dynamic idea feels silly for any high RPR.
+    > why wouldnt u atleast try to change the thresholds.
+    > or just skip lsb ... use a bias = f(adc count)
+    > there are just better methods to do here.
+
+> block / layer
+
+-------
 
 
 
