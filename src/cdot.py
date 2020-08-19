@@ -16,7 +16,7 @@ pim_dyn_lib.pim.restype = ctypes.c_int
 
 ###########################
 
-def pim(x, w, y_shape, lut_var, lut_rpr, alloc, adc_state, adc_thresh, params):
+def pim(x, w, y_shape, lut_var, lut_rpr, nblock, block_map, adc_state, adc_thresh, params):
     nrow, nwl, wl, xb = np.shape(x)
     nwl, wl, nbl, bl = np.shape(w) # nwl, nbl, wl, bl
     nrow, ncol = y_shape
@@ -37,34 +37,6 @@ def pim(x, w, y_shape, lut_var, lut_rpr, alloc, adc_state, adc_thresh, params):
     metrics = np.ascontiguousarray(metrics, np.int64)
 
     ########
-
-    if params['alloc'] == 'block':
-        nblock = np.sum(alloc)    
-        block_map = np.zeros(shape=nblock)
-        block = 0
-        for i in range(nwl):
-            for j in range(alloc[i]):
-                block_map[block] = i
-                block += 1
-        
-        block_map = np.ascontiguousarray(block_map.flatten(), np.int32)
-        
-    ########
-
-    elif params['alloc'] == 'layer':
-        nblock = alloc * nwl
-        block_map = np.zeros(shape=(alloc, nwl))
-        for i in range(alloc):
-            for j in range(nwl):
-                block_map[i][j] = j
-        
-        block_map = np.ascontiguousarray(block_map.flatten(), np.int32)
-    
-    ########
-    
-    # print (adc_state)
-    # print (adc_thresh)
-    # print (lut_rpr)
 
     if params['alloc'] == 'block':
         psum = pim_lib.pim(
@@ -91,23 +63,7 @@ def pim(x, w, y_shape, lut_var, lut_rpr, alloc, adc_state, adc_thresh, params):
     
     if params['alloc'] == 'layer':
         assert (False)
-        psum = pim_sync_lib.pim(
-        ctypes.c_void_p(x.ctypes.data), 
-        ctypes.c_void_p(w.ctypes.data), 
-        ctypes.c_void_p(y.ctypes.data), 
-        ctypes.c_void_p(lut_var.ctypes.data), 
-        ctypes.c_void_p(lut_rpr.ctypes.data), 
-        ctypes.c_void_p(metrics.ctypes.data), 
-        ctypes.c_int(params['adc']),
-        ctypes.c_int(params['skip']),
-        ctypes.c_int(nrow),
-        ctypes.c_int(alloc),
-        ctypes.c_int(ncol),
-        ctypes.c_int(nwl),
-        ctypes.c_int(nbl),
-        ctypes.c_int(wl),
-        ctypes.c_int(bl))
-    
+        
     ########
     
     return y, metrics
@@ -115,7 +71,7 @@ def pim(x, w, y_shape, lut_var, lut_rpr, alloc, adc_state, adc_thresh, params):
 ###########################
 
 # copying this from cc_update1
-def pim_dyn(x, w, y_shape, lut_var, lut_rpr, alloc, params):
+def pim_dyn(x, w, y_shape, lut_var, lut_rpr, nblock, block_map, params):
     nrow, nwl, wl, xb = np.shape(x)
     nwl, wl, nbl, bl = np.shape(w) # nwl, nbl, wl, bl
     nrow, ncol = y_shape
@@ -132,32 +88,6 @@ def pim_dyn(x, w, y_shape, lut_var, lut_rpr, alloc, params):
     lut_var = np.ascontiguousarray(lut_var, np.float32)
     lut_rpr = np.ascontiguousarray(lut_rpr, np.int32)
     metrics = np.ascontiguousarray(metrics, np.int64)
-
-    ########
-
-    if params['alloc'] == 'block':
-        nblock = np.sum(alloc)    
-        block_map = np.zeros(shape=nblock)
-        block = 0
-        for i in range(nwl):
-            for j in range(alloc[i]):
-                block_map[block] = i
-                block += 1
-        
-        block_map = np.ascontiguousarray(block_map.flatten(), np.int32)
-        
-    ########
-
-    elif params['alloc'] == 'layer':
-        nblock = alloc * nwl
-        block_map = np.zeros(shape=(alloc, nwl))
-        for i in range(alloc):
-            for j in range(nwl):
-                block_map[i][j] = j
-        
-        block_map = np.ascontiguousarray(block_map.flatten(), np.int32)
-    
-    ########
 
     if params['alloc'] == 'block':
         psum = pim_dyn_lib.pim(
@@ -182,23 +112,7 @@ def pim_dyn(x, w, y_shape, lut_var, lut_rpr, alloc, params):
     
     if params['alloc'] == 'layer':
         assert (False)
-        psum = pim_sync_lib.pim(
-        ctypes.c_void_p(x.ctypes.data), 
-        ctypes.c_void_p(w.ctypes.data), 
-        ctypes.c_void_p(y.ctypes.data), 
-        ctypes.c_void_p(lut_var.ctypes.data), 
-        ctypes.c_void_p(lut_rpr.ctypes.data), 
-        ctypes.c_void_p(metrics.ctypes.data), 
-        ctypes.c_int(params['adc']),
-        ctypes.c_int(params['skip']),
-        ctypes.c_int(nrow),
-        ctypes.c_int(alloc),
-        ctypes.c_int(ncol),
-        ctypes.c_int(nwl),
-        ctypes.c_int(nbl),
-        ctypes.c_int(wl),
-        ctypes.c_int(bl))
-    
+        
     ########
     
     return y, metrics

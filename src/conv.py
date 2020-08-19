@@ -174,11 +174,21 @@ class Conv(Layer):
         y_ref = self.act(y_ref)
         return y_ref, {self.layer_id: self.all_counts}
 
-    def set_block_alloc(self, block_alloc):
-        self.block_alloc = block_alloc
+    def set_block_alloc(self, alloc):        
+        nblock = np.sum(alloc)
+        block_map = np.zeros(shape=nblock)
+        block = 0
+        for wl in range(self.nwl):
+            for d in range(alloc[wl]):
+                block_map[block] = wl
+                block += 1
+
+        self.block_map = np.ascontiguousarray(block_map.flatten(), np.int32)
+        self.block_alloc = alloc
+        self.nblock = np.sum(alloc)
 
     def set_layer_alloc(self, layer_alloc):
-        self.layer_alloc = layer_alloc
+        pass
         
     def weights(self):
         return [self]
@@ -257,15 +267,15 @@ class Conv(Layer):
         
         #########################
         
-        if   self.params['alloc'] == 'block': alloc = self.block_alloc
-        elif self.params['alloc'] == 'layer': alloc = self.layer_alloc
+        if   self.params['alloc'] == 'block': alloc = self.block_map
+        elif self.params['alloc'] == 'layer': assert (False)
         
         if self.params['rpr_alloc'] == 'centroids':
-            y, metrics = pim(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], alloc, self.adc_state, self.adc_thresh, self.params)
+            y, metrics = pim(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], self.nblock, alloc, self.adc_state, self.adc_thresh, self.params)
             y = np.reshape(y, (yh, yw, self.fn))
             y = y / 4
         elif self.params['rpr_alloc'] == 'dynamic':
-            y, metrics = pim_dyn(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], alloc, self.params)
+            y, metrics = pim_dyn(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], self.nblock, alloc, self.params)
             y = np.reshape(y, (yh, yw, self.fn))
             # may have (*4) problems somewhere.
         else:

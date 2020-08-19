@@ -3399,9 +3399,22 @@ so definitely feeling like we want to change python stuff first.
 
 -------
 
+> really want to get rid of some of these switches:
+        if   self.params['alloc'] == 'block': alloc = self.block_map
+        elif self.params['alloc'] == 'layer': assert (False)
 
 
 
+> if we are going to have bullshit like: "set_block_alloc"
+  > lets contain that bullshit to 1 function.
+  > we moved stuff from cdot -> conv ... but lets take it 1 further ... and move it all into "set_block_alloc"
+
+
+
+> can we just do away with block/layer switch for now ?
+  > then reimplement it cleaner later ??
+
+-------
 
 
 

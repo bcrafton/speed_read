@@ -11,8 +11,5 @@ def array_allocation(narray, nmac, factor, mac_per_array, params):
     while (np.sum(alloc) + factor[argmax]) <= narray:
         alloc[argmax] += factor[argmax]
         cycles = nmac / mac_per_array / alloc
-        argmax = np.argmax(cycles)
-        
-    # print (narray - np.sum(alloc), factor[argmax], np.max(cycles))
-    
+        argmax = np.argmax(cycles)    
     return alloc

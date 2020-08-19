@@ -158,7 +158,7 @@ model = create_model(weights)
 
 ##########################
 
-load_profile_adc = False
+load_profile_adc = True
 
 if not load_profile_adc:
     profile = model.profile_adc(x=x)

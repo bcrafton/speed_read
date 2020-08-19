@@ -74,10 +74,10 @@ class Model:
                 pred[example], result = self.layers[layer].forward(x=pred[example], profile=True)
                 assert (np.all((pred[example] % 1) == 0))
                 for r in result:
-                    mac_per_array_layer[example][r['id']] = (r['nmac'] / self.weights[r['id']].factor) / (r['cycle'] * self.weights[r['id']].layer_alloc)
+                    # mac_per_array_layer[example][r['id']] = (r['nmac'] / self.weights[r['id']].factor) / (r['cycle'] * self.weights[r['id']].layer_alloc)
                     mac_per_array_block[example][self.block_map[r['id']]] = (r['nmac'] / self.weights[r['id']].factor) / (r['block_cycle'])
                     
-        self.mac_per_array_layer = np.mean(mac_per_array_layer, axis=0)
+        # self.mac_per_array_layer = np.mean(mac_per_array_layer, axis=0)
         self.mac_per_array_block = np.mean(mac_per_array_block, axis=0)
         
         if self.params['alloc'] == 'layer': 
