@@ -3399,6 +3399,88 @@ so definitely feeling like we want to change python stuff first.
 
 -------
 
+> really want to get rid of some of these switches:
+        if   self.params['alloc'] == 'block': alloc = self.block_map
+        elif self.params['alloc'] == 'layer': assert (False)
+
+
+
+> if we are going to have bullshit like: "set_block_alloc"
+  > lets contain that bullshit to 1 function.
+  > we moved stuff from cdot -> conv ... but lets take it 1 further ... and move it all into "set_block_alloc"
+
+
+
+> can we just do away with block/layer switch for now ?
+  > then reimplement it cleaner later ??
+
+-------
+
+> {conv.py, model.py}
+
+do we need to setters ?
+> set_block_alloc
+> set_layer_alloc
+> set_adc_profile
+just pass as argument ? 
+
+-------
+
+def weights()
+> this is some next level bull shit.
+
+-------
+
+mac_per_array_block[example][self.block_map[r['id']]] = (r['nmac'] / self.weights[r['id']].factor) / (r['block_cycle'])
+
+-------
+
+model = create_model(weights)
+
+if not load_profile_adc: profile = model.profile_adc(x=x)
+else:                              model.set_profile_adc(profile)
+
+model.init(params)
+> layer.init(params)
+  > self.params['rpr'] = [dynamic or centroids]
+> self.weights.extend(layer.weights())
+> self.set_block_alloc()
+
+model.profile(x=x)
+
+model.forward(x=x, y=y)
+
+-------
+
+1) clean up one piece at a time
+2) rebuild from scratch
+
+think we need to do a combination of these things.
+figure out what needs to be re-written first
+
+> re-write pim kernel
+> re-write profile, adc_profile
+
+i am okay with rebuilding
+but i think we need to do it one piece at a time
+integrating with existing stuff.
+
+-------
+
+how are we supposed to test layer-alloc, if we deleted all the layer alloc stuff ? 
+> i think reset to: august1
+> re-write pim.c modularized
+
+we need to actually code, figure out whats wrong
+then roll things back if needed.
+
+-------
+
+
+
+
+
+
 
 
 
