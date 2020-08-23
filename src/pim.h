@@ -28,6 +28,40 @@ typedef short int16_t;
 #define min(a,b)            (((a) < (b)) ? (a) : (b))
 #endif
 
+//////////////////////////////////////////////
+
+// make sure (bl <= 1024), malloc would be too slow.
+// if we just pick a size large enough we will be okay
+#define VECTOR_SIZE 256 // number bl per array
+#define ARRAY_SIZE 32 // 512 / 16 = 32
+#define BLOCK_SIZE 4096 // number of blocks 
+
+//////////////////////////////////////////////
+
+/*
+metrics
+------
+adc.1
+adc.2
+adc.3
+adc.4
+adc.5
+adc.6
+adc.7
+adc.8
+cycle
+ron
+roff
+wl
+*/
+
+#define METRIC_CYCLE  8
+#define METRIC_RON    9
+#define METRIC_ROFF  10
+#define METRIC_WL    11
+#define METRIC_STALL 12
+#define METRIC_BLOCK_CYCLE 13
+
 /////////////////////////////////////////////////////
 
 /*
