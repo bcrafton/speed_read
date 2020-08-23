@@ -3476,14 +3476,31 @@ then roll things back if needed.
 
 -------
 
+1) kernel (zero skip, baseline)
 
+2) eval_adc
 
+3) comps_enabled
 
+4) correction() -> dynamic stuff.
 
+5) collect sat/pdot_sum
+  > we need to figure out if this part is useful or not ...
+    > can we just add a static bias ?
 
+-------
 
+so re-writing pim was definitely the right starting point.
+> different pim() for pim_sync/pim_dyn/pim_centroids ???
 
+-------
 
+> lets use data structures for pim.c
+
+> more modularity ? 
+  > we didnt do any [1-5]
+
+-------
 
 
 
