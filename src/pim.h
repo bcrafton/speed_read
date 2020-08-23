@@ -30,6 +30,7 @@ typedef short int16_t;
 
 /////////////////////////////////////////////////////
 
+/*
 typedef struct data_t {
   int* x;
   int* w;
@@ -54,6 +55,40 @@ typedef struct array_t {
 } array_t;
 
 typedef struct state_t {
+  int* r;
+  int* next_r;
+  int* col;
+  int* xb;
+  
+  int** wl_ptr;
+  int** wl_sum;
+  int** wl_total;
+  
+  int*** pdot;
+  int*** pdot_sum;
+  int*** sat;
+} state_t;
+*/
+
+typedef struct state_t {
+  int* x;
+  int* w;
+  int* y;
+
+  int R;
+  int B;
+  int C;
+  int NWL;
+  int NBL;
+  int WL;
+  int BL;
+
+  int adc;
+  float* adc_state;
+  float* adc_thresh;
+  
+  float* lut_var;
+  
   int* r;
   int* next_r;
   int* col;
