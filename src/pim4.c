@@ -1,5 +1,51 @@
 
-#include "pim.h"
+#include <stdio.h>
+#include <stdlib.h> 
+#include <string.h>
+#include <math.h>
+#include <assert.h>
+
+#ifndef max
+#define max(a,b)            (((a) > (b)) ? (a) : (b))
+#endif
+
+#ifndef min
+#define min(a,b)            (((a) < (b)) ? (a) : (b))
+#endif
+
+//////////////////////////////////////////////
+
+// make sure (bl <= 1024), malloc would be too slow.
+// if we just pick a size large enough we will be okay
+#define VECTOR_SIZE 256 // number bl per array
+#define ARRAY_SIZE 32 // 512 / 16 = 32
+#define BLOCK_SIZE 4096 // number of blocks 
+
+//////////////////////////////////////////////
+
+/*
+metrics
+------
+adc.1
+adc.2
+adc.3
+adc.4
+adc.5
+adc.6
+adc.7
+adc.8
+cycle
+ron
+roff
+wl
+*/
+
+#define METRIC_CYCLE  8
+#define METRIC_RON    9
+#define METRIC_ROFF  10
+#define METRIC_WL    11
+#define METRIC_STALL 12
+#define METRIC_BLOCK_CYCLE 13
 
 //////////////////////////////////////////////
 
@@ -179,162 +225,71 @@ int comps_enabled(int wl, int adc, int rpr, float* adc_state, float* adc_thresh)
 
 //////////////////////////////////////////////
 
-void pim_kernel(state_t* s, int rpr, int block, int wl, int bl) {
+void pim_kernel(int* x, int* w, int** wl_ptr, int** wl_sum, int*** pdot,
+               int NWL, int NBL, int WL, int BL, int rpr,
+               int r, int col, int xb, int block, int wl, int bl) {
 
-  clear_vector(s->pdot[block][bl]);
-  s->wl_sum[block][bl] = 0;
+  clear_vector(pdot[block][bl]);
+  wl_sum[block][bl] = 0;
 
-  int xaddr = (s->r[block] * s->NWL * s->WL * 8) + (wl * s->WL * 8) + (s->wl_ptr[block][bl] * 8) + s->xb[block];  
-  
-  while ((s->wl_ptr[block][bl] < s->WL) && (s->wl_sum[block][bl] + s->x[xaddr] <= rpr)) {
-    
-    if (s->x[xaddr]) {
-      s->wl_sum[block][bl] += 1;
-      
-      for (int adc_ptr=0; adc_ptr<s->BL; adc_ptr+=8) {
-        int bl_ptr = adc_ptr + s->col[block];
-        int waddr = (wl * s->WL * s->NBL * s->BL) + (s->wl_ptr[block][bl] * s->NBL * s->BL) + (bl * s->BL) + bl_ptr;
-        s->pdot[block][bl][bl_ptr] += s->w[waddr];
+  while ((wl_ptr[block][bl] < WL) && (wl_sum[block][bl] + x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[block][bl] * 8) + xb] <= rpr)) {
+    if (x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[block][bl] * 8) + xb]) {
+      wl_sum[block][bl] += 1;
+      for (int adc_ptr=0; adc_ptr<BL; adc_ptr+=8) {
+        int bl_ptr = adc_ptr + col;
+        pdot[block][bl][bl_ptr] += w[(wl * WL * NBL * BL) + (wl_ptr[block][bl] * NBL * BL) + (bl * BL) + bl_ptr];
       }
     }
-    s->wl_ptr[block][bl] += 1;
-    xaddr = (s->r[block] * s->NWL * s->WL * 8) + (wl * s->WL * 8) + (s->wl_ptr[block][bl] * 8) + s->xb[block];
+    wl_ptr[block][bl] += 1;
   }
-
 }
 
 //////////////////////////////////////////////
 
-void process(state_t* s, int rpr, int block, int bl) 
+void process(int* y, float* lut_var, int** wl_sum, int*** pdot, float* adc_state, float* adc_thresh, int C, int BL, int adc, int rpr, int r, int col, int xb, int block, int bl) 
 {
-  for (int adc_ptr=0; adc_ptr<s->BL; adc_ptr+=8) {
-    int bl_ptr = adc_ptr + s->col[block];
-    int c = (bl_ptr + bl * s->BL) / 8;
-    int wb = s->col[block];
+  for (int adc_ptr=0; adc_ptr<BL; adc_ptr+=8) {
+    int bl_ptr = adc_ptr + col;
+    int c = (bl_ptr + bl * BL) / 8;
+    int wb = col;
 
+    if (wb == 0) {
+      y[r * C + c] -= 4 * ((wl_sum[block][bl] * 128) << xb);
+    }
+    
     int key = rand() % 1000;
-    int var_addr = s->pdot[block][bl][bl_ptr] * 1000 + key;
-    float var = s->lut_var[var_addr];
+    int var_addr = pdot[block][bl][bl_ptr] * 1000 + key;
+    float var = lut_var[var_addr];
 
-    float pdot_var = s->pdot[block][bl][bl_ptr] + var;
-    // int pdot_adc = eval_adc(pdot_var, s->adc, rpr, s->adc_state, s->adc_thresh);
-    int pdot_adc = min(max((int) round(pdot_var), 0), min(s->adc, rpr));
-
-    int yaddr = s->r[block] * s->C + c;
-    int shift = wb + s->xb[block];
-    s->y[yaddr] += pdot_adc << shift;
-    
-    if (wb == 0) { 
-      // s->y[yaddr] -= 4 * ((s->wl_sum[block][bl] * 128) << s->xb[block]); 
-      s->y[yaddr] -= ((s->wl_sum[block][bl] * 128) << s->xb[block]); 
-    }
-   
-    if (s->wl_sum[block][bl] >= s->adc) {
-      s->sat[block][bl][bl_ptr] += (s->pdot[block][bl][bl_ptr] == s->adc);
-      s->pdot_sum[block][bl][bl_ptr] += s->pdot[block][bl][bl_ptr];
-    }
-    
+    float pdot_var = pdot[block][bl][bl_ptr] + var;
+    int pdot_adc = eval_adc(pdot_var, adc, rpr, adc_state, adc_thresh);
+    y[r * C + c] += pdot_adc << (wb + xb);
   }
 }
 
 //////////////////////////////////////////////
 
-void correct(state_t* s, int rpr, int block, int bl) 
+void collect(int** wl_sum, int*** pdot, long* metrics, float* adc_state, float* adc_thresh, int BL, int adc, int rpr, int col, int block, int bl) 
 {
-  if (s->wl_ptr[block][bl] == s->WL) {
-    for (int adc_ptr=0; adc_ptr<s->BL; adc_ptr+=8) {
-      int bl_ptr = adc_ptr + s->col[block];
-      int c = (bl_ptr + bl * s->BL) / 8;
-      int wb = s->col[block];
-
-      if (s->wl_total[block][bl]) {
-        float p = ((float) s->pdot_sum[block][bl][bl_ptr]) / ((float) s->wl_total[block][bl]);
-        p = min(max(p, 0.), 1.);
-        int e = sat_error(p, s->adc, rpr);
-        
-        int yaddr = s->r[block] * s->C + c;
-        s->y[yaddr] -= ((s->sat[block][bl][bl_ptr] * e) << (wb + s->xb[block]));
-        
-        s->sat[block][bl][bl_ptr] = 0;
-        s->pdot_sum[block][bl][bl_ptr] = 0;
-      }
-    }
-  }
-}
-
-//////////////////////////////////////////////
-
-void collect(state_t* s, long* metrics, int rpr, int block, int bl) 
-{
-  for (int adc_ptr=0; adc_ptr<s->BL; adc_ptr+=8) {
-    int bl_ptr = adc_ptr + s->col[block];
-    int c = (bl_ptr + bl * s->BL) / 8;
-    int wb = s->col[block];
+  for (int adc_ptr=0; adc_ptr<BL; adc_ptr+=8) {
+    int bl_ptr = adc_ptr + col;
+    int c = (bl_ptr + bl * BL) / 8;
+    int wb = col;
     
-    metrics[METRIC_RON] += s->pdot[block][bl][bl_ptr];
-    metrics[METRIC_ROFF] += s->wl_sum[block][bl] - s->pdot[block][bl][bl_ptr];
+    metrics[METRIC_RON] += pdot[block][bl][bl_ptr];
+    metrics[METRIC_ROFF] += wl_sum[block][bl] - pdot[block][bl][bl_ptr];
   }
 
-  if (s->wl_sum[block][bl] > 0) {
-    // int comps = comps_enabled(s->wl_sum[block][bl], s->adc, rpr, s->adc_state, s->adc_thresh) - 1;
-    int comps = min(s->wl_sum[block][bl] - 1, s->adc - 1);
-    assert((comps >= 0) && (comps < s->adc));
-    assert ((s->BL % 8) == 0);
-    metrics[comps] += s->BL / 8;
-  }
-
-  metrics[METRIC_WL] += s->wl_sum[block][bl];
-}
-
-//////////////////////////////////////////////
-
-int sync(state_t* s, int rpr, int block, int wl, int bl) {
-
-  int done = 0;
-  int* block_done = array1D();
-
-  if (s->wl_ptr[block][bl] == s->WL) {
-    s->wl_ptr[block][bl] = 0;
-    s->wl_total[block][bl] = 0;
-
-    if (bl == (s->NBL - 1)) {
-      if (s->col[block] == (8 - 1)) {
-        s->col[block] = 0;
-    
-        if (s->xb[block] == (8 - 1)) {
-          s->xb[block] = 0;
-          
-          // TODO: what is next_r ? 
-          // i think it provides the next row to process.
-          
-          if (s->next_r[wl] < s->R) {
-            s->r[block] = s->next_r[wl];
-            s->next_r[wl]++;
-          }
-          else {
-            block_done[block] = 1;
-            
-            int block_sync = 1;
-            for (int i=0; i<s->B; i++) {
-              block_sync = block_sync & block_done[i];
-            }
-
-            done = block_sync;
-          }
-        }
-        else {
-          s->xb[block] += 1;
-        }
-      }
-      else {
-        s->col[block] += 1;
-      }
-    }
+  if (wl_sum[block][bl] == 0) {
   }
   else {
-    assert (s->wl_ptr[block][bl] < s->WL);
+    int comps = comps_enabled(wl_sum[block][bl], adc, rpr, adc_state, adc_thresh) - 1;
+    assert((comps >= 0) && (comps < adc));
+    assert ((BL % 8) == 0);
+    metrics[comps] += BL / 8;
   }
-  return done;
+
+  metrics[METRIC_WL] += wl_sum[block][bl];
 }
 
 //////////////////////////////////////////////
@@ -347,10 +302,7 @@ int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, long* metrics, int
   
   // our arrays are sized for 128. need to increase.
   // assert ((D >= 1) && (NWL >= 1) && (NBL >= 1) && (BL >= 1));
-  // assert (NWL >= 1) && (NBL >= 1) && (BL >= 1));
-  assert (NWL >= 1);
-  assert (NBL >= 1);
-  assert (BL >= 1);
+  assert ((NWL >= 1) && (NBL >= 1) && (BL >= 1));
   assert (NBL <= ARRAY_SIZE);
   assert (BL <= VECTOR_SIZE);
   assert (B <= BLOCK_SIZE);
@@ -371,13 +323,6 @@ int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, long* metrics, int
   int*** pdot = array3D();
   int*** pdot_sum = array3D();
   int*** sat = array3D();
-  
-  //////////////////////////////
-  
-  // TODO: break this up somehow.
-  state_t state = {x, w, y, R, B, C, NWL, NBL, WL, BL, adc, adc_state, adc_thresh, lut_var, r, next_r, col, xb, wl_ptr, wl_sum, wl_total, pdot, pdot_sum, sat};
-  
-  //////////////////////////////
 
   for (int block=0; block<B; block++) {
     int wl = block_map[block];
@@ -401,7 +346,7 @@ int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, long* metrics, int
     // assert (metrics[METRIC_CYCLE] < 500000);
 
     for (int block=0; block<B; block++) {
-
+      
       int wl = block_map[block];
       assert (wl < NWL);
 
@@ -416,8 +361,6 @@ int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, long* metrics, int
       
       for (int bl=0; bl<NBL; bl++) {
         
-        /////////////////////////////////////
-        
         int x_addr = xb[block] * 8;
         int w_addr = col[block];
         int rpr_addr = x_addr + w_addr;
@@ -431,11 +374,13 @@ int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, long* metrics, int
                 
         /////////////////////////////////////
         
-        pim_kernel(&state, rpr, block, wl, bl);
-        process(&state, rpr, block, bl);
-        correct(&state, rpr, block, bl);
-        collect(&state, metrics, rpr, block, bl);
-        // done = sync(&state, rpr, block, wl, bl);
+        pim_kernel(x, w, wl_ptr, wl_sum, pdot, NWL, NBL, WL, BL, rpr, r[block], col[block], xb[block], block, wl, bl);
+        
+        process(y, lut_var, wl_sum, pdot, adc_state, adc_thresh, C, BL, adc, rpr, r[block], col[block], xb[block], block, bl);
+        
+        collect(wl_sum, pdot, metrics, adc_state, adc_thresh, BL, adc, rpr, col[block], block, bl);
+        
+        //done = sync(wl_ptr, wl_sum, wl_total, pdot, r, next_r, col, xb, R, B, NWL, NBL, WL, BL, rpr, block, wl, bl);
         
         /////////////////////////////////////
 
@@ -480,7 +425,6 @@ int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, long* metrics, int
 
       } // for (int bl=0; bl<NBL; bl++) {
     } // for (int b=0; b<B; b++) {
-    // printf("%ld\n", metrics[METRIC_CYCLE]);
   } // while (!done) {
 
   free3D(pdot);

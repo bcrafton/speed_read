@@ -3502,7 +3502,75 @@ so re-writing pim was definitely the right starting point.
 
 -------
 
+>> we still have smaller details we want to clean up.
+BUT 
+I think we should start being able to mix {dyn, centroids}
 
+-------
+
+part 1: 
+
+pdot[block][bl][bl_ptr] = min(max((int) round(pdot_var), 0), min(adc, rpr));
+y[r[block] * C + c] += (pdot[block][bl][bl_ptr] << (wb + xb[block]));
+
+if (wl_sum[block][bl] >= adc) {
+  sat[block][bl][bl_ptr] += (pdot[block][bl][bl_ptr] == adc);
+  pdot_sum[block][bl][bl_ptr] += pdot[block][bl][bl_ptr];
+}
+
+-------
+
+part 2: 
+
+if (wl_ptr[block][bl] == WL) {
+  for (int adc_ptr=0; adc_ptr<BL; adc_ptr+=8) {
+    int bl_ptr = adc_ptr + col[block];
+    int c = (bl_ptr + bl * BL) / 8;
+    int wb = col[block];
+
+    if (wl_total[block][bl]) {
+      float p = ((float) pdot_sum[block][bl][bl_ptr]) / ((float) wl_total[block][bl]);
+      p = min(max(p, 0.), 1.);
+      int e = sat_error(p, adc, rpr);
+      y[r[block] * C + c] -= ((sat[block][bl][bl_ptr] * e) << (wb + xb[block]));
+      
+      sat[block][bl][bl_ptr] = 0;
+      pdot_sum[block][bl][bl_ptr] = 0;
+    }
+  }
+}
+
+-------
+
+> int comps = min(wl_sum[block][bl] - 1, adc - 1);
+> pdot[block][bl][bl_ptr] = min(max((int) round(pdot_var), 0), min(adc, rpr));
+
+-------
+
+holy crap this whole time we were running alloc=dynamic ...
+
+-------
+
+something clearly going on with performance of simulation
+why is it so damn slow ? 
+
+well we dont even know if its functional tbf
+
+-------
+
+yeah its definitely not functional
+> we should make sure this is functional for centroids before dynamic ...
+
+-------
+
+> can we use C++ ? 
+  > specifically classes ? 
+  > wud be a lot easier ...
+
+-------
+
+we dont use seeds right ? 
+so we cant expect the result to be perfect.
 
 
 

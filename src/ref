@@ -1,6 +1,5 @@
+
 {'skip': 1, 'narray': 8192, 'alloc': 'block', 'sigma': 0.1, 'cards': 1, 'profile': 1, 'rpr_alloc': 'dynamic'}
-8156 / 8192
-nblock 47
 y_mean 0.003753662109375 y_std 0.3013913404510714 y_max 127.0 y_min 0.0
 0: alloc: 24*4=96 nmac 1769472 cycle: 8916 stall: 4292
 y_mean -0.11822509765625 y_std 0.32682013478811267 y_max 127.0 y_min 0.0
@@ -26,3 +25,61 @@ y_mean -0.01708984375 y_std 0.1521362456504057 y_max 127.0 y_min 0.0
 y_mean -0.0009765625 y_std 0.10824877055044825 y_max 127.0 y_min 0.0
 5: alloc: 77*16=1232 nmac 37748736 cycle: 2958 stall: 431680
 time taken: 111.6603171825409
+
+{'narray': 8192, 'skip': 1, 'alloc': 'block', 'rpr_alloc': 'centroids', 'cards': 1, 'profile': 1, 'sigma': 0.1}
+y_mean -0.0888519287109375 y_std 0.5450809750254167 y_max 127.0 y_min 0.0
+0: alloc: 24*4=96 nmac 1769472 cycle: 7228 stall: 3920
+y_mean -0.09075927734375 y_std 0.3460541521673888 y_max 127.0 y_min 0.0
+1: alloc: 505*4=2020 nmac 37748736 cycle: 2819 stall: 893408
+y_mean -0.06024169921875 y_std 0.4396946518824031 y_max 127.0 y_min 0.0
+2: alloc: 129*8=1032 nmac 18874368 cycle: 3048 stall: 534808
+y_mean -0.011962890625 y_std 0.23091921990794592 y_max 127.0 y_min 0.0
+3: alloc: 252*8=2016 nmac 37748736 cycle: 3079 stall: 789432
+y_mean -0.0035400390625 y_std 0.19323815293165056 y_max 127.0 y_min 0.0
+4: alloc: 63*16=1008 nmac 18874368 cycle: 4226 stall: 859472
+y_mean -0.015869140625 y_std 0.19513648685170074 y_max 127.0 y_min 0.0
+5: alloc: 126*16=2016 nmac 37748736 cycle: 2049 stall: 974464
+y_mean -0.0867156982421875 y_std 0.5475469461025076 y_max 127.0 y_min 0.0
+0: alloc: 68*4=272 nmac 1769472 cycle: 2597 stall: 16416
+y_mean -0.0867919921875 y_std 0.3386141357129453 y_max 127.0 y_min 0.0
+1: alloc: 474*4=1896 nmac 37748736 cycle: 2719 stall: 354252
+y_mean -0.060516357421875 y_std 0.444386237305188 y_max 127.0 y_min 0.0
+2: alloc: 131*8=1048 nmac 18874368 cycle: 2722 stall: 241928
+y_mean -0.0120849609375 y_std 0.22798679162758334 y_max 127.0 y_min 0.0
+3: alloc: 270*8=2160 nmac 37748736 cycle: 2738 stall: 496248
+y_mean -0.0042724609375 y_std 0.18777663962814314 y_max 127.0 y_min 0.0
+4: alloc: 87*16=1392 nmac 18874368 cycle: 2704 stall: 363632
+y_mean -0.0166015625 y_std 0.18145939800009972 y_max 127.0 y_min 0.0
+5: alloc: 89*16=1424 nmac 37748736 cycle: 2628 stall: 585952
+time taken: 86.4071774482727
+
+make sure you are using right centroids/dynamic config:
+y_mean -15.643707275390625 y_std 23.180078044322343 y_max 127.0 y_min 0.0
+0: alloc: 24*4=96 nmac 1769472 cycle: 7228 stall: 3920
+y_mean -13.08160400390625 y_std 22.111033914473904 y_max 127.0 y_min 0.0
+1: alloc: 505*4=2020 nmac 37748736 cycle: 2819 stall: 893408
+y_mean -12.75189208984375 y_std 21.6691407923748 y_max 127.0 y_min 0.0
+2: alloc: 129*8=1032 nmac 18874368 cycle: 3048 stall: 534808
+y_mean -8.9404296875 y_std 18.563292181405853 y_max 127.0 y_min 0.0
+3: alloc: 252*8=2016 nmac 37748736 cycle: 3079 stall: 789432
+y_mean -3.2525634765625 y_std 12.271184280395746 y_max 127.0 y_min 0.0
+4: alloc: 63*16=1008 nmac 18874368 cycle: 4226 stall: 859472
+y_mean -9.39453125 y_std 18.733341802592868 y_max 127.0 y_min 0.0
+5: alloc: 126*16=2016 nmac 37748736 cycle: 2049 stall: 974464
+y_mean -15.643707275390625 y_std 23.180078044322343 y_max 127.0 y_min 0.0
+0: alloc: 68*4=272 nmac 1769472 cycle: 2597 stall: 16416
+y_mean -13.08160400390625 y_std 22.111033914473904 y_max 127.0 y_min 0.0
+1: alloc: 474*4=1896 nmac 37748736 cycle: 2719 stall: 354252
+y_mean -12.75189208984375 y_std 21.6691407923748 y_max 127.0 y_min 0.0
+2: alloc: 131*8=1048 nmac 18874368 cycle: 2722 stall: 241928
+y_mean -8.9404296875 y_std 18.563292181405853 y_max 127.0 y_min 0.0
+3: alloc: 270*8=2160 nmac 37748736 cycle: 2738 stall: 496248
+y_mean -3.2525634765625 y_std 12.271184280395746 y_max 127.0 y_min 0.0
+4: alloc: 87*16=1392 nmac 18874368 cycle: 2704 stall: 363632
+y_mean -9.39453125 y_std 18.733341802592868 y_max 127.0 y_min 0.0
+5: alloc: 89*16=1424 nmac 37748736 cycle: 2628 stall: 585952
+time taken: 113.12648820877075
+
+
+
+
