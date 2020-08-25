@@ -3567,10 +3567,44 @@ yeah its definitely not functional
   > specifically classes ? 
   > wud be a lot easier ...
 
+> yeah seems like we can use it.
+
+so seems like we merged {dyn, centroids}
+> finalize the merge ? 
+> do classes ? 
+> work on new sync function ? 
+for sure make a commit before anything.
+
 -------
 
-we dont use seeds right ? 
-so we cant expect the result to be perfect.
+> do classes ? 
+> work on new sync function ?
+
+lets give the classes a go.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
