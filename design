@@ -3577,17 +3577,124 @@ for sure make a commit before anything.
 
 -------
 
-> do classes ? 
-> work on new sync function ?
+> classes
+> sync function
 
-lets give the classes a go.
+-------
 
+====================
+====================
+SYNC 
+SYNC 
+SYNC
+====================
+====================
 
+how do we make layer sync work ? 
+> need to know which blocks are bound to eachother. 
 
+====================
 
+for b in B:
+    block = block_map[b]
+    for bl in BL:
+        KERNEL
 
+====================
 
+for (int d=0; d<D; d++) { 
+  for (int wl=0; wl<NWL; wl++) {
+    for (int bl=0; bl<NBL; bl++) {
+        KERNEL
 
+====================
+
+for b in B
+> def the way to go
+> breaking it down to even arrays wud be smart as well
+> only have 1 loop.
+  > ... no "for bl in BL:"
+  
+>> breaking it down to even arrays wud be smart as well
+   > push the burden on python.
+  
+====================
+  
+we just need to make a barrier[] we pass to all functions
+> which will be done for block-wise data flow.
+
+====================
+
+yeah this really wont be bad idt
+1) add this barrier thing in Python
+2) make the current sync function work ? we should be able to call this thing lol
+
+====================
+
+> specify the group for each block, when all blocks finish, then group proceeds.
+> computation for this is nasty though.
+
+so we just want to find a clean, efficient way of doing it. 
+
+====================
+
+block_sync
+block_done
+> 2 arrays the same size
+> loop through and check that all blocks in group=3 are done.
+> could use this group_id for setting the r/xb/col they are all on.
+
+group_num
+group_size
+> implies all groups will be the same size.
+> the number of blocks isnt the same tho ...
+
+how do we allow for arbitrary group size.
+> ehhh it really feels like it over complicates.
+
+can we generalize this sync stratedgy for all sync ? 
+> sync blocks @ example level
+  > next_r = done basically
+> sync blocks @ layer level
+  > pim_sync
+  
+ehh idk about this either.
+they are totally different groups.
+
+====================
+
+how does next_r and stuff work for this ?
+> we can either keep block granularity
+> or toss it out 
+obviously its not necessary.
+
+we use next_r in pim_sync
+its just not a vector
+... not sure why we need it.
+
+but it does make sense to continue to use it.
+
+====================
+
+okay so right now its looking like we want to feed a vector: block_sync
+which just specifies the group things are apart of.
+
+we cud also just assume that NWL consecutive blocks work together. 
+and pass a single value called "layer_sync"
+
+====================
+
+but if we wanted to be more general for w.e. reason, i think
+> we wud break apart blocks
+> use this flexible layer sync idea.
+  > which still dosnt make sense for example level.
+  > i guess we would just have [duplicate, block] / [example, layer] level sync array things.
+
+====================
+
+but for now, lets just NWL sync I think.
+
+====================
 
 
 
