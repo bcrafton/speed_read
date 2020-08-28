@@ -180,7 +180,7 @@ class Array {
   int* sat;
   
   Array(int block_id, int array_id, int* x, int* w, int* y, Params* params);
-  void pim();
+  void pim(int row, int col, int xb, int rpr);
 };
 
 /////////////////////////////////////////////////////

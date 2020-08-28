@@ -3797,10 +3797,12 @@ think we know the first step is just coding and making something work right now.
 > block/array created
 > now we want to instantiate them.
 
+====================
 
-
-
-
+> layer.c 
+  > instantiate all the blocks.
+  > pass them rpr.
+  > handle sync
 
 
 
