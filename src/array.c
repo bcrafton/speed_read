@@ -33,7 +33,7 @@ void Array::pim(int row, int col, int xb, int rpr) {
       
       for (int adc_ptr=0; adc_ptr<this->params->BL; adc_ptr+=8) {
         int bl_ptr = adc_ptr + col;
-        int waddr = (this->block_id * this->params->WL * this->params->NBL * this->params->BL) + (this->wl_ptr * s->NBL * s->BL) + (this->array_id * this->params->BL) + bl_ptr;
+        int waddr = (this->block_id * this->params->WL * this->params->NBL * this->params->BL) + (this->wl_ptr * this->params->NBL * this->params->BL) + (this->array_id * this->params->BL) + bl_ptr;
         this->pdot[bl_ptr] += this->w[waddr];
       }
     }

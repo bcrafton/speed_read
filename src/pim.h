@@ -202,6 +202,17 @@ class Block {
 
 /////////////////////////////////////////////////////
 
+class Layer {
+  public:
+  int size;
+  Block** blocks;
+  
+  Layer(int size, int* x, int* w, int* y, Params* params);
+  void pim();
+};
+
+/////////////////////////////////////////////////////
+
 #endif
 
 
