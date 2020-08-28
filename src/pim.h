@@ -188,15 +188,15 @@ class Array {
 class Block {
   public:
   int block_id;
+  Params* params;
   
-  int size;
   Array** arrays;
 
   int row;
   int col;
   int xb;
   
-  Block(int block_id, int size, int* x, int* w, int* y, Params* params);
+  Block(int block_id, int* x, int* w, int* y, Params* params);
   int pim(int row);
 };
 

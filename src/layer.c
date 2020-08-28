@@ -7,7 +7,7 @@ Layer::Layer(int* x, int* w, int* y, Params* params, int* block_map) {
   
   this->blocks = new Block*[params->B];
   for (int i=0; i<params->B; i++) {
-    this->blocks[i] = new Block(i, params->NBL, x, w, y, params); 
+    this->blocks[i] = new Block(i, x, w, y, params); 
   }
   
   this->row_map = new int[params->B];
