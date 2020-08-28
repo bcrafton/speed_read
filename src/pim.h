@@ -154,8 +154,9 @@ class Params {
   float* adc_thresh;
 
   float* lut_var;
+  int* lut_rpr;
   
-  Params(int R, int B, int C, int NWL, int NBL, int WL, int BL, int adc, float* adc_state, float* adc_thresh, float* lut_var);
+  Params(int R, int B, int C, int NWL, int NBL, int WL, int BL, int adc, float* adc_state, float* adc_thresh, float* lut_var, int* lut_rpr);
 };
 
 /////////////////////////////////////////////////////
