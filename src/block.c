@@ -20,7 +20,10 @@ int Block::pim(int row) {
   assert(rpr_addr >= 0); assert(rpr_addr < 64); 
   assert(rpr > 0); assert(rpr <= 64);
 
+  int done = 0;
   for (int i=0; i<this->params->NBL; i++) {
-    int done = this->arrays[i]->pim(row, this->col, this->xb, rpr);
-  }
+    int ret = this->arrays[i]->pim(row, this->col, this->xb, rpr);
+    if (i == 0) done = ret;
+    else        assert(ret == done);
+  } 
 }
