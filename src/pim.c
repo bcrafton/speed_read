@@ -381,7 +381,7 @@ DLLEXPORT int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, long* me
   //////////////////////////////
 
   Params* params = new Params(R, B, C, NWL, NBL, WL, BL, adc, adc_state, adc_thresh, lut_var);
-  Block** blocks = new Block*[B];
+  // Block** blocks = new Block*[B];
 
   for (int block=0; block<B; block++) {
     int wl = block_map[block];
@@ -389,8 +389,11 @@ DLLEXPORT int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, long* me
     r[block] = next_r[wl];
     next_r[wl]++;
     
-    blocks[block] = new Block(wl, NBL, x, w, y, params); 
+    // blocks[block] = new Block(wl, NBL, x, w, y, params); 
   }
+
+  Layer* layer = new Layer(NWL, x, w, y, params, block_map);
+  layer->pim();
 
   //////////////////////////////
 

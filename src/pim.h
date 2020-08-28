@@ -206,8 +206,9 @@ class Layer {
   public:
   int size;
   Block** blocks;
+  int* block_map;
   
-  Layer(int size, int* x, int* w, int* y, Params* params);
+  Layer(int size, int* x, int* w, int* y, Params* params, int* block_map);
   void pim();
 };
 
