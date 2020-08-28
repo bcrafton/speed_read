@@ -1,5 +1,6 @@
 
 #include "pim.h"
+#define DLLEXPORT extern "C"
 
 //////////////////////////////////////////////
 
@@ -339,7 +340,7 @@ int sync(state_t* s, int rpr, int block, int wl, int bl) {
 
 //////////////////////////////////////////////
 
-int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, long* metrics, int* block_map, float* adc_state, float* adc_thresh, int adc, int skip, int R, int B, int C, int NWL, int NBL, int WL, int BL)
+DLLEXPORT int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, long* metrics, int* block_map, float* adc_state, float* adc_thresh, int adc, int skip, int R, int B, int C, int NWL, int NBL, int WL, int BL)
 {
   // x = nrow, nwl, wl, xb
   // f = nwl, wl, nbl, bl
@@ -377,6 +378,20 @@ int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, long* metrics, int
   // TODO: break this up somehow.
   state_t state = {x, w, y, R, B, C, NWL, NBL, WL, BL, adc, adc_state, adc_thresh, lut_var, r, next_r, col, xb, wl_ptr, wl_sum, wl_total, pdot, pdot_sum, sat};
   
+  //////////////////////////////
+
+  Params* params = new Params(R, B, C, NWL, NBL, WL, BL, adc, adc_state, adc_thresh, lut_var);
+  Block** blocks = new Block*[B];
+
+  for (int block=0; block<B; block++) {
+    int wl = block_map[block];
+    assert (wl < NWL);
+    r[block] = next_r[wl];
+    next_r[wl]++;
+    
+    blocks[block] = new Block(NBL, x, w, y, params); 
+  }
+
   //////////////////////////////
 
   for (int block=0; block<B; block++) {

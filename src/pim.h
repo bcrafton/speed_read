@@ -139,6 +139,67 @@ typedef struct state_t {
 
 /////////////////////////////////////////////////////
 
+class Params {
+  public:
+  int R;
+  int B;
+  int C;
+  int NWL;
+  int NBL;
+  int WL;
+  int BL;
+  
+  int    adc;
+  float* adc_state;
+  float* adc_thresh;
+
+  float* lut_var;
+  
+  Params(int R, int B, int C, int NWL, int NBL, int WL, int BL, int adc, float* adc_state, float* adc_thresh, float* lut_var);
+};
+
+/////////////////////////////////////////////////////
+
+class Array {
+  public:
+  int block_id;
+  
+  int* x;
+  int* w;
+  int* y;
+
+  Params* params;
+  
+  int wl_ptr;
+  int wl_sum;
+  int wl_total;
+  
+  int* pdot;
+  int* pdot_sum;
+  int* sat;
+  
+  Array(int block_id, int* x, int* w, int* y, Params* params);
+  void pim();
+};
+
+/////////////////////////////////////////////////////
+
+class Block {
+  public:
+  
+  int size;
+  Array** arrays;
+
+  int row;
+  int col;
+  int xb;
+  
+  Block(int size, int* x, int* w, int* y, Params* params);
+  void pim();
+};
+
+/////////////////////////////////////////////////////
+
 #endif
 
 

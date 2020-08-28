@@ -3694,19 +3694,108 @@ but if we wanted to be more general for w.e. reason, i think
 
 but for now, lets just NWL sync I think.
 
+> pim_sync: array_sync, dup_sync.
+> we want to use: block_sync, matrix_sync.
+
 ====================
 
+block_done = [B/NWL, NWL]
+B / NWL = N(duplicate)
 
+how do we associate groups ? 
+> NWL adjacent things. 
 
+so ...
 
+Ngroup = B - (B % NWL) 
+for (i=Ngroup; i<Ngroup+NWL...
 
+====================
 
+not a good solution tho.
+this wud be where group map comes in to play.
 
+#blocks
+block->(wl, bl)
+block->group is necessary.
 
+pick one:
+> hack pim.c   
+> hack cdot.py 
 
+====================
 
+> add group_map, ngroup, group_size or w.e. is needed.
 
+ehh but that is gross.
+because group map is only needed for the case where things are fixed and hardcoded. 
+so u are introducing a variable to make things harder. 
 
+yes but i dont really see another way.
+
+> origin/cifar_match_adc_scale_new
+  > layer assert False
+  > June 2
+  
+> origin/cifar_match_new
+  > uses old cifar model ... 128 vs 256.
+  
+> cc_update1
+  > dont have the right cifar model i dont think
+
+> cc_update_match
+  > layer assert False
+  > last commit: "cifar matches with adc_scale13"
+  > June 1.
+
+====================
+
+what branch did we collect results for BB on ? 
+> ofc we shud be looking at this ...
+> this is where we did [layer vs block]
+
+> resnet5
+> needed some changes but it worked out
+	modified:   ../cifar10_weights.npy
+	modified:   layers.py
+	modified:   results.npy
+	modified:   tb.py
+
+====================
+====================
+====================
+
+okay for C++
+think the gameplan is the same as before.
+we really want to do this in a few phases
+
+do zero skipping loop stuff 
+but allow the other stuff to not be done in c++.
+
+====================
+
+// wl ptr is 2d array ... need one for each bl.
+// which feels ridiculous.
+// but can see why this happens.
+// we process each array separately.
+// so unless we want to do all the arrays together we need wl_ptr like this.
+// also - if we want the flexibility for each array to process on its own ... (1 array blocks)
+// then we need to have wl_ptr for each node.
+
+====================
+
+> block + array 
+VS
+> block
+
+====================
+
+think we know the first step is just coding and making something work right now.
+
+====================
+
+> block/array created
+> now we want to instantiate them.
 
 
 

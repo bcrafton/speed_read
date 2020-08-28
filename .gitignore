@@ -4,3 +4,4 @@ sims/*
 *.so
 *.npy
 *.png
+*.o

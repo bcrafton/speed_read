@@ -12,7 +12,12 @@ import multiprocessing
 from multiprocessing import Process
 from multiprocessing import Pool
 
-cmd = "gcc pim.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o pim.so"; os.system(cmd)
+# http://wolfprojects.altervista.org/articles/dll-in-c-for-python/
+# https://stackoverflow.com/questions/1615813/how-to-use-c-classes-with-ctypes
+# https://solarianprogrammer.com/2019/07/18/python-using-c-cpp-libraries-ctypes/#build_cpp_dll
+# https://nesi.github.io/perf-training/python-scatter/ctypes
+
+cmd = "g++ pim.c array.c block.c params.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o pim.so"; os.system(cmd)
 cmd = "gcc pim_sync.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o pim_sync.so"; os.system(cmd)
 cmd = "gcc pim_dyn.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o pim_dyn.so"; os.system(cmd)
 cmd = "gcc profile.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o profile.so"; os.system(cmd)
