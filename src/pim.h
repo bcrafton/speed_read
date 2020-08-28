@@ -163,6 +163,7 @@ class Params {
 class Array {
   public:
   int block_id;
+  int array_id;
   
   int* x;
   int* w;
@@ -178,7 +179,7 @@ class Array {
   int* pdot_sum;
   int* sat;
   
-  Array(int block_id, int* x, int* w, int* y, Params* params);
+  Array(int block_id, int array_id, int* x, int* w, int* y, Params* params);
   void pim();
 };
 
@@ -186,6 +187,7 @@ class Array {
 
 class Block {
   public:
+  int block_id;
   
   int size;
   Array** arrays;
@@ -194,7 +196,7 @@ class Block {
   int col;
   int xb;
   
-  Block(int size, int* x, int* w, int* y, Params* params);
+  Block(int block_id, int size, int* x, int* w, int* y, Params* params);
   void pim();
 };
 

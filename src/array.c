@@ -1,8 +1,9 @@
 
 #include "pim.h"
 
-Array::Array(int block_id, int* x, int* w, int* y, Params* params) {  
+Array::Array(int block_id, int array_id, int* x, int* w, int* y, Params* params) {  
   this->block_id = block_id;
+  this->array_id = array_id;
 
   this->x = x;
   this->w = w;

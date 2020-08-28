@@ -389,7 +389,7 @@ DLLEXPORT int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, long* me
     r[block] = next_r[wl];
     next_r[wl]++;
     
-    blocks[block] = new Block(NBL, x, w, y, params); 
+    blocks[block] = new Block(wl, NBL, x, w, y, params); 
   }
 
   //////////////////////////////
