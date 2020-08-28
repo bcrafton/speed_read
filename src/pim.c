@@ -449,7 +449,7 @@ DLLEXPORT int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, long* me
                 
         /////////////////////////////////////
         
-        pim_kernel(&state, rpr, block, wl, bl);
+        // pim_kernel(&state, rpr, block, wl, bl);
         process(&state, rpr, block, bl);
         correct(&state, rpr, block, bl);
         collect(&state, metrics, rpr, block, bl);

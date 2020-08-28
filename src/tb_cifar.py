@@ -190,7 +190,7 @@ for run in range(0, num_runs, parallel_runs):
 
     results.update(return_dict)
 
-np.save('results', results)
+# np.save('results', results)
 print ('time taken:', time.time() - start)
 
 ####
