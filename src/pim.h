@@ -197,18 +197,21 @@ class Block {
   int xb;
   
   Block(int block_id, int size, int* x, int* w, int* y, Params* params);
-  void pim();
+  int pim(int row);
 };
 
 /////////////////////////////////////////////////////
 
 class Layer {
   public:
-  int size;
-  Block** blocks;
+  Params* params;
   int* block_map;
   
-  Layer(int size, int* x, int* w, int* y, Params* params, int* block_map);
+  Block** blocks;
+  int* row_map;
+  int* row_queue;
+  
+  Layer(int* x, int* w, int* y, Params* params, int* block_map);
   void pim();
 };
 

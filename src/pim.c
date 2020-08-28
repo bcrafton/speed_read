@@ -392,7 +392,7 @@ DLLEXPORT int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, long* me
     // blocks[block] = new Block(wl, NBL, x, w, y, params); 
   }
 
-  Layer* layer = new Layer(NWL, x, w, y, params, block_map);
+  Layer* layer = new Layer(x, w, y, params, block_map);
   layer->pim();
 
   //////////////////////////////

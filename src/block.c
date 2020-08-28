@@ -15,5 +15,5 @@ Block::Block(int block_id, int size, int* x, int* w, int* y, Params* params) {
   }
 }
 
-void Block::pim() {
+int Block::pim(int row) {
 }
