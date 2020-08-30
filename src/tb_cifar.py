@@ -107,7 +107,7 @@ arch_params = {
 'narray': [2 ** 13],
 'sigma': [0.10],
 'cards': [1],
-'profile': [1],
+'profile': [0],
 'rpr_alloc': ['dynamic']
 }
 

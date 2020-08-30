@@ -289,57 +289,6 @@ void collect(state_t* s, long* metrics, int rpr, int block, int bl)
 
 //////////////////////////////////////////////
 
-int sync(state_t* s, int rpr, int block, int wl, int bl) {
-
-  int done = 0;
-  int* block_done = array1D();
-
-  if (s->wl_ptr[block][bl] == s->WL) {
-    s->wl_ptr[block][bl] = 0;
-    s->wl_total[block][bl] = 0;
-
-    if (bl == (s->NBL - 1)) {
-      if (s->col[block] == (8 - 1)) {
-        s->col[block] = 0;
-    
-        if (s->xb[block] == (8 - 1)) {
-          s->xb[block] = 0;
-          
-          // TODO: what is next_r ? 
-          // i think it provides the next row to process.
-          
-          if (s->next_r[wl] < s->R) {
-            s->r[block] = s->next_r[wl];
-            s->next_r[wl]++;
-          }
-          else {
-            block_done[block] = 1;
-            
-            int block_sync = 1;
-            for (int i=0; i<s->B; i++) {
-              block_sync = block_sync & block_done[i];
-            }
-
-            done = block_sync;
-          }
-        }
-        else {
-          s->xb[block] += 1;
-        }
-      }
-      else {
-        s->col[block] += 1;
-      }
-    }
-  }
-  else {
-    assert (s->wl_ptr[block][bl] < s->WL);
-  }
-  return done;
-}
-
-//////////////////////////////////////////////
-
 DLLEXPORT int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, long* metrics, int* block_map, float* adc_state, float* adc_thresh, int adc, int skip, int R, int B, int C, int NWL, int NBL, int WL, int BL)
 {
   // x = nrow, nwl, wl, xb
@@ -380,20 +329,10 @@ DLLEXPORT int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, long* me
   
   //////////////////////////////
 
-  Params* params = new Params(R, B, C, NWL, NBL, WL, BL, adc, adc_state, adc_thresh, lut_var, lut_rpr);
-  // Block** blocks = new Block*[B];
-
-  for (int block=0; block<B; block++) {
-    int wl = block_map[block];
-    assert (wl < NWL);
-    r[block] = next_r[wl];
-    next_r[wl]++;
-    
-    // blocks[block] = new Block(wl, NBL, x, w, y, params); 
-  }
+  Params* params = new Params(R, B, C, NWL, NBL, WL, BL, adc, adc_state, adc_thresh, lut_var, lut_rpr, metrics);
 
   Layer* layer = new Layer(x, w, y, params, block_map);
-  layer->pim();
+  // layer->pim();
 
   //////////////////////////////
 
@@ -449,7 +388,7 @@ DLLEXPORT int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, long* me
                 
         /////////////////////////////////////
         
-        // pim_kernel(&state, rpr, block, wl, bl);
+        pim_kernel(&state, rpr, block, wl, bl);
         process(&state, rpr, block, bl);
         correct(&state, rpr, block, bl);
         collect(&state, metrics, rpr, block, bl);
