@@ -3834,6 +3834,50 @@ weird thing is - no blocks are getting stuck somewhere ... check above.
 
 ====================
 
+now we need to integrate {process, correct, collect}
+> should just start with process I think.
+
+so is process done after every single RPR ? 
+or is it done after a full array read ? 
+
+its 1:1 to pim_kernel.
+its for every RPR.
+
+====================
+
+I guess the other thing we wud want to do = 
+  > buffer list of 128b long vectors
+  > basically the same way we did for our tapeout.
+    > instead of this run time calculation.
+    
+====================
+
+1) actually handle block stuff at block level
+2) move wl_sum/wl_... into array
+
+i think the right move right now = move it into the array. 
+then move it out later once we have a match.
+
+====================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

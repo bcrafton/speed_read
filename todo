@@ -217,9 +217,11 @@ todo
     
 -------
     
-
+> buffer list of 128b long vectors
+  > basically the same way we did for our tapeout.
+  > instead of this run time calculation.
     
-    
+-------
     
     
     

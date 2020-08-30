@@ -64,6 +64,22 @@ wl
 
 /////////////////////////////////////////////////////
 
+void clear_vector(int* v);
+void clear_array(int* a);
+void clear_block(int* a);
+void free3D(int*** array);
+int* array1D();
+int** array2D();
+int*** array3D();
+long unsigned int factorial(int n);
+long unsigned int nChoosek(int n, int k);
+float binomial_pmf(int k, int n, float p);
+int sat_error(float p, int adc, int rpr);
+int eval_adc(float x, int adc, int rpr, float* adc_state, float* adc_thresh);
+int comps_enabled(int wl, int adc, int rpr, float* adc_state, float* adc_thresh);
+
+/////////////////////////////////////////////////////
+
 /*
 typedef struct data_t {
   int* x;
@@ -182,6 +198,7 @@ class Array {
   
   Array(int block_id, int array_id, int* x, int* w, int* y, Params* params);
   int pim(int row, int col, int xb, int rpr);
+  int process(int row, int col, int xb, int rpr);
 };
 
 /////////////////////////////////////////////////////

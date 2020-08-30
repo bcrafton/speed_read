@@ -54,6 +54,40 @@ int Array::pim(int row, int col, int xb, int rpr) {
   return 0;
 }
 
+#define CENTROIDS 1
 
+int Array::process(int row, int col, int xb, int rpr) {
+
+  for (int adc_ptr=0; adc_ptr<this->params->BL; adc_ptr+=8) {
+    int bl_ptr = adc_ptr + col;
+    int c = (bl_ptr + this->array_id * this->params->BL) / 8;
+    int wb = col;
+
+    int key = rand() % 1000;
+    int var_addr = this->pdot[bl_ptr] * 1000 + key;
+    float var = this->params->lut_var[var_addr];
+
+    float pdot_var = this->pdot[bl_ptr] + var;
+    int pdot_adc;
+
+    if (CENTROIDS) pdot_adc = eval_adc(pdot_var, this->params->adc, rpr, this->params->adc_state, this->params->adc_thresh);
+    else           pdot_adc = min(max((int) round(pdot_var), 0), min(this->params->adc, rpr));
+
+    int yaddr = row * this->params->C + c;
+    int shift = wb + xb;
+    this->y[yaddr] += pdot_adc << shift;
+
+    if (wb == 0) {
+      if (CENTROIDS) this->y[yaddr] -= 4 * ((this->wl_sum * 128) << xb);
+      else           this->y[yaddr] -= ((this->wl_sum * 128) << xb);
+    }
+
+    if (this->wl_sum >= this->params->adc) {
+      this->sat[bl_ptr] += (this->pdot[bl_ptr] == this->params->adc);
+      this->pdot_sum[bl_ptr] += this->pdot[bl_ptr];
+    }
+
+  }
+}
 
 
