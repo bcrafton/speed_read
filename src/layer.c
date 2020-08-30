@@ -27,16 +27,24 @@ void Layer::pim() {
   
   int done = 0;
   while (!done) {
+    this->params->metrics[METRIC_CYCLE]++;
 
     done = 1;
     for (int b=0; b<this->params->B; b++) {
       
       done &= block_done[b];
-      if (block_done[b]) continue;
+      
+      if (block_done[b]) {
+        this->params->metrics[METRIC_STALL] += this->params->NBL;
+        continue;
+      }
+      else {
+        this->params->metrics[METRIC_BLOCK_CYCLE + 0] += 1;
+      }
 
       int row = this->row_map[b];
       int ret = this->blocks[b]->pim(row);
-      
+
       if (ret) {
         int block_row = this->block_map[b];
         int next_row = this->row_queue[block_row];
@@ -51,4 +59,13 @@ void Layer::pim() {
     } // for (int b=0; b<this->params->B; b++) {
   } // while (!done) {
 }
+
+
+
+
+
+
+
+
+
 
