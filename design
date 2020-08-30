@@ -3811,6 +3811,29 @@ ASP-DAC October.
 
 ====================
 
+layer->pim()
+kills binary.
+> seems like segfault
+> could also be from a bad init ... since we arnt setting things to zero.
+
+====================
+
+> |7:1023|8:1022|9:1019|12:1015|13:1014|15:1011|16:1010|17:1008|18:1018|19:1016|20:1012|21:1004|22:1003|23:1007|
+weird thing is - no blocks are getting stuck somewhere ... check above.
+... like this happens at the very end.
+
+====================
+
+> block_id
+> in xaddr
+> this is supposed to be wl
+> think we are using block instead
+> makes sense it was this address ...
+
+> probs gonna run into other issues like this.
+
+====================
+
 
 
 

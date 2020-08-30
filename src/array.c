@@ -15,9 +15,9 @@ Array::Array(int block_id, int array_id, int* x, int* w, int* y, Params* params)
   this->wl_sum = 0;
   this->wl_total = 0;
 
-  this->pdot     = new int[VECTOR_SIZE];
-  this->pdot_sum = new int[VECTOR_SIZE];
-  this->sat      = new int[VECTOR_SIZE];
+  this->pdot     = new int[VECTOR_SIZE]();
+  this->pdot_sum = new int[VECTOR_SIZE]();
+  this->sat      = new int[VECTOR_SIZE]();
 }
 
 int Array::pim(int row, int col, int xb, int rpr) {
@@ -25,8 +25,10 @@ int Array::pim(int row, int col, int xb, int rpr) {
   memset(this->pdot, 0, sizeof(int) * VECTOR_SIZE);
   this->wl_sum = 0;
 
-  int xaddr = (row * this->params->NWL * this->params->WL * 8) + (this->block_id * this->params->WL * 8) + (this->wl_ptr * 8) + xb;  
-  while ((this->wl_ptr < this->params->WL) && (this->wl_sum + this->x[xaddr] <= rpr)) {
+  int xaddr = (row * this->params->NWL * this->params->WL * 8) + (this->block_id * this->params->WL * 8) + (this->wl_ptr * 8) + xb;
+  assert((this->x[xaddr] == 0) || (this->x[xaddr] == 1));
+  
+  while ((this->wl_ptr < this->params->WL) && ((this->wl_sum + this->x[xaddr]) <= rpr)) {
     
     if (this->x[xaddr]) {
       this->wl_sum += 1;
@@ -37,12 +39,14 @@ int Array::pim(int row, int col, int xb, int rpr) {
         this->pdot[bl_ptr] += this->w[waddr];
       }
     }
-    
+        
+    xaddr = (row * this->params->NWL * this->params->WL * 8) + (this->block_id * this->params->WL * 8) + (this->wl_ptr * 8) + xb;
+    // printf("%d %d %d %d %d\n", row, this->block_id, this->wl_ptr, xb, this->x[xaddr]);
+    assert((this->x[xaddr] == 0) || (this->x[xaddr] == 1));
+
     this->wl_ptr += 1;
-    xaddr = (row * this->params->NWL * this->params->WL * 8) + (this->block_id * this->params->WL * 8) + (this->wl_ptr * 8) + xb;  
   }
-  
-  
+    
   if (this->wl_ptr == this->params->WL) {
     this->wl_ptr = 0;
     return 1;
