@@ -305,28 +305,6 @@ DLLEXPORT int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, long* me
   assert (BL <= VECTOR_SIZE);
   assert (B <= BLOCK_SIZE);
   
-  int done = 0;
-    
-  int* r = array1D(); 
-  int* next_r = array1D(); 
-    
-  int* block_done = array1D();
-  int* col = array1D();
-  int* xb = array1D();
-
-  int** wl_ptr = array2D();
-  int** wl_sum = array2D();
-  int** wl_total = array2D();
-  
-  int*** pdot = array3D();
-  int*** pdot_sum = array3D();
-  int*** sat = array3D();
-  
-  //////////////////////////////
-  
-  // TODO: break this up somehow.
-  state_t state = {x, w, y, R, B, C, NWL, NBL, WL, BL, adc, adc_state, adc_thresh, lut_var, r, next_r, col, xb, wl_ptr, wl_sum, wl_total, pdot, pdot_sum, sat};
-  
   //////////////////////////////
 
   Params* params = new Params(R, B, C, NWL, NBL, WL, BL, adc, adc_state, adc_thresh, lut_var, lut_rpr, metrics);
@@ -335,115 +313,7 @@ DLLEXPORT int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, long* me
   layer->pim();
 
   //////////////////////////////
-  /*
-  for (int block=0; block<B; block++) {
-    int wl = block_map[block];
-    assert (wl < NWL);
-    r[block] = next_r[wl];
-    next_r[wl]++;
-  }  
-  // next_r will have to be 2D.
-  // all {row, wl}
 
-  while (!done) {
-
-    for (int i=0; i<B; i++) {
-      for (int j=0; j<NBL; j++) {
-        assert(wl_ptr[i][0] == wl_ptr[i][j]);
-      }
-    }
-
-    metrics[METRIC_CYCLE] += 1;
-    // if there are more duplicates than rows, then I believe we hit this assert.
-    // assert (metrics[METRIC_CYCLE] < 500000);
-
-    for (int block=0; block<B; block++) {
-
-      int wl = block_map[block];
-      assert (wl < NWL);
-
-      // here is our issue.
-      if (block_done[block]) {
-        metrics[METRIC_STALL] += NBL;
-        continue;
-      }
-      else { 
-        metrics[METRIC_BLOCK_CYCLE + wl] += 1;
-      }
-      
-      for (int bl=0; bl<NBL; bl++) {
-        
-        /////////////////////////////////////
-        
-        int x_addr = xb[block] * 8;
-        int w_addr = col[block];
-        int rpr_addr = x_addr + w_addr;
-
-        if (!((rpr_addr >= 0) && (rpr_addr < 64))) {
-          printf("xb: %d bl: %d BL: %d C: %d: rpr_addr: %d\n", xb[block], bl, BL, C, rpr_addr);
-          assert ((rpr_addr >= 0) && (rpr_addr < 64));
-        }
-        int rpr = lut_rpr[rpr_addr];
-        assert (rpr >= 1);
-                
-        /////////////////////////////////////
-        
-        pim_kernel(&state, rpr, block, wl, bl);
-        process(&state, rpr, block, bl);
-        correct(&state, rpr, block, bl);
-        collect(&state, metrics, rpr, block, bl);
-        // done = sync(&state, rpr, block, wl, bl);
-        
-        /////////////////////////////////////
-
-        if (wl_ptr[block][bl] == WL) {
-          wl_ptr[block][bl] = 0;
-          wl_total[block][bl] = 0;
-
-          if (bl == (NBL - 1)) {
-            if (col[block] == (8 - 1)) {
-              col[block] = 0;
-          
-              if (xb[block] == (8 - 1)) {
-                xb[block] = 0;
-                
-                if (next_r[wl] < R) {
-                  r[block] = next_r[wl];
-                  next_r[wl]++;
-                }
-                else {
-                  block_done[block] = 1;
-                  
-                  int block_sync = 1;
-                  for (int i=0; i<B; i++) {
-                    block_sync = block_sync & block_done[i];
-                  }
-
-                  done = block_sync;
-                }
-              }
-              else {
-                xb[block] += 1;
-              }
-            }
-            else {
-              col[block] += 1;
-            }
-          }
-        }
-        else {
-          assert (wl_ptr[block][bl] < WL);
-        }
-
-      } // for (int bl=0; bl<NBL; bl++) {
-    } // for (int b=0; b<B; b++) {
-    // printf("%ld\n", metrics[METRIC_CYCLE]);
-  } // while (!done) {
-
-  free3D(pdot);
-  free3D(pdot_sum);
-  free3D(sat);
-  */
   return metrics[METRIC_CYCLE];
 }
 
