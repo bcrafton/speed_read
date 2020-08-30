@@ -29,6 +29,7 @@ int Block::pim(int row) {
     else        assert(ret == done);
     this->arrays[i]->process(row, this->col, this->xb, rpr);
     this->arrays[i]->collect(row, this->col, this->xb, rpr);
+    this->arrays[i]->correct(row, this->col, this->xb, rpr);
   } 
   
   if (done) {

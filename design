@@ -3860,7 +3860,7 @@ then move it out later once we have a match.
 
 ====================
 
-
+def think issue coming from {pdot, pdot_sum, ...} not getting set back to 0.
 
 
 

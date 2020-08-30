@@ -54,7 +54,7 @@ int Array::pim(int row, int col, int xb, int rpr) {
   return 0;
 }
 
-#define CENTROIDS 1
+#define CENTROIDS 0
 
 int Array::process(int row, int col, int xb, int rpr) {
 
@@ -113,7 +113,29 @@ int Array::collect(int row, int col, int xb, int rpr) {
   this->params->metrics[METRIC_WL] += this->wl_sum;
 }
 
+int Array::correct(int row, int col, int xb, int rpr) {
 
+  if (this->wl_ptr == this->params->WL) {
+    for (int adc_ptr=0; adc_ptr<this->params->BL; adc_ptr+=8) {
+      int bl_ptr = adc_ptr + col;
+      int c = (bl_ptr + this->array_id * this->params->BL) / 8;
+      int wb = col;
+
+      if (this->wl_total) {
+        float p = ((float) this->pdot_sum[bl_ptr]) / ((float) this->wl_total);
+        p = min(max(p, 0.), 1.);
+        int e = sat_error(p, this->params->adc, rpr);
+
+        int yaddr = row * this->params->C + c;
+        this->y[yaddr] -= ((this->sat[bl_ptr] * e) << (wb + xb));
+
+        this->sat[bl_ptr] = 0;
+        this->pdot_sum[bl_ptr] = 0;
+      }
+    }
+  }
+
+}
 
 
 
