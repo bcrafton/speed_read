@@ -172,7 +172,9 @@ class Params {
   float* lut_var;
   int* lut_rpr;
   
-  Params(int R, int B, int C, int NWL, int NBL, int WL, int BL, int adc, float* adc_state, float* adc_thresh, float* lut_var, int* lut_rpr);
+  long* metrics;
+
+  Params(int R, int B, int C, int NWL, int NBL, int WL, int BL, int adc, float* adc_state, float* adc_thresh, float* lut_var, int* lut_rpr, long* metrics);
 };
 
 /////////////////////////////////////////////////////
@@ -199,6 +201,7 @@ class Array {
   Array(int block_id, int array_id, int* x, int* w, int* y, Params* params);
   int pim(int row, int col, int xb, int rpr);
   int process(int row, int col, int xb, int rpr);
+  int collect(int row, int col, int xb, int rpr);
 };
 
 /////////////////////////////////////////////////////

@@ -25,9 +25,10 @@ int Block::pim(int row) {
   int done = 0;
   for (int i=0; i<this->params->NBL; i++) {
     int ret = this->arrays[i]->pim(row, this->col, this->xb, rpr);
-    this->arrays[i]->process(row, this->col, this->xb, rpr);
     if (i == 0) done = ret;
     else        assert(ret == done);
+    this->arrays[i]->process(row, this->col, this->xb, rpr);
+    this->arrays[i]->collect(row, this->col, this->xb, rpr);
   } 
   
   if (done) {

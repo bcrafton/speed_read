@@ -90,4 +90,33 @@ int Array::process(int row, int col, int xb, int rpr) {
   }
 }
 
+int Array::collect(int row, int col, int xb, int rpr) {
+
+  for (int adc_ptr=0; adc_ptr<this->params->BL; adc_ptr+=8) {
+    int bl_ptr = adc_ptr + col;
+    int c = (bl_ptr + this->array_id * this->params->BL) / 8;
+    int wb = col;
+
+    this->params->metrics[METRIC_RON] += this->pdot[bl_ptr];
+    this->params->metrics[METRIC_ROFF] += this->wl_sum - this->pdot[bl_ptr];
+  }
+
+  if (this->wl_sum > 0) {
+    int comps;
+    if (CENTROIDS) comps = comps_enabled(this->wl_sum, this->params->adc, rpr, this->params->adc_state, this->params->adc_thresh) - 1;
+    else           comps = min(this->wl_sum - 1, this->params->adc - 1);
+    assert((comps >= 0) && (comps < this->params->adc));
+    assert ((this->params->BL % 8) == 0);
+    this->params->metrics[comps] += this->params->BL / 8;
+  }
+
+  this->params->metrics[METRIC_WL] += this->wl_sum;
+}
+
+
+
+
+
+
+
 
