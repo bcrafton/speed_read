@@ -3873,6 +3873,11 @@ OH right - we are not using CC.
 
 ====================
 
+> alright so we are matching for dynamic AND centroids.
+> where do we go from here ? 
+
+1) making sync work ? 
+2) add centroids/dynamic as a parameter.
 
 ====================
 
