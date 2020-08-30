@@ -37,6 +37,8 @@ void Layer::pim() {
       
       done &= block_done[b];
       
+      // we add B*NBL incorrect stalls.
+      // we add 1 incorrect cycle.
       if (block_done[b]) {
         this->params->metrics[METRIC_STALL] += this->params->NBL;
         continue;

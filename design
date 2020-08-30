@@ -3862,10 +3862,19 @@ then move it out later once we have a match.
 
 def think issue coming from {pdot, pdot_sum, ...} not getting set back to 0.
 
+====================
+
+> why are they taking different #s of cycles ? 
+> that should be something easy to get right .
+
+with/without correct()
+does nothing
+OH right - we are not using CC.
+
+====================
 
 
-
-
+====================
 
 
 
