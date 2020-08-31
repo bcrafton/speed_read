@@ -64,13 +64,6 @@ wl
 
 /////////////////////////////////////////////////////
 
-void clear_vector(int* v);
-void clear_array(int* a);
-void clear_block(int* a);
-void free3D(int*** array);
-int* array1D();
-int** array2D();
-int*** array3D();
 long unsigned int factorial(int n);
 long unsigned int nChoosek(int n, int k);
 float binomial_pmf(int k, int n, float p);
@@ -233,9 +226,25 @@ class Layer {
   
   Block** blocks;
   int* row_map;
-  int row_queue;
+  int* row_queue;
   
   Layer(int* x, int* w, int* y, Params* params, int* block_map);
+  void pim();
+  void pim_sync();
+};
+
+/////////////////////////////////////////////////////
+
+class LayerSync {
+  public:
+  Params* params;
+  int* block_map;
+  
+  Block** blocks;
+  int* row_map;
+  int row_queue;
+  
+  LayerSync(int* x, int* w, int* y, Params* params, int* block_map);
   void pim();
   void pim_sync();
 };

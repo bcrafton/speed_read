@@ -73,50 +73,45 @@ void Layer::pim_sync() {
   while (!done) {
     this->params->metrics[METRIC_CYCLE]++;
 
-    for (int d=0; d<this->params->D; d++) {           
-      int row = this->row_map[d];
-
+    for (int d=0; d<this->params->D; d++) {
       for (int block_row=0; block_row<this->params->NWL; block_row++) {
         int b = d * this->params->NWL + block_row;
         if (block_done[b]) {
           this->params->metrics[METRIC_STALL] += this->params->NBL;
-          continue;
         }
         else {
           this->params->metrics[METRIC_BLOCK_CYCLE + block_row] += 1;
+          block_done[b] = this->blocks[b]->pim(this->row_map[d]);
         }
-        int ret = this->blocks[b]->pim(row);
+      } 
 
-        if (ret) {
-          block_done[b] = 1;
-        
-          int block_sync = 1;
-          for (int i=0; i<this->params->NWL; i++) {
-            block_sync = block_sync & block_done[d * this->params->NWL + i];
-          }
-
-          if (block_sync) {      
-            if (this->row_queue < this->params->R) {
-              this->row_map[d] = this->row_queue;
-              this->row_queue++;
-              
-              for (int i=0; i<this->params->NWL; i++) {
-                block_done[d * this->params->NWL + i] = 0;
-              }
-            }
-            else {
-              matrix_done[d] = 1;
-              int matrix_sync = 1;
-              for (int i=0; i<this->params->D; i++) {
-                matrix_sync = matrix_sync & matrix_done[i];
-              }
-              done = matrix_sync;
-            }
-          }
-        }
-        
+      int block_sync = 1;
+      for (int block_row=0; block_row<this->params->NWL; block_row++) {
+        block_sync = block_sync & block_done[d * this->params->NWL + block_row];
       }
-    } // for (int d=0; d<D; d++) { 
+
+      if (block_sync) {
+        int next_row = this->row_queue;
+        if (next_row < this->params->R) {
+          this->row_map[d] = next_row;
+          this->row_queue++;
+          
+          for (int block_row=0; block_row<this->params->NWL; block_row++) {
+            block_done[d * this->params->NWL + block_row] = 0;
+          }
+        }
+        else {
+          matrix_done[d] = 1;
+        }
+      }
+
+    } // for (int d=0; d<D; d++) {
+    
+    done = 1;
+    for (int i=0; i<this->params->D; i++) {
+      done = done & matrix_done[i];
+    }
+    
   } // while (!done) {
 }
 
