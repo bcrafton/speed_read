@@ -3904,23 +3904,50 @@ but we need to make pim_sync better.
 1) pim_sync 
 2) centroids/dynamic -> parameter
 
+====================
 
+> looks like all the arrays are getting stalled.
+  > when we look at the difference between current and previous
+  > clear as day = all extra cycles are also stalls.
 
+====================
 
+cannot find the diff here.
+also - might not be that important
+figure out what the actual plan is for adding sync as an option
+might not need to debug this further
+BIG PICTURE.  
 
+====================
 
+> current implementation = correct.
+  > resnet5, classes1 @ 1993c691b183939bd9d72edbd1e02ff522713db5
+  > are wrong.
+  > they let blocks go same cycle as sync.
+  > bc sync is checked at each block.
 
+> verify this:
+  > assert to make sure the stall thing isnt the problem ? 
+  > assert that block_done != true, matrix_done != true
 
+====================
 
+where do we go from here ? 
+we wud need 2 different layer implementations ... 
+> layer, layer_sync
 
+dont really see an alternative 
+that is less janky.
+> learned our lesson about duplicate if statements and data structures
 
+====================
 
+> two different layer implementations it is then.
 
+1) pim_sync 
+2) centroids/dynamic -> parameter
 
-
-
-
-
+====================
 
 
 

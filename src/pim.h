@@ -165,6 +165,8 @@ class Params {
   int WL;
   int BL;
   
+  int D;
+  
   int    adc;
   float* adc_state;
   float* adc_thresh;
@@ -231,7 +233,7 @@ class Layer {
   
   Block** blocks;
   int* row_map;
-  int* row_queue;
+  int row_queue;
   
   Layer(int* x, int* w, int* y, Params* params, int* block_map);
   void pim();

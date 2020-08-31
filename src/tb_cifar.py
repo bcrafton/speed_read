@@ -103,9 +103,9 @@ arch_params2 = {
 
 arch_params = {
 'skip': [1],
-'alloc': ['block'],
+'alloc': ['layer'],
 'narray': [2 ** 13],
-'sigma': [0.10],
+'sigma': [0.01],
 'cards': [1],
 'profile': [0],
 'rpr_alloc': ['dynamic']
