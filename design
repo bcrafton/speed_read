@@ -3894,6 +3894,32 @@ there are some diffs between our sync and the old one
 
 nevermind, its actually in the right order.
 
+====================
+
+think we should keep 2 separate layer.pim functions
+but we need to make pim_sync better.
+
+====================
+
+1) pim_sync 
+2) centroids/dynamic -> parameter
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
