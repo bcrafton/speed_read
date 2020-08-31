@@ -101,7 +101,7 @@ arch_params2 = {
 
 arch_params = {
 'skip': [1],
-'alloc': ['layer'],
+'alloc': ['block'],
 'narray': [2 ** 13],
 'sigma': [0.10],
 'cards': [1],

@@ -3952,6 +3952,37 @@ that is less janky.
 > undoing what we dont want:
 https://github.com/bcrafton/speed_read/commit/10add6c3f49a7b0d0e30316d67ba3a1a15e56fcd
 
+====================
+
+> pass {centroids, sync} as parameters ?
+ 
+> static bias, rather than dynamic bias ? 
+  > use ADC instead of p=0.7 or w.e.
+
+> generate some plots and shit.
+
+====================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
