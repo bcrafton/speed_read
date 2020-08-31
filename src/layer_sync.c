@@ -23,46 +23,6 @@ Layer::Layer(int* x, int* w, int* y, Params* params, int* block_map) {
 }
 
 void Layer::pim() {
-  int* block_done = new int[this->params->B]();
-  
-  int done = 0;
-  while (!done) {
-    this->params->metrics[METRIC_CYCLE]++;
-
-    done = 1;
-    for (int b=0; b<this->params->B; b++) {
-
-      int row = this->row_map[b];
-      int block_row = this->block_map[b];
-      
-      done &= block_done[b];
-      
-      // we add B*NBL incorrect stalls.
-      // we add 1 incorrect cycle.
-      if (block_done[b]) {
-        this->params->metrics[METRIC_STALL] += this->params->NBL;
-        continue;
-      }
-      else {
-        this->params->metrics[METRIC_BLOCK_CYCLE + block_row] += 1;
-      }
-
-      int ret = this->blocks[b]->pim(row);
-      if (ret) {
-        int next_row = this->row_queue[block_row];
-        if (next_row < this->params->R) {
-          this->row_map[b] = next_row;
-          this->row_queue[block_row]++;
-        }
-        else {
-          block_done[b] = 1;
-        }
-      }
-    } // for (int b=0; b<this->params->B; b++) {
-  } // while (!done) {
-}
-
-void Layer::pim_sync() {
   int D = this->params->B / this->params->NWL;
 
   int* block_done = new int[this->params->B]();
@@ -124,6 +84,63 @@ void Layer::pim_sync() {
     } // for (int b=0; b<this->params->B; b++) {
   } // while (!done) {
 }
+
+/*
+if (wl_ptr[block][bl] == WL) {
+  wl_ptr[block][bl] = 0;
+  wl_total[block][bl] = 0;
+
+  if (bl == (NBL - 1)) {
+    if (col[block] == (8 - 1)) {
+      col[block] = 0;
+  
+      if (xb[block] == (8 - 1)) {
+        xb[block] = 0;
+        
+        block_done[block] = 1;
+        
+        int group = block - (block % NWL);
+        
+        int block_sync = 1;
+        for (int i=group; i<group+NWL; i++) {
+          block_sync = block_sync & block_done[block];
+        }
+        
+        if (block_sync) {
+          if (next_r[wl] < R) {
+            r[block] = next_r[wl];
+            next_r[wl]++;
+            
+            for (int i=group; i<group+NWL; i++) {
+              block_done[block] = 0;
+            }
+            
+          }
+          else {
+            matrix_done[block] = 1;
+            
+            int matrix_sync = 1;
+            for (int i=0; i<B; i++) {
+              matrix_sync = matrix_sync & matrix_done[i];
+            }
+
+            done = matrix_sync;
+          }
+        } // if (block_sync) {
+      } // if (xb[block] == (8 - 1)) {
+      else {
+        xb[block] += 1;
+      }
+    }
+    else {
+      col[block] += 1;
+    }
+  }
+}
+else {
+  assert (wl_ptr[block][bl] < WL);
+}
+*/
 
 
 

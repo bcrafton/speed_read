@@ -235,6 +235,7 @@ class Layer {
   
   Layer(int* x, int* w, int* y, Params* params, int* block_map);
   void pim();
+  void pim_sync();
 };
 
 /////////////////////////////////////////////////////

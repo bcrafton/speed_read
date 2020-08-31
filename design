@@ -3888,8 +3888,11 @@ did we not save the sync code that we made work ?
 
 ====================
 
+there are some diffs between our sync and the old one
+> matrix_sync
+> also dont think block_map is in the right order.
 
-
+nevermind, its actually in the right order.
 
 
 
