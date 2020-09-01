@@ -42,6 +42,7 @@ def pim(x, w, y_shape, lut_var, lut_rpr, alloc, adc_state, adc_thresh, params):
                 block += 1
         
         block_map = np.ascontiguousarray(block_map.flatten(), np.int32)
+        sync = 0
         
     ########
 
@@ -53,6 +54,7 @@ def pim(x, w, y_shape, lut_var, lut_rpr, alloc, adc_state, adc_thresh, params):
                 block_map[i][j] = j
         
         block_map = np.ascontiguousarray(block_map.flatten(), np.int32)
+        sync = 1
     
     ########
     
@@ -60,31 +62,27 @@ def pim(x, w, y_shape, lut_var, lut_rpr, alloc, adc_state, adc_thresh, params):
     # print (adc_thresh)
     # print (lut_rpr)
 
-    if params['alloc'] == 'block':
-        psum = pim_lib.pim(
-        ctypes.c_void_p(x.ctypes.data), 
-        ctypes.c_void_p(w.ctypes.data), 
-        ctypes.c_void_p(y.ctypes.data), 
-        ctypes.c_void_p(lut_var.ctypes.data), 
-        ctypes.c_void_p(lut_rpr.ctypes.data), 
-        ctypes.c_void_p(metrics.ctypes.data), 
-        ctypes.c_void_p(block_map.ctypes.data),
-        ctypes.c_void_p(adc_state.ctypes.data), 
-        ctypes.c_void_p(adc_thresh.ctypes.data), 
-        ctypes.c_int(params['adc']),
-        ctypes.c_int(params['skip']),
-        ctypes.c_int(nrow),
-        ctypes.c_int(nblock),
-        ctypes.c_int(ncol),
-        ctypes.c_int(nwl),
-        ctypes.c_int(nbl),
-        ctypes.c_int(wl),
-        ctypes.c_int(bl))
-    
-    ########
-    
-    if params['alloc'] == 'layer':
-        assert (False)
+    psum = pim_lib.pim(
+    ctypes.c_void_p(x.ctypes.data), 
+    ctypes.c_void_p(w.ctypes.data), 
+    ctypes.c_void_p(y.ctypes.data), 
+    ctypes.c_void_p(lut_var.ctypes.data), 
+    ctypes.c_void_p(lut_rpr.ctypes.data), 
+    ctypes.c_void_p(metrics.ctypes.data), 
+    ctypes.c_void_p(block_map.ctypes.data),
+    ctypes.c_void_p(adc_state.ctypes.data), 
+    ctypes.c_void_p(adc_thresh.ctypes.data), 
+    ctypes.c_int(params['adc']),
+    ctypes.c_int(params['skip']),
+    ctypes.c_int(nrow),
+    ctypes.c_int(nblock),
+    ctypes.c_int(ncol),
+    ctypes.c_int(nwl),
+    ctypes.c_int(nbl),
+    ctypes.c_int(wl),
+    ctypes.c_int(bl),
+    ctypes.c_int(sync),
+    ctypes.c_int(1))
     
     ########
     
@@ -165,7 +163,8 @@ def pim_dyn(x, w, y_shape, lut_var, lut_rpr, alloc, params):
     ctypes.c_int(nbl),
     ctypes.c_int(wl),
     ctypes.c_int(bl),
-    ctypes.c_int(sync))
+    ctypes.c_int(sync),
+    ctypes.c_int(0))
     
     return y, metrics
 
