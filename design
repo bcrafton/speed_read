@@ -3963,9 +3963,16 @@ https://github.com/bcrafton/speed_read/commit/10add6c3f49a7b0d0e30316d67ba3a1a15
 
 ====================
 
+plot each one by layer.
+> {centroids, block, profile}
+> sweep {variance, layer, #array}
 
+> so we want to take plot_util for now.
 
+> create a better plot tool
+> dump data cleaner as well ...
 
+====================
 
 
 

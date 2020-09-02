@@ -223,9 +223,16 @@ todo
     
 -------
     
-we add B*NBL incorrect stalls.
-we add 1 incorrect cycle.
-    
+> pass {centroids, sync} as parameters ?
+ 
+> static bias, rather than dynamic bias ? 
+  > use ADC instead of p=0.7 or w.e.
+
+> plots
+  > {centroids, block, profile}
+  > sweep {variance, layer, #array} 
+  > dump data cleaner, this shouldnt be bad at all.  
+      
 -------
     
     

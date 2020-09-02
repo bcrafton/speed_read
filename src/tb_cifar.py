@@ -101,12 +101,12 @@ arch_params2 = {
 
 arch_params = {
 'skip': [1],
-'alloc': ['block'],
+'alloc': ['block', 'layer'],
 'narray': [2 ** 13],
 'sigma': [0.10],
 'cards': [1],
-'profile': [0],
-'rpr_alloc': ['dynamic']
+'profile': [0, 1],
+'rpr_alloc': ['centroids', 'dynamic']
 }
 
 ############
@@ -188,7 +188,7 @@ for run in range(0, num_runs, parallel_runs):
 
     results.update(return_dict)
 
-# np.save('results', results)
+np.save('results', results)
 print ('time taken:', time.time() - start)
 
 ####
