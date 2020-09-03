@@ -13,16 +13,13 @@ import multiprocessing
 from multiprocessing import Process
 from multiprocessing import Pool
 
-assert (False)
-
-cmd = "gcc pim.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o pim.so"; os.system(cmd)
-cmd = "gcc pim_sync.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o pim_sync.so"; os.system(cmd)
-cmd = "gcc pim_dyn.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o pim_dyn.so"; os.system(cmd)
+cmd = "g++ pim.c array.c block.c layer.c layer_sync.c params.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o pim.so"; os.system(cmd)
 cmd = "gcc profile.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o profile.so"; os.system(cmd)
 
 from layers import *
 from conv import *
 from block import *
+from model import *
 
 ####
 
@@ -34,7 +31,7 @@ def quantize_np(x):
   return x, scale
 
 def init_x(num_example):
-    dataset = np.load('resnet18_activations.npy', allow_pickle=True).item()
+    dataset = np.load('../imagenet.npy', allow_pickle=True).item()
     xs, ys = dataset['x'], dataset['y']
     assert (np.shape(xs) == (10, 224, 224, 3))
 
@@ -103,9 +100,25 @@ arch_params2 = {
 
 ############
 
+arch_params = {
+'skip': [1],
+'alloc': ['block', 'layer'],
+'narray': [2 ** 13],
+'sigma': [0.10],
+'cards': [1],
+'profile': [0, 1],
+'rpr_alloc': ['centroids', 'dynamic']
+}
+
+############
+
+param_sweep = perms(arch_params)
+
+'''
 param_sweep1 = perms(arch_params1)
 param_sweep2 = perms(arch_params2)
 param_sweep = param_sweep1 + param_sweep2
+'''
 
 ####
 
@@ -151,12 +164,12 @@ x, y = init_x(num_example=1)
 
 ##########################
 
-weights = np.load('resnet18_quant_weights.npy', allow_pickle=True).item()
+weights = np.load('../resnet18_quant_weights.npy', allow_pickle=True).item()
 model = create_model(weights)
 
 ##########################
 
-load_profile_adc = True
+load_profile_adc = False
 
 if not load_profile_adc:
     profile = model.profile_adc(x=x)
