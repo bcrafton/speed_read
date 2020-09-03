@@ -91,20 +91,31 @@ class Model:
 
         pred = [None] * num_examples
         # results = [[] for weight in range(self.nweight)] 
+        
+        '''
         results = {}
         for weight in range(self.nweight):
             results[weight] = []
-
+        '''
+        
+        results = []
+        
         for example in range(num_examples):
             pred[example] = x[example]
             for layer in range(num_layers):
                 pred[example], result = self.layers[layer].forward(x=pred[example])
                 assert (np.all((pred[example] % 1) == 0))
+                '''
                 for r in result:
                     results[r['id']].append(r)
-                    
-        results['block_mac'] = self.mac_per_array_block
-        results['layer_mac'] = self.mac_per_array_layer
+                '''
+                for r in result:
+                    r['example'] = example
+                    results.append(r)
+                
+        # this is dumb, just stick this in the results.
+        # results['block_mac'] = self.mac_per_array_block
+        # results['layer_mac'] = self.mac_per_array_layer
 
         return pred, results
 

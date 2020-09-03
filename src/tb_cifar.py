@@ -101,12 +101,12 @@ arch_params2 = {
 
 arch_params = {
 'skip': [1],
-'alloc': ['block', 'layer'],
+'alloc': ['block'],
 'narray': [2 ** 13],
-'sigma': [0.10],
-'cards': [1],
-'profile': [0, 1],
-'rpr_alloc': ['centroids', 'dynamic']
+'sigma': [0.05, 0.15],
+'cards': [0, 1],
+'profile': [1],
+'rpr_alloc': ['dynamic']
 }
 
 ############
@@ -138,18 +138,32 @@ def create_model(weights):
 
 ####
 
-def run_command(x, y, model, params, return_dict):
-    print (params)
+def run_command(x, y, model, params, return_list):
+    # print (params)
+    
     model.init(params)
     if params['profile']:
         model.profile(x=x)
     
     _, result = model.forward(x=x, y=y)
-    return_dict[(params['skip'], params['cards'], params['alloc'], params['profile'], params['narray'], params['sigma'], params['rpr_alloc'])] = result
-
+    
+    # return_dict[(params['skip'], params['cards'], params['alloc'], params['profile'], params['narray'], params['sigma'], params['rpr_alloc'])] = result
+    
+    update = {
+    'skip':      params['skip'],
+    'cards':     params['cards'],
+    'alloc':     params['alloc'],
+    'profile':   params['profile'],
+    'narray':    params['narray'],
+    'sigma':     params['sigma'],
+    'rpr_alloc': params['rpr_alloc']
+    }
+    
+    for r in result:
+        r.update(update)
+        return_list.append(r)
+        
 ####
-
-results = {}
 
 start = time.time()
 x, y = init_x(1, (32, 32), 0, 127)
@@ -172,21 +186,40 @@ else:
 
 ##########################
 
+# shared memory
+# https://docs.python.org/3.9/library/multiprocessing.shared_memory.html
+# new in 3.8 ...
+
+# can try this as well ...
+# https://www.kite.com/python/answers/how-to-return-a-value-using-multiprocessing-in-python
+
+# we dont need to share between threads.
+# we just need to get data from the threads
+# so what is the best way to do that ? 
+
 num_runs = len(param_sweep)
-parallel_runs = 8
+parallel_runs = 4
+
+thread_results = []
+manager = multiprocessing.Manager()
+for _ in range(num_runs):
+    thread_results.append(manager.list())
+
 for run in range(0, num_runs, parallel_runs):
     threads = []
-    manager = multiprocessing.Manager()
-    return_dict = manager.dict()
+    
     for parallel_run in range(min(parallel_runs, num_runs - run)):
-        args = (np.copy(x), np.copy(y), copy.copy(model), param_sweep[run + parallel_run], return_dict)
+        args = (np.copy(x), np.copy(y), copy.copy(model), param_sweep[run + parallel_run], thread_results[run + parallel_run])
         t = multiprocessing.Process(target=run_command, args=args)
         threads.append(t)
         t.start()
+
     for t in threads:
         t.join()
 
-    results.update(return_dict)
+results = []
+for r in thread_results:
+    results.extend(r)
 
 np.save('results', results)
 print ('time taken:', time.time() - start)

@@ -3974,6 +3974,49 @@ plot each one by layer.
 
 ====================
 
+USING PANDAS
+
+> fill in a pandas table like this:
+> skip cards alloc profile ... rpr_alloc | mean std ron mac
+
+even add {layer, example}
+
+then we can do look ups on this table and generate w.e. results we want.
+
+====================
+
+we already have data - "plot_util2.py"
+we can transform this to the format we want
+and then see if we can recreate our plots
+motivating getting the data to pandas array right off the bat. 
+
+====================
+
+okay transformed sim to spit out pandas array we want
+new issue is the multi-dimensional arrays.
+> block_cycle
+> block_density
+> adc
+
+we arnt supposed to have these in pandas
+
+> adc is an easy fix.
+  > just list them out ... adc0, adc1, adc2 ...
+
+====================
+
+pandas working pretty well
+new question = how to make it work with multiple examples.
+
+====================
+
+> trying to re-create counting cards results ...
+> looks like our plot is fixed.
+  problem seems to be rpr is not aggressive at all ...
+  
+  
+
+
 
 
 
