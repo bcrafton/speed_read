@@ -239,7 +239,10 @@ todo
     
 > make tb modular to {model, dataset}
   > then we dont have to change both files ...
-    
+
+> more accurate threshold satisfaction
+  > want to really be able to compare shit
+
 -------
     
     
