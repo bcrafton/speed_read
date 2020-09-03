@@ -237,6 +237,9 @@ todo
     
 > put no zero skipping back in.
     
+> make tb modular to {model, dataset}
+  > then we dont have to change both files ...
+    
 -------
     
     

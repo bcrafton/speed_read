@@ -7,7 +7,6 @@ import tensorflow as tf
 import threading
 import time
 import copy
-import matplotlib.pyplot as plt
 
 import multiprocessing
 from multiprocessing import Process
@@ -82,7 +81,7 @@ arch_params1 = {
 'skip': [1],
 'alloc': ['block'],
 'narray': [2 ** 13],
-'sigma': [0.05, 0.10],
+'sigma': [0.01, 0.10, 0.2, 0.3],
 'cards': [1],
 'profile': [1],
 'rpr_alloc': ['dynamic', 'centroids']
@@ -92,7 +91,7 @@ arch_params2 = {
 'skip': [1],
 'alloc': ['block'],
 'narray': [2 ** 13],
-'sigma': [0.05, 0.10],
+'sigma': [0.01, 0.10, 0.2, 0.3],
 'cards': [0],
 'profile': [1],
 'rpr_alloc': ['dynamic']
@@ -112,13 +111,11 @@ arch_params = {
 
 ############
 
-param_sweep = perms(arch_params)
+# param_sweep = perms(arch_params)
 
-'''
 param_sweep1 = perms(arch_params1)
 param_sweep2 = perms(arch_params2)
 param_sweep = param_sweep1 + param_sweep2
-'''
 
 ####
 
@@ -146,18 +143,32 @@ def create_model(weights):
 
 ####
 
-def run_command(x, y, model, params, return_dict):
-    print (params)
+def run_command(x, y, model, params, return_list):
+    # print (params)
+    
     model.init(params)
     if params['profile']:
         model.profile(x=x)
     
     _, result = model.forward(x=x, y=y)
-    return_dict[(params['skip'], params['cards'], params['alloc'], params['profile'], params['narray'], params['sigma'], params['rpr_alloc'])] = result
-
+    
+    # return_dict[(params['skip'], params['cards'], params['alloc'], params['profile'], params['narray'], params['sigma'], params['rpr_alloc'])] = result
+    
+    update = {
+    'skip':      params['skip'],
+    'cards':     params['cards'],
+    'alloc':     params['alloc'],
+    'profile':   params['profile'],
+    'narray':    params['narray'],
+    'sigma':     params['sigma'],
+    'rpr_alloc': params['rpr_alloc']
+    }
+    
+    for r in result:
+        r.update(update)
+        return_list.append(r)
+        
 ####
-
-results = {}
 
 start = time.time()
 x, y = init_x(num_example=1)
@@ -169,7 +180,7 @@ model = create_model(weights)
 
 ##########################
 
-load_profile_adc = False
+load_profile_adc = True
 
 if not load_profile_adc:
     profile = model.profile_adc(x=x)
@@ -182,19 +193,27 @@ else:
 
 num_runs = len(param_sweep)
 parallel_runs = 8
+
+thread_results = []
+manager = multiprocessing.Manager()
+for _ in range(num_runs):
+    thread_results.append(manager.list())
+
 for run in range(0, num_runs, parallel_runs):
     threads = []
-    manager = multiprocessing.Manager()
-    return_dict = manager.dict()
+    
     for parallel_run in range(min(parallel_runs, num_runs - run)):
-        args = (np.copy(x), np.copy(y), copy.copy(model), param_sweep[run + parallel_run], return_dict)
+        args = (np.copy(x), np.copy(y), copy.copy(model), param_sweep[run + parallel_run], thread_results[run + parallel_run])
         t = multiprocessing.Process(target=run_command, args=args)
         threads.append(t)
         t.start()
+
     for t in threads:
         t.join()
 
-    results.update(return_dict)
+results = []
+for r in thread_results:
+    results.extend(r)
 
 np.save('results', results)
 print ('time taken:', time.time() - start)
