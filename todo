@@ -111,6 +111,13 @@ ResNet18
 
 > cards - shift + scale
 
+> plots
+  > {centroids, block, profile}
+  > sweep {variance, layer, #array} 
+  > dump data cleaner, this shouldnt be bad at all.  
+
+> pass {centroids, sync} as parameters ?
+
 future / not doing:
 -------
 -------
@@ -222,19 +229,10 @@ todo
   > instead of this run time calculation.
     
 -------
-    
-> pass {centroids, sync} as parameters ?
- 
+
 > static bias, rather than dynamic bias ? 
   > use ADC instead of p=0.7 or w.e.
 
-> plots
-  > {centroids, block, profile}
-  > sweep {variance, layer, #array} 
-  > dump data cleaner, this shouldnt be bad at all.  
-      
--------
-    
 > put no zero skipping back in.
     
 > make tb modular to {model, dataset}
@@ -242,6 +240,12 @@ todo
 
 > more accurate threshold satisfaction
   > want to really be able to compare shit
+
+> handle multiple examples
+
+> dont do 2 different pim calls
+
+> general python cleanup
 
 -------
     
