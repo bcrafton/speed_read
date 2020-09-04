@@ -21,6 +21,15 @@ Array::Array(int block_id, int array_id, int* x, int* w, int* y, Params* params)
 }
 
 int Array::pim(int row, int col, int xb, int rpr) {
+  if (this->params->skip) {
+    return this->pim_skip(row, col, xb, rpr);
+  }
+  else {
+    return this->pim_base(row, col, xb, rpr);
+  }
+}
+
+int Array::pim_skip(int row, int col, int xb, int rpr) {
 
   memset(this->pdot, 0, sizeof(int) * VECTOR_SIZE);
   this->wl_sum = 0;
@@ -29,6 +38,72 @@ int Array::pim(int row, int col, int xb, int rpr) {
   assert((this->x[xaddr] == 0) || (this->x[xaddr] == 1));
   
   while ((this->wl_ptr < this->params->WL) && ((this->wl_sum + this->x[xaddr]) <= rpr)) {
+    assert((this->x[xaddr] == 0) || (this->x[xaddr] == 1));
+    
+    if (this->x[xaddr]) {
+      this->wl_sum += 1;
+      
+      for (int adc_ptr=0; adc_ptr<this->params->BL; adc_ptr+=8) {
+        int bl_ptr = adc_ptr + col;
+        int waddr = (this->block_id * this->params->WL * this->params->NBL * this->params->BL) + (this->wl_ptr * this->params->NBL * this->params->BL) + (this->array_id * this->params->BL) + bl_ptr;
+        this->pdot[bl_ptr] += this->w[waddr];
+      }
+    }
+    
+    this->wl_ptr += 1;
+    // careful with placement of this, has to come after wl_ptr update.
+    xaddr = (row * this->params->NWL * this->params->WL * 8) + (this->block_id * this->params->WL * 8) + (this->wl_ptr * 8) + xb;
+  }
+    
+  if (this->wl_ptr == this->params->WL) {
+    this->wl_ptr = 0;
+    return 1;
+  }
+  return 0;
+}
+
+/*
+if (skip) {
+  while ((wl_ptr[block][bl] < WL) && (wl_sum[block][bl] + x[(r[block] * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[block][bl] * 8) + xb[block]] <= rpr)) {
+    if (x[(r[block] * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[block][bl] * 8) + xb[block]]) {
+      wl_sum[block][bl] += 1;
+      for (int adc_ptr=0; adc_ptr<BL; adc_ptr+=8) {
+        int bl_ptr = adc_ptr + col[block];
+        pdot[block][bl][bl_ptr] += w[(wl * WL * NBL * BL) + (wl_ptr[block][bl] * NBL * BL) + (bl * BL) + bl_ptr];
+      }
+    }
+    wl_ptr[block][bl] += 1;
+  }
+}
+else {
+  int start = wl_ptr[block][bl];
+  while ((wl_ptr[block][bl] < WL) && (wl_ptr[block][bl] < (start + adc))) {
+    if (x[(r[block] * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[block][bl] * 8) + xb[block]]) {
+      wl_sum[block][bl] += 1;
+      for (int adc_ptr=0; adc_ptr<BL; adc_ptr+=8) {
+        int bl_ptr = adc_ptr + col[block];
+        pdot[block][bl][bl_ptr] += w[(wl * WL * NBL * BL) + (wl_ptr[block][bl] * NBL * BL) + (bl * BL) + bl_ptr];
+      }
+    }
+    wl_ptr[block][bl] += 1;
+  }
+}
+if (wl_sum[block][bl] >= adc) {
+  wl_total[block][bl] += wl_sum[block][bl];
+}
+*/
+
+int Array::pim_base(int row, int col, int xb, int rpr) {
+
+  memset(this->pdot, 0, sizeof(int) * VECTOR_SIZE);
+  this->wl_sum = 0;
+
+  int xaddr = (row * this->params->NWL * this->params->WL * 8) + (this->block_id * this->params->WL * 8) + (this->wl_ptr * 8) + xb;
+  assert((this->x[xaddr] == 0) || (this->x[xaddr] == 1));
+  
+  // while ((this->wl_ptr < this->params->WL) && ((this->wl_sum + this->x[xaddr]) <= rpr)) {
+  int start = this->wl_ptr;
+  while ((this->wl_ptr < this->params->WL) && (this->wl_ptr < (start + this->params->adc))) {
     assert((this->x[xaddr] == 0) || (this->x[xaddr] == 1));
     
     if (this->x[xaddr]) {

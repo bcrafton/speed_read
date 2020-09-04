@@ -230,20 +230,24 @@ todo
     
 -------
 
+> dont do 2 different pim calls
+> put no zero skipping back in.
+> we dont set wl_total ?
+
+---
+
 > static bias, rather than dynamic bias ? 
   > use ADC instead of p=0.7 or w.e.
-
-> put no zero skipping back in.
-    
-> make tb modular to {model, dataset}
-  > then we dont have to change both files ...
-
+  
 > more accurate threshold satisfaction
   > want to really be able to compare shit
 
-> handle multiple examples
+---
 
-> dont do 2 different pim calls
+> make tb modular to {model, dataset}
+  > then we dont have to change both files ...
+
+> handle multiple examples
 
 > general python cleanup
 

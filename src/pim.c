@@ -113,7 +113,7 @@ DLLEXPORT int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, long* me
   
   //////////////////////////////
 
-  Params* params = new Params(R, B, C, NWL, NBL, WL, BL, adc, adc_state, adc_thresh, lut_var, lut_rpr, metrics, sync, centroids);
+  Params* params = new Params(R, B, C, NWL, NBL, WL, BL, adc, adc_state, adc_thresh, lut_var, lut_rpr, metrics, sync, centroids, skip);
 
   if (sync) {
     LayerSync* layer = new LayerSync(x, w, y, params, block_map);

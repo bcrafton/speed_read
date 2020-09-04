@@ -171,8 +171,9 @@ class Params {
 
   int sync;
   int centroids;
+  int skip;
 
-  Params(int R, int B, int C, int NWL, int NBL, int WL, int BL, int adc, float* adc_state, float* adc_thresh, float* lut_var, int* lut_rpr, long* metrics, int sync, int centroids);
+  Params(int R, int B, int C, int NWL, int NBL, int WL, int BL, int adc, float* adc_state, float* adc_thresh, float* lut_var, int* lut_rpr, long* metrics, int sync, int centroids, int skip);
 };
 
 /////////////////////////////////////////////////////
@@ -197,7 +198,11 @@ class Array {
   int* sat;
   
   Array(int block_id, int array_id, int* x, int* w, int* y, Params* params);
+  
   int pim(int row, int col, int xb, int rpr);
+  int pim_skip(int row, int col, int xb, int rpr);
+  int pim_base(int row, int col, int xb, int rpr);
+  
   int process(int row, int col, int xb, int rpr);
   int collect(int row, int col, int xb, int rpr);
   int correct(int row, int col, int xb, int rpr);
