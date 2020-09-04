@@ -118,6 +118,8 @@ ResNet18
 
 > pass {centroids, sync} as parameters ?
 
+> put no zero skipping back in.
+
 future / not doing:
 -------
 -------
@@ -230,9 +232,10 @@ todo
     
 -------
 
+> we dont set wl_total -> dynamic is broken
+
 > dont do 2 different pim calls
-> put no zero skipping back in.
-> we dont set wl_total ?
+  > its fine really ...
 
 ---
 
@@ -253,12 +256,14 @@ todo
 
 -------
     
+> recreate {breaking barriers, counting cards} plots
+  > sweep {variance, layer, #array} 
     
+-------
     
-    
-    
-    
-    
+> more accurate power #s
+  > more detailed power model
+  > focus on results for DAC ASP tho
     
     
 

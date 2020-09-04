@@ -4014,12 +4014,18 @@ new question = how to make it work with multiple examples.
 > looks like our plot is fixed.
   problem seems to be rpr is not aggressive at all ...
   
-  
+====================
 
+how can we make a modular test bench ? 
+> init_x -> get_imagenet(), get_cifar()
+> create_model 
+> weights
+> profile adc
 
+these can all be params
+> test params.
 
-
-
+====================
 
 
 
