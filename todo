@@ -239,10 +239,17 @@ todo
     
 -------
 
-> make sure all dynamic parts are fine - wl_sum, pdot_sum, sat.
-  > look at "int Array::correct" and see that all params are set and shit.
+> dynamic 
+  > "int Array::correct"
+  > wl_sum, pdot_sum, sat.
+  > set a table in advance, dont do this pdf stuff in C!
 
 ---
+
+> modularize rpr_alloc methods.
+  > make a class/API
+  > pass all parameters to all of them
+  > then implement static correction
 
 > static bias, rather than dynamic bias ? 
   > use ADC instead of p=0.7 or w.e.
@@ -260,6 +267,7 @@ todo
     
 > recreate {breaking barriers, counting cards} plots
   > sweep {variance, layer, #array} 
+  > make python scripts - {bb_tb.py, bb_plot.py}
     
 > more accurate power #s
   > more detailed power model
@@ -271,9 +279,9 @@ todo
 
 -------
 
+> merge into master.
 
-
-
+-------
 
 
 
