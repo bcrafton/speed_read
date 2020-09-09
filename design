@@ -4027,13 +4027,18 @@ these can all be params
 
 ====================
 
+> fixing dynamic is a nightmare.
+  > hardly does anything either.
 
+> dont even need wl_ptr after pim(), just used for wl == WL
+  > so u can use done to handle that part.
+  > just make sure it matches.
 
+====================
 
-
-
-
-
+for static bias, shud we have a static bias for each column ? 
+> or each xb/wb ? 
+> for each xb/wb/rpr ?
 
 
 

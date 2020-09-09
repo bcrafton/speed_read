@@ -120,6 +120,9 @@ ResNet18
 
 > put no zero skipping back in.
 
+> make tb modular to {model, dataset}
+  > then we dont have to change both files ...
+
 future / not doing:
 -------
 -------
@@ -247,9 +250,6 @@ todo
 
 ---
 
-> make tb modular to {model, dataset}
-  > then we dont have to change both files ...
-
 > handle multiple examples
 
 > general python cleanup
@@ -259,13 +259,24 @@ todo
 > recreate {breaking barriers, counting cards} plots
   > sweep {variance, layer, #array} 
     
--------
-    
 > more accurate power #s
   > more detailed power model
   > focus on results for DAC ASP tho
     
-    
+-------
+
+> change profile.c implementation ? 
+
+-------
+
+
+
+
+
+
+
+
+
 
 
 

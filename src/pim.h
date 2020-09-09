@@ -206,6 +206,8 @@ class Array {
   int process(int row, int col, int xb, int rpr);
   int collect(int row, int col, int xb, int rpr);
   int correct(int row, int col, int xb, int rpr);
+
+  int clear();
 };
 
 /////////////////////////////////////////////////////

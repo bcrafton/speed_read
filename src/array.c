@@ -20,6 +20,11 @@ Array::Array(int block_id, int array_id, int* x, int* w, int* y, Params* params)
   this->sat      = new int[VECTOR_SIZE]();
 }
 
+int Array::clear() {
+  this->wl_ptr = 0;
+  this->wl_total = 0;
+}
+
 int Array::pim(int row, int col, int xb, int rpr) {
   if (this->params->skip) {
     return this->pim_skip(row, col, xb, rpr);
@@ -54,9 +59,12 @@ int Array::pim_skip(int row, int col, int xb, int rpr) {
     // careful with placement of this, has to come after wl_ptr update.
     xaddr = (row * this->params->NWL * this->params->WL * 8) + (this->block_id * this->params->WL * 8) + (this->wl_ptr * 8) + xb;
   }
-    
+
+  if (this->wl_sum >= this->params->adc) {
+    this->wl_total += this->wl_sum;
+  }
+
   if (this->wl_ptr == this->params->WL) {
-    this->wl_ptr = 0;
     return 1;
   }
   return 0;
@@ -120,9 +128,12 @@ int Array::pim_base(int row, int col, int xb, int rpr) {
     // careful with placement of this, has to come after wl_ptr update.
     xaddr = (row * this->params->NWL * this->params->WL * 8) + (this->block_id * this->params->WL * 8) + (this->wl_ptr * 8) + xb;
   }
-    
+
+  if (this->wl_sum >= this->params->adc) {
+    this->wl_total += this->wl_sum;
+  }
+
   if (this->wl_ptr == this->params->WL) {
-    this->wl_ptr = 0;
     return 1;
   }
   return 0;
@@ -186,24 +197,23 @@ int Array::collect(int row, int col, int xb, int rpr) {
 }
 
 int Array::correct(int row, int col, int xb, int rpr) {
+  assert (this->wl_ptr == this->params->WL);
 
-  if (this->wl_ptr == this->params->WL) {
+  if (this->wl_total) {
     for (int adc_ptr=0; adc_ptr<this->params->BL; adc_ptr+=8) {
       int bl_ptr = adc_ptr + col;
       int c = (bl_ptr + this->array_id * this->params->BL) / 8;
       int wb = col;
 
-      if (this->wl_total) {
-        float p = ((float) this->pdot_sum[bl_ptr]) / ((float) this->wl_total);
-        p = min(max(p, 0.), 1.);
-        int e = sat_error(p, this->params->adc, rpr);
+      float p = ((float) this->pdot_sum[bl_ptr]) / ((float) this->wl_total);
+      p = min(max(p, 0.), 1.);
+      int e = sat_error(p, this->params->adc, rpr);
 
-        int yaddr = row * this->params->C + c;
-        this->y[yaddr] -= ((this->sat[bl_ptr] * e) << (wb + xb));
+      int yaddr = row * this->params->C + c;
+      this->y[yaddr] -= ((this->sat[bl_ptr] * e) << (wb + xb));
 
-        this->sat[bl_ptr] = 0;
-        this->pdot_sum[bl_ptr] = 0;
-      }
+      this->sat[bl_ptr] = 0;
+      this->pdot_sum[bl_ptr] = 0;
     }
   }
 
