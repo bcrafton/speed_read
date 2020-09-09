@@ -4040,7 +4040,13 @@ for static bias, shud we have a static bias for each column ?
 > or each xb/wb ? 
 > for each xb/wb/rpr ?
 
+first we need to figure out where the change goes.
+> how to use adc_count
+> create static bias table
+> figure out what parts of dynamic we do want and dont want
+> how it compares to centroids.
 
+====================
 
 
 

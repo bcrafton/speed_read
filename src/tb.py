@@ -85,13 +85,13 @@ arch_params = {
 
 ############
 
-param_sweep = perms(arch_params)
+# param_sweep = perms(arch_params)
 
-'''
+# '''
 param_sweep1 = perms(arch_params1)
 param_sweep2 = perms(arch_params2)
 param_sweep = param_sweep1 + param_sweep2
-'''
+# '''
 
 ####
 
