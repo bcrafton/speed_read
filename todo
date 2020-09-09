@@ -122,6 +122,8 @@ ResNet18
 
 > make tb modular to {model, dataset}
   > then we dont have to change both files ...
+  
+> we dont set wl_total -> dynamic is broken
 
 future / not doing:
 -------
@@ -139,6 +141,9 @@ future / not doing:
   > 2: the same blocks must be used together, i.e. you cannot just send any input data anywhere.
   > rule = cant go over PE sync boundry.
   >> this is some old shit
+  
+> dont do 2 different pim calls
+  > its fine really ...
 
 No idea:
 -------
@@ -223,7 +228,6 @@ todo
 
 -------
 
-> pim.c 
 > python clean up
 > pytorch match
     
@@ -235,10 +239,8 @@ todo
     
 -------
 
-> we dont set wl_total -> dynamic is broken
-
-> dont do 2 different pim calls
-  > its fine really ...
+> make sure all dynamic parts are fine - wl_sum, pdot_sum, sat.
+  > look at "int Array::correct" and see that all params are set and shit.
 
 ---
 
