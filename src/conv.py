@@ -69,8 +69,7 @@ def exp_err(s, p, var, adc, rpr, row):
     mu = mu * row
     std = np.sqrt(std ** 2 * row)
 
-    # print (rpr, (np.sum(np.absolute(e)), np.sum(pe), np.sum(p)), (mu, std))
-    print (rpr, (mu, std), adc.flatten())
+    # print (rpr, (mu, std), adc.flatten())
     
     return mu, std
 
@@ -405,7 +404,7 @@ class Conv(Layer):
             self.adc_thresh[rpr] = adc_floor(centroids)
             
             if rpr == 1:
-                print (self.adc_thresh[rpr])
+                # print (self.adc_thresh[rpr])
                 self.adc_thresh[rpr][0] = 0.2
             
         # def rpr(nrow, p, q, params):

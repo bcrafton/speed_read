@@ -70,37 +70,6 @@ int Array::pim_skip(int row, int col, int xb, int rpr) {
   return 0;
 }
 
-/*
-if (skip) {
-  while ((wl_ptr[block][bl] < WL) && (wl_sum[block][bl] + x[(r[block] * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[block][bl] * 8) + xb[block]] <= rpr)) {
-    if (x[(r[block] * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[block][bl] * 8) + xb[block]]) {
-      wl_sum[block][bl] += 1;
-      for (int adc_ptr=0; adc_ptr<BL; adc_ptr+=8) {
-        int bl_ptr = adc_ptr + col[block];
-        pdot[block][bl][bl_ptr] += w[(wl * WL * NBL * BL) + (wl_ptr[block][bl] * NBL * BL) + (bl * BL) + bl_ptr];
-      }
-    }
-    wl_ptr[block][bl] += 1;
-  }
-}
-else {
-  int start = wl_ptr[block][bl];
-  while ((wl_ptr[block][bl] < WL) && (wl_ptr[block][bl] < (start + adc))) {
-    if (x[(r[block] * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr[block][bl] * 8) + xb[block]]) {
-      wl_sum[block][bl] += 1;
-      for (int adc_ptr=0; adc_ptr<BL; adc_ptr+=8) {
-        int bl_ptr = adc_ptr + col[block];
-        pdot[block][bl][bl_ptr] += w[(wl * WL * NBL * BL) + (wl_ptr[block][bl] * NBL * BL) + (bl * BL) + bl_ptr];
-      }
-    }
-    wl_ptr[block][bl] += 1;
-  }
-}
-if (wl_sum[block][bl] >= adc) {
-  wl_total[block][bl] += wl_sum[block][bl];
-}
-*/
-
 int Array::pim_base(int row, int col, int xb, int rpr) {
 
   memset(this->pdot, 0, sizeof(int) * VECTOR_SIZE);
