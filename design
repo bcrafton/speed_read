@@ -4048,11 +4048,13 @@ first we need to figure out where the change goes.
 
 ====================
 
+> figuring out this abstract class/function we need to make
+> pulled out kmeans and it becomes clear.
+  > perhaps return a dictionary ? 
 
+> make sure to verify every step along the way that results match prior.
+  > currently they match.
 
-
-
-
-
+====================
 
 

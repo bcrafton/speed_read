@@ -14,64 +14,7 @@ from layers import *
 from cprofile import profile
 from rpr import rpr as dynamic_rpr
 
-#########################
-
-def adc_range(adc):
-    # make sure you pick the right type, zeros_like copies type.
-    adc_low = np.zeros_like(adc, dtype=np.float32)
-    adc_high = np.zeros_like(adc, dtype=np.float32)
-    
-    adc_low[0] = -1e2
-    adc_high[-1] = 1e2
-    
-    for s in range(len(adc) - 1):
-        adc_high[s] = (adc[s] + adc[s + 1]) / 2
-        adc_low[s + 1] = (adc[s] + adc[s + 1]) / 2
-
-    return adc_low, adc_high
-    
-#########################
-
-def adc_floor(adc):
-    # make sure you pick the right type, zeros_like copies type.
-    adc_thresh = np.zeros_like(adc, dtype=np.float32)
-    
-    for s in range(len(adc) - 1):
-        adc_thresh[s] = (adc[s] + adc[s + 1]) / 2
-
-    adc_thresh[-1] = adc[-1]
-    
-    return adc_thresh
-
-#########################
-
-def exp_err(s, p, var, adc, rpr, row):
-    assert (np.all(p <= 1.))
-    assert (len(s) == len(p))
-
-    adc = sorted(adc)
-    adc = np.reshape(adc, (-1, 1))
-    adc_low, adc_high = adc_range(adc)
-
-    pe = norm.cdf(adc_high, s, var * np.sqrt(s) + 1e-6) - norm.cdf(adc_low, s, var * np.sqrt(s) + 1e-6)
-    e = s - adc
-    
-    # print (s.flatten())
-    # print (adc.flatten())
-    # print (e)
-    # print (np.round(p * pe * e, 2))
-    # print (adc_low.flatten())
-    # print (adc_high.flatten())
-
-    mu = np.sum(p * pe * e)
-    std = np.sqrt(np.sum(p * pe * (e - mu) ** 2))
-
-    mu = mu * row
-    std = np.sqrt(std ** 2 * row)
-
-    # print (rpr, (mu, std), adc.flatten())
-    
-    return mu, std
+from kmeans_config import KmeansConfig
 
 #########################
 
@@ -137,7 +80,9 @@ class Conv(Layer):
         
         if self.params['rpr_alloc'] == 'centroids':
             self.params['var'] = lut_var(params['sigma'], 64)
-            self.params['rpr'] = self.profile_rpr()
+            # self.params['rpr'] = self.profile_rpr()
+            cfg = KmeansConfig(low=1, high=64, params=self.params, profile=self.all_counts, nrow=self.fh * self.fw * self.fc, q=self.q)
+            self.params['rpr'], self.adc_state, self.adc_thresh = cfg.rpr()
 
         elif self.params['rpr_alloc'] == 'dynamic':
             # self.params['var'] = lut_var_dyn(params['sigma'], 64)
@@ -369,86 +314,7 @@ class Conv(Layer):
         ########################
 
         return wb
-                
-    def profile_rpr(self):
 
-        rpr_low = 1
-        rpr_high = 64
-            
-        self.adc_state = np.zeros(shape=(rpr_high + 1, self.params['adc'] + 1))
-        self.adc_thresh = np.zeros(shape=(rpr_high + 1, self.params['adc'] + 1))
-        
-        rpr_dist = {}
-        for rpr in range(rpr_low, rpr_high + 1):
-            # values, counts, centroids = self.dist(x=x, rpr=rpr)
-            counts = self.all_counts[rpr][0:rpr+1]
-            values = np.array(range(rpr+1))
-            
-            if rpr <= self.params['adc']:
-                centroids = np.arange(0, self.params['adc'] + 1, step=1, dtype=np.float32)
-            else:
-                centroids = kmeans(values=values, counts=counts, n_clusters=self.params['adc'] + 1)
-                centroids = sorted(centroids)
-            
-            # p = counts / np.cumsum(counts)
-            p = counts / np.sum(counts)
-            s = values
-
-            nrow = self.fh * self.fw * self.fc
-            p_avg = 1. # TODO: we need to set this back to actual p_avg
-
-            mu, std = exp_err(s=s, p=p, var=self.params['sigma'], adc=centroids, rpr=rpr, row=np.ceil(p_avg * nrow / rpr))
-            rpr_dist[rpr] = {'mu': mu, 'std': std, 'centroids': centroids}
-            
-            self.adc_state[rpr] = 4 * np.array(centroids)
-            self.adc_thresh[rpr] = adc_floor(centroids)
-            
-            if rpr == 1:
-                # print (self.adc_thresh[rpr])
-                self.adc_thresh[rpr][0] = 0.2
-            
-        # def rpr(nrow, p, q, params):
-        rpr_lut = np.zeros(shape=(8, 8), dtype=np.int32)
-        for wb in range(self.params['bpw']):
-            for xb in range(self.params['bpa']):
-                rpr_lut[xb][wb] = self.params['adc']
-            
-        if not (self.params['skip'] and self.params['cards']):
-            '''
-            for key in sorted(rpr_lut.keys()):
-                print (key, rpr_lut[key])
-            print (np.average(list(rpr_lut.values())))
-            '''
-            return rpr_lut
-        
-        # counting cards:
-        # ===============
-        # TODO: we need to account for post processing.
-        # (y - y_ref) also has (relu, bias) that we are ignoring.
-        for wb in range(self.params['bpw']):
-            for xb in range(self.params['bpa']):
-                for rpr in range(rpr_low, rpr_high + 1):
-                
-                    scale = 2**wb * 2**xb
-                    mu, std = rpr_dist[rpr]['mu'], rpr_dist[rpr]['std']
-                    
-                    # e = (scale / self.q) * 64 * std
-                    # e_mu = (scale / self.q) * 64 * mu
-                    e = (scale / self.q) * 5 * std
-                    e_mu = (scale / self.q) * 5 * mu
-                    # print (scale, e, e_mu)
-                    
-                    if rpr == rpr_low:
-                        rpr_lut[xb][wb] = rpr
-                    if (e < 1.) and (np.absolute(e_mu) < 1.):
-                        rpr_lut[xb][wb] = rpr
-
-        '''
-        for key in sorted(rpr_lut.keys()):
-            print (key, rpr_lut[key])
-        print (np.average(list(rpr_lut.values())))
-        '''
-        return rpr_lut
 
 
         

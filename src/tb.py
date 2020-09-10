@@ -74,24 +74,24 @@ arch_params2 = {
 ############
 
 arch_params = {
-'skip': [0],
+'skip': [1],
 'alloc': ['block'],
 'narray': [2 ** 13],
 'sigma': [0.10],
-'cards': [0],
+'cards': [1],
 'profile': [1],
-'rpr_alloc': ['dynamic']
+'rpr_alloc': ['centroids']
 }
 
 ############
 
-# param_sweep = perms(arch_params)
+param_sweep = perms(arch_params)
 
-# '''
+'''
 param_sweep1 = perms(arch_params1)
 param_sweep2 = perms(arch_params2)
 param_sweep = param_sweep1 + param_sweep2
-# '''
+'''
 
 ####
 
