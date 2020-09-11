@@ -125,6 +125,11 @@ ResNet18
   
 > we dont set wl_total -> dynamic is broken
 
+> verify static did not break {centroids, dynamic}
+  > params->centroids == 1, 0, 2
+  > passing lut_bias into pim.c
+  > just go to classes7 and run the same tb.py config.
+
 future / not doing:
 -------
 -------
@@ -299,10 +304,9 @@ todo
 
 -------
 
-> verify static did not break {centroids, dynamic}
-  > params->centroids == 1, 0, 2
-  > passing lut_bias into pim.c
-  > just go to classes7 and run the same tb.py config.
+> params->centroids == 1, 0, 2
+
+
 
 
 
