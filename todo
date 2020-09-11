@@ -305,9 +305,15 @@ todo
 -------
 
 > params->centroids == 1, 0, 2
-
-
-
+  > look at other hacks from the static commits.
+  > "correct sign for bias"
+  > https://github.com/bcrafton/speed_read/commit/2d6994a4741afabc691a3263e892e503a4523b20
+  
+  > "brought error down, can run other methods"
+  > https://github.com/bcrafton/speed_read/commit/69a56c33e5e2151a3a4fe0804395d2537c9a117e
+  
+  > "end-to-end static correction"
+  > https://github.com/bcrafton/speed_read/commit/e57ec5555423b345f970ee0efa51e66b37c22716
 
 
 

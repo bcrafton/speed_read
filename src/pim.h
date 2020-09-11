@@ -62,6 +62,10 @@ wl
 #define METRIC_STALL 12
 #define METRIC_BLOCK_CYCLE 13
 
+#define DYNAMIC   0
+#define CENTROIDS 1
+#define STATIC    2
+
 /////////////////////////////////////////////////////
 
 long unsigned int factorial(int n);

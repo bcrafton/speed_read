@@ -58,7 +58,7 @@ arch_params1 = {
 'sigma': [0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15],
 'cards': [1],
 'profile': [1],
-'rpr_alloc': ['dynamic', 'static']
+'rpr_alloc': ['dynamic', 'static', 'centroids']
 }
 
 arch_params2 = {
@@ -85,13 +85,13 @@ arch_params = {
 
 ############
 
-param_sweep = perms(arch_params)
+# param_sweep = perms(arch_params)
 
-'''
+
 param_sweep1 = perms(arch_params1)
 param_sweep2 = perms(arch_params2)
 param_sweep = param_sweep1 + param_sweep2
-'''
+
 
 ####
 

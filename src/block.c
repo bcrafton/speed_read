@@ -32,10 +32,10 @@ int Block::pim(int row) {
     this->arrays[i]->collect(row, this->col, this->xb, rpr);
 
     if (done) {
-      if (params->centroids == 0) {
+      if (params->centroids == DYNAMIC) {
         this->arrays[i]->correct(row, this->col, this->xb, rpr);
       }
-      else if (params->centroids == 2) {
+      else if (params->centroids == STATIC) {
         this->arrays[i]->correct_static(row, this->col, this->xb, rpr);
       }
       this->arrays[i]->clear();
