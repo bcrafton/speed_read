@@ -95,7 +95,7 @@ int comps_enabled(int wl, int adc, int rpr, float* adc_state, float* adc_thresh)
 
 //////////////////////////////////////////////
 
-DLLEXPORT int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, long* metrics, int* block_map, float* adc_state, float* adc_thresh, int adc, int skip, int R, int B, int C, int NWL, int NBL, int WL, int BL, int sync, int centroids)
+DLLEXPORT int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, int* lut_bias, long* metrics, int* block_map, float* adc_state, float* adc_thresh, int adc, int skip, int R, int B, int C, int NWL, int NBL, int WL, int BL, int sync, int centroids)
 {
   // x = nrow, nwl, wl, xb
   // f = nwl, wl, nbl, bl
@@ -113,7 +113,7 @@ DLLEXPORT int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, long* me
   
   //////////////////////////////
 
-  Params* params = new Params(R, B, C, NWL, NBL, WL, BL, adc, adc_state, adc_thresh, lut_var, lut_rpr, metrics, sync, centroids, skip);
+  Params* params = new Params(R, B, C, NWL, NBL, WL, BL, adc, adc_state, adc_thresh, lut_var, lut_rpr, lut_bias, metrics, sync, centroids, skip);
 
   if (sync) {
     LayerSync* layer = new LayerSync(x, w, y, params, block_map);

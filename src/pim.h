@@ -166,6 +166,7 @@ class Params {
 
   float* lut_var;
   int* lut_rpr;
+  int* lut_bias;
   
   long* metrics;
 
@@ -173,7 +174,7 @@ class Params {
   int centroids;
   int skip;
 
-  Params(int R, int B, int C, int NWL, int NBL, int WL, int BL, int adc, float* adc_state, float* adc_thresh, float* lut_var, int* lut_rpr, long* metrics, int sync, int centroids, int skip);
+  Params(int R, int B, int C, int NWL, int NBL, int WL, int BL, int adc, float* adc_state, float* adc_thresh, float* lut_var, int* lut_rpr, int* lut_bias, long* metrics, int sync, int centroids, int skip);
 };
 
 /////////////////////////////////////////////////////
@@ -206,6 +207,8 @@ class Array {
   int process(int row, int col, int xb, int rpr);
   int collect(int row, int col, int xb, int rpr);
   int correct(int row, int col, int xb, int rpr);
+  
+  int correct_static(int row, int col, int xb, int rpr);
 
   int clear();
 };

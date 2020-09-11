@@ -188,8 +188,24 @@ int Array::correct(int row, int col, int xb, int rpr) {
 
 }
 
+int Array::correct_static(int row, int col, int xb, int rpr) {
+  assert (this->wl_ptr == this->params->WL);
 
+  for (int adc_ptr=0; adc_ptr<this->params->BL; adc_ptr+=8) {
+    int bl_ptr = adc_ptr + col;
+    int c = (bl_ptr + this->array_id * this->params->BL) / 8;
+    int wb = col;
 
+    int yaddr = row * this->params->C + c;
+    int bias = this->sat[bl_ptr] * this->params->lut_bias[rpr];
+    this->y[yaddr] -= (bias << (wb + xb));
+
+    // printf("%d %d\n", this->sat[bl_ptr], this->params->lut_bias[rpr]);
+
+    this->sat[bl_ptr] = 0;
+    this->pdot_sum[bl_ptr] = 0;
+  }
+}
 
 
 

@@ -35,6 +35,9 @@ int Block::pim(int row) {
       if (params->centroids == 0) {
         this->arrays[i]->correct(row, this->col, this->xb, rpr);
       }
+      else if (params->centroids == 2) {
+        this->arrays[i]->correct_static(row, this->col, this->xb, rpr);
+      }
       this->arrays[i]->clear();
     }
   } 

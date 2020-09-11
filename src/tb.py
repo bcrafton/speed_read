@@ -80,7 +80,7 @@ arch_params = {
 'sigma': [0.10],
 'cards': [1],
 'profile': [1],
-'rpr_alloc': ['centroids']
+'rpr_alloc': ['static']
 }
 
 ############
@@ -164,7 +164,7 @@ results = []
 for r in thread_results:
     results.extend(r)
 
-np.save('results', results)
+# np.save('results', results)
 print ('time taken:', time.time() - start)
 
 ####

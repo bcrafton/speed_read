@@ -13,6 +13,7 @@ from var import *
 from layers import *
 from cprofile import profile
 from rpr import rpr as dynamic_rpr
+from static_rpr import static_rpr
 
 from kmeans_config import KmeansConfig
 
@@ -78,16 +79,13 @@ class Conv(Layer):
     def init(self, params):
         self.params.update(params)
         
+        self.params['var'] = lut_var(params['sigma'], 64)
+
         if self.params['rpr_alloc'] == 'centroids':
-            self.params['var'] = lut_var(params['sigma'], 64)
-            # self.params['rpr'] = self.profile_rpr()
             cfg = KmeansConfig(low=1, high=64, params=self.params, profile=self.all_counts, nrow=self.fh * self.fw * self.fc, q=self.q)
             self.params['rpr'], self.adc_state, self.adc_thresh = cfg.rpr()
 
         elif self.params['rpr_alloc'] == 'dynamic':
-            # self.params['var'] = lut_var_dyn(params['sigma'], 64)
-            self.params['var'] = lut_var(params['sigma'], 64)
-        
             ## TODO: cant this be "self.wb" and cant we throw it in a different function ??
             w_offset = self.w + self.params['offset']
             wb = []
@@ -103,6 +101,9 @@ class Conv(Layer):
             self.params['rpr'] = dynamic_rpr(nrow=nrow, p=p, q=self.q, params=self.params)
             # print (self.params['rpr'])
 
+        elif self.params['rpr_alloc'] == 'static':
+            self.params['rpr'], self.lut_bias = static_rpr(low=1, high=16, params=self.params, profile=self.all_counts, nrow=self.fh * self.fw * self.fc, q=self.q)
+            self.lut_bias = self.lut_bias.astype(np.int32)
         else:
             assert (False)
 
@@ -209,9 +210,13 @@ class Conv(Layer):
             y = np.reshape(y, (yh, yw, self.fn))
             y = y / 4
         elif self.params['rpr_alloc'] == 'dynamic':
+            # want to pass some table to C instead of computing stuff inside.
             y, metrics = pim_dyn(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], alloc, self.params)
             y = np.reshape(y, (yh, yw, self.fn))
-            # may have (*4) problems somewhere.
+        elif self.params['rpr_alloc'] == 'static':
+            # think we want to pass a bias table
+            y, metrics = pim_static(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], alloc, self.lut_bias, self.params)
+            y = np.reshape(y, (yh, yw, self.fn))
         else:
             assert (False)
         
