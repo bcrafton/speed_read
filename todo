@@ -130,6 +130,12 @@ ResNet18
   > passing lut_bias into pim.c
   > just go to classes7 and run the same tb.py config.
 
+> WHY DO WE SUBTRACT THE BIAS ???
+  > this->y[yaddr] += ((this->sat[bl_ptr] * e) << (wb + xb));
+  > was this becasue error was negative ???
+    > 'e' that is ?
+    > 'e' was negative, thats why we did that.
+
 future / not doing:
 -------
 -------
@@ -293,12 +299,6 @@ todo
   > should all call it the same way.
 
 -------
-
-> WHY DO WE SUBTRACT THE BIAS ???
-  > this->y[yaddr] += ((this->sat[bl_ptr] * e) << (wb + xb));
-  > was this becasue error was negative ???
-    > 'e' that is ?
-    > 'e' was negative, thats why we did that.
 
 > dynamic -> adc stats, not p.
 
