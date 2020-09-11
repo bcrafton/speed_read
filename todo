@@ -299,9 +299,10 @@ todo
 
 -------
 
-
-
-
+> verify static did not break {centroids, dynamic}
+  > params->centroids == 1, 0, 2
+  > passing lut_bias into pim.c
+  > just go to classes7 and run the same tb.py config.
 
 
 
