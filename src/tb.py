@@ -55,17 +55,17 @@ arch_params1 = {
 'skip': [1],
 'alloc': ['block'],
 'narray': [2 ** 13],
-'sigma': [0.01, 0.10, 0.2, 0.3],
+'sigma': [0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15],
 'cards': [1],
 'profile': [1],
-'rpr_alloc': ['dynamic', 'centroids']
+'rpr_alloc': ['dynamic', 'static']
 }
 
 arch_params2 = {
 'skip': [1],
 'alloc': ['block'],
 'narray': [2 ** 13],
-'sigma': [0.01, 0.10, 0.2, 0.3],
+'sigma': [0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15],
 'cards': [0],
 'profile': [1],
 'rpr_alloc': ['dynamic']
@@ -77,10 +77,10 @@ arch_params = {
 'skip': [1],
 'alloc': ['block'],
 'narray': [2 ** 13],
-'sigma': [0.10],
+'sigma': [0.05],
 'cards': [1],
 'profile': [1],
-'rpr_alloc': ['static']
+'rpr_alloc': ['dynamic']
 }
 
 ############
@@ -164,7 +164,7 @@ results = []
 for r in thread_results:
     results.extend(r)
 
-# np.save('results', results)
+np.save('results', results)
 print ('time taken:', time.time() - start)
 
 ####

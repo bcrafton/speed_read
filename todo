@@ -289,6 +289,20 @@ todo
 
 -------
 
+> WHY DO WE SUBTRACT THE BIAS ???
+  > this->y[yaddr] += ((this->sat[bl_ptr] * e) << (wb + xb));
+  > was this becasue error was negative ???
+    > 'e' that is ?
+    > 'e' was negative, thats why we did that.
+
+> dynamic -> adc stats, not p.
+
+-------
+
+
+
+
+
 
 
 

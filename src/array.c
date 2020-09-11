@@ -179,7 +179,9 @@ int Array::correct(int row, int col, int xb, int rpr) {
       int e = sat_error(p, this->params->adc, rpr);
 
       int yaddr = row * this->params->C + c;
-      this->y[yaddr] -= ((this->sat[bl_ptr] * e) << (wb + xb));
+      int bias = this->sat[bl_ptr] * e;
+      assert (bias <= 0.);
+      this->y[yaddr] -= (bias << (wb + xb));
 
       this->sat[bl_ptr] = 0;
       this->pdot_sum[bl_ptr] = 0;
@@ -197,8 +199,9 @@ int Array::correct_static(int row, int col, int xb, int rpr) {
     int wb = col;
 
     int yaddr = row * this->params->C + c;
-    int bias = this->sat[bl_ptr] * this->params->lut_bias[rpr];
-    this->y[yaddr] -= (bias << (wb + xb));
+    int bias = (this->sat[bl_ptr] * this->params->lut_bias[rpr]) / 256;
+    assert (bias >= 0.);
+    this->y[yaddr] += (bias << (wb + xb));
 
     // printf("%d %d\n", this->sat[bl_ptr], this->params->lut_bias[rpr]);
 

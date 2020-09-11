@@ -103,6 +103,7 @@ class Conv(Layer):
 
         elif self.params['rpr_alloc'] == 'static':
             self.params['rpr'], self.lut_bias = static_rpr(low=1, high=16, params=self.params, profile=self.all_counts, nrow=self.fh * self.fw * self.fc, q=self.q)
+            self.lut_bias = self.lut_bias * 256
             self.lut_bias = self.lut_bias.astype(np.int32)
         else:
             assert (False)
