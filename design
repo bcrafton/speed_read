@@ -4073,8 +4073,10 @@ want the full flow done.
 
 ====================
 
+> params->centroids
+  > gotta change this from [0, 1]
 
-
+> also make lut_bias fixed point so we can accumulate and go over 1.
 
 
 

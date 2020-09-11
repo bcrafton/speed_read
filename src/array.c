@@ -122,16 +122,16 @@ int Array::process(int row, int col, int xb, int rpr) {
     float pdot_var = this->pdot[bl_ptr] + var;
     int pdot_adc;
 
-    if (params->centroids) pdot_adc = eval_adc(pdot_var, this->params->adc, rpr, this->params->adc_state, this->params->adc_thresh);
-    else                   pdot_adc = min(max((int) round(pdot_var), 0), min(this->params->adc, rpr));
+    if (params->centroids == 1) pdot_adc = eval_adc(pdot_var, this->params->adc, rpr, this->params->adc_state, this->params->adc_thresh);
+    else                        pdot_adc = min(max((int) round(pdot_var), 0), min(this->params->adc, rpr));
 
     int yaddr = row * this->params->C + c;
     int shift = wb + xb;
     this->y[yaddr] += pdot_adc << shift;
 
     if (wb == 0) {
-      if (params->centroids) this->y[yaddr] -= 4 * ((this->wl_sum * 128) << xb);
-      else                   this->y[yaddr] -= ((this->wl_sum * 128) << xb);
+      if (params->centroids == 1) this->y[yaddr] -= 4 * ((this->wl_sum * 128) << xb);
+      else                        this->y[yaddr] -= ((this->wl_sum * 128) << xb);
     }
 
     if (this->wl_sum >= this->params->adc) {
@@ -155,8 +155,8 @@ int Array::collect(int row, int col, int xb, int rpr) {
 
   if (this->wl_sum > 0) {
     int comps;
-    if (params->centroids) comps = comps_enabled(this->wl_sum, this->params->adc, rpr, this->params->adc_state, this->params->adc_thresh) - 1;
-    else                   comps = min(this->wl_sum - 1, this->params->adc - 1);
+    if (params->centroids == 1) comps = comps_enabled(this->wl_sum, this->params->adc, rpr, this->params->adc_state, this->params->adc_thresh) - 1;
+    else                        comps = min(this->wl_sum - 1, this->params->adc - 1);
     assert((comps >= 0) && (comps < this->params->adc));
     assert ((this->params->BL % 8) == 0);
     this->params->metrics[comps] += this->params->BL / 8;

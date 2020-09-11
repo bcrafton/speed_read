@@ -181,8 +181,8 @@ def static_rpr(low, high, params, profile, nrow, q):
                 # mu, std = prob_err(p[wb], params['sigma'], params['adc'], rpr, np.ceil(nrow / rpr))
                 mu, std = expected_error(params=params, profile=profile, rpr=rpr, nrow=np.ceil(nrow / rpr), bias=bias_lut[rpr])
 
-                e = (scale / q) * 5 * std
-                e_mu = (scale / q) * 5 * mu
+                e = (scale / q) * 64 * std
+                e_mu = (scale / q) * 64 * mu
 
                 if rpr == low:
                     rpr_lut[xb][wb] = rpr
