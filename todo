@@ -322,12 +322,12 @@ TOP PRIORITY
 -------
 -------
 
-> dynamic -> adc stats, not p.
+> (1) dynamic -> adc stats, not p.
 > static, dynamic not totally correct
 > merge into master.
 > handle multiple examples
 
-> modularize rpr_alloc methods.
+> (2) modularize rpr_alloc methods.
   > make a class/API
   > pass all parameters to all of them
   > then implement static correction
@@ -337,6 +337,6 @@ TOP PRIORITY
   > wl_sum, pdot_sum, sat.
   > set a table in advance, dont do this pdf stuff in C!
 
-
+> (3) CC/BB re-create
 
 
