@@ -250,29 +250,11 @@ todo
 > buffer list of 128b long vectors
   > basically the same way we did for our tapeout.
   > instead of this run time calculation.
-    
--------
-
-> dynamic 
-  > "int Array::correct"
-  > wl_sum, pdot_sum, sat.
-  > set a table in advance, dont do this pdf stuff in C!
-
----
-
-> modularize rpr_alloc methods.
-  > make a class/API
-  > pass all parameters to all of them
-  > then implement static correction
 
 ---
 
 > more accurate threshold satisfaction
   > want to really be able to compare shit
-
----
-
-> handle multiple examples
 
 -------
 
@@ -312,17 +294,9 @@ todo
 
 -------
 
-> merge into master.
-
--------
-
 > 1 pim call
   > makes things confusing when trying to add more pim methods
   > should all call it the same way.
-
--------
-
-> dynamic -> adc stats, not p.
 
 -------
 
@@ -341,20 +315,27 @@ todo
 
 -------
 
-> static, dynamic not totally correct
 
 -------
+-------
+TOP PRIORITY
+-------
+-------
 
+> dynamic -> adc stats, not p.
+> static, dynamic not totally correct
+> merge into master.
+> handle multiple examples
 
-
-
-
-
-
-
-
-
-
+> modularize rpr_alloc methods.
+  > make a class/API
+  > pass all parameters to all of them
+  > then implement static correction
+  
+> dynamic 
+  > "int Array::correct"
+  > wl_sum, pdot_sum, sat.
+  > set a table in advance, dont do this pdf stuff in C!
 
 
 
