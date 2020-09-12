@@ -175,10 +175,10 @@ class Params {
   long* metrics;
 
   int sync;
-  int centroids;
+  int method;
   int skip;
 
-  Params(int R, int B, int C, int NWL, int NBL, int WL, int BL, int adc, float* adc_state, float* adc_thresh, float* lut_var, int* lut_rpr, int* lut_bias, long* metrics, int sync, int centroids, int skip);
+  Params(int R, int B, int C, int NWL, int NBL, int WL, int BL, int adc, float* adc_state, float* adc_thresh, float* lut_var, int* lut_rpr, int* lut_bias, long* metrics, int sync, int method, int skip);
 };
 
 /////////////////////////////////////////////////////

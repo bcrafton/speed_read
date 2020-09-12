@@ -122,16 +122,16 @@ int Array::process(int row, int col, int xb, int rpr) {
     float pdot_var = this->pdot[bl_ptr] + var;
     int pdot_adc;
 
-    if (params->centroids == CENTROIDS) pdot_adc = eval_adc(pdot_var, this->params->adc, rpr, this->params->adc_state, this->params->adc_thresh);
-    else                                pdot_adc = min(max((int) round(pdot_var), 0), min(this->params->adc, rpr));
+    if (params->method == CENTROIDS) pdot_adc = eval_adc(pdot_var, this->params->adc, rpr, this->params->adc_state, this->params->adc_thresh);
+    else                             pdot_adc = min(max((int) round(pdot_var), 0), min(this->params->adc, rpr));
 
     int yaddr = row * this->params->C + c;
     int shift = wb + xb;
     this->y[yaddr] += pdot_adc << shift;
 
     if (wb == 0) {
-      if (params->centroids == CENTROIDS) this->y[yaddr] -= 4 * ((this->wl_sum * 128) << xb);
-      else                                this->y[yaddr] -= ((this->wl_sum * 128) << xb);
+      if (params->method == CENTROIDS) this->y[yaddr] -= 4 * ((this->wl_sum * 128) << xb);
+      else                             this->y[yaddr] -= ((this->wl_sum * 128) << xb);
     }
 
     if (this->wl_sum >= this->params->adc) {
@@ -155,8 +155,8 @@ int Array::collect(int row, int col, int xb, int rpr) {
 
   if (this->wl_sum > 0) {
     int comps;
-    if (params->centroids == CENTROIDS) comps = comps_enabled(this->wl_sum, this->params->adc, rpr, this->params->adc_state, this->params->adc_thresh) - 1;
-    else                                comps = min(this->wl_sum - 1, this->params->adc - 1);
+    if (params->method == CENTROIDS) comps = comps_enabled(this->wl_sum, this->params->adc, rpr, this->params->adc_state, this->params->adc_thresh) - 1;
+    else                             comps = min(this->wl_sum - 1, this->params->adc - 1);
     assert((comps >= 0) && (comps < this->params->adc));
     assert ((this->params->BL % 8) == 0);
     this->params->metrics[comps] += this->params->BL / 8;
@@ -200,6 +200,8 @@ int Array::correct_static(int row, int col, int xb, int rpr) {
 
     int yaddr = row * this->params->C + c;
     int bias = (this->sat[bl_ptr] * this->params->lut_bias[rpr]) / 256;
+    // float bias_float = (this->sat[bl_ptr] * this->params->lut_bias[rpr]) / 256.;
+    // int bias = (int) round(bias_float);
     assert (bias >= 0.);
     this->y[yaddr] += (bias << (wb + xb));
 
