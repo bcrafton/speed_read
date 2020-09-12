@@ -87,6 +87,7 @@ class Conv(Layer):
 
         elif self.params['rpr_alloc'] == 'dynamic':
             ## TODO: cant this be "self.wb" and cant we throw it in a different function ??
+            '''
             w_offset = self.w + self.params['offset']
             wb = []
             for bit in range(self.params['bpw']):
@@ -100,6 +101,8 @@ class Conv(Layer):
             p = np.max(col_density, axis=0)
             self.params['rpr'] = dynamic_rpr(nrow=nrow, p=p, q=self.q, params=self.params)
             # print (self.params['rpr'])
+            '''
+            self.params['rpr'], _ = static_rpr(low=1, high=16, params=self.params, profile=self.all_counts, nrow=self.fh * self.fw * self.fc, q=self.q)
 
         elif self.params['rpr_alloc'] == 'static':
             self.params['rpr'], self.lut_bias = static_rpr(low=1, high=16, params=self.params, profile=self.all_counts, nrow=self.fh * self.fw * self.fc, q=self.q)

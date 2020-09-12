@@ -199,9 +199,9 @@ int Array::correct_static(int row, int col, int xb, int rpr) {
     int wb = col;
 
     int yaddr = row * this->params->C + c;
-    int bias = (this->sat[bl_ptr] * this->params->lut_bias[rpr]) / 256;
-    // float bias_float = (this->sat[bl_ptr] * this->params->lut_bias[rpr]) / 256.;
-    // int bias = (int) round(bias_float);
+    // int bias = (this->sat[bl_ptr] * this->params->lut_bias[rpr]) / 256;
+    float bias_float = (this->sat[bl_ptr] * this->params->lut_bias[rpr]) / 256.;
+    int bias = (int) round(bias_float);
     assert (bias >= 0.);
     this->y[yaddr] += (bias << (wb + xb));
 

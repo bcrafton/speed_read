@@ -172,7 +172,7 @@ def static_rpr(low, high, params, profile, nrow, q):
             rpr_lut[xb][wb] = params['adc']
         
     if not (params['skip'] and params['cards']):
-        return rpr_lut
+        return rpr_lut, bias_lut
     
     for wb in range(params['bpw']):
         for xb in range(params['bpa']):
@@ -181,8 +181,8 @@ def static_rpr(low, high, params, profile, nrow, q):
                 # mu, std = prob_err(p[wb], params['sigma'], params['adc'], rpr, np.ceil(nrow / rpr))
                 mu, std = expected_error(params=params, profile=profile, rpr=rpr, nrow=np.ceil(nrow / rpr), bias=bias_lut[rpr])
 
-                e = (scale / q) * 10 * std
-                e_mu = (scale / q) * 10 * mu
+                e = (scale / q) * (64. / 2.) * std
+                e_mu = (scale / q) * (64. / 2.) * mu
 
                 if rpr == low:
                     rpr_lut[xb][wb] = rpr

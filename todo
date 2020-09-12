@@ -339,4 +339,8 @@ TOP PRIORITY
 
 > (3) CC/BB re-create
 
+> account for rounding error expected error.
+
+> compare {static-rpr rounding, pre params->centroids->methods}
+
 

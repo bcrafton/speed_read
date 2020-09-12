@@ -77,21 +77,21 @@ arch_params = {
 'skip': [1],
 'alloc': ['block'],
 'narray': [2 ** 13],
-'sigma': [0.05],
 'cards': [1],
 'profile': [1],
-'rpr_alloc': ['dynamic']
+'rpr_alloc': ['dynamic', 'static', 'centroids'],
+'sigma': [0.06, 0.08, 0.10, 0.12]
 }
 
 ############
 
-# param_sweep = perms(arch_params)
+param_sweep = perms(arch_params)
 
-
+'''
 param_sweep1 = perms(arch_params1)
 param_sweep2 = perms(arch_params2)
 param_sweep = param_sweep1 + param_sweep2
-
+'''
 
 ####
 
@@ -141,7 +141,7 @@ else:
 ##########################
 
 num_runs = len(param_sweep)
-parallel_runs = 8
+parallel_runs = 4
 
 thread_results = []
 manager = multiprocessing.Manager()

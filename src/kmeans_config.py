@@ -115,8 +115,8 @@ class KmeansConfig(Config):
                     scale = 2**wb * 2**xb
                     mu, std = rpr_dist[rpr]['mu'], rpr_dist[rpr]['std']
                     
-                    e = (scale / self.q) * 5 * std
-                    e_mu = (scale / self.q) * 5 * mu
+                    e = (scale / self.q) * (64. / 2.) * std
+                    e_mu = (scale / self.q) * (64. / 2.) * mu
                     
                     if rpr == self.low:
                         rpr_lut[xb][wb] = rpr

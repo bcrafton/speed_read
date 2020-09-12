@@ -4078,8 +4078,29 @@ want the full flow done.
 
 > also make lut_bias fixed point so we can accumulate and go over 1.
 
+====================
 
+> does dynamic error approx not account for bias correction in the solution ???
+  > kinda makes sense, why dynamic goes so low on error ...
+  > perhaps we shudnt account for dynamic bias ?
 
+> kmeans does mu/5 ... not mu/64
+  > how does it keep the error low ? 
+
+> using adc_count, we can get really good approx on what dynamic will do .
+
+> dynamic correction is losing to static with SAME RPR.
+  > AND we dont think we did static correctly. 
+
+> we must have not done dynamic correctly as well.
+  > rounding ? 
+
+====================
+
+> make a "TOP" section in todo
+  > too many items piling up
+  > and we end up not doing anything, overwhelmed by too many things, too much planning
+  > just pick on TOP and do it.
 
 
 
