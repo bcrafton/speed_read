@@ -136,6 +136,9 @@ ResNet18
     > 'e' that is ?
     > 'e' was negative, thats why we did that.
 
+> static bias, rather than dynamic bias ? 
+  > use ADC instead of p=0.7 or w.e.
+
 future / not doing:
 -------
 -------
@@ -262,15 +265,16 @@ todo
   > pass all parameters to all of them
   > then implement static correction
 
-> static bias, rather than dynamic bias ? 
-  > use ADC instead of p=0.7 or w.e.
-  
+---
+
 > more accurate threshold satisfaction
   > want to really be able to compare shit
 
 ---
 
 > handle multiple examples
+
+-------
 
 > general python cleanup
 
@@ -332,12 +336,14 @@ todo
   
   > "end-to-end static correction"
   > https://github.com/bcrafton/speed_read/commit/e57ec5555423b345f970ee0efa51e66b37c22716
+  
+  >> verify this change didnt break anything.
 
 -------
 
-> static definitely too much error, comparing with classes8 ... see the same thing.
+> static, dynamic not totally correct
 
-
+-------
 
 
 
