@@ -279,7 +279,25 @@ todo
 > recreate {breaking barriers, counting cards} plots
   > sweep {variance, layer, #array} 
   > make python scripts - {bb_tb.py, bb_plot.py}
+
+> where did we actually create these tests.
+  > resnet5 tb_resnet.py is no good.
+    > https://github.com/bcrafton/speed_read/commits/resnet5
+    > "whoops grabbed wrong results file"
+    > "pushing results that make util and perf plot"
     
+  > resnet4 tb_resnet.py looks right.
+    > https://github.com/bcrafton/speed_read/commits/resnet4
+
+  > https://github.com/bcrafton/speed_read/commits/resnet5/src/results.npy
+  > why is there:
+    > results.npy
+    > results-old.npy
+    
+  > i guess this part dosnt really matter, we just care about the tb used to create them
+
+-------
+
 > more accurate power #s
   > more detailed power model
   > focus on results for DAC ASP tho
