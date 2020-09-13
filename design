@@ -4102,6 +4102,42 @@ want the full flow done.
   > and we end up not doing anything, overwhelmed by too many things, too much planning
   > just pick on TOP and do it.
 
+====================
+
+> compare classes8 with classes10, make sure we get the same results after all the stuff.
+  > well i guess we wont because of rounding.
+  > AND changing dynamic rpr -> static rpr.
+
+====================
+
+> example - encapsulated inside of { model.forward, model.profile }
+  > we tag each result dictionary with the example from the loop
+  > is this the way to go
+
+> is this what we have always done ? 
+  > didnt we append the array before or something ? 
+  > oh nah, thats after when we wanted to come stuff.
+
+
+so example is actually done correctly i think.
+> its just that pandas dosnt let us combine them easily.
+> we want to average everything that shares everything besides example.
+> yeah, for max flexibility i think we are doing this correctly.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

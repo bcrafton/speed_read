@@ -315,22 +315,23 @@ todo
 
 -------
 
+> handle multiple examples
+  > implementation actually good we think.
 
 -------
 -------
 TOP PRIORITY
+>> make sure we are working on a productive task.
 -------
 -------
 
 > (1) dynamic -> adc stats, not p.
 > static, dynamic not totally correct
 > merge into master.
-> handle multiple examples
 
 > (2) modularize rpr_alloc methods.
   > make a class/API
   > pass all parameters to all of them
-  > then implement static correction
   
 > dynamic 
   > "int Array::correct"
@@ -342,5 +343,39 @@ TOP PRIORITY
 > account for rounding error expected error.
 
 > compare {static-rpr rounding, pre params->centroids->methods}
+  > compare classes8 with classes10, make sure we get the same results after all the stuff.
+  > well i guess we wont because of rounding.
+  > AND changing dynamic rpr -> static rpr.
+
+> why does kmeans not get the same MSE as dynamic
+  > or atleast close ? 
+  > rounding error ? 
+  > incorrect implementation ? 
+  > can we figure out why we get 0.12 MSE ? 
+    > is it mu or std that limits ? 
+    > (1 / 2 * 64) * (scale / self.q) * (64. / 2.)
+      > 0.12
+      > 0.25
+      > could feasibly be anywhere from 0.5 to 1.
+      > well consider that lsb might never be able to satisfy its limit ...
+        > ahh, thats what it is.
+        > so we wud need to be able to optimize them all together then ? ... all rpr table that is.
+        > we cud print an error table ? 
+        > do we want to do this ? it would give us good control over the threshold ?
+          > comes down to what we need next for the paper.
+          > global optimization might yield performance increase ? 
+            > it would basically be knapsack ?
+            > select 64 rpr, 16 choices each.
+            > cost would be number of cycles it takes to read.
+            
+
+-------
+
+
+
+
+
+
+
 
 
