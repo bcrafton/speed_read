@@ -139,6 +139,9 @@ ResNet18
 > static bias, rather than dynamic bias ? 
   > use ADC instead of p=0.7 or w.e.
 
+> handle multiple examples
+  > implementation actually good we think.
+
 future / not doing:
 -------
 -------
@@ -315,8 +318,18 @@ todo
 
 -------
 
-> handle multiple examples
-  > implementation actually good we think.
+> dynamic 
+  > "int Array::correct"
+  > wl_sum, pdot_sum, sat.
+  > set a table in advance, dont do this pdf stuff in C!
+> compare {static-rpr rounding, pre params->centroids->methods}
+  > compare classes8 with classes10, make sure we get the same results after all the stuff.
+  > well i guess we wont because of rounding.
+  > AND changing dynamic rpr -> static rpr.
+> (1) dynamic -> adc stats, not p.
+> static, dynamic not totally correct
+
+-------
 
 -------
 -------
@@ -325,28 +338,15 @@ TOP PRIORITY
 -------
 -------
 
-> (1) dynamic -> adc stats, not p.
-> static, dynamic not totally correct
 > merge into master.
 
 > (2) modularize rpr_alloc methods.
   > make a class/API
   > pass all parameters to all of them
   
-> dynamic 
-  > "int Array::correct"
-  > wl_sum, pdot_sum, sat.
-  > set a table in advance, dont do this pdf stuff in C!
-
 > (3) CC/BB re-create
 
-> account for rounding error expected error.
-
-> compare {static-rpr rounding, pre params->centroids->methods}
-  > compare classes8 with classes10, make sure we get the same results after all the stuff.
-  > well i guess we wont because of rounding.
-  > AND changing dynamic rpr -> static rpr.
-
+> dont think {mu, std} are correct.
 > why does kmeans not get the same MSE as dynamic
   > or atleast close ? 
   > rounding error ? 
@@ -366,8 +366,10 @@ TOP PRIORITY
           > global optimization might yield performance increase ? 
             > it would basically be knapsack ?
             > select 64 rpr, 16 choices each.
-            > cost would be number of cycles it takes to read.
+            > cost would be number of cycles it takes to read
             
+  > we over estimate nrow 
+  > we assume that all {xb, wb} have the same ADC counts.
 
 -------
 

@@ -4124,9 +4124,33 @@ so example is actually done correctly i think.
 > we want to average everything that shares everything besides example.
 > yeah, for max flexibility i think we are doing this correctly.
 
+====================
 
+first layer has worst error because it has most nrow.
+> 40% density or w.e.
 
+also mean is totally busted for static rpr, layer 1.
+> layer 1 could have an entirely different breakdown than the rest of layers for adc count.s
+> do we do a different one for each layer ? 
+  > yes actually.
+> so what is it then for layer 1 ? 
+  > wrong bias approx ? 
 
+our mean could be so far off because of the bad profile.
+> need to profile {nrow, adc} by {xb, wb, layer}
+> we would want to update existing classes C++ code for profile.
+> then all the places where the adc_counts is used.
+
+okay so this brings up weird issue
+> we only want 16-8=[8] entry bias table
+> we dont want for each xb, wb.
+> so how can we use this xb, wb information ? 
+
+if an {xb, wb} wants to use a certain rpr ... then we would have to account for its value in the bias table ...
+> well not exactly, we could just have the bias table be 64 wide.
+> otherwise it becomes difficult optimization problem i think.
+
+====================
 
 
 
