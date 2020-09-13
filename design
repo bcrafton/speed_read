@@ -4152,7 +4152,14 @@ if an {xb, wb} wants to use a certain rpr ... then we would have to account for 
 
 ====================
 
+something strange is happening:
+> y_mean -0.1825714111328125 y_std 0.8075885685470734
+> np.average(mse_lut) = 0.6195874
+> u also need to factor in incorrect nrow=2 tho.
 
+====================
+
+alright we got pretty close with the new fixes.
 
 
 

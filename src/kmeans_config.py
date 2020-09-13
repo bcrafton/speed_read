@@ -56,15 +56,9 @@ def exp_err(s, p, var, adc, rpr, row):
     # print (adc_low.flatten())
     # print (adc_high.flatten())
 
-    mu = np.sum(p * pe * e)
-    std = np.sqrt(np.sum(p * pe * (e - mu) ** 2))
+    mse = np.sqrt(np.sum((p * pe * e * row) ** 2))
 
-    mu = mu * row
-    std = np.sqrt(std ** 2 * row)
-
-    # print (rpr, (mu, std), adc.flatten())
-    
-    return mu, std
+    return mse
 
 #########################
 
@@ -91,8 +85,8 @@ class KmeansConfig(Config):
 
             p_avg = 1. 
 
-            mu, std = exp_err(s=s, p=p, var=self.params['sigma'], adc=centroids, rpr=rpr, row=np.ceil(p_avg * self.nrow / rpr))
-            rpr_dist[rpr] = {'mu': mu, 'std': std, 'centroids': centroids}
+            mse = exp_err(s=s, p=p, var=self.params['sigma'], adc=centroids, rpr=rpr, row=np.ceil(p_avg * self.nrow / rpr))
+            rpr_dist[rpr] = {'mse': mse, 'centroids': centroids}
             
             adc_state[rpr] = 4 * np.array(centroids)
             adc_thresh[rpr] = adc_floor(centroids)
@@ -113,14 +107,12 @@ class KmeansConfig(Config):
                 for rpr in range(self.low, self.high + 1):
                 
                     scale = 2**wb * 2**xb
-                    mu, std = rpr_dist[rpr]['mu'], rpr_dist[rpr]['std']
-                    
-                    e = (scale / self.q) * (64. / 2.) * std
-                    e_mu = (scale / self.q) * (64. / 2.) * mu
+                    mse = rpr_dist[rpr]['mse']
+                    scaled_mse = (scale / self.q) * 64. * mse
                     
                     if rpr == self.low:
                         rpr_lut[xb][wb] = rpr
-                    if (e < 1.) and (np.absolute(e_mu) < 1.):
+                    if scaled_mse < 1:
                         rpr_lut[xb][wb] = rpr
 
         return rpr_lut, adc_state, adc_thresh
