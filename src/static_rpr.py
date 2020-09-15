@@ -181,7 +181,7 @@ def static_rpr(low, high, params, adc_count, row_count, nrow, q):
                     mse_lut[xb][wb] = scaled_mse
                     mean_lut[xb][wb] = scaled_mean
 
-                if scaled_mse < 1:
+                if scaled_mse < params['thresh']:
                     rpr_lut[xb][wb] = rpr
                     bias_lut[xb][wb] = bias
                     mse_lut[xb][wb] = scaled_mse
