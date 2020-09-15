@@ -4161,8 +4161,87 @@ something strange is happening:
 
 alright we got pretty close with the new fixes.
 
+====================
 
+> profile [xb][wb] @ adc + row ? 
+  > will give better approx. 
+  > at the very least, we would want to approximate row ... 
+    > dont have to use: [xb][wb]
 
+====================
+
+holy shit it was all the rounding error.
+> all those profile.c bugs
+> then this lol.
+
+so we just need to model the rounding error inside of expected_error()
+> not /256 rounding error
+> when you sum that up ... then round 0.5->1, 0.5->0
+
+so when we change array.c round->ceil
+> we go from negative mean to positive mean
+> which shows thats where the bug is
+
+====================
+
+> well how come when we dont even subtract the bias, it dosnt effect our expected error ???
+> we cant apply findings above if bias dosnt change anything ??
+
+could it also be the way we are calculating this stuff ? 
+> mse, mean in expected_error ... not correct.
+> y_std, y_mean are different things.
+
+====================
+
+okay damn, we fixed our model.
+we were doing:
+> print (np.mean(mse_lut), np.mean(scaled_mean))
+> so mean of a scalar = 0.
+
+we still under-estimate error despite having relu included here ...
+changing this line:
+
+> e[:, params['adc']:rpr+1] = e[:, params['adc']:rpr+1] - bias
+to 
+> e[:, params['adc']:rpr+1] = e[:, params['adc']:rpr+1]
+
+has no impact on MSE ... why ? 
+
+====================
+
+changing:
+mse = np.sqrt(np.sum((p * pe * e) ** 2) * nrow)
+to 
+mse = np.sqrt(np.sum((p * pe * e * nrow) ** 2))
+changes mse AND mean ... WTF ? 
+> because it changes how high we can set rpr ... duh.
+
+====================
+
+back to bias - 
+why does this only change the mean ? 
+should we expect this ? 
+
+====================
+
+so if we do the absolute of the error, 
+> mean = np.sum(np.absolute(p * pe * e * nrow))
+nothing happens
+
+====================
+
+so if mean should not constrain error, what do we do ? 
+do we constrain it ?
+
+well i dont think it wud be possible for mean to be larger than error
+
+but this is actually looking correct - only thing is we have to model bias rounding.
+
+====================
+
+>> handle bias rounding, the rest looks good.
+
+====================
 
 
 

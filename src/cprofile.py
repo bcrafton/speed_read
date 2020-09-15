@@ -17,12 +17,15 @@ def profile(x, w, y_shape, rpr_low, rpr_high, params):
     nrow, ncol = y_shape
         
     y = np.zeros(shape=y_shape)
-    count = np.zeros(shape=(rpr_high+1, rpr_high+1))
+    count_adc = np.zeros(shape=(8, 8, rpr_high+1, rpr_high+1))
+    count_row = np.zeros(shape=(8, rpr_high+1, rpr_high+1))
     
     x = np.ascontiguousarray(x, np.int32)
     w = np.ascontiguousarray(w, np.int32)
     y = np.ascontiguousarray(y, np.int32)
-    count = np.ascontiguousarray(count, np.int64)
+
+    count_adc = np.ascontiguousarray(count_adc, np.int64)
+    count_row = np.ascontiguousarray(count_row, np.int64)
 
     ########
 
@@ -30,7 +33,8 @@ def profile(x, w, y_shape, rpr_low, rpr_high, params):
     ctypes.c_void_p(x.ctypes.data), 
     ctypes.c_void_p(w.ctypes.data), 
     ctypes.c_void_p(y.ctypes.data), 
-    ctypes.c_void_p(count.ctypes.data),
+    ctypes.c_void_p(count_adc.ctypes.data),
+    ctypes.c_void_p(count_row.ctypes.data),
     ctypes.c_int(rpr_high),
     ctypes.c_int(nrow),
     ctypes.c_int(ncol),
@@ -39,7 +43,7 @@ def profile(x, w, y_shape, rpr_low, rpr_high, params):
     ctypes.c_int(wl),
     ctypes.c_int(bl))
 
-    return y, count
+    return y, count_adc, count_row
     
     
     

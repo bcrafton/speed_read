@@ -26,7 +26,7 @@ void clear(int* v)
 
 //////////////////////////////////////////////
 
-int profile(int* x, int* w, int* y, long* count, int max_rpr, int R, int C, int NWL, int NBL, int WL, int BL)
+int profile(int* x, int* w, int* y, long* count_adc, long* count_row, int max_rpr, int R, int C, int NWL, int NBL, int WL, int BL)
 {
   int pdot[VECTOR_SIZE];
 
@@ -42,6 +42,7 @@ int profile(int* x, int* w, int* y, long* count, int max_rpr, int R, int C, int 
         for (int bl=0; bl<NBL; bl++) {
           for (int xb=0; xb<8; xb++) {
             
+            int row = 0;
             int wl_ptr = 0;
             while (wl_ptr < WL) {
               
@@ -59,11 +60,22 @@ int profile(int* x, int* w, int* y, long* count, int max_rpr, int R, int C, int 
               }
 
               for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
+                int wb = bl_ptr % 8;
                 int val = pdot[bl_ptr];
-                count[rpr * (max_rpr+1) + val] += 1;
+
+                int xb_addr = xb * 8 * (max_rpr + 1) * (max_rpr + 1);
+                int wb_addr = wb * (max_rpr + 1) * (max_rpr + 1);
+                int rpr_addr = rpr * (max_rpr + 1);
+                count_adc[xb_addr + wb_addr + rpr_addr + val] += 1;
               }
 
-            } // while (wl_ptr < wl) {                  
+              row += 1;
+            } // while (wl_ptr < wl) {
+
+            int xb_addr = xb * (max_rpr+1) * (max_rpr+1);
+            int rpr_addr = rpr * (max_rpr+1);
+            count_row[xb_addr + rpr_addr + row] += 1;
+
           } // for (int xb=0; xb<8; xb++) {
         } // for (int bl=0; bl<BL; bl++) {
       } // for (int wl=0; wl<WL; wl++) {

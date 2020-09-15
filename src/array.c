@@ -200,11 +200,12 @@ int Array::correct_static(int row, int col, int xb, int rpr) {
 
     int yaddr = row * this->params->C + c;
     // int bias = (this->sat[bl_ptr] * this->params->lut_bias[rpr]) / 256;
-    float bias_float = (this->sat[bl_ptr] * this->params->lut_bias[rpr]) / 256.;
+    float bias_float = (this->sat[bl_ptr] * this->params->lut_bias[8 * xb + wb]) / 256.;
     int bias = (int) round(bias_float);
     assert (bias >= 0.);
     this->y[yaddr] += (bias << (wb + xb));
 
+    // if (this->sat[bl_ptr]) {printf("%d %d %d %d\n", xb, wb, rpr, this->params->lut_bias[8 * xb + wb]);}
     // printf("%d %d\n", this->sat[bl_ptr], this->params->lut_bias[rpr]);
 
     this->sat[bl_ptr] = 0;

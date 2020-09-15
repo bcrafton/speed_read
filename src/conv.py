@@ -82,7 +82,7 @@ class Conv(Layer):
         self.params['var'] = lut_var(params['sigma'], 64)
 
         if self.params['rpr_alloc'] == 'centroids':
-            cfg = KmeansConfig(low=1, high=64, params=self.params, profile=self.all_counts, nrow=self.fh * self.fw * self.fc, q=self.q)
+            cfg = KmeansConfig(low=1, high=64, params=self.params, profile=self.adc_count, nrow=self.fh * self.fw * self.fc, q=self.q)
             self.params['rpr'], self.adc_state, self.adc_thresh = cfg.rpr()
 
         elif self.params['rpr_alloc'] == 'dynamic':
@@ -102,26 +102,27 @@ class Conv(Layer):
             self.params['rpr'] = dynamic_rpr(nrow=nrow, p=p, q=self.q, params=self.params)
             # print (self.params['rpr'])
             '''
-            self.params['rpr'], _ = static_rpr(low=1, high=16, params=self.params, profile=self.all_counts, nrow=self.fh * self.fw * self.fc, q=self.q)
+            self.params['rpr'], _ = static_rpr(low=1, high=16, params=self.params, adc_count=self.adc_count, row_count=self.row_count, nrow=self.fh * self.fw * self.fc, q=self.q)
 
         elif self.params['rpr_alloc'] == 'static':
-            self.params['rpr'], self.lut_bias = static_rpr(low=1, high=16, params=self.params, profile=self.all_counts, nrow=self.fh * self.fw * self.fc, q=self.q)
+            self.params['rpr'], self.lut_bias = static_rpr(low=1, high=16, params=self.params, adc_count=self.adc_count, row_count=self.row_count, nrow=self.fh * self.fw * self.fc, q=self.q)
             self.lut_bias = self.lut_bias * 256
             self.lut_bias = self.lut_bias.astype(np.int32)
         else:
             assert (False)
 
     def set_profile_adc(self, counts):
-        self.all_counts = counts[self.layer_id]
+        self.adc_count = counts[self.layer_id]['adc']
+        self.row_count = counts[self.layer_id]['row']
 
     def profile_adc(self, x):
         rpr_low = 1
         rpr_high = 64
         patches = self.transform_inputs(x)
-        _, self.all_counts = profile(patches, self.wb, (self.yh * self.yw, self.fn), rpr_low, rpr_high, self.params)
+        _, self.adc_count, self.row_count = profile(patches, self.wb, (self.yh * self.yw, self.fn), rpr_low, rpr_high, self.params)
         y_ref = conv_ref(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2, relu_flag=self.relu_flag)
         y_ref = self.act(y_ref)
-        return y_ref, {self.layer_id: self.all_counts}
+        return y_ref, {self.layer_id: {'adc': self.adc_count, 'row': self.row_count}}
 
     def set_block_alloc(self, block_alloc):
         self.block_alloc = block_alloc
