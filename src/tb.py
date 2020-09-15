@@ -59,7 +59,8 @@ arch_params1 = {
 'sigma': [0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15],
 'cards': [1],
 'profile': [1],
-'rpr_alloc': ['dynamic', 'static', 'centroids']
+'rpr_alloc': ['dynamic', 'static', 'centroids'],
+'thresh': [1.00]
 }
 
 arch_params2 = {
@@ -69,7 +70,8 @@ arch_params2 = {
 'sigma': [0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15],
 'cards': [0],
 'profile': [1],
-'rpr_alloc': ['dynamic']
+'rpr_alloc': ['dynamic'],
+'thresh': [1.00]
 }
 
 ############
@@ -81,7 +83,8 @@ arch_params = {
 'cards': [1],
 'profile': [1],
 'rpr_alloc': ['dynamic', 'static', 'centroids'],
-'sigma': [0.06, 0.08, 0.10, 0.12]
+'sigma': [0.06, 0.08, 0.10, 0.12],
+'thresh': [1.00]
 }
 
 ############
@@ -114,7 +117,8 @@ def run_command(x, y, model, params, return_list):
     'profile':   params['profile'],
     'narray':    params['narray'],
     'sigma':     params['sigma'],
-    'rpr_alloc': params['rpr_alloc']
+    'rpr_alloc': params['rpr_alloc'],
+    'thresh':    params['thresh']
     }
     
     for r in result:
