@@ -4276,6 +4276,96 @@ we should be over approximating error because of relu.
 
 ====================
 
+y_mean -0.10382080078125 y_std 0.4507549018696469 y_max 127.0 y_min 0.0
+y_mean -0.52691650390625 y_std 0.7027833293892684 y_max 127.0 y_min 0.0
+y_mean -0.53802490234375 y_std 0.9469675106236477 y_max 127.0 y_min 0.0
+y_mean -0.522705078125 y_std 0.8469108081299574 y_max 127.0 y_min 0.0
+y_mean -0.19915771484375 y_std 0.7570126407213855 y_max 127.0 y_min 0.0
+y_mean -0.205078125 y_std 0.9501406113815388 y_max 127.0 y_min 0.0
+
+y_mean -0.072784423828125 y_std 0.44188680800122093 y_max 127.0 y_min 0.0
+y_mean -0.32354736328125 y_std 0.5473143005234751 y_max 127.0 y_min 0.0
+y_mean -0.383209228515625 y_std 0.8313073016391619 y_max 127.0 y_min 0.0
+y_mean -0.38720703125 y_std 0.6821327509734169 y_max 127.0 y_min 0.0
+y_mean -0.13018798828125 y_std 0.6236953678888686 y_max 127.0 y_min 0.0
+y_mean -0.1640625 y_std 0.9301469452961452 y_max 127.0 y_min 0.0
+
+====================
+
+> thresh = 0.25
+  > why are we under estimating.
+  > bias DOES have an impact on this.
+
+0.14888172 0.031901136
+0.16746962 0.050551884
+0.16079427 0.04300765
+0.16359356 0.04495114
+0.14751628 0.023516256
+0.110405356 0.013742268
+
+y_mean -0.0133056640625 y_std 0.18808492182915912 y_max 127.0 y_min 0.0
+y_mean -0.0635986328125 y_std 0.25167047185631614 y_max 127.0 y_min 0.0
+y_mean -0.07403564453125 y_std 0.306305276738081 y_max 127.0 y_min 0.0
+y_mean -0.0838623046875 y_std 0.27893723494722056 y_max 127.0 y_min 0.0
+y_mean -0.0224609375 y_std 0.1966725110408699 y_max 127.0 y_min 0.0
+y_mean -0.05224609375 y_std 0.3258175324286067 y_max 127.0 y_min 0.0
+
+> these approx are from not even subtracting the bias ...
+  > e[:, params['adc']:rpr+1] = e[:, params['adc']:rpr+1] # - bias
+
+====================
+
+error, mean
+
+- bias=bias
+0.14929377 0.0017458444
+0.15940799 0.0019591914
+0.16502106 0.0021992717
+0.16550586 0.0021800937
+0.14763668 0.0014217058
+0.11172722 0.0007232436
+
+- bias=0
+0.14888172 0.031901136
+0.16746962 0.050551884
+0.16079427 0.04300765
+0.16359356 0.04495114
+0.14751628 0.023516256
+0.110405356 0.013742268
+
+====================
+
+how come the correct bias dosnt help the error ?
+> it helps for some of the layers.
+
+think we need to think about what could be the issue at this point
+rather than collecting data about the problem.
+
+bias might not be our issue here...
+
+y_mean -0.01043701171875 y_std 0.18720929139971304 y_max 127.0 y_min 0.0
+y_mean -0.05413818359375 y_std 0.23965146903038048 y_max 127.0 y_min 0.0
+y_mean -0.074554443359375 y_std 0.30272119401108794 y_max 127.0 y_min 0.0
+y_mean -0.072509765625 y_std 0.2635324745434755 y_max 127.0 y_min 0.0
+y_mean -0.02008056640625 y_std 0.19646433695852838 y_max 127.0 y_min 0.0
+y_mean -0.0419921875 y_std 0.31202203438053033 y_max 127.0 y_min 0.0
+
+====================
+
+alright - so the problem was in difference in computing:
+y_std, error
+y_mean, mean
+
+well i suppose mean was correct.
+we changed y_std to actually be error in the expected error calculation and stuff seems to work great.
+
+====================
+
+
+
+
+
+
 
 
 

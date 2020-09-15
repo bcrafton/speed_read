@@ -92,6 +92,7 @@ def expected_error(params, adc_count, row_count, rpr, nrow, bias):
     
     if rpr > params['adc']:
         e[:, params['adc']:rpr+1] = e[:, params['adc']:rpr+1] - bias
+        # e[:, params['adc']:rpr+1] = e[:, params['adc']:rpr+1] - round(nrow * bias) // nrow
 
     # mse = np.sum((p * pe * e * nrow) ** 2)
     # mse = np.sqrt(np.sum((p * pe * e * nrow) ** 2))

@@ -156,9 +156,10 @@ class Conv(Layer):
         y_max = np.max(y_ref)
         y_mean = np.mean(y - y_ref)
         y_std = np.std(y - y_ref)
+        y_error = np.mean(np.absolute(y - y_ref))
         # assert (self.s == 1)
         
-        print ('y_mean', y_mean, 'y_std', y_std, 'y_max', y_max, 'y_min', y_min)
+        print ('y_mean', y_mean, 'y_error', y_error, 'y_max', y_max, 'y_min', y_min)
         
         # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
         # results = {}
@@ -166,6 +167,7 @@ class Conv(Layer):
         results['nmac']  = self.nmac
         results['std']   = y_std
         results['mean']  = y_mean
+        results['error'] = y_error
         
         nwl, _, nbl, _ = np.shape(self.wb)
         
