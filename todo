@@ -142,6 +142,8 @@ ResNet18
 > handle multiple examples
   > implementation actually good we think.
 
+> thresh change matches: classes12 vs classes13.
+
 future / not doing:
 -------
 -------
