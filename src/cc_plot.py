@@ -99,7 +99,8 @@ plt.tight_layout()
 
 plt.legend()
 plt.ylim(bottom=0)
-plt.show()
+# plt.show()
+plt.savefig('cc.png')
             
 ####################
             
