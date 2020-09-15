@@ -4361,7 +4361,9 @@ we changed y_std to actually be error in the expected error calculation and stuf
 
 ====================
 
-
+> parallelize kmeans {xb, wb, rpr} loop 
+  > think it should just be vectorize operations
+  > take advantage of extra stats - {rpr, xb, wb} @ {row_count, adc_count}
 
 
 

@@ -331,21 +331,6 @@ todo
 
 -------
 
--------
--------
-TOP PRIORITY
->> make sure we are working on a productive task.
--------
--------
-
-> merge into master.
-
-> (2) modularize rpr_alloc methods.
-  > make a class/API
-  > pass all parameters to all of them
-  
-> (3) CC/BB re-create
-
 > dont think {mu, std} are correct.
 > why does kmeans not get the same MSE as dynamic
   > or atleast close ? 
@@ -370,6 +355,33 @@ TOP PRIORITY
             
   > we over estimate nrow 
   > we assume that all {xb, wb} have the same ADC counts.
+
+-------
+-------
+TOP PRIORITY
+>> make sure we are working on a productive task.
+-------
+-------
+
+> merge into master.
+
+> (2) modularize rpr_alloc methods.
+  > make a class/API
+  > pass all parameters to all of them
+  
+> (3) CC/BB re-create
+  > hard to re-create CC when we have improved it so much ...
+    > just do it with static ?
+
+> want a plot with different thresholds.
+  > change variance and threshold.
+  
+> update centroids for {rpr, xb, wb} @ {row_count, adc_count}
+> parallelize kmeans {xb, wb, rpr} loop 
+  > think it should just be vectorize operations
+  > take advantage of extra stats - {rpr, xb, wb} @ {row_count, adc_count}
+
+> update dynamic
 
 -------
 
