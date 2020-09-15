@@ -385,6 +385,13 @@ TOP PRIORITY
 
 > update dynamic
 
+> computational efficiency plot
+  > array size with fixed ADC
+    > ADC area * ADC_CONSTANT + array_size * CELL_CONSTANT
+  > compute SRAM requirements
+  > breaking barriers
+  > counting cards ... rpr > adc
+
 -------
 
 
