@@ -392,6 +392,10 @@ TOP PRIORITY
   > breaking barriers
   > counting cards ... rpr > adc
 
+rows in matmul, NOT array
+> we are measuring error as a function of WLs in array.
+> but that is retarded ... it should be actual number of rows in a matmul
+
 -------
 
 
