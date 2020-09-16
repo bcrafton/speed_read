@@ -42,7 +42,7 @@ def expected_error(params, adc_count, row_count, rpr, nrow, bias):
 def static_rpr(low, high, params, adc_count, row_count, nrow, q):
 
     weight = np.arange(65, dtype=np.float32)
-    nrow = np.sum(row_count * weight, axis=2) / (np.sum(row_count, axis=2) + 1e-6)
+    nrow_array = np.sum(row_count * weight, axis=2) / (np.sum(row_count, axis=2) + 1e-6)
 
     ############
     
@@ -80,8 +80,10 @@ def static_rpr(low, high, params, adc_count, row_count, nrow, q):
 
                 #####################################################
 
+                expected_cycles = np.ceil(nrow / params['wl']) * np.ceil(nrow_array[xb][rpr])
+
                 scale = 2**wb * 2**xb
-                mse, mean = expected_error(params=params, adc_count=adc_count[xb][wb], row_count=row_count[xb], rpr=rpr, nrow=np.ceil(nrow[xb][rpr]), bias=bias)
+                mse, mean = expected_error(params=params, adc_count=adc_count[xb][wb], row_count=row_count[xb], rpr=rpr, nrow=expected_cycles, bias=bias)
                 scaled_mse = (scale / q) * 64. * mse
                 scaled_mean = (scale / q) * 64. * mean
 
