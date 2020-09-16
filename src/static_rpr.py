@@ -1,72 +1,6 @@
 
 import numpy as np
 from scipy.stats import norm, binom
-
-##########################################
-
-def prob_err(p, var, adc, rpr, row):
-    def prob_err_help(e, p, var, adc, rpr):
-        psum = 0
-        for s in range(1, rpr + 1):
-            bin = binom.pmf(s, rpr, p)
-            psum += ((s + e) < adc) * bin * (norm.cdf(e + 0.5, 0, var * np.sqrt(s)) - norm.cdf(e - 0.5, 0, var * np.sqrt(s)))
-            psum += ((s + e) == adc) * bin * (1 - norm.cdf(adc - s - 0.5, 0, var * np.sqrt(s)))
-
-        # zero case:
-        psum += ((e - 0.5 < 0) * (0 < e + 0.5)) * binom.pmf(0, rpr, p)
-        return psum
-    
-    s = np.array(range(-rpr, rpr+1))
-    pe = prob_err_help(s, p, var, adc, rpr)
-    mu = np.sum(pe * s)
-    std = np.sqrt(np.sum(pe * (s - mu) ** 2))
-    
-    mu = mu * row
-    std = np.sqrt(std ** 2 * row)
-    return mu, std
-    
-##########################################
-
-def exp_err(s, p, var, adc, rpr, row):
-    assert (np.all(p <= 1.))
-    assert (len(s) == len(p))
-
-    adc = sorted(adc)
-    adc = np.reshape(adc, (-1, 1))
-    adc_low, adc_high = adc_range(adc)
-
-    pe = norm.cdf(adc_high, s, var * np.sqrt(s) + 1e-6) - norm.cdf(adc_low, s, var * np.sqrt(s) + 1e-6)
-    e = s - adc
-    
-    '''
-    print (np.shape(pe))
-    print (np.shape(e))
-    print (np.shape(p))
-    
-    (9, 22)
-    (9, 22)
-    (22,)
-    
-    s =[1, 22]
-    adc = [9, 1]
-    '''
-    
-    # print (s.flatten())
-    # print (adc.flatten())
-    # print (e)
-    # print (np.round(p * pe * e, 2))
-    # print (adc_low.flatten())
-    # print (adc_high.flatten())
-
-    mu = np.sum(p * pe * e)
-    std = np.sqrt(np.sum(p * pe * (e - mu) ** 2))
-
-    mu = mu * row
-    std = np.sqrt(std ** 2 * row)
-
-    # print (rpr, (mu, std), adc.flatten())
-    
-    return mu, std
     
 ##########################################
 
@@ -109,33 +43,11 @@ def static_rpr(low, high, params, adc_count, row_count, nrow, q):
 
     weight = np.arange(65, dtype=np.float32)
     nrow = np.sum(row_count * weight, axis=2) / (np.sum(row_count, axis=2) + 1e-6)
-    
-    # print (adc_count[0][0][16])
-    # print (row_count[0][16])
-    # print (nrow[0][16])
-    # print (nrow[0])
-    
-    # it actually makes sense for this to be list of [1024]
-    # they would all specify some # of rows they take.
-    # 32 * 32 = 1024.
-    # print (np.sum(row_count[0], axis=1))
 
-    # assert (False)
-    
     ############
     
     sat_low = params['adc']
     sat_high = high + 1
-    
-    '''
-    bias_lut = np.zeros(shape=sat_high, dtype=np.float32)
-    for rpr in range(sat_low, sat_high):
-        count = np.sum(adc_count, axis=(0,1))[rpr][sat_low:sat_high]
-        prob = count / np.sum(count)
-        weight = np.arange(sat_high - sat_low, dtype=np.float32)
-        bias = np.sum(prob * weight)
-        bias_lut[rpr] = bias
-    '''
 
     ############
 
