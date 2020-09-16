@@ -392,9 +392,15 @@ TOP PRIORITY
   > breaking barriers
   > counting cards ... rpr > adc
 
+> 256 vs 128 - reason we arnt seeing that much improvement is because only 16 rows.
+  > do this for centroids ... totally different story.
+
 rows in matmul, NOT array
 > we are measuring error as a function of WLs in array.
 > but that is retarded ... it should be actual number of rows in a matmul
+  > static_rpr - done, still need centroids
+> try computing sparsity in output AND using this in MSE calculation.
+> use params[offset] ? -> to see if end value is <0 ... in which case drop it from consideration ?
 
 -------
 
