@@ -402,6 +402,15 @@ rows in matmul, NOT array
 > try computing sparsity in output AND using this in MSE calculation.
 > use params[offset] ? -> to see if end value is <0 ... in which case drop it from consideration ?
 
+compute
+> compute efficiency
+> memory efficiency
+  > these two can be done with approximation for 128x128 array and for each ADC.
+  > then if u wana get crazy look at SRAM bandwidth/capacity required
+  > and even crazier look at throughput and how much interconnect is required.
+> energy efficiency
+> variance/accuracy
+
 -------
 
 
