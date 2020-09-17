@@ -48,16 +48,8 @@ def exp_err(s, p, var, adc, rpr, row):
 
     pe = norm.cdf(adc_high, s, var * np.sqrt(s) + 1e-6) - norm.cdf(adc_low, s, var * np.sqrt(s) + 1e-6)
     e = s - adc
-    
-    # print (s.flatten())
-    # print (adc.flatten())
-    # print (e)
-    # print (np.round(p * pe * e, 2))
-    # print (adc_low.flatten())
-    # print (adc_high.flatten())
 
-    mse = np.sqrt(np.sum((p * pe * e * row) ** 2))
-
+    mse = np.sum(np.absolute(p * pe * e * row))
     return mse
 
 #########################
@@ -68,10 +60,17 @@ class KmeansConfig(Config):
             
         adc_state = np.zeros(shape=(self.high + 1, self.params['adc'] + 1))
         adc_thresh = np.zeros(shape=(self.high + 1, self.params['adc'] + 1))
+
+        weight = np.arange(65, dtype=np.float32)
+        nrow_array = np.sum(self.row_count * weight, axis=2) / (np.sum(self.row_count, axis=2) + 1e-6)
+        nrow_array = np.mean(nrow_array, axis=0)
+        nrow_array = np.ceil(nrow_array)
         
+        expected_cycles = np.ceil(self.nrow / self.params['wl']) * np.ceil(nrow_array)
+
         rpr_dist = {}
         for rpr in range(self.low, self.high + 1):
-            counts = self.profile[rpr][0:rpr+1]
+            counts = np.sum(self.adc_count, axis=(0, 1))[rpr][0:rpr+1]
             values = np.array(range(rpr+1))
             
             if rpr <= self.params['adc']:
@@ -83,9 +82,7 @@ class KmeansConfig(Config):
             p = counts / np.sum(counts)
             s = values
 
-            p_avg = 1. 
-
-            mse = exp_err(s=s, p=p, var=self.params['sigma'], adc=centroids, rpr=rpr, row=np.ceil(p_avg * self.nrow / rpr))
+            mse = exp_err(s=s, p=p, var=self.params['sigma'], adc=centroids, rpr=rpr, row=expected_cycles[rpr])
             rpr_dist[rpr] = {'mse': mse, 'centroids': centroids}
             
             adc_state[rpr] = 4 * np.array(centroids)
@@ -98,9 +95,6 @@ class KmeansConfig(Config):
         for wb in range(self.params['bpw']):
             for xb in range(self.params['bpa']):
                 rpr_lut[xb][wb] = self.params['adc']
-            
-        if not (self.params['skip'] and self.params['cards']):
-            return rpr_lut
         
         for wb in range(self.params['bpw']):
             for xb in range(self.params['bpa']):
@@ -112,7 +106,7 @@ class KmeansConfig(Config):
                     
                     if rpr == self.low:
                         rpr_lut[xb][wb] = rpr
-                    if scaled_mse < 1:
+                    elif scaled_mse < self.params['thresh']:
                         rpr_lut[xb][wb] = rpr
 
         return rpr_lut, adc_state, adc_thresh

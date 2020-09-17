@@ -12,11 +12,12 @@ import matplotlib.pyplot as plt
 
 class Config:
     
-    def __init__(self, low, high, params, profile, nrow, q):
+    def __init__(self, low, high, params, adc_count, row_count, nrow, q):
         self.low = low
         self.high = high
         self.params = params
-        self.profile = profile
+        self.adc_count = adc_count
+        self.row_count = row_count
         self.nrow = nrow
         self.q = q
 

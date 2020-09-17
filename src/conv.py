@@ -82,7 +82,7 @@ class Conv(Layer):
         self.params['var'] = lut_var(params['sigma'], 64)
 
         if self.params['rpr_alloc'] == 'centroids':
-            cfg = KmeansConfig(low=1, high=64, params=self.params, profile=self.adc_count, nrow=self.fh * self.fw * self.fc, q=self.q)
+            cfg = KmeansConfig(low=1, high=64, params=self.params, adc_count=self.adc_count, row_count=self.row_count, nrow=self.fh * self.fw * self.fc, q=self.q)
             self.params['rpr'], self.adc_state, self.adc_thresh = cfg.rpr()
 
         elif self.params['rpr_alloc'] == 'dynamic':

@@ -382,6 +382,8 @@ TOP PRIORITY
 > parallelize kmeans {xb, wb, rpr} loop 
   > think it should just be vectorize operations
   > take advantage of extra stats - {rpr, xb, wb} @ {row_count, adc_count}
+  >> difficult to parallelize kmeans ...
+    > i mean perhaps we can ... but idk.
 
 > update dynamic
 
