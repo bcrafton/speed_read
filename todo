@@ -378,12 +378,25 @@ TOP PRIORITY
 > want a plot with different thresholds.
   > change variance and threshold.
   
+---
+  
 > update centroids for {rpr, xb, wb} @ {row_count, adc_count}
 > parallelize kmeans {xb, wb, rpr} loop 
   > think it should just be vectorize operations
   > take advantage of extra stats - {rpr, xb, wb} @ {row_count, adc_count}
+
   >> difficult to parallelize kmeans ...
     > i mean perhaps we can ... but idk.
+
+  >> NOT only this, but then you need adc_thresh = [8, 65, 8] ... for (xb, rpr) sweep)
+    > which is just insanity
+   
+  >> NO WAIT - you should just have [8, 8, 8]
+    > dont need to address it by RPR ... thats non-sense.
+    
+  >> could also binary search for the optimal configuration ... 6 per itr rather than 64.
+    
+---
 
 > update dynamic
 
