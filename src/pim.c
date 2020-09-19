@@ -60,13 +60,16 @@ int sat_error(float p, int adc, int rpr)
 // 4 s.d. of on state.
 
 // should be passing floor thresholds here, not midpoints.
-int eval_adc(float x, int adc, int rpr, float* adc_state, float* adc_thresh)
+int eval_adc(float x, int adc, int rpr, int xb, int wb, float* adc_state, float* adc_thresh)
 {
   assert(adc == 8);
+  assert(xb < 8);
+  assert(wb < 8);
+  assert(rpr <= 64);
 
   x = min(x, (float) rpr);
 
-  int offset = rpr * (adc + 1);
+  int offset = xb*adc*(adc+1) + wb*(adc+1);
   for (int i=0; i<=adc; i++) {
     int idx = offset + i;
     if (x < adc_thresh[idx]) {
@@ -78,12 +81,14 @@ int eval_adc(float x, int adc, int rpr, float* adc_state, float* adc_thresh)
 
 //////////////////////////////////////////////
 
-int comps_enabled(int wl, int adc, int rpr, float* adc_state, float* adc_thresh)
+int comps_enabled(int wl, int adc, int rpr, int xb, int wb, float* adc_state, float* adc_thresh)
 {
   assert(adc == 8);
+  assert(xb < 8);
+  assert(wb < 8);
+  assert(rpr <= 64);
 
-  int offset = rpr * (adc + 1);
-
+  int offset = xb*adc*(adc+1) + wb*(adc+1);
   for (int i=1; i<=adc; i++) {
     int idx = offset + i;
     if (wl * 4 <= adc_state[idx]) {

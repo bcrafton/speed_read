@@ -72,8 +72,8 @@ long unsigned int factorial(int n);
 long unsigned int nChoosek(int n, int k);
 float binomial_pmf(int k, int n, float p);
 int sat_error(float p, int adc, int rpr);
-int eval_adc(float x, int adc, int rpr, float* adc_state, float* adc_thresh);
-int comps_enabled(int wl, int adc, int rpr, float* adc_state, float* adc_thresh);
+int eval_adc(float x, int adc, int rpr, int xb, int wb, float* adc_state, float* adc_thresh);
+int comps_enabled(int wl, int adc, int rpr, int xb, int wb, float* adc_state, float* adc_thresh);
 
 /////////////////////////////////////////////////////
 

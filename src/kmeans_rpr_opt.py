@@ -59,7 +59,7 @@ def kmeans_rpr(low, high, params, adc_count, row_count, nrow, q):
     for wb in range(params['bpw']):
         for xb in range(params['bpa']):
             rpr_lut[xb][wb] = params['adc']
-
+            
     ##############################################
 
     adc_state = np.zeros(shape=(params['adc'], params['adc'], params['adc'] + 1))
@@ -67,31 +67,31 @@ def kmeans_rpr(low, high, params, adc_count, row_count, nrow, q):
 
     weight = np.arange(65, dtype=np.float32)
     nrow_array = np.sum(row_count * weight, axis=2) / (np.sum(row_count, axis=2) + 1e-6)
-    nrow_array = np.mean(nrow_array, axis=0)
     nrow_array = np.ceil(nrow_array)
     
     expected_cycles = np.ceil(nrow / params['wl']) * np.ceil(nrow_array)
 
-    rpr_dist = {}
-    for rpr in range(low, high + 1):
-        counts = np.sum(adc_count, axis=(0, 1))[rpr][0:rpr+1]
-        values = np.array(range(rpr+1))
-        probs = counts / np.sum(counts)
-        
-        if rpr <= params['adc']:
-            centroids = np.arange(0, params['adc'] + 1, step=1, dtype=np.float32)
-        else:
-            centroids = sorted(kmeans(values=values, counts=counts, n_clusters=params['adc'] + 1))
+    ##############################################
 
-        mse = exp_err(s=values, p=probs, var=params['sigma'], adc=centroids, rpr=rpr, row=expected_cycles[rpr])
-        rpr_dist[rpr] = (mse, centroids)
-    
-    for wb in range(params['bpw']):
-        for xb in range(params['bpa']):
+    for xb in range(params['bpa']):
+        for wb in range(params['bpw']):
             for rpr in range(low, high + 1):
             
+                # print (xb, wb, rpr)
+            
+                counts = adc_count[xb][wb][rpr][0:rpr+1]
+                values = np.array(range(rpr+1))
+                prob = counts / np.sum(counts)
+                
+                if rpr <= params['adc']:
+                    centroids = np.arange(0, params['adc'] + 1, step=1, dtype=np.float32)
+                elif np.count_nonzero(counts) <= params['adc']:
+                    centroids = np.arange(0, params['adc'] + 1, step=1, dtype=np.float32)
+                else:
+                    centroids = sorted(kmeans(values=values, counts=counts, n_clusters=params['adc'] + 1))
+
+                mse = exp_err(s=values, p=prob, var=params['sigma'], adc=centroids, rpr=rpr, row=expected_cycles[xb][rpr])
                 scale = 2**wb * 2**xb
-                mse, centroids = rpr_dist[rpr]
                 scaled_mse = (scale / q) * 64. * mse
                 
                 if (rpr == low) or (scaled_mse < params['thresh']):
@@ -99,6 +99,8 @@ def kmeans_rpr(low, high, params, adc_count, row_count, nrow, q):
                     adc_state[xb][wb] = 4 * np.array(centroids)
                     adc_thresh[xb][wb] = adc_floor(centroids)
                     if rpr == 1: adc_thresh[xb][wb][0] = 0.2
+                else:
+                    break
 
     return rpr_lut, adc_state, adc_thresh
         

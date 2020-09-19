@@ -122,7 +122,7 @@ int Array::process(int row, int col, int xb, int rpr) {
     float pdot_var = this->pdot[bl_ptr] + var;
     int pdot_adc;
 
-    if (params->method == CENTROIDS) pdot_adc = eval_adc(pdot_var, this->params->adc, rpr, this->params->adc_state, this->params->adc_thresh);
+    if (params->method == CENTROIDS) pdot_adc = eval_adc(pdot_var, this->params->adc, rpr, xb, wb, this->params->adc_state, this->params->adc_thresh);
     else                             pdot_adc = min(max((int) round(pdot_var), 0), min(this->params->adc, rpr));
 
     int yaddr = row * this->params->C + c;
@@ -155,7 +155,9 @@ int Array::collect(int row, int col, int xb, int rpr) {
 
   if (this->wl_sum > 0) {
     int comps;
-    if (params->method == CENTROIDS) comps = comps_enabled(this->wl_sum, this->params->adc, rpr, this->params->adc_state, this->params->adc_thresh) - 1;
+    int wb = col;
+
+    if (params->method == CENTROIDS) comps = comps_enabled(this->wl_sum, this->params->adc, rpr, xb, wb, this->params->adc_state, this->params->adc_thresh) - 1;
     else                             comps = min(this->wl_sum - 1, this->params->adc - 1);
     assert((comps >= 0) && (comps < this->params->adc));
     assert ((this->params->BL % 8) == 0);
