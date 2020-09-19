@@ -16,6 +16,7 @@ class Model:
     def __init__(self, layers):
         self.layers = layers
         self.nlayer = len(self.layers)
+        np.random.seed(0)
 
     def init(self, params):
         self.params = params

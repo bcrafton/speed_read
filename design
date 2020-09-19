@@ -4365,11 +4365,19 @@ we changed y_std to actually be error in the expected error calculation and stuf
   > think it should just be vectorize operations
   > take advantage of extra stats - {rpr, xb, wb} @ {row_count, adc_count}
 
+====================
 
+there was a cycle diff between {kmeans_rpr, kmeans_config}
+want to figure out that issue and fix it.
 
+# without a seed, this can produce different rpr tables between runs.
+# we piped (below) over several iterations
+# y_mean %f y_error %f y_max %f y_min %f
+# %d: alloc: %d nmac %d cycle: %d stall: %d
+# self.params['rpr'] or lut_rpr
+# and saw the different rpr tables leading to different execution times.
 
-
-
+====================
 
 
 
