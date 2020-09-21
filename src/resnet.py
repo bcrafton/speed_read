@@ -54,7 +54,7 @@ def create_model(array_params):
     Block1(input_size=(  7, 7, 512), filter_size=(512, 512), stride=1, params=array_params, weights=weights),
     ]
 
-    model = Model(layers=layers)
+    model = Model(layers=layers, array_params=array_params)
     return model
 
 ################

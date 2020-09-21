@@ -4379,6 +4379,59 @@ want to figure out that issue and fix it.
 
 ====================
 
+0: alloc: 119*4=476 nmac 1769472 cycle: 738 stall: 15408
+y_mean -0.205078125 y_error 0.218017578125 y_max 127.0 y_min 0.0
+1: alloc: 596*4=2384 nmac 37748736 cycle: 948 stall: 575260
+y_mean -0.140472412109375 y_error 0.267547607421875 y_max 127.0 y_min 0.0
+2: alloc: 141*8=1128 nmac 18874368 cycle: 917 stall: 238368
+y_mean -0.118408203125 y_error 0.1259765625 y_max 127.0 y_min 0.0
+3: alloc: 289*8=2312 nmac 37748736 cycle: 1081 stall: 864848
+y_mean -0.0699462890625 y_error 0.0863037109375 y_max 127.0 y_min 0.0
+4: alloc: 68*16=1088 nmac 18874368 cycle: 975 stall: 297056
+y_mean -0.091796875 y_error 0.11474609375 y_max 127.0 y_min 0.0
+5: alloc: 50*16=800 nmac 37748736 cycle: 795 stall: 89312
+>> look at those cycle #s ... we need a larger network.
+
+====================
+
+python: array.c:43: int Array::pim_skip(int, int, int, int): Assertion `(this->x[xaddr] == 0) || (this->x[xaddr] == 1)' failed
+> assert(row < this->params->R);
+> issue seems to be allocating more blocks then there are rows.
+
+====================
+
+> so we have commits on deck
+  > fixing row < R
+  > assert profile_adc was run with {WL, MAX_RPR}
+  > parameterize MAX_RPR ... throw that in array_params = {}
+
+> then we want to try out different {WL, RPR} combinations
+  > AND might need to move to ResNet18 to see some interesting stuff.
+
+> definitely want to see perf/power per layer.
+  > think that some layers bottleneck max performance
+  > ALSO - LSTM probably can achieve much higher performance.
+
+====================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

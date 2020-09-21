@@ -26,6 +26,8 @@ int Array::clear() {
 }
 
 int Array::pim(int row, int col, int xb, int rpr) {
+  assert(row < this->params->R);
+
   if (this->params->skip) {
     return this->pim_skip(row, col, xb, rpr);
   }

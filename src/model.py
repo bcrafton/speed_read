@@ -13,9 +13,10 @@ from AA import array_allocation
 #########################
 
 class Model:
-    def __init__(self, layers):
+    def __init__(self, layers, array_params):
         self.layers = layers
         self.nlayer = len(self.layers)
+        self.array_params = array_params
         np.random.seed(0)
 
     def init(self, params):
@@ -42,6 +43,7 @@ class Model:
         self.set_block_alloc()
 
     def set_profile_adc(self, counts):
+        assert (counts['wl'] == self.array_params['wl'])
         for layer in self.layers:
             layer.set_profile_adc(counts)
 
@@ -57,6 +59,7 @@ class Model:
                 assert (np.all((y % 1) == 0))
                 counts.update(adc_counts)
 
+        counts['wl'] = self.array_params['wl']
         return counts
 
     def profile(self, x):

@@ -3,6 +3,8 @@ import numpy as np
 
 x = np.load('profile_adc.npy', allow_pickle=True).item()
 
+print (x['wl'])
+
 adc = x[0]['adc']
 row = x[0]['row']
 
@@ -12,11 +14,11 @@ nrow = np.sum(row * weight, axis=2)
 # print (nrow[0])
 
 ################################
-
+'''
 for i in range(8):
     for j in range(8):
         print (i, j, adc[i][j][16])
-
+'''
 '''
 for i in range(8):
     for j in range(16):
