@@ -439,6 +439,12 @@ compute
   > create a common currency for error between layers.
   > can use this for CC.
 
+make sure 64/65 = {(xb, wb), rpr} is correct.
+> we changed all the 64/65
+> but want to make sure they are represented by the right thing
+> there should still be hardcoded 64s still
+> https://github.com/bcrafton/speed_read/commit/49ba1b31e1dd06d7b9f1b80d69d7923482149b48
+
 -------
 
 

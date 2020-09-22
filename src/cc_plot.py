@@ -46,11 +46,11 @@ ax1.set_title('MSE')
 ax2.set_title('Perf')
 ax3.set_title('Perf/W')
 
-for skip, cards, rpr_alloc in [(0, 0, 'dynamic'), (1, 0, 'dynamic'), (1, 1, 'static')]:
+for skip, cards, rpr_alloc in [(1, 1, 'centroids'), (1, 1, 'static')]:
 
     ######################################
 
-    sigmas = [0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15]
+    sigmas = [0.04, 0.08, 0.12, 0.16]
     mac_per_cycles = []
     mac_per_pJs = []
     errors = []
@@ -76,13 +76,17 @@ for skip, cards, rpr_alloc in [(0, 0, 'dynamic'), (1, 0, 'dynamic'), (1, 1, 'sta
 
     # plt.plot(sigmas, errors, marker='.', label=rpr_alloc)
     
-    if cards:  label = 'cards'
+    if cards:  label = rpr_alloc
     elif skip: label = 'skip'
     else:      label = 'baseline'
         
     ax1.plot(sigmas, errors,         label=label)
     ax2.plot(sigmas, mac_per_cycles, label=label)
     ax3.plot(sigmas, mac_per_pJs,    label=label)
+
+    print ('mac/cycle', rpr_alloc, mac_per_cycles)
+    print ('    error', rpr_alloc, errors)
+    print ('   mac/pJ', rpr_alloc, mac_per_pJs)
         
     ######################################
 

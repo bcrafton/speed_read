@@ -4430,7 +4430,10 @@ interesting ...
 
 ====================
 
-
+make sure 64/65 = {(xb, wb), rpr} is correct.
+> we changed all the 64/65
+> but want to make sure they are represented by the right thing
+> there should still be hardcoded 64s still
 
 
 
