@@ -20,7 +20,7 @@ int Block::pim(int row) {
   assert(rpr_addr >= 0);
   assert(rpr_addr < 64); 
   assert(rpr > 0);
-  assert(rpr <= 64);
+  assert(rpr <= this->params->max_rpr);
 
   int done = 0;
   for (int i=0; i<this->params->NBL; i++) {

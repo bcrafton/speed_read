@@ -16,8 +16,6 @@ from rpr import rpr as dynamic_rpr
 from static_rpr import static_rpr
 from kmeans_rpr import kmeans_rpr
 
-from kmeans_config import KmeansConfig
-
 #########################
 
 class Conv(Layer):
@@ -80,7 +78,7 @@ class Conv(Layer):
     def init(self, params):
         self.params.update(params)
         
-        self.params['var'] = lut_var(params['sigma'], 64)
+        self.params['var'] = lut_var(params['sigma'], self.params['max_rpr'])
 
         if self.params['rpr_alloc'] == 'centroids':
             # cfg = KmeansConfig(low=1, high=64, params=self.params, adc_count=self.adc_count, row_count=self.row_count, nrow=self.fh * self.fw * self.fc, q=self.q)
@@ -93,7 +91,7 @@ class Conv(Layer):
             # self.params['rpr'] or lut_rpr
             # and saw the different rpr tables leading to different execution times.
 
-            self.params['rpr'], self.adc_state, self.adc_thresh = kmeans_rpr(low=1, high=64, params=self.params, adc_count=self.adc_count, row_count=self.row_count, nrow=self.fh * self.fw * self.fc, q=self.q)
+            self.params['rpr'], self.adc_state, self.adc_thresh = kmeans_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, nrow=self.fh * self.fw * self.fc, q=self.q)
 
         elif self.params['rpr_alloc'] == 'dynamic':
             ## TODO: cant this be "self.wb" and cant we throw it in a different function ??
@@ -127,7 +125,7 @@ class Conv(Layer):
 
     def profile_adc(self, x):
         rpr_low = 1
-        rpr_high = 64
+        rpr_high = self.params['max_rpr']
         patches = self.transform_inputs(x)
         _, self.adc_count, self.row_count = profile(patches, self.wb, (self.yh * self.yw, self.fn), rpr_low, rpr_high, self.params)
         y_ref = conv_ref(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2, relu_flag=self.relu_flag)

@@ -30,7 +30,7 @@ def pim(x, w, y_shape, lut_var, lut_rpr, alloc, adc_state, adc_thresh, params):
     adc_thresh = np.ascontiguousarray(adc_thresh, np.float32)
     metrics = np.ascontiguousarray(metrics, np.int64)
 
-    lut_bias = np.zeros(shape=65)
+    lut_bias = np.zeros(shape=64)
     lut_bias = np.ascontiguousarray(lut_bias, np.int32)
 
     ########
@@ -77,6 +77,7 @@ def pim(x, w, y_shape, lut_var, lut_rpr, alloc, adc_state, adc_thresh, params):
     ctypes.c_void_p(adc_state.ctypes.data), 
     ctypes.c_void_p(adc_thresh.ctypes.data), 
     ctypes.c_int(params['adc']),
+    ctypes.c_int(params['max_rpr']),
     ctypes.c_int(params['skip']),
     ctypes.c_int(nrow),
     ctypes.c_int(nblock),
@@ -113,13 +114,13 @@ def pim_dyn(x, w, y_shape, lut_var, lut_rpr, alloc, params):
     lut_rpr = np.ascontiguousarray(lut_rpr, np.int32)
     metrics = np.ascontiguousarray(metrics, np.int64)
     
-    lut_bias = np.zeros(shape=65)
+    lut_bias = np.zeros(shape=64)
     lut_bias = np.ascontiguousarray(lut_bias, np.int32)
     
     # self.adc_state = np.zeros(shape=(rpr_high + 1, self.params['adc'] + 1))
     # self.adc_thresh = np.zeros(shape=(rpr_high + 1, self.params['adc'] + 1))
-    adc_state = np.zeros(shape=(65, 9))
-    adc_thresh = np.zeros(shape=(65, 9))
+    adc_state = np.zeros(shape=(64, 9))
+    adc_thresh = np.zeros(shape=(64, 9))
     
     adc_state = np.ascontiguousarray(adc_state, np.float32)
     adc_thresh = np.ascontiguousarray(adc_thresh, np.float32)
@@ -162,6 +163,7 @@ def pim_dyn(x, w, y_shape, lut_var, lut_rpr, alloc, params):
     ctypes.c_void_p(adc_state.ctypes.data), 
     ctypes.c_void_p(adc_thresh.ctypes.data), 
     ctypes.c_int(params['adc']),
+    ctypes.c_int(params['max_rpr']),
     ctypes.c_int(params['skip']),
     ctypes.c_int(nrow),
     ctypes.c_int(nblock),
@@ -199,8 +201,8 @@ def pim_static(x, w, y_shape, lut_var, lut_rpr, alloc, lut_bias, params):
 
     # self.adc_state = np.zeros(shape=(rpr_high + 1, self.params['adc'] + 1))
     # self.adc_thresh = np.zeros(shape=(rpr_high + 1, self.params['adc'] + 1))
-    adc_state = np.zeros(shape=(65, 9))
-    adc_thresh = np.zeros(shape=(65, 9))
+    adc_state = np.zeros(shape=(64, 9))
+    adc_thresh = np.zeros(shape=(64, 9))
 
     adc_state = np.ascontiguousarray(adc_state, np.float32)
     adc_thresh = np.ascontiguousarray(adc_thresh, np.float32)
@@ -243,6 +245,7 @@ def pim_static(x, w, y_shape, lut_var, lut_rpr, alloc, lut_bias, params):
     ctypes.c_void_p(adc_state.ctypes.data), 
     ctypes.c_void_p(adc_thresh.ctypes.data), 
     ctypes.c_int(params['adc']),
+    ctypes.c_int(params['max_rpr']),
     ctypes.c_int(params['skip']),
     ctypes.c_int(nrow),
     ctypes.c_int(nblock),

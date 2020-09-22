@@ -65,7 +65,7 @@ def kmeans_rpr(low, high, params, adc_count, row_count, nrow, q):
     adc_state = np.zeros(shape=(params['adc'], params['adc'], params['adc'] + 1))
     adc_thresh = np.zeros(shape=(params['adc'], params['adc'], params['adc'] + 1))
 
-    weight = np.arange(65, dtype=np.float32)
+    weight = np.arange(params['max_rpr']+1, dtype=np.float32)
     nrow_array = np.sum(row_count * weight, axis=2) / (np.sum(row_count, axis=2) + 1e-6)
     nrow_array = np.mean(nrow_array, axis=0)
     nrow_array = np.ceil(nrow_array)

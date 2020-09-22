@@ -44,6 +44,7 @@ class Model:
 
     def set_profile_adc(self, counts):
         assert (counts['wl'] == self.array_params['wl'])
+        assert (counts['max_rpr'] == self.array_params['max_rpr'])
         for layer in self.layers:
             layer.set_profile_adc(counts)
 
@@ -60,6 +61,7 @@ class Model:
                 counts.update(adc_counts)
 
         counts['wl'] = self.array_params['wl']
+        counts['max_rpr'] = self.array_params['max_rpr']
         return counts
 
     def profile(self, x):

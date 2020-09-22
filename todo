@@ -433,6 +433,11 @@ compute
 >> check OneNote - Research - Fall 2020
    > lots of good ideas
 > 2b activations to reduce variance
+> error vs accuracy plot
+> how does error propagate through the network ? 
+  > so put gaussian noise output of first layer and see how its projected after each layer.
+  > create a common currency for error between layers.
+  > can use this for CC.
 
 -------
 

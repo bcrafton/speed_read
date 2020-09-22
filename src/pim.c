@@ -65,7 +65,7 @@ int eval_adc(float x, int adc, int rpr, int xb, int wb, float* adc_state, float*
   assert(adc == 8);
   assert(xb < 8);
   assert(wb < 8);
-  assert(rpr <= 64);
+  // assert(rpr <= 64);
 
   x = min(x, (float) rpr);
 
@@ -86,7 +86,7 @@ int comps_enabled(int wl, int adc, int rpr, int xb, int wb, float* adc_state, fl
   assert(adc == 8);
   assert(xb < 8);
   assert(wb < 8);
-  assert(rpr <= 64);
+  // assert(rpr <= 64);
 
   int offset = xb*adc*(adc+1) + wb*(adc+1);
   for (int i=1; i<=adc; i++) {
@@ -100,7 +100,7 @@ int comps_enabled(int wl, int adc, int rpr, int xb, int wb, float* adc_state, fl
 
 //////////////////////////////////////////////
 
-DLLEXPORT int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, int* lut_bias, long* metrics, int* block_map, float* adc_state, float* adc_thresh, int adc, int skip, int R, int B, int C, int NWL, int NBL, int WL, int BL, int sync, int method)
+DLLEXPORT int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, int* lut_bias, long* metrics, int* block_map, float* adc_state, float* adc_thresh, int adc, int max_rpr, int skip, int R, int B, int C, int NWL, int NBL, int WL, int BL, int sync, int method)
 {
   // x = nrow, nwl, wl, xb
   // f = nwl, wl, nbl, bl
@@ -118,7 +118,7 @@ DLLEXPORT int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, int* lut
   
   //////////////////////////////
 
-  Params* params = new Params(R, B, C, NWL, NBL, WL, BL, adc, adc_state, adc_thresh, lut_var, lut_rpr, lut_bias, metrics, sync, method, skip);
+  Params* params = new Params(R, B, C, NWL, NBL, WL, BL, adc, max_rpr, adc_state, adc_thresh, lut_var, lut_rpr, lut_bias, metrics, sync, method, skip);
 
   if (sync) {
     LayerSync* layer = new LayerSync(x, w, y, params, block_map);

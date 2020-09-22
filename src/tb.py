@@ -48,6 +48,7 @@ array_params = {
 'wl': 128,
 'bl': 128,
 'offset': 128,
+'max_rpr': 64,
 }
 
 ############
@@ -82,8 +83,8 @@ arch_params = {
 'narray': [2 ** 13],
 'cards': [1],
 'profile': [1],
-'rpr_alloc': ['dynamic', 'static', 'centroids'],
-'sigma': [0.06, 0.08, 0.10, 0.12],
+'rpr_alloc': ['static', 'centroids'],
+'sigma': [0.04, 0.08, 0.12, 0.16],
 'thresh': [1.00]
 }
 

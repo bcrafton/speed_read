@@ -4414,7 +4414,21 @@ python: array.c:43: int Array::pim_skip(int, int, int, int): Assertion `(this->x
 
 ====================
 
+the reason why {xb=7, wb=:} dosnt get rpr=128 ...
+we arnt using optimized kmeans_rpr.
+we average over all {xb, wb}
 
+====================
+
+OH - if we are not profiled for WL=512, BL=128 ... we have problems with error.
+sort of makes sense.
+we were running: https://github.com/bcrafton/speed_read/commit/bf1a54300029fbf2b796765a79fe9654ee81b79b
+
+with WL=512
+and had a profile for 128
+interesting ...
+
+====================
 
 
 

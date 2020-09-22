@@ -41,7 +41,7 @@ def expected_error(params, adc_count, row_count, rpr, nrow, bias):
 
 def static_rpr(low, high, params, adc_count, row_count, nrow, q):
 
-    weight = np.arange(65, dtype=np.float32)
+    weight = np.arange(params['max_rpr']+1, dtype=np.float32)
     nrow_array = np.sum(row_count * weight, axis=2) / (np.sum(row_count, axis=2) + 1e-6)
 
     ############
