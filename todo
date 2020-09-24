@@ -429,6 +429,7 @@ compute
 -------
 
 > merge into master.
+  > create folders, readme
 > static rpr max > 16
 > better power model
 > error vs accuracy plot
@@ -436,6 +437,10 @@ compute
   > so put gaussian noise output of first layer and see how its projected after each layer.
   > create a common currency for error between layers.
   > can use this for CC.
+> exhaustive RPR table
+  > knapsack problem
+  > cost = variance
+  > value = 1/time
 
 > LSTM model
 > SAR ADC model for 7b precision
