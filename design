@@ -4435,6 +4435,44 @@ make sure 64/65 = {(xb, wb), rpr} is correct.
 > but want to make sure they are represented by the right thing
 > there should still be hardcoded 64s still
 
+====================
+
+step 1:
+
+> cc/
+> bb/
+> thresh/
+
+deleted:    layer_both.c
+deleted:    plot_methods.py
+deleted:    plot_methods1.py
+deleted:    profile_adc.npy
+deleted:    profile_adc_resnet.npy
+deleted:    results.npy
+deleted:    tb_cifar.py
+deleted:    tb_resnet.py
+deleted:    test_profile.py
+
+====================
+
+step 2:
+
+notes/
+
+====================
+
+step 3:
+
+add readme
+rm notes, merge
+
+====================
+
+
+
+
+
+
 
 
 
