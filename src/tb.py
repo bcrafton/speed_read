@@ -12,14 +12,22 @@ import multiprocessing
 from multiprocessing import Process
 from multiprocessing import Pool
 
+############
+
+cmd = "g++ pim.c array.c block.c layer.c layer_sync.c params.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o pim.so"
+ret = os.system(cmd)
+assert (ret == 0)
+
+cmd = "gcc profile.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o profile.so"
+ret = os.system(cmd)
+assert (ret == 0)
+
+############
+
 from resnet import load_resnet
 from cifar import load_cifar
 
-cmd = "g++ pim.c array.c block.c layer.c layer_sync.c params.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o pim.so"; os.system(cmd)
-cmd = "gcc profile.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o profile.so"; os.system(cmd)
-time.sleep(2)
-
-####
+############
 
 def perms(param):
     params = [param]
