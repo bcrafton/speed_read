@@ -110,10 +110,10 @@ class Conv(Layer):
             self.params['rpr'] = dynamic_rpr(nrow=nrow, p=p, q=self.q, params=self.params)
             # print (self.params['rpr'])
             '''
-            self.params['rpr'], _ = static_rpr(low=1, high=16, params=self.params, adc_count=self.adc_count, row_count=self.row_count, nrow=self.fh * self.fw * self.fc, q=self.q)
+            self.params['rpr'], _ = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, nrow=self.fh * self.fw * self.fc, q=self.q)
 
         elif self.params['rpr_alloc'] == 'static':
-            self.params['rpr'], self.lut_bias = static_rpr(low=1, high=16, params=self.params, adc_count=self.adc_count, row_count=self.row_count, nrow=self.fh * self.fw * self.fc, q=self.q)
+            self.params['rpr'], self.lut_bias = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, nrow=self.fh * self.fw * self.fc, q=self.q)
             self.lut_bias = self.lut_bias * 256
             self.lut_bias = self.lut_bias.astype(np.int32)
         else:
