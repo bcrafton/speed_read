@@ -37,7 +37,7 @@ break expected error into:
 1) error from variance
 2) error from rpr > adc
 '''
-def rpr(nrow, p, q, params):
+def dynamic_rpr(nrow, p, q, params):
     rpr_lut = np.zeros(shape=(8, 8), dtype=np.int32)
     for wb in range(params['bpw']):
         for xb in range(params['bpa']):
