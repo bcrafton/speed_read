@@ -4468,9 +4468,12 @@ rm notes, merge
 
 ====================
 
+GREAT IDEA:
+> branch master, copy our notes back over from this branch
+> then we never have a merge issue!
 
-
-
+BUT:
+> want to setup a better tb/plot combo in master before branching.
 
 
 

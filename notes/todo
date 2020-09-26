@@ -144,6 +144,11 @@ ResNet18
 
 > thresh change matches: classes12 vs classes13.
 
+> merge into master.
+  > create folders, readme
+
+> static rpr max > 16
+
 future / not doing:
 -------
 -------
@@ -428,9 +433,6 @@ compute
 
 -------
 
-> merge into master.
-  > create folders, readme
-> static rpr max > 16
 > better power model
 > error vs accuracy plot
 > how does error propagate through the network ? 
@@ -441,6 +443,13 @@ compute
   > knapsack problem
   > cost = variance
   > value = 1/time
+
+> parallel-ize profile_adc
+  > could even parallel-ize forward ... since we use y_ref anyways
+  > BUT this is tricky because because of ResBlock
+    > could do something fancy, but idk.
+  > return args for profile()
+  > parallelize after collecting all args
 
 > LSTM model
 > SAR ADC model for 7b precision
