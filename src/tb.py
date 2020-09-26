@@ -30,86 +30,17 @@ assert (ret == 0)
 from resnet import load_resnet
 from cifar import load_cifar
 
-############
-
-def perms(param):
-    params = [param]
-    
-    for key in param.keys():
-        val = param[key]
-        if type(val) == list:
-            new_params = []
-            for ii in range(len(val)):
-                for jj in range(len(params)):
-                    new_param = copy.copy(params[jj])
-                    new_param[key] = val[ii]
-                    new_params.append(new_param)
-                    
-            params = new_params
-            
-    return params
+from tests import CC
+from tests import BB
+from tests import Thresh
 
 ############
 
-array_params = {
-'bpa': 8,
-'bpw': 8,
-'adc': 8,
-'adc_mux': 8,
-'wl': 128,
-'bl': 128,
-'offset': 128,
-'max_rpr': 64,
-}
+array_params, arch_params = CC()
+# array_params, arch_params = BB()
+# array_params, arch_params = Thresh()
 
 ############
-
-arch_params1 = {
-'skip': [1],
-'alloc': ['block'],
-'narray': [2 ** 13],
-'sigma': [0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15],
-'cards': [1],
-'profile': [1],
-'rpr_alloc': ['dynamic', 'static', 'centroids'],
-'thresh': [1.00]
-}
-
-arch_params2 = {
-'skip': [1],
-'alloc': ['block'],
-'narray': [2 ** 13],
-'sigma': [0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15],
-'cards': [0],
-'profile': [1],
-'rpr_alloc': ['dynamic'],
-'thresh': [1.00]
-}
-
-############
-
-arch_params = {
-'skip': [1],
-'alloc': ['block'],
-'narray': [2 ** 13],
-'cards': [1],
-'profile': [1],
-'rpr_alloc': ['static', 'centroids'],
-'sigma': [0.04, 0.08, 0.12, 0.16],
-'thresh': [1.00]
-}
-
-############
-
-param_sweep = perms(arch_params)
-
-'''
-param_sweep1 = perms(arch_params1)
-param_sweep2 = perms(arch_params2)
-param_sweep = param_sweep1 + param_sweep2
-'''
-
-####
 
 def run_command(x, y, model, params, return_list):
     # print (params)
@@ -157,7 +88,7 @@ else:
 
 ##########################
 
-num_runs = len(param_sweep)
+num_runs = len(arch_params)
 parallel_runs = 4
 
 thread_results = []
@@ -169,7 +100,7 @@ for run in range(0, num_runs, parallel_runs):
     threads = []
     
     for parallel_run in range(min(parallel_runs, num_runs - run)):
-        args = (np.copy(x), np.copy(y), copy.copy(model), param_sweep[run + parallel_run], thread_results[run + parallel_run])
+        args = (np.copy(x), np.copy(y), copy.copy(model), arch_params[run + parallel_run], thread_results[run + parallel_run])
         t = multiprocessing.Process(target=run_command, args=args)
         threads.append(t)
         t.start()

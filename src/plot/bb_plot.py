@@ -20,7 +20,7 @@ def ld_to_dl(ld):
 
 ####################
 
-results = np.load('results.npy', allow_pickle=True)
+results = np.load('../results.npy', allow_pickle=True)
 # print (len(results))
 
 results = ld_to_dl(results)
@@ -40,71 +40,36 @@ comp_pJ = 22. * 1e-12 / 32. / 16.
 # '(rpr_alloc == "%s")' NOT '(rpr_alloc == %s)'
 #####################
 
-fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
+fig, (ax1, ax2) = plt.subplots(1, 2)
 
-ax1.set_title('MSE')
-ax2.set_title('Perf')
-ax3.set_title('Perf/W')
-
-for skip, cards, rpr_alloc in [(1, 1, 'centroids'), (1, 1, 'static')]:
+for skip in [0, 1]:
 
     ######################################
 
-    sigmas = [0.04, 0.08, 0.12, 0.16]
+    narrays = [5472, 2 ** 13, 1.5 * 2 ** 13, 2 ** 14, 1.5 * 2 ** 14]
     mac_per_cycles = []
     mac_per_pJs = []
     errors = []
     
-    for sigma in sigmas:
-        query = '(rpr_alloc == "%s") & (skip == %d) & (cards == %d) & (sigma == %f)' % (rpr_alloc, skip, cards, sigma)
+    for narray in narrays:
+        query = '(skip == %d) & (profile == 1) & (alloc == "block") & (narray == %d)' % (skip, narray)
         samples = df.query(query)
         
         mac_per_cycle = np.sum(samples['nmac']) / np.max(samples['cycle'])
         mac_per_cycles.append(mac_per_cycle)
-        
-        error = np.average(samples['std'])
-        errors.append(error)
-
-        adc = np.stack(samples['adc'], axis=0)    
-        energy = np.sum(np.array([1,2,3,4,5,6,7,8]) * adc * comp_pJ, axis=1) 
-        energy += samples['ron'] * 2e-16
-        energy += samples['roff'] * 2e-16
-        mac_per_pJ = np.sum(samples['nmac']) / 1e12 / np.sum(energy)
-        mac_per_pJs.append(mac_per_pJ)
 
     ######################################
-
-    # plt.plot(sigmas, errors, marker='.', label=rpr_alloc)
+        
+    ax1.plot(narrays, mac_per_cycles)
     
-    if cards:  label = rpr_alloc
-    elif skip: label = 'skip'
-    else:      label = 'baseline'
-        
-    ax1.plot(sigmas, errors,         label=label)
-    ax2.plot(sigmas, mac_per_cycles, label=label)
-    ax3.plot(sigmas, mac_per_pJs,    label=label)
-
-    print ('mac/cycle', rpr_alloc, mac_per_cycles)
-    print ('    error', rpr_alloc, errors)
-    print ('   mac/pJ', rpr_alloc, mac_per_pJs)
-        
     ######################################
 
-ax1.set_ylim(bottom=0)
-ax2.set_ylim(bottom=0)
-ax3.set_ylim(bottom=0)
-
-ax1.grid(True, linestyle='dotted')
-ax2.grid(True, linestyle='dotted')
-ax3.grid(True, linestyle='dotted')
-
-fig.set_size_inches(13.5, 4.5)
+fig.set_size_inches(9., 4.5)
 plt.tight_layout()
 
 plt.legend()
 plt.ylim(bottom=0)
-# plt.show()
-plt.savefig('cc.png')
+plt.show()
             
 ####################
             

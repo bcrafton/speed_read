@@ -20,7 +20,7 @@ def ld_to_dl(ld):
 
 ####################
 
-results = np.load('results.npy', allow_pickle=True)
+results = np.load('../results.npy', allow_pickle=True)
 # print (len(results))
 
 results = ld_to_dl(results)
@@ -46,7 +46,7 @@ ax1.set_title('MSE')
 ax2.set_title('Perf')
 ax3.set_title('Perf/W')
 
-for thresh in [0.25, 0.50, 0.75, 1.00]:
+for skip, cards, rpr_alloc in [(0, 0, 'dynamic'), (1, 0, 'dynamic'), (1, 1, 'static')]:
 
     ######################################
 
@@ -56,7 +56,7 @@ for thresh in [0.25, 0.50, 0.75, 1.00]:
     errors = []
     
     for sigma in sigmas:
-        query = '(thresh == %f) & (sigma == %f)' % (thresh, sigma)
+        query = '(rpr_alloc == "%s") & (skip == %d) & (cards == %d) & (sigma == %f)' % (rpr_alloc, skip, cards, sigma)
         samples = df.query(query)
         
         mac_per_cycle = np.sum(samples['nmac']) / np.max(samples['cycle'])
@@ -74,12 +74,20 @@ for thresh in [0.25, 0.50, 0.75, 1.00]:
 
     ######################################
 
-    label = str(thresh)
-            
+    # plt.plot(sigmas, errors, marker='.', label=rpr_alloc)
+    
+    if cards:  label = rpr_alloc
+    elif skip: label = 'skip'
+    else:      label = 'baseline'
+        
     ax1.plot(sigmas, errors,         label=label)
     ax2.plot(sigmas, mac_per_cycles, label=label)
     ax3.plot(sigmas, mac_per_pJs,    label=label)
-    
+
+    print ('mac/cycle', rpr_alloc, mac_per_cycles)
+    print ('    error', rpr_alloc, errors)
+    print ('   mac/pJ', rpr_alloc, mac_per_pJs)
+        
     ######################################
 
 ax1.set_ylim(bottom=0)
@@ -96,7 +104,7 @@ plt.tight_layout()
 plt.legend()
 plt.ylim(bottom=0)
 # plt.show()
-plt.savefig('thresh.png')
+plt.savefig('cc.png')
             
 ####################
             
