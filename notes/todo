@@ -1,0 +1,462 @@
+
+done
+-------
+-------
+> test bench
+> slow conv reference (8 rows at a time)
+> weight statistic dynamic speed
+> variance
+> layer-by-layer, bit-by-bit params
+> how to hit target variance ? 
+> how to make simulations go faster ?
+> if pdot == adc:
+  > pdot will always be larger
+  > so we need to figure out what expected value is, if its larger than 16.
+  > then add that much.
+  > although expected value might be 16... so wudnt need to add in that case.
+
+> why this so slow ?  
+  > https://stackoverflow.com/questions/10789042/python-multi-threading-slower-than-serial
+  > apparently python has real issues with this ...
+  > multiprocessing is a package that supports spawning processes using an API similar to the threading module. The multiprocessing package offers both local and remote concurrency, effectively side-stepping the Global Interpreter Lock by using subprocesses instead of threads. Due to this, the multiprocessing module allows the programmer to fully leverage multiple processors on a given machine. It runs on both Unix and Windows.
+> better performance metric.
+  > nmac = (Hi * Wi) * (Fh * Fw * Ci * Co)
+  > mwl = (Hi * Wi) * 8 * ((Fh * Fw * Ci) / WL) * (Co / BL)
+> collection scripts
+> move rpr out of conv
+> is pooling necessary ?
+  > yes.
+  
+> plots - with/without PE sync. allocation just on zero counts, not profiling.
+> resnet
+
+> make sure Ho/Wo and yh/yw are correct.
+> ResNet ? 
+> BatchNorm
+> Intermediate Accuracy #s would also be good.
+
+> better architecture sim
+
+> find an upperbound on speed we can go.
+  > (total 1s in all data) / (total arrays * 8)
+  > that is too low 
+  > assume every array goes in 1 cycle.
+  > yeah this really isnt too helpful ... its roughly 1300.
+
+> fix the hacks = [block][bl]
+
+> be able to run {naive, layer-wise, block-wise}
+  > plot them.
+  
+ResNet18
+> tb_resnet.py
+> load imagenet data samples ~5 from validation set.
+> need to support negative weights
+> need to write code for residual blocks.
+
+> only explore branches that arnt +1 over upper bound. dosnt make sense otherwise.
+> probably can do something similar with lower bound search.
+  > little doubt we wud have solved this problem much faster, IF we had layed down with laptop in room byself.
+
+> 8 col/adc is good for x/w thing.
+  > means we can pick our x/w pretty much however
+  > also means we dont have to split at all.
+
+> how can we verify this shit ? 
+  > clean up code
+  > above all else, we need to make sure our shit is right.
+
+> verify:
+  > %1s
+  > stalls for utilization calculation.
+  
+> load {counts, values} as samples 
+  > its real data, we dont have to approximate ... think its best way to go.
+  > write separate code for this
+
+> integrate cc_update1.
+  > we want to be able to do everything in the same branch.
+  > what needs to be pulled up ?
+  > if we implement old algorithm, we can just back-verify.
+  yeah think we want to do this before any of the new changes.
+  also we should allow:
+  > binomial
+  > profiled data
+  refer to notebook for wholistic view.
+  
+> this is the time to clean stuff up.
+  > will actually make things go faster.
+
+> okay so we want to do this ^ (clean ???)
+  > but it makes sense to finish doing profile first.
+  > then we can pick our profile method
+  > in the dictionary.
+  > and use p(1) for dynamic bias calculation.
+
+1) lut_var - ppf ? or can we continue to do the error thing ? 
+2) need a new profile function basically
+   > get rid of python function, use pim.c and change comps[]
+4) update rpr.py to compute expected (std, mean)
+3) compute centroids, constraints
+   > uniform distributed ?, fractions ?
+   > include a fixed zero centroid!
+5) pass centroids to pim.c 
+6) dynamically configure ADCs - bias or changing thresholds
+7) centroids for [different number of wordlines enabled, xb, wb]
+8) figure out rounding + fixed point stuff 
+?) increase the array size.
+
+> need to figure out what to do for left over PE memory.
+  > cant just leave it there when we have 9000 arrays allocated.
+
+> cards - shift + scale
+
+> plots
+  > {centroids, block, profile}
+  > sweep {variance, layer, #array} 
+  > dump data cleaner, this shouldnt be bad at all.  
+
+> pass {centroids, sync} as parameters ?
+
+> put no zero skipping back in.
+
+> make tb modular to {model, dataset}
+  > then we dont have to change both files ...
+  
+> we dont set wl_total -> dynamic is broken
+
+> verify static did not break {centroids, dynamic}
+  > params->centroids == 1, 0, 2
+  > passing lut_bias into pim.c
+  > just go to classes7 and run the same tb.py config.
+
+> WHY DO WE SUBTRACT THE BIAS ???
+  > this->y[yaddr] += ((this->sat[bl_ptr] * e) << (wb + xb));
+  > was this becasue error was negative ???
+    > 'e' that is ?
+    > 'e' was negative, thats why we did that.
+
+> static bias, rather than dynamic bias ? 
+  > use ADC instead of p=0.7 or w.e.
+
+> handle multiple examples
+  > implementation actually good we think.
+
+> thresh change matches: classes12 vs classes13.
+
+future / not doing:
+-------
+-------
+> is there a relationship between the number of rows turned on and the 1s turned on in that row ? 
+  store weight density of that row ... or some bit weighted density i.e. 7 more important than 1.
+
+> is there a way we can perform pim operations on the gpu ?
+  > where compuation is same as our c kernel but we do some hack to run real fast on the gpu ? 
+
+> parse thru code trying to find (nan, 1/0, numerical instability)
+
+> compare with PE sync, account for PD constraints.
+  > 1: 16 array per block ? 64 array per block ?
+  > 2: the same blocks must be used together, i.e. you cannot just send any input data anywhere.
+  > rule = cant go over PE sync boundry.
+  >> this is some old shit
+  
+> dont do 2 different pim calls
+  > its fine really ...
+
+No idea:
+-------
+-------
+so if we look at what p :
+[0.74829932 0.74829932 0.74829932 0.74829932 0.74829932 0.74829932 0.74829932 0.79591837]
+> its a little weird how consistent it is across bits ...
+> but if we get the right answer, its fine ? 
+> AND why wouldnt you do this idea by block rather than by layer ?
+> def makes more sense to do it by block rather than layer.
+
+can we do this specific to each column ? 
+can we configure this on the fly ? 
+meaning - if I only turn on 8/16 rows, can I change my ADC thresholds ?
+
+todo
+-------
+-------
+
+> device-to-device variance, not read-to-read
+
+> fix eval_adc 
+  > think this is breaking out MSE.
+  > check eval_adc in pim.c
+  > check exp_err in conv.py
+  > somehow verify {eval_adc, comps_enabled}
+    > was thinking separate test bench ...
+    > but we want to test the actual tables that are produced ...
+
+> zero skipping same as CC ... that hack we put in.
+  > what does this mean ? 
+  > all these items are added [adc_scale8, adc_scale9]
+    > https://github.com/bcrafton/speed_read/blob/adc_scale8/todo
+    > https://github.com/bcrafton/speed_read/blob/adc_scale9/todo
+    
+  > well it def has to do with these and "cc_update1" stuff:
+    > pim.c
+    > pim_dyn.c
+      > added in adc_scale12
+    > pim_sync.c
+
+> dont skip adc update, skip straight to next xb
+  > wtf is adc update ? 
+
+> (e, e_mu) - account for bias and relu
+
+> C code for each algorithm to make things cleaner.
+
+> centroids by # of wordlines
+
+?) (nrow/rpr) -> (nrow * p / rpr) ... where p is the (%) of 1s in activataions
+
+> centroids
+  > figure out rounding + fixed point stuff ... make 10b configurable ?
+  > bias for when Nwl != Nrpr
+
+-------
+
+> read through all these todos ^^^ not just "centroids"
+> kernel of ResNet18 be fixed point and emulate the rest of it.
+
+> which branch did we leave off at ??
+  > adc_scale14 ? 
+  > none of other ones matter ? 
+  > https://github.com/bcrafton/speed_read/branches/yours
+  > think we proved match @ cifar_match_adc_scale_new/cifar_match_adc_scale_old
+    > which extended adc_scale13 (cifar_match_adc_scale_new)
+    > so we just continued off adc_scale13
+
+> Questions about cc_update1:
+  > cifar_match_adc_scale_new
+  > cifar_match_adc_scale_old
+  > adc_scale13
+  > adc_scale14
+
+> [august] git difftool cifar_match_adc_scale_new [tb_cifar.py]
+  > seems fine to me.
+
+-------
+
+> design - has good notes @ line 3285
+
+-------
+
+> python clean up
+> pytorch match
+    
+-------
+    
+> buffer list of 128b long vectors
+  > basically the same way we did for our tapeout.
+  > instead of this run time calculation.
+
+---
+
+> more accurate threshold satisfaction
+  > want to really be able to compare shit
+
+-------
+
+> general python cleanup
+
+-------
+    
+> recreate {breaking barriers, counting cards} plots
+  > sweep {variance, layer, #array} 
+  > make python scripts - {bb_tb.py, bb_plot.py}
+
+> where did we actually create these tests.
+  > resnet5 tb_resnet.py is no good.
+    > https://github.com/bcrafton/speed_read/commits/resnet5
+    > "whoops grabbed wrong results file"
+    > "pushing results that make util and perf plot"
+    
+  > resnet4 tb_resnet.py looks right.
+    > https://github.com/bcrafton/speed_read/commits/resnet4
+
+  > https://github.com/bcrafton/speed_read/commits/resnet5/src/results.npy
+  > why is there:
+    > results.npy
+    > results-old.npy
+    
+  > i guess this part dosnt really matter, we just care about the tb used to create them
+
+-------
+
+> more accurate power #s
+  > more detailed power model
+  > focus on results for DAC ASP tho
+    
+-------
+
+> change profile.c implementation ? 
+
+-------
+
+> 1 pim call
+  > makes things confusing when trying to add more pim methods
+  > should all call it the same way.
+
+-------
+
+> params->centroids == 1, 0, 2
+  > look at other hacks from the static commits.
+  > "correct sign for bias"
+  > https://github.com/bcrafton/speed_read/commit/2d6994a4741afabc691a3263e892e503a4523b20
+  
+  > "brought error down, can run other methods"
+  > https://github.com/bcrafton/speed_read/commit/69a56c33e5e2151a3a4fe0804395d2537c9a117e
+  
+  > "end-to-end static correction"
+  > https://github.com/bcrafton/speed_read/commit/e57ec5555423b345f970ee0efa51e66b37c22716
+  
+  >> verify this change didnt break anything.
+
+-------
+
+> dynamic 
+  > "int Array::correct"
+  > wl_sum, pdot_sum, sat.
+  > set a table in advance, dont do this pdf stuff in C!
+> compare {static-rpr rounding, pre params->centroids->methods}
+  > compare classes8 with classes10, make sure we get the same results after all the stuff.
+  > well i guess we wont because of rounding.
+  > AND changing dynamic rpr -> static rpr.
+> (1) dynamic -> adc stats, not p.
+> static, dynamic not totally correct
+
+-------
+
+> dont think {mu, std} are correct.
+> why does kmeans not get the same MSE as dynamic
+  > or atleast close ? 
+  > rounding error ? 
+  > incorrect implementation ? 
+  > can we figure out why we get 0.12 MSE ? 
+    > is it mu or std that limits ? 
+    > (1 / 2 * 64) * (scale / self.q) * (64. / 2.)
+      > 0.12
+      > 0.25
+      > could feasibly be anywhere from 0.5 to 1.
+      > well consider that lsb might never be able to satisfy its limit ...
+        > ahh, thats what it is.
+        > so we wud need to be able to optimize them all together then ? ... all rpr table that is.
+        > we cud print an error table ? 
+        > do we want to do this ? it would give us good control over the threshold ?
+          > comes down to what we need next for the paper.
+          > global optimization might yield performance increase ? 
+            > it would basically be knapsack ?
+            > select 64 rpr, 16 choices each.
+            > cost would be number of cycles it takes to read
+            
+  > we over estimate nrow 
+  > we assume that all {xb, wb} have the same ADC counts.
+
+-------
+-------
+TOP PRIORITY
+>> make sure we are working on a productive task.
+-------
+-------
+
+> merge into master.
+
+> (2) modularize rpr_alloc methods.
+  > make a class/API
+  > pass all parameters to all of them
+  
+> (3) CC/BB re-create
+  > hard to re-create CC when we have improved it so much ...
+    > just do it with static ?
+
+> want a plot with different thresholds.
+  > change variance and threshold.
+  
+---
+  
+> update centroids for {rpr, xb, wb} @ {row_count, adc_count}
+> parallelize kmeans {xb, wb, rpr} loop 
+  > think it should just be vectorize operations
+  > take advantage of extra stats - {rpr, xb, wb} @ {row_count, adc_count}
+
+  >> difficult to parallelize kmeans ...
+    > i mean perhaps we can ... but idk.
+
+  >> NOT only this, but then you need adc_thresh = [8, 65, 8] ... for (xb, rpr) sweep)
+    > which is just insanity
+   
+  >> NO WAIT - you should just have [8, 8, 8]
+    > dont need to address it by RPR ... thats non-sense.
+    
+  >> could also binary search for the optimal configuration ... 6 per itr rather than 64.
+    
+---
+
+> update dynamic
+
+> computational efficiency plot
+  > array size with fixed ADC
+    > ADC area * ADC_CONSTANT + array_size * CELL_CONSTANT
+  > compute SRAM requirements
+  > breaking barriers
+  > counting cards ... rpr > adc
+
+> 256 vs 128 - reason we arnt seeing that much improvement is because only 16 rows.
+  > do this for centroids ... totally different story.
+
+rows in matmul, NOT array
+> we are measuring error as a function of WLs in array.
+> but that is retarded ... it should be actual number of rows in a matmul
+  > static_rpr - done, still need centroids
+> try computing sparsity in output AND using this in MSE calculation.
+> use params[offset] ? -> to see if end value is <0 ... in which case drop it from consideration ?
+
+compute
+> compute efficiency
+> memory efficiency
+  > these two can be done with approximation for 128x128 array and for each ADC.
+  > then if u wana get crazy look at SRAM bandwidth/capacity required
+  > and even crazier look at throughput and how much interconnect is required.
+> energy efficiency
+> variance/accuracy
+
+-------
+
+> merge into master.
+  > create folders, readme
+> static rpr max > 16
+> better power model
+> error vs accuracy plot
+> how does error propagate through the network ? 
+  > so put gaussian noise output of first layer and see how its projected after each layer.
+  > create a common currency for error between layers.
+  > can use this for CC.
+> exhaustive RPR table
+  > knapsack problem
+  > cost = variance
+  > value = 1/time
+
+> LSTM model
+> SAR ADC model for 7b precision
+>> check OneNote - Research - Fall 2020
+   > lots of good ideas
+> 2b activations to reduce variance
+
+make sure 64/65 = {(xb, wb), rpr} is correct.
+> we changed all the 64/65
+> but want to make sure they are represented by the right thing
+> there should still be hardcoded 64s still
+> https://github.com/bcrafton/speed_read/commit/49ba1b31e1dd06d7b9f1b80d69d7923482149b48
+
+-------
+
+
+
+
+

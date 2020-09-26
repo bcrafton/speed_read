@@ -1,0 +1,236 @@
+
+done
+-------
+> test bench
+> slow conv reference (8 rows at a time)
+> weight statistic dynamic speed
+> variance
+> layer-by-layer, bit-by-bit params
+> how to hit target variance ? 
+> how to make simulations go faster ?
+> if pdot == adc:
+  > pdot will always be larger
+  > so we need to figure out what expected value is, if its larger than 16.
+  > then add that much.
+  > although expected value might be 16... so wudnt need to add in that case.
+
+> why this so slow ?  
+  > https://stackoverflow.com/questions/10789042/python-multi-threading-slower-than-serial
+  > apparently python has real issues with this ...
+  > multiprocessing is a package that supports spawning processes using an API similar to the threading module. The multiprocessing package offers both local and remote concurrency, effectively side-stepping the Global Interpreter Lock by using subprocesses instead of threads. Due to this, the multiprocessing module allows the programmer to fully leverage multiple processors on a given machine. It runs on both Unix and Windows.
+> better performance metric.
+  > nmac = (Hi * Wi) * (Fh * Fw * Ci * Co)
+  > mwl = (Hi * Wi) * 8 * ((Fh * Fw * Ci) / WL) * (Co / BL)
+> collection scripts
+> move rpr out of conv
+> is pooling necessary ?
+  > yes.
+  
+> plots - with/without PE sync. allocation just on zero counts, not profiling.
+> resnet
+
+> make sure Ho/Wo and yh/yw are correct.
+> ResNet ? 
+> BatchNorm
+> Intermediate Accuracy #s would also be good.
+
+> better architecture sim
+
+> find an upperbound on speed we can go.
+  > (total 1s in all data) / (total arrays * 8)
+  > that is too low 
+  > assume every array goes in 1 cycle.
+  > yeah this really isnt too helpful ... its roughly 1300.
+
+> fix the hacks = [block][bl]
+
+> be able to run {naive, layer-wise, block-wise}
+  > plot them.
+  
+ResNet18
+> tb_resnet.py
+> load imagenet data samples ~5 from validation set.
+> need to support negative weights
+> need to write code for residual blocks.
+
+> only explore branches that arnt +1 over upper bound. dosnt make sense otherwise.
+> probably can do something similar with lower bound search.
+  > little doubt we wud have solved this problem much faster, IF we had layed down with laptop in room byself.
+
+> 8 col/adc is good for x/w thing.
+  > means we can pick our x/w pretty much however
+  > also means we dont have to split at all.
+
+future / not doing:
+-------
+> is there a relationship between the number of rows turned on and the 1s turned on in that row ? 
+  store weight density of that row ... or some bit weighted density i.e. 7 more important than 1.
+
+> is there a way we can perform pim operations on the gpu ?
+  > where compuation is same as our c kernel but we do some hack to run real fast on the gpu ? 
+
+> parse thru code trying to find (nan, 1/0, numerical instability)
+
+todo
+-------
+> device-to-device variance, not read-to-read
+
+-------
+
+priorities:
+> need to figure out what to do for left over PE memory.
+  > cant just leave it there when we have 9000 arrays allocated.
+
+> how can we verify this shit ? 
+  > clean up code
+  > above all else, we need to make sure our shit is right.
+
+> verify:
+  > %1s
+  > stalls for utilization calculation.
+
+> compare with PE sync, account for PD constraints.
+  > 1: 16 array per block ? 64 array per block ?
+  > 2: the same blocks must be used together, i.e. you cannot just send any input data anywhere.
+  > rule = cant go over PE sync boundry.
+
+> cards - shift + scale.
+
+-------
+
+> affine ADC + cards + breaking barriers.
+  > go to 256x256
+  > 3-bit ADC 
+  > argue area is nearly the same as 128x128
+  > we will absolutely crush prior work.
+  
+> Yu always turns on 128 rows with 5-bit ADC 
+  > wonder if errors ever happen
+  
+-------
+
+can we do this specific to each column ? 
+can we configure this on the fly ? 
+
+meaning - if I only turn on 8/16 rows, can I change my ADC thresholds ?
+
+-------
+
+if we can do 1 of 2 things:
+> bias the ADC when less rows are turned on
+> dynamically configure the ADC thresholds
+then we can get some insane performance.
+
+if we cannot do some trick like this, 
+we still need to figure out what we can pull off.
+
+-------
+
+so if we look at what p :
+[0.74829932 0.74829932 0.74829932 0.74829932 0.74829932 0.74829932 0.74829932 0.79591837]
+> its a little weird how consistent it is across bits ...
+> but if we get the right answer, its fine ? 
+> AND why wouldnt you do this idea by block rather than by layer ?
+> def makes more sense to do it by block rather than layer.
+
+-------
+
+will have to think about how this and compression work together.
+
+-------
+1) lut_var - ppf ? or can we continue to do the error thing ? 
+2) need a new profile function basically
+   > get rid of python function, use pim.c and change comps[]
+4) update rpr.py to compute expected (std, mean)
+3) compute centroids, constraints
+   > uniform distributed ?, fractions ?
+   > include a fixed zero centroid!
+5) pass centroids to pim.c 
+-------
+6) dynamically configure ADCs - bias or changing thresholds
+7) centroids for [different number of wordlines enabled, xb, wb]
+8) figure out rounding + fixed point stuff 
+-------
+?) (nrow/rpr) -> (nrow * p / rpr) ... where p is the (%) of 1s in activataions
+?) increase the array size.
+
+-------
+
+>>> look at cc_update1 for other todo items
+
+> want more 1s ... better improvement over zero skipping
+> want lower power ADC metrics ... check papers online.
+> power comes from {array size, leakage, sum(rpr - adc), ~percentage of zeros}
+
+> fix eval_adc 
+  > think this is breaking out MSE.
+  > check eval_adc in pim.c
+  > check exp_err in conv.py
+
+> zero skipping same as CC ... that hack we put in.
+> dont skip adc update, skip straight to next xb
+> (e, e_mu) - account for bias and relu
+> centroids by # of wordlines
+> faster profiling ADC expected
+> C code for each algorithm to make things cleaner.
+> 1024x128 arrays.
+
+our direction got skewed again after trying to make ADC profiling faster ...
+... where do we go now ? 
+
+-------
+
+> load {counts, values} as samples 
+  > its real data, we dont have to approximate ... think its best way to go.
+  > write separate code for this
+
+> somehow verify {eval_adc, comps_enabled}
+  > was thinking separate test bench ...
+  > but we want to test the actual tables that are produced ...
+
+-------
+
+integrate cc_update1.
+we want to be able to do everything in the same branch.
+
+> what needs to be pulled up ?
+> if we implement old algorithm, we can just back-verify.
+
+yeah think we want to do this before any of the new changes.
+also we should allow:
+> binomial
+> profiled data
+
+refer to notebook for wholistic view.
+
+-------
+
+this is the time to clean stuff up.
+will actually make things go faster.
+
+-------
+
+okay so we want to do this ^
+but it makes sense to finish doing profile first.
+
+then we can pick our profile method
+in the dictionary.
+and use p(1) for dynamic bias calculation.
+
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

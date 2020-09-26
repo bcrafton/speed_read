@@ -1,0 +1,4497 @@
+
+-----
+
+> how to structure stuff for comparing ? 
+  > reference
+  > wl speed
+  > 8 fixed
+  > stat weight dist
+  > slow var
+
+> ref -> separate function set.
+> pim -> dictionaries for all params above.
+
+-----
+
+thinking much better design -> model based design where we call forward()
+> but why didnt we do that before ? for emu ? 
+
+-----
+
+we messed up:
+np.any(pdot == params['adc'])
+> because this is supposed to be binary, but our weights are 4 bit.
+
+we probably want 64 bits per array ? 128 is crazy ...
+> we can have Sam make a figure about pitch matching and what not.
+> 128 -> all 128 have to be less than 8.
+  > 32, 64 much better i think.
+  > give more than 8 states, then things really get crazy
+
+-----
+
+params = {
+'bpa': 8,
+'bpw': 8,
+'rpr': 10,
+'adc': 8,
+'skip': 1
+}
+
+so we need to break this up.
+bpw needed at both conv/pim level
+is bpa ? 
+
+dont really want to break up these annoying params
+we cud just pass it to each layer.
+
+lets do that for now.
+
+-----
+
+randomness in #pim comes from 2 things:
+1) if using weight stats (of course)
+2) in multi-layer networks, weights cause activation after layer 1 to be random
+
+-----
+
+> we are going to need to profile on the fly.
+> because certain parts of the image and filter will not yield high results.
+  > take advantage of space
+> for lstm, take advantage of time
+
+since LSTM sparsity maybe we can just use LSTM as primary thing
+... wonder if we can argue PIM can inherently do sparsity better.
+
+-----
+
+real weights.
+> need better repo for generating real weights.
+> tf.floor/tf.clip kills gradient.
+
+solutions
+> tf.stop_gradient
+> tf.quantization.quantize_and_dequantize
+> https://github.com/tensorpack/tensorpack/issues/53
+  '''
+  E = tf.stop_gradient(tf.reduce_mean(tf.abs(x)))
+  clip_x = tf.clip_by_value(x/E, -2.0, 2.0) / 2.0
+  with G.gradient_override_map({"Floor": "Identity"}):
+      return tf.round(clip_x) * E
+  '''
+
+these are really nice solutions for what we want to do
+
+what about batchnorm ?
+> do we need it or nah ?
+
+okay we can make this happen.
+
+-----
+
+https://stackoverflow.com/questions/41391718/tensorflows-gradient-override-map-function
+https://github.com/tensorpack/tensorpack/issues/53
+
+lets start by replacing quantize_and_dequantize.
+
+-----
+
+[81008, 83808, 81440] = 8
+wasnt 16 = 60000
+what is up with that ...
+[64160, 65864, 64936]
+
+yeah wtf.
+this is a totally different game than what i thought.
+
+if 16 over 8 dosnt buy u a serious advantage ... then we have been doing something wrong. 
+
+-----
+
+setting wl = 1024
+> 35520, 37240, 35656
+what the fuck ??? 
+
+definitely feels like we on to something here,
+well a bug atleast
+also seems like we need:
+1) multi threading
+2) writing this kernel in c or something.
+
+something that is not so horribly slow.
+
+-----
+
+18536 @ 8/8
+12296 @ 16/16
+
+> we want to make 3x3x64x64 dominate the psum count
+> so that means not using strides for this shit
+
+-----
+
+yeah so the first of our problems with weight stats
+are this weird af not great benefit for 
+
+756. 1152. 1166. @ 16
+1208. 1416. 2010 @ 8
+
+-----
+
+[[ 6831.  6415. 13330.]] @ 12
+[[4832. 5664. 8040.]] @ 8
+
+[[4207. 4493. 9148.]] @ 10
+[[3240. 4032. 6088.]] @ 8
+
+-----
+
+you might be able to go at 16->17 or 8->9 for free.
+just because u can start at 17 if u failed.
+nah because then the rest of ur numbers are fucked up.
+
+-----
+
+okay so now we can see the advantage to using 16 over 8
+but is it though ? 
+what are odds differences between 
+20/16 vs 10/8 ? 
+
+> take percentage of 1s columnwise
+> odds of getting 16/20 in one of them
+> how many times do u need to win for it to make up for 1 loss ?
+
+-----
+
+> time to add variance ???
+> time to train networks to handle variance ?
+
+[[2024. 3200. 3504.]] @ 16
+[[1811. 3200. 3516.]] @ 20
+> we only care about the large cases.
+  > but why the fuck is col #1 so many pims ? 
+  > (8h*8w*8b) * (27/16=2) * (32/4=8) 
+
+okay but then why are there so few pims for the larger operations.
+
+wow! there are so few 1s in these activations.
+40/576 is probably the average.
+
+when you make wl=1024
+then it basically makes everything go as fast
+
+64x32 takes same number of bitlines as 3x32.
+just has slightly more ones.
+
+-----
+
+very interesting idea:
+we are aware of quantization value = 100 probably or w.e.
+and we know what our sums are.
+so we can pick the speed to go at based on this information.
+
+so to me, this means we go in the wrong order.
+
+we wud want to start with b=7 and go down the line.
+
+-----
+
+okay so how do we make this work ? 
+> we are told variance allowance. 
+> we have variance of devices.
+> we have quantization values
+
+then how fast we can go
+> (x_bit, w_bit, w_nonzero, w_var)
+> dynamic stats
+  > temporal, spatial
+  > current y value ? knowing q value.
+
+what can we compute in advance ? 
+> expected error rate with static stats.
+
+-----
+
+we can use (1/4) C interfaces:
+https://scipy-lectures.org/advanced/interfacing_with_c/interfacing_with_c.html
+
+how can we make python code faster ? 
+> parallelize it all.
+> stick to 128x128 arrays.
+
+-----
+
+how do we do variance ? 
+think it would be best.
+to add variance after the fact.
+yeah keep things to integers, then multiply by the number of states or w.e.
+we know that any 1s are w.ON & x.ON
+
+-----
+
+something is not right here, we can read at crazy speeds.
+solved it lol.
+
+-----
+
+okay we got a nice little setup here.
+can see [min, max, mean, std] differences in feature maps.
+> why is max never positive ? 
+> y - y_ref
+> well we only going faster ... so kinda makes sense.
+  > so we should try using an offset here.
+
+------
+
+> how do we set rpr ? 
+> pdot/adc offset
+> fix quantize with that negative noise thing.
+
+------
+
+> to add variance, cant we just make it a function of the activation value ? 
+> makes sense ... wud really just be function of on-states.
+
+> y = y + np.random.normal(mean=0, std=params['sigma'] * np.sqrt(y), size=np.shape(y))
+
+------
+
+okay new questions now.
+> how do we compute the correct number of rows to read ? 
+> function(variance, adc, xbit, wbit(%))
+
+------
+
+> given all the col counts 
+  > dont reduce max.
+  > cant we come up with some average error everywhere ? 
+    > means we dont do: samples=128 .. what is max std we shud expect.
+  > yeah this sum thing i think is better ...
+
+------
+
+rpr error = binomial
+for range(adc+1, rpr+1): 
+> P(on state == 17 | rpr = 24) * (17 - 16)
+instead of 
+> for range(adc+1, rpr+1): 
+maybe it should be for all states then.
+
+------
+
+https://towardsdatascience.com/use-cython-to-get-more-than-30x-speedup-on-your-python-code-f6cb337919b6
+
+> so the thing im worried about.
+is we cud go even faster
+and have valid c code.
+
+https://cai.tools.sap/blog/how-to-speed-up-python-with-c/
+
+ctypes is an option.
+lets go with cython
+seems like the clear path forward.
+threading wud be my concern.
+
+------
+
+https://cython.readthedocs.io/en/latest/src/tutorial/numpy.html
+
+this is gonna suck to speedup because:
+> y -= mu.reshape(oshape, bpw) @ shift
+
+maybe we just write the whole thing in ctypes
+really dont think it wud be that bad.
+
+we wud need to just write the c code and a test bench
+and make sure it works.
+
+-----
+
+and it really just needs to be the dot function.
+still cant tell if it is worth the effort.
+mkl gives nothing it seems.
+
+we need to write c functions for:
+> np.random.normal
+> binom.pmf
+
+might be too much effort.
+
+-----
+
+we dont really know how long these things will take anyways...
+> havnt tried parllelizing top level workload.
+
+-----
+
+so we really just need to make this thing run faster.
+so we are gonna re-code it
+and probably use ctypes.
+
+we can see what kind of speedup we can get
+by tossing out variance and that stuff.
+
+using it as an estimate before going further.
+
+-----
+
+> so basically we want speed vs variance plot.
+> two different kinds of those plots but thats not important
+
+we need to run 10 different variance for:
+count = 1
+count = 0
+
+-----
+
+how do we want this table structured ? 
+> [examples] * layer * (var, cards)
+
+can we plot all the layers on same graph ? 
+
+-----
+
+> threads still very slow. seems like python overhead (create_model, rpr, x/f transform) has huge overhead. 
+> might want to copy x and send to each thread.
+
+> why is std so high instantly ? 
+  > def because we are using wrong var/rpr lut.
+
+so its layer #3 we can see this issue occuring at var = 0.1
+> then it starts to derail.
+> hmmm ...
+> well its actually the point after var=0.1 ... var=0.11.
+> it dosnt look specific to layer 3 actuallly.
+> what would this be then ???
+  > so, the first wave = [5,6,7,8,9,10] * [0, 1]
+  > 11 is just outside of that wave.
+  > but we saw that before (1 at a time) anyways.
+
+-----
+
+author of that paper makes it pretty clear.
+for training:
+batch mean/std
+
+for inference:
+moving averages from training of mean/std.
+
+so really it should not be that hard to come up with this ...
+
+-----
+
+we do this in quantize
+> tf.clip_by_value(x, low, high)
+
+feel like there shud not be a need for clip by value.
+
+cifar10 accuracy.
+fill in these damn sections with stuff.
+pdlsyn figures, this we can do
+batch norm was impossible.
+
+-----
+
+alright how do we use this quantize setup now ? 
+> we want to put in a variance, and get the accuracy result right ? 
+> so train a network, then see what accuracy it gets.
+> the thing I would worry about is the floor function fucking things up.
+  > how do we get true variance = 5 if it floors everything ? 
+  > i suppose just put in 6? 
+
+-----
+
+> how can MAC/J be increasing ? 
+> total MAC stays the same
+> ADC, RON, ROFF change.
+
+so we know we have less of ADC, RON, ROFF 
+> RON / ROFF does not play a role at all.
+
+changing variance inside of the c function "fixed" the problem.
+which showed the thing is the activations going to layers deeper layers
+
+BUT looking at this plot. i am seeing increasing energy efficieny for layer 1.
+WTF !!!
+
+> this narrows down our search. we can look at just the first layer!.
+
+okay i think i might understand it
+in the scenario where the WL is very sparse - 
+we wud be turning on 8 VS turning on 1 or 2 or something
+> min(rpr, WL - wl_ptr);
+this would not save u.
+
+so i think the way to show this is what is happening - atleast for layer 1, is min(pdot, rpr) 
+
+-----
+
+> duplicates need not be syncd.
+  > until end of layer of course
+> all arrays for a patch must be syncd
+> layers must be syncd
+
+> if one finishes before all the others, it can pick up on the remainder if its workload ...
+  > no it cannot ...
+  > each array has different weights. 
+
+-----
+
+> while(!done) instead of for r:R
+  > cycle ++;
+> need a different state machine for each one, 
+> do we want to make a function for each array ? 
+
+> we can ignore duplication to start ...
+> for (int a=0; a<A; a++) { // do not actually need to create duplicate weights -> well for d2d variance we do.
+
+-----
+
+I think gameplan is to move cconv stuff into conv.
+and do duplicates and stuff.
+> this will essentially be what we did in 6115 already.
+> so we will not have options to share weights between layers basically ? think im fine with that now.
+  > dont think it wud be too hard to add in the future.
+
+-----
+
+> model - figures out how many duplicates each layer gets
+> model.cut() -> call all layer.cut()
+> layer.cut() -> create all arrays / duplicates. create rpr_lut, var_lut.
+  > only think we dont do in cconv is the transformation of x stuff.
+
+-----
+
+> problem occurs between
+  > seems mb correct 
+  > starting dup 
+
+-----
+
+okay found the issue, its just that row=1023 finishes before something else and all else has to halt.
+
+-----
+
+alright what do we do now ? 
+> cards
+> baseline
+> metrics
+> need a better way of capturing dead cycles also.
+
+-----
+
+okay, how do we compute this "performance loss" thing.
+
+parameters:
+> ncycle
+> nstall 
+> narray
+> nmac
+
+> mac_loss = (nstall / (narray * ncycle)) * mac_per_cycle
+> utilization = (narray * ncycle) / (narray * ncycle + nstall)
+
+-----
+
+we still need to do layerwise synchonization problem.
+> will make this much worse than currently is.
+
+array: 222 cycle: 148 stall: 1548
+array: 498 cycle: 381 stall: 52786
+array: 240 cycle: 319 stall: 21096
+array: 500 cycle: 251 stall: 28416
+array: 240 cycle: 269 stall: 17496
+array: 432 cycle: 173 stall: 18648
+
+this is horrible.
+381 cycles, why is it so bad ??
+
+something tells me it has to do with zero skipping
+> turn off skip and u will see exactly that.
+
+array: 222 cycle: 1280 stall: 22016
+array: 498 cycle: 1664 stall: 42240
+array: 240 cycle: 1664 stall: 6144
+array: 500 cycle: 1408 stall: 48640
+array: 240 cycle: 1408 stall: 10240
+array: 432 cycle: 1408 stall: 18432
+
+-----
+
+> has counting cards been broken ?
+yeah it has to do with not reseting sat/pdot_sum
+
+clear(sat);
+clear(pdot_sum);
+int wl_total = 0;
+int wl_ptr = 0;
+while (wl_ptr < WL) {
+
+still didnt fix our problem...
+
+>> can we expect that this has same results as paper ?
+  > wud be nice debug.
+  
+oh wait, i think our weights are wrong ...
+> nah then why wud it work with rpr=8.
+
+are we doing rpr wrong ? 
+like, we are not choosing correct rpr ? 
+
+think i figured out the last piece
+we wud do correction accross all wl
+right now we are not doing that.
+we are doing for each array.
+
+... no actually i dont think that is right.
+
+-----
+
+well we have an assertion catching what I believe is the problem now.
+
+nope thats not the problem either ...
+
+-----
+
+it has to be with rpr.
+is xb weird at all ? 
+> idts, it does not change accross the array. 
+
+we cud go back to "6115-1" and try to make it work with the sat/pdot_sum fix
+> wud tell us if it has anything to do with adc_ptr. 
+
+'''
+if (wl_total[array][d]) {
+  float p = ((float) pdot_sum[d][array][bl_ptr]) / ((float) wl_total[d][array]);
+'''
+> holy shit lol
+
+-----
+
+alright so we can definitely work on array allocation
+> i do wonder if Yu's paper discussed this in any more detail.
+
+so allocation needs to be based on:
+> MAC and MAC/cycle
+
+previously we used MAC, but they operate at different speeds which is killing us.
+
+so the question is how can we predict the number of MACs.
+> def has to do with #zeros in activations and weights. 
+
+-----
+
+initial algorithm = 
+mac/cycle/array = (% nonzero x) * (% nonzero w)
+> well actually for zero-skipping w does not matter.
+
+MAC = fixed
+
+-----
+
+> okay so hard coding ndup, we can definitely see that "good" ndup can be chosen.
+  > can probably get 75% util this way accross the board
+
+> going from 75% -> 90% is going to require the hard stuff.
+
+-----
+
+> share = f(network_mac, layer_mac, layer_mac_per_cycle)
+
+so we did something that kinda works.
+
+-----
+
+> so our current solution works well using the sparsity in patches, dont even need to compute MAC/per cycle.
+
+the winner will simply be decided by highest throughput of all 1024 arrays.
+
+-----
+
+> need to switch allocation based on algorithm:
+  > baseline
+  > zero skipping.
+
+-----
+
+> so we are only focusing on array level
+ignore: array_sync, dup_done, dup_sync, r[d]
+ignore: layer level
+
+> if xb==7 and col==7
+> array done = 1
+> if all wl/bl are done, array sync
+------
+ignore these
+------
+> if all dups are done, dup sync
+> if all layers are done, done
+------
+
+so when bl/wl finish, we need to repurpose them.
+can we just do a neihbor thing ?
+
+gameplan:
+>>> idea for tonight, get the upper bound estimate
+show how it correlates to MAC/cycle.
+
+------
+
+what are the loops at the array level:
+> xb
+> col
+> wl 
+
+yeah thats it
+so either at the (xb, col) granularity we help out.
+
+------
+
+best if we do it in such a way
+that they are getting summed together anyways.
+but how ? 
+
+if u wait till xb granularity, have a feeling there wont be enof to split.
+
+------
+
+array: 72 nmac 884736 cycle: 3528 stall: 3552
+array: 354 nmac 9437184 cycle: 4261 stall: 412778
+array: 132 nmac 4718592 cycle: 4604 stall: 164016
+array: 240 nmac 9437184 cycle: 4107 stall: 209008
+array: 120 nmac 4718592 cycle: 4178 stall: 124848
+array: 144 nmac 9437184 cycle: 4071 stall: 137520
+time taken: 8.473353147506714
+
+array: 72 nmac 884736 cycle: 3528 stall: 3552
+array: 354 nmac 9437184 cycle: 3187 stall: 32582
+array: 132 nmac 4718592 cycle: 3414 stall: 6936
+array: 240 nmac 9437184 cycle: 3295 stall: 14128
+array: 120 nmac 4718592 cycle: 3196 stall: 7008
+array: 144 nmac 9437184 cycle: 3127 stall: 1584
+time taken: 8.821300745010376
+
+------
+
+so the upper bound is ridiculous
+how can we get a realistic estimation ? 
+
+like if we did only double sharing ? 
+we tried this, results not so great. 
+
+------
+
+alright so how do we get that good utilization ? 
+so I guess there are a couple options. 
+> more duplicates
+> smarter duplicates
+
+------
+
+so how many do we get ? 
+that is one question.
+but which ones get duplicates ? 
+are there certain layers that just have less 1s ? 
+> so thats actually not that much information to look at.
+
+let me think.
+so instead of the average patch
+... each filter does a 128x16 chunk right ?  
+
+so can we look at these patches
+> and figure out a pattern of covariance
+> or if any patches get on average less data. 
+
+------
+
+so we do this:
+> x = nrow, nwl, wl, xb
+> f = nwl, wl, nbl, bl
+  
+but i want to look at x as:
+> (npatch, nwl, wl, nbl, bl, xb)
+
+how do we break down each one ? 
+or essentially each array inside each patch
+and see if get any correlation at all.
+
+we can create a standalone python script to do this.
+
+one problem is we are gonna need to see this correlation over many images tho...
+and part of me thinks that just isnt going to happen...
+
+well it might happen in the channel dimension ?
+> yeah thats the only thing I can think of here.
+
+okay,
+so how do we gather data ? 
+well we get these weights from our quantize branch 
+so we shud just pull all the activations then.
+
+------
+
+yeah so that worked out well
+can clearly see on average some 128s have more data than others
+so we need to allocate duplicates based on this.
+
+------
+
+alright so what is the plan ? 
+> well we shud profile for both layer division
+AND 
+> PE division
+
+so we sorta need to move to automatic profiling now.
+
+but how do we best allocate even with the given profile ?
+I think something weighted based on number of STDs from mean.
+
+------
+
+def think it wud be best to run this in tflow.
+then import all the activations, or statistics or w.e.
+for simplicity now atleast.
+
+------
+
+i want to keep the current model
+so we have to rerun tflow again.
+
+then we will grab those activations
+replace layer:
+x_non_zero = np.array([0.41, 0.19, 0.145, 0.13, 0.12, 0.06])
+
+then try some shit out with PE level.
+
+------
+
+this larger CNN will give us better perf improvement ... just saying.
+> we switching to 256.
+
+alright so we care about X not Y ... input to layer not output.
+
+------
+
+okay so we need to learn ILP 
+this is more complicated than we thought
+even for allocating layer
+
+I think we shud absolutely use ILP to do this.
+if u allocate 14 duplicates to something
+ur fucked lol.
+> https://docs.python-mip.com/en/latest/examples.html#job-shop-scheduling-problem
+
+looks like we can absolutely do it with this.
+
+------
+
+so we have template examples for knapsack and TSP
+we just need to make a mini problem and then scale it up.
+
+------
+
+but formulating this is difficult.
+because its not just maximizing the min.
+its also dealing with rounding errors.
+> 14 / 16 thing...
+
+so it dosnt really feel like a linear problem lol.
+
+could we frame this is a dynamic programming problem ? 
+i think we cud.
+
+i think we shud just write it as exhausive and make it dynamic afterwards.
+if it fails any constraints just do continue and let it roll.
+
+-----
+
+wow so we actually do need a dynamic solution
+this is interesting.
+this is much easier for a 0/1 problem
+
+but the idea is u break it into sub problems.
+u cud def turn this thing into 0/1 knapsack with a constraint right ? 
+
+actually idk if this makes sense at all for dynamic programming ...
+it isnt really a subset sort of thing...
+
+i dont think it has the optimal subproblem thing.
+
+-----
+
+so for the 14/256 thing its still useful to have the remainder
+14/16 is very bad tho.
+and i dont know how u formuluate this problem.
+
+because its not linear
+when u increase narray, it dosnt increase performance linearly. 
+> https://math.stackexchange.com/questions/1470668/linearizing-a-constraint-for-ilp
+
+ah but u can still use ILP somehow lol.
+
+----- 
+
+so im thinking:
+create all options
+512, 32, ...
+do knapsack
+with constraints that u cant have both of them
+then u do the C thing that guy did up there.
+
+-----
+
+https://math.stackexchange.com/questions/2446606/linear-programming-set-a-variable-the-max-between-two-another-variables/2447498
+
+what is mixed linear integer programming ?? 
+> think its just a combination
+
+-----
+
+ah definitely think branch and bound could be an option as well.
+yeah wudnt that be perfect actually ???
+
+> bc it is this max thing, it is so ez to formulate a branch and bound solution
+but it has to be formulated as a minimization problem.
+
+also u can come up with an initial estimate. 
+
+> https://github.com/bcrafton/Algorithms3/blob/master/4/src/branch_and_bound_knapsack.cpp
+
+-----
+
+ILP and BB will both work fine for this
+for ILP we could have just unwinded the solution where the nonlinearity existed.
+
+-----
+
+> now we integrate branch and bound.
+  > account for the 14/16 thing.
+    > better estimate basically.
+      
+> use the profile data
+  > not ([0.06, 0.12, 0.13, 0.145, 0.19, 0.41])
+
+> move on to PE estimations.
+
+-----
+
+make a standalone BB thing.
+that tackles smallest # things first
+takes all the parameters we want.
+
+----
+
+> seems like we need to figure out that 14/16 thing now.
+> so what will this look like ? 
+
+performance = mac_per_patch * npatch / ndup 
+> basically just figure out that rounding thing here.
+> ((npatch % ndup) / npatch) * ndup
+> (64 - (64 % 14)) / 64 * 14
+  > 12.25
+  > this # actually makes sense to me.
+
+just means we need to tell it how many rows there are,
+so we are really better just passing all the shapes in.
+
+----
+
+alright i think waht we need to do next
+is account for the PE delay
+so think like this:
+on average it might be (8 row_per_array) BUT if there is 288 of them
+u better believe that its gonna me larger than 2 cycles.
+
+----
+
+okay, so what error are we going for r.n
+> pe error ?
+> duplication error ?
+
+----
+
+we absolutely need to find a good approx for mac
+that seems to be everything.
+
+holy shit
+yeah when u pulled the MAC estimate from plot_util.py 
+and used that instead of the other shit we were doing
+it worked so well.
+
+----
+
+alright so how do we get a good MAC estimation ? 
+i think the thing is, it cant be like 
+always 1 or 2 cycles
+u will fuck up bad taht way.
+
+but we shud be able to look at the data in advance.
+but pull numbers from afterwards
+but either way it really wudnt matter right ? 
+i mean u can get accurate MAC estimates in simulation thats not a problem.
+
+----
+
+so we have literally seen
+if u have good MAC estiamtions
+this thing is so easily solvable.
+
+so how can we get them then ? 
+
+----
+
+approx:
+[3972.8 4096.8 4106.8 3567.4 3945.  3238.2]
+[4088.  4247.6 3847.6 3790.6 3945.  3238.2]
+
+mixing the two wins:
+4088.  4096.8 3847.6 3790.6 3945.  3238.2
+
+yeah so u absolutely have to look at more than 1 example
+seems our solution is actually correct ...
+
+-----
+
+> which is kinda weird because u wud think that the actual mac results wud win ...
+
+-----
+
+why are we unable to compute the #s correctly ? 
+> well i guess make sure ur data matches the approx...
+> i.e. use 5 examples for both.
+
+-----
+
+i have a feeling this:
+520 vs 600 thing
+is coming down to a bad approx 
+from the rounding thing.
+
+> also we cud just take the bb solution that has the most arrays used as well...
+
+-----
+
+okay so heres the thing with scale.
+you loop through (col, xb)
+on the SAME 128 bits of data
+> so something can take 1x or 2x the speed.
+
+so the scale thing assumes that wont happen ... but for 256 arrays ... it likely will.
+> which i believe is the issue with our bb14 case.
+
+our approx is still shit now
+3514 vs 4100 ???
+
+-----
+
+instead of density
+we are gonna look at number or reads
+simplify the problem.
+throw out MAC
+through out rows 
+we need a tighter estimate.
+
+-----
+
+oh fuck
+every x-bit is different 
+so actually we were wrong up there ^^^
+
+how are we so wrong with estimations!!!
+
+-----
+
+i think the next step wud be looking at:
+  > mean
+  > std
+  because we actually are pretty dang close
+
+probs best idea:
+>>> we could also just takes samples of a bunch of options for layers independent of one another
+> because they are independent, then use those for cycle and skip over row / mac / w.e.
+
+-----
+
+> might be best to say good enof with our approx.
+
+where do we go next tho ? 
+
+move onto PE estimations
+that is also going to take statistics.
+
+or maybe not even really.
+
+-----
+
+but anyways,
+where do we go from here ???
+> integration
+> array allocation inside each PE.
+
+lets integrate, then setup the API for it.
+
+-----
+
+okay so we integrated, which we shud have done awhile ago
+and we want to make profile work now.
+
+a couple of things first:
+> MAC / PE seems way better metric
+> if we use profile, i think we will have to put scale back in.
+
+-----
+
+okay, so results are pretty awesome
+and we can see the clear room for PE level allocation
+so where do we go from here ? 
+
+we want to do duplicates inside of PE.
+> say we have some # of duplicates, how do we allocate ?
+
+compute average #WLs for each block
+we have to pass in a list of doubles 
+
+if array_done[array], then try its double.
+
+-----
+
+so first thing i think, is augment pim.c to handle this double PE thing.
+> also, duplicates should only occur over blocks ... we dont care about array.
+
+-----
+
+identifying correct branch point:
+so def want:
+> 6115-7
+> not sure exactly which commit we want tho.
+
+-----
+
+> so at end of branch 6 we had things figured out
+  > that is where we updated pim.c for the array2D()
+  
+> in branch 7, we basically integrated profile.
+  > so its really a toss up. do you want the hardcoded BB (branch 6)
+  > or do you want the integrated one (branch 7)
+
+> starting with branch 7, can always come back.
+
+-----
+
+alright so how do we start ?
+
+so initial thought = need to create c api for #blocks
+right now things will just be passing blocks as even multiple
+so we can verify we did things right
+then we will do block level allocation.
+
+-----
+
+so we need to get rid of this "D" idea within pim.c
+its block now.
+
+assert (D <= PE_SIZE);
+assert ((NWL * NBL) <= ARRAY_SIZE);
+assert (BL <= VECTOR_SIZE);
+
+new config:
+PE_SIZE = D * NWL
+ARRAY_SIZE = NBL
+VECTOR_SIZE = BL
+
+-----
+
+> one idea for BB, is we can use layer-level allocation for lower bound.
+  > or limit the range that can be used ...
+    > limit to 20% of 4096 for each block.
+
+bb14.py is no longer accurate ...
+> we dont use scale anymore.
+
+so how do we start here ? 
+> write out all possible blocks ? 
+> that will be like 100 ...
+
+-----
+
+well here is the API:
+
+def branch_and_bound(narray, layers, mac_per_array, params):
+    nlayer = len(layers)
+    nmac = np.zeros(shape=nlayer, dtype=np.int32)
+    factor = np.zeros(shape=nlayer, dtype=np.int32)
+    for layer in range(nlayer):
+        nmac[layer] = layers[layer].nmac
+        factor[layer] = layers[layer].factor
+
+
+> layers is not used after this.
+
+-----
+
+> so we can just treat blocks/layers the same ... 
+> branch and bound need not change, which is wonderful.
+
+-----
+
+so we absolutely need to start with a good initial solution
+because holy crap is it slow ...
+
+pull:
+1) mac_per_cycle
+2) max min cycle speed or w.e. for lower bound.
+
+-----
+
+ah - the reason its not working I believe
+may be because we arnt accounting for zeros that happen in layers 1/2
+because they are only 64.
+
+but why would that change anything ??
+
+actually is our nmac wrong ? 
+> nmac = (self.xh * self.xw) * (self.fh * self.fw * self.fc * self.fn) ??
+
+32*32*3*3*3*32 = 884736
+not 1769472
+
+so something definitely wrong here.
+
+-----
+
+okay seems like we fixed it.
+only problem is i think we are picking wrong lower bound.
+so we are picking what previous stuff actually got on an example
+we need to pick what actual stuff actually got as a bound!!!
+
+> it got 3912, so actually very accurate.
+
+> we should not expect that great of a result yet since we arnt using accurate MAC/cycle
+  > how are we going to get accurate mac/cycle.
+  
+-----
+  
+actually come to think of it - 
+we wud def not want to run "block specific" 
+until we had profiled data
+
+so in order,
+it will be:
+
+-----
+
+1) (2) mac-per-cycle
+2) (layer-level) mac-per-cycle
+3) (block-level) mac-per-cycle
+
+-----
+
+new issue = 
+old code not working when we set bound = 3912
+despite that being the final answer.
+
+NOPE that wasnt a problem at all
+that just happens because we start by profiling ...
+
+-----
+
+so new problem then = 
+we dont have block level speeds. 
+
+how can we get these ???
+
+> cycle count for each block. piece of cake.
+
+-----
+
+so the duplicates make getting estimates for the blocks weird.
+> you could easily get estimates for blocks by calculating ...
+> same way we calculate with #1s in wl.
+
+-----
+
+we are going to def have problems with partial blocks
+> 3x3x3x64
+> 3x3x64x64
+
+> there mac/cycle will be lower ? 
+> they will require the same number of MACs ? 
+
+that will be huge problem.
+
+-----
+
+i think out bound() function is pretty good.
+i think the big issue is our value function.
+its to much of an underestimate.
+
+-----
+
+1) pim.c API changes
+
+2) branch and bound - tighter value function, needs to run faster ...
+   > I think we can make our heuristic just taking the 100 best solutions in each step.
+
+3) we are going to def have problems with partial blocks
+   > 3x3x3x64
+   > 3x3x64x64
+
+-----
+
+branch and bound heuristic is good enof for now.
+
+moving onto pim.c fixes.
+
+------
+
+so what are we changing ? 
+
+> array sync 
+  > we arnt syncing at the end of each PE anymore
+
+> block_map
+  > B = NWL.
+    > block_map is just block_count
+    > where we say how many times we have duplicated each block.
+
+> remove D entirely
+  > it really only ever was used for sizing arrays anyways.
+  
+
+we will need to add [wl_ptr, wl_sum, all PE level things]
+
+------
+
+> all things like:
+wl_ptr[d][array]
+
+can just be 
+wl_ptr[block]
+
+becaue we should not be indexing by bl.
+
+> int r[PE_SIZE]; 
+this will become r[BLOCK_SIZE];
+
+------
+
+okay the block_count / block_map thing is tricky.
+we store all blocks together 
+
+i dont think it is ever useful to store things as block_count.
+because then u have to decode everything.
+is there any instance where we want block_count ?? 
+
+------
+
+its realy not possible to get these numbers:
+> [ 816. 1422.  579.  897.  319.  893.]
+
+1024 / 39 = 27
+27 * 8 * 8 = 1728 ...
+27 * 8 * 8 * 2 = 3400 ...
+
+AND also our operation is mismatching
+so these arnt the real #s thankfully.
+
+because we are seeing 800 instead of 3200
+its a pretty big tip off
+that we are skipping over xb or col i think.
+
+------
+
+okay so somehow 
+on:
+cycle 20, 
+block=0 is already getting the next wave.
+
+even in best case scenario this has to be cycle 64.
+
+> because its all wrapped in:
+  for (int bl=0; bl<NBL; bl++) {
+  
+------
+
+so lots of things wrapped inside of: for (int bl=0; bl<NBL; bl++) {
+have certain issues
+
+> wl_ptr[block]
+> wl_sum[block]
+
+anything that is changed inside of this is gonna get fucked.
+
+before each array had its own thing.
+[d][array] ...
+
+------
+
+its a pain the ass because of how we setup wl_ptr, wl_sum
+we increment them as we go.
+
+i think we are going to have to extend all of them ...
+meaning give nearly all of them [BLOCK_SIZE][ARRAY_SIZE]
+
+that is going to require a hack though.
+
+because block_done does not require this.
+so u wud have to sync all arrays and that is unnecessary.
+
+not comfortable putting in hack, because we dont know it will work immediatly.
+
+------
+
+so we are wrong right now.
+wtf is going on.
+
+always need to make sure std and mean match.
+wtf is going on with BB breaking ???
+
+------
+
+so u run into this issue because:
+we take 25 best bound, not value 
+but we set threshold with value instead
+thinking there might be a separate issue, but this can be avoided
+
+------
+
+so is our sim accurate now ? 
+> we no longer get 1300:2000 lol.
+
+------
+
+> find an upperbound on speed we can go.
+(total 1s in all data) / (total arrays * 8)
+
+WE ARE STILL FUCKING WRONG.
+WHY ARE WE NOT CHECKING THIS !!!
+
+------
+
+are we just hacking things unnecessarily ? 
+> block and layer alloc ??
+
+------
+
+yeah this def dosnt feel like a good use of our time ...
+what is better then ? 
+
+verifying it actually works.
+well this is interesting because
+most of the speedup came from not PE syncing
+not because we did block alloc.
+
+yeah the whole thing is sending data whenever the blocks are ready.
+looks like that saved about 400 cycles. 
+
+then layer vs block saves only ~150 cycles.
+
+------
+
+these really should be the smae thing now
+the only thing that changes is the python code surrounding things.
+
+> wb = np.transpose(wb, (0, 1, 3, 2))
+well thats because we never fixed this it seems..
+
+------
+
+why did transforming wb change the number of cycles it takes ? 
+check the error.
+
+alloc: 44 nmac 1769472 cycle: 11416 stall: 344
+alloc: 904 nmac 37748736 cycle: 6048 stall: 171296
+alloc: 480 nmac 18874368 cycle: 5272 stall: 43472
+alloc: 936 nmac 37748736 cycle: 5648 stall: 47888
+alloc: 576 nmac 18874368 cycle: 6120 stall: 29320
+alloc: 1152 nmac 37748736 cycle: 8440 stall: 120296
+> it does cause error, but thats expected.
+
+changing the weights should not change the performance of skip
+just the accuracy.
+
+alloc: 44 nmac 1769472 cycle: 11416 stall: 344
+alloc: 904 nmac 37748736 cycle: 5072 stall: 134056
+alloc: 480 nmac 18874368 cycle: 4344 stall: 34416
+alloc: 936 nmac 37748736 cycle: 3744 stall: 35464
+alloc: 576 nmac 18874368 cycle: 2616 stall: 9712
+alloc: 1152 nmac 37748736 cycle: 1272 stall: 7408
+
+------
+
+OHHHH duh.
+it dosnt change the first layer
+it only changes after BECAUSE we change the output / accuracy.
+
+this becoming a time-old issue.
+
+------
+
+branch and bound is failing - fix it.
+think just slowly work towards goals for paper
+making other tasks priority.
+
+------
+
+branch and bound is failing.
+cards is failing.
+
+we dont really need cards, but I think we shud just make these pieces robust.
+> is there any way we can compare against past results ? 
+> shudnt we get some similar things ? 
+> it works, just use the mean and std thresholds
+
+------
+
+> fix BB
+  > make this problem go away.
+
+> figure out how we want to plot things.
+  > dont really want to plot vs variance ...
+  > just pick a variance (10%?)
+  > plot the different allocation options.
+
+------
+
+is the problem with BB what we think it is ??
+higher value thing gets left out because of bound or w.e.
+
+------
+
+so starting with the divide by zero error.
+when need = 0 because it gets rounded down
+what is our policy ? 
+if something calls value()
+we have to give it some approx.
+
+------
+
+problem right now with this plot,
+is that we dont know how to plot it 
+we want to plot probabl 6 things
+
+but is that a bar chart for all 6 things ???
+well actually maybe
+if it can be done.
+
+yeah so how do we plot this data?
+
+------
+
+so how does this PE level thing work ? 
+we need to block things together, but what does that change ? 
+1) blocks of 16/32/64 arrays are tiled throughout the chip. you cannot arbitrarily group blocks together like we are.
+2) you cannot arbitrarily send whatever feature data to the next available block mapped to those weights, maybe do to ifmap reuse or just locality.
+
+------
+
+what do we do with fixed block size ? 
+lets say 64 arrays.
+how do we make blocks out of this ? 
+well col-wise we shud actually always be good really. 
+> it will always be power of 2 col-wise.
+
+so u wud just need to make sure u fill up the 64 arrays - u dont want any partial blocks.
+so the challenge then is data reuse/movement
+
+------
+
+what happens if u dont use a full PE for a layer ? 
+
+the other thing is the input/output from these PE can be from different things which is weird.
+that part feels like it wud cause bus contention and what not.
+
+>> we need to find the simplest way to architect things.
+because we want to keep this paper about the main idea.
+
+------
+
+we can try to survey the papers and do something similar.
+> PE = 16 x 8 x 128 x 128
+> Yu did 9 x 16 x 128 x 128
+
+Definitely think you can skip over Tile level.
+
+Oh, Atom Layer did something really clever actually.
+They rotate the crossbars for the given arrays.
+So that the ADCs are always used, they claim array are is tiny
+They have 160 PEs, each one contains a 8x128x128 for each layer ... 16 layers = 16x8x128x128
+4 * 4 * 3 * 3 = 144, so i guess thats why they have 160.
+3x3x512x512 vs 1x1x128x128
+
+Max ^ 2 was also by Yu.
+lots of the same figures.
+interesting, same  Tile/PE idea.
+
+------
+
+> Processing Element (PE): Each PE consists
+of 16 ReRAM based memory subarrays, where
+each subarray is a 1-transistor-1-resistor (1T1R) array
+of size 128 × 128. Each subarray has its own set of
+peripheral circuitry. A set of 4 subarrays share 1 look up
+table (LUT). Each PE also has three local buffers, RF I ,
+RF II and RF III , to store IFM, dot product and partial
+sums, respectively.
+
+> Tile: Each tile consists of 3 × 3 PEs, an I/O buffer to
+store input/output data, a non-linear activation function
+unit and an accumulation unit for partial sum addition.
+
+> Chip: Each chip consists of 12 tiles, and a DFF-based
+I/O interface to store multiple input feature maps and one
+max-pooling unit.
+
+1)
+they never once reference ADCs here...
+2)
+they never skip the zeros.
+... meaning i dont know how fast they are processing arrays.
+
+------
+
+so we need to make a design as similar as possible to these.
+how we allocate based on the PE is a different question.
+definitely skip the tile.
+
+so all we really have is:
+array,
+pe,
+chip
+
+and we need to explain why the PE abstraction exists 
+> I/O pretty much.
+> i think we may be able to gloss over I/O as a problem
+> but we need to back it up somehow, on our mapping strategy.
+
+------
+
+okay we have some group of arrays
+how do you map weights to them ? 
+can u mix layers ? 
+
+are there any input / output bandwidth restrictions ? 
+if two blocks are in the same layer, 
+dont share any inputs, dont share any outputs
+is there any more sense in binning them
+then there is binning different layers ?
+> i dont think so.
+
+but i guess the goal should be maximize utilization
+but through mapping minimize input/output bandwidth ? 
+
+------
+
+so this changes nothing lol.
+>> i guess one constraint is that we cannot split a block over PEs.
+
+>> what about accumulation inside of a PE ???
+
+what wud be the next constraint ? 
+> cannot split layers over PEs
+
+think we will assume no I/O limitations.
+BUT I think we have to argue we place for data reuse and min I/O.
+
+they never say what they do with less than 512 channels.
+
+------
+
+It should be noted that array partitioning within
+the PE is helpful to maximize the memory utilization. Since
+the kernels from some convolutional layers (normally the
+first couple of layers) could be shallow and small, which
+will not fill the entire PE and cause memory waste. With a
+group of partitioned sub-arrays, those shallow kernels could
+be duplicated in different sub-arrays and take multiple input
+data to generate independent outputs simultaneously. In this
+case, those shallow convolutional layers which have shallow
+kernels but large IFMs could be speeded up significantly.
+
+okay we are on the same page.
+
+------
+
+yeah i dont think we will have any issues here.
+we map things to be accumulated together or concatenated together.
+there probs actually is an interconnect paper there.
+
+------
+
+want to bring back PE synchonzation
+which sucks.
+bought back old pim.c file
+> we will want to verify we have same results as previous shit.
+
+want to give it similar code to current thing, but not sure best way to do it
+
+do we move over to blocks ? 
+well we need to return block level cycles i think.
+but no i think we shud keep D.
+
+> block = wl anyways.
+
+could we just build this into our current code ? 
+basically just sync everything at a PE ? 
+i think we cud but it might get ugly.
+and we have to standardize order of block map
+
+one of them goes 0000 1111 the other goes 0 1 2 3 
+
+i say we start with converting old one over.
+changing new one will suck because we will need to change block sync.
+to have 2 syncs instead of 1. 
+
+-----
+
+> https://github.com/bcrafton/speed_read/commit/cca4ca39087da40eaaad0af9a00e25aa53b77bb1#diff-54bb363844a887d2b67e2c8bd1b27cf6
+  > made these changes, seems like pim sync works.
+
+-----
+
+looks like mobilenet is actually valid:
+> https://blog.tensorflow.org/2020/04/quantization-aware-training-with-tensorflow-model-optimization-toolkit.html
+
+-----
+
+https://www.tensorflow.org/model_optimization/guide/quantization/training
+https://www.tensorflow.org/model_optimization/guide/quantization/training_example
+
+https://www.tensorflow.org/lite/performance/post_training_quantization
+https://www.tensorflow.org/lite/performance/post_training_integer_quant
+
+want to just do post-training quantization
+they say:
+Symmetric, per-channel
+Asymmetric, per-channel
+
+i think assymetric means they shift the mean over
+and 
+then per channel, means each channel gets its own zero-point... not each tensor.
+
+> https://www.tensorflow.org/lite/performance/quantization_spec
+> Per-axis vs per-tensor
+
+-----
+
+okay we finally have our resnet weights
+now we need to build resnet in the simulator.
+
+> tb_resnet.py
+> load imagenet data samples ~5 from validation set.
+> need to support negative weights
+> need to write code for residual blocks.
+
+-----
+
+so we can support negative activation values
+or we can change ResNet.
+it looks like it might be more beneficial to change ResNet. 
+
+but at the same time, isnt negative activation values something we want to support ? 
+its pretty fundamental ...
+
+-----
+
+lets change ResNet first.
+what does this require ? 
+
+well it dosnt look like we are using quantized ResNet, just original ResNet.
+dont think that part would matter so much really if we are changing the inputs anyways.
+
+so we will need to get these weights to laptop
+then run our activation fixer to make shit work.
+
+-----
+
+now we need to figure out 
+how to do allocation and stuff with zero weight layers. 
+
+wow this is a giant pain in the ass now
+probably shud re-write this setup
+
+was thinking about creating:
+> operations
+> layers
+
+to simplify things
+but we need output of convolutions, to be relu'd.
+becuase that is what matters for mse.
+
+do we tho ? 
+we dont really have a good hold on mse ~ acc
+also we dont really know what thresh will result in what.
+
+-----
+
+DONT OVER DESIGN YET:
+i wudnt over design this right now, dont know what lies ahead.
+and the correct structure will be way more clear then.
+
+-----
+
+> figure out how to check (y - y_ref).
+
+want to add tensorflow activations to that .npy file
+will give us better solution.
+
+-----
+
+okay so a weird thing happens.
+value() increases
+which should not happen
+
+value() decreases
+bound() increases 
+
+-----
+
+well thats not necessarily true actually.
+but the question is why does root post such a good .value() ? 
+
+switching to layer-wise allocation since the problem persists
+eventually it recovers as we allocate more
+
+-----
+
+so it wud make sense 
+if there existed branches with the same low value
+but we just didnt pick them
+
+can we confirm this is the case ?
+
+-----
+
+>> can we confirm we didnt mess up value/bound = lower_bound/upper_bound ? 
+
+-----
+
+developing a hunch
+that the use of value as the upper bound is what causes the issue.
+
+so thats not really an issue tho
+because:
+10 lower 50176 value 44600 | bound 42560 new_bound 44600.88888888889 narray 24696 [2304, 2304, 128, 2304, 1152, 1440, 1440, 80, 1440, 720, 1296, 1296, 72, 1296, 680, 1340, 1340, 1340, 1340, 1384]
+new bound becomes value.
+so its not actually a good solution.
+
+but still
+it shudnt shoot low.
+that means somewhere the in value choices 
+the new bound of 44600
+wasnt enof to push some layer to take what it needs.
+and it ended up lower
+
+which dosnt make any sense because a lower number made it take wht it needed.
+
+nah that shud happen actually
+some of them wud reach for 4250, need the extras and then pull back.
+
+then some of them will reach for 4460 and not need the extras so back out.
+so then what shud we do ? 
+
+i guess this sorta comes down to looking for a better lower bound.
+u can go through each of them and give the left overs to the ones that need it the most.
+
+-----
+
+essentially, i think we should try to make the bound.
+but then satisfy each nodes by lowest bounds one at a time.
+
+we cud even rewrite this ? 
+for each need, you pick the one that yields the highest min bound.
+
+-----
+
+like our new solution, i think probelm gotta be some rounding thing now.
+
+-----
+
+dosnt make any sense, how value() would increase.
+if u are picking the smallest ones how can this happen ? 
+
+solve this first.
+THEN you can make sure branches that attempt to go over ideal are killed.
+
+-----
+
+wow, so it is picking the right answers.
+but the value() keeps going up.
+does this make any sense ???
+
+the only logical thing i see
+would be upper bound is a change variable.
+
+we removed that chance.
+but the new problem is that things seemingly randomly change. 
+from 1 BB to the next, it will pick different allocations.
+which makes no sense.
+
+-----
+
+wow so after all of that
+we realize branch and bound is not even necessary. 
+
+why did this take so long.
+took so long to figure out the factor[argmax + layer] thing.
+
+cudnt figure out if it made sense that starting from a different position wud yield different results. 
+> and it didnt make sense, but idk what was up with out brain.
+
+-----
+
+go back and figure out what we shudnt have changed.
+
+-----
+
+might we have an issue with pim.c/pim_sync.c and how 32768 ? 
+
+-----
+
+alright, next implementaton challenge is what to do about left over rows.
+
+first we think what we should do with them
+second figure out how to model this in BB.
+
+well realize that there is nothing you can do with them if they are the bottleneck, they will constantly be used by layer 1.
+
+what are the alternatives then ? 
+> smaller arrays ? 
+> size layers appropriately ? 
+> they actually just accept the poor memory efficiency. 
+> densenet also uses 7x7 filters.
+
+yeah there is actually pretty much nothing u can do here.
+wud say the best thing you can do is re-train a 6x6 filter.
+
+-----
+
+what would be the hardo, overdesign approach ? 
+> split 7x7x3 evenly across 2, use redundant weights in the scenario one finishes early ?
+> you could use it for a different layer, but it just dosnt make that much sense ...
+> allow an array to serve as dual purpose duplicate essentially ? so different ifmaps can be scheduled to it.
+
+what if you merge two layers together ? 
+> like layer 1 and 2.
+> yeah that might actually be the best thing you can do.
+
+-----
+
+i guess its another question of figuring out what the constraints are.
+> i dont think it makes sense to split each array into 2x64
+> if we can mix 2 layers then we can do cool stuff.
+
+-----
+
+ideas given constraints:
+1) 128x128 7x7x3 -> split evenly accross 2, use redundant weights for when arrays are finished to help with other workloads.
+2) Mixing two layers. All arrays process layer 1, then process layer 2.
+3) Make it 6x6x3
+4) Get 64x128 arrays.
+
+-----
+
+is it necessary to do any of these ? 
+> probably just (1).
+
+if we could mix layers
+i dont think u cud do arbitrary partitioning, think the min partition size would be 32 rows.
+modeling the performance of these arrays would suck.
+because u wud only use the second half of the partition once the first half finished. 
+
+yeah mixing layers could be such a pain.
+
+-----
+
+trying to figure out how to get utilization.
+doing something with MAC isnt going to work.
+
+performance and stalls are different because of zero skipping.
+
+-----
+
+> need to compute expected mean and std from this new scale method.
+  > well the problem i think is 2 fold
+ 
+1) we dont know how we will scale, will we use 1.5 ? will we use 11 or 12 ? 
+2) we computed expected error by doing [-adc, adc] for all e.
+   but now we dont have that
+   and we wud have to mix our scale equation into the mix.
+   
+can we get out of this looping around calculating e using [-adc, adc] ?
+> or can we get it done with calculating e this way ? 
+
+so its like:
+given (p, var, adc, rpr)
+figure out the expected error.
+
+where scale would be calculated from (adc, rpr)
+
+for all possible states:
+  for all possible errors:
+    calc prob
+    
+okay this isnt so bad.
+but we have to include this scale idea.
+and the amount we would be off by will change.
+
+it almost feels like we didnt do this right ...
+we shud start a small python setup
+so we can test things out and verify
+
+yeah thats really the way forward here, start a python script where we can try things out.
+
+-----
+
+so instead of saying scale/shift
+we want to just say: affine transformation.
+and then do them together.
+
+the problem with scaling
+is say we do:
+rpr=10
+adc=8
+well then we have to do 1.2 scale 
+not sure if that is a problem or not...
+
+dont think it will be too bad
+because ADC will always be power of 2
+so we can just use shift
+then do (* 10 / 8)
+
+-----
+
+where this idea will cause issues 
+is with variance
+because with variance
+we did not do variance with floating point.
+we just got error using a lookup table.
+
+but now we want to use this variable ADC range
+so we are going to have to go to floating point.
+or at the very least keep variance as a separate variable and accumulate that in floating point
+AND then not clip the psum value or w.e.
+
+yeah def think best to keep psum as integer
+but then again we do variance after each readout.
+so maybe it wud be fine
+because that is the granularity we are doing this affine_adc with.
+
+but we do need to change the way we are doing variance.
+instead of this percent of time we get an error
+we have to change it to instead be a floating point.
+and then figure out if its inside the new bounds which have been extended to (rpr/adc)
+
+-----
+
+so we figured out:
+> pim.c
+> test_error.py
+
+now we need to figure out the equation to estimate error this way.
+> rpr.py
+
+for pim.c 
+we do want to make a adc function
+that takes number on states
+and the variance
+and spits out some good estimation
+
+rather than this round, min function thing we got going on now.
+
+-----
+
+for bias and scale,
+really dont get how we choose these.
+i mean shouldnt we choose them ? 
+
+i am thinking for rpr=10, adc=8
+its not so obvious 
+which 2 states are going to get rounded up or rounded down.
+
+if we do the error thing from before. 
+you basically just have to add error for every time we are in that state.
+not that big of a change.
+sorta like how we handled when s > adc ...
+
+------
+
+but yeah its definitely important
+pick the states
+that are used the least frequently.
+
+and those should be the states we ignore. 
+
+------
+
+there is really so much more you can do with array level stats.
+
+like why use p=0.7
+why not look at all the p's in all the columns. 
+
+yeah use the activations not just some single column approximation.
+
+------
+
+picking the right place to start is hard.
+
+1) how to pick scale and bias.
+2) use p=0.7, there is no activation stats ... zero-skipping.
+3) looking at output statistics, because that will tell which states we need the least.
+4) which comes first ? (rpr), (scale, bias)
+
+if it is the case that for: rpr=10, adc=8
+that (0, 1) are least common.
+do we just use a bias and no scale ? 
+
+and for rpr=16, adc=8:
+what do we do here ? 
+
+------
+
+so i guess we are looking to best fit the affine adc to activation data. 
+how is this done ? 
+
+------
+
+!!!
+1) so we will sweep the rpr.
+2) then figure out the affine adc for each rpr.
+3) then compute expected mean and variance.
+
+is this the right answer ? 
+did we make any false assumptions ?
+
+we cant really invert some matrix here unfort.
+because it has to be integers ...
+
+------
+
+we should compute the (scale, bias) given output statistics to get the best fit.
+
+------
+
+If you recall awhile ago I wanted to try scaling the ADC rather than using the dynamic bias technique we use in counting cards.
+Meaning if (rpr=12, adc=8) each ADC state would now be equal to 1.5 or w.e.
+
+I am trying to do that now, but I think it is necessary to use both a scale and a bias. So my idea is that we would keep the same algorithm with an additional for loop where we do:
+for all rpr:
+  for all (scale, bias) given rpr:
+    choose 1 with lowest (mu, std)
+
+But I was wondering if there was a way to just compute scale and bias. Naturally least squares makes the most sense, but it has to be constrained to integers. Well except for the scaling value where we would have to do something weird like:
+output*10/8 or w.e.
+
+So I think the problem statement here is:
+Given that rpr > adc,
+how do we select the best 8 states
+constrained to what we can represent by integer scale and bias.
+
+Any thoughts ?
+
+------
+
+"Integer Least Squares" is a thing.
+
+https://stackoverflow.com/questions/43163682/integer-linear-least-squares
+https://towardsdatascience.com/integer-programming-in-python-1cbdfa240df2
+
+looks like these would have us use ILP.
+
+------
+
+If we can feed it a large vector of data
+and have it pick the (scale, bias) that minimize least squares error
+we wud be golden.
+
+> then we cud use that as our error approx ? 
+> or wud we still want to do the loop for all (state, error)
+
+------
+
+Hmm, well I think floating point would be too expensive for the additional benefit especially on smaller 128x128 arrays. We could do something like come up with some fixed point format, where we use 12 bits to accumulate instead of 8 where each bit = 1/2^4, and then round back to 8 at the end.
+
+And I guess we don't need this scale and bias because we can use a lookup table ... like the ADC's output is the input to a LUT ... or whatever allows us to implement this mapping the most efficiently. 
+
+Let me know if you come up with any ideas. I'll probably try some Python experiments out. I have a feeling this will perform better than the dynamic technique and also be easier to implement. 
+
+------
+
+alright so what are the actual constraints we want to try first with ? 
+
+> integer [bias, numerator, denominator]
+> 12 bit fixed point ... 1/16.
+  > then just divide by 16 at the end ... but atleast we get to add up all the partials.
+
+> do the points need to be linearly separated. 
+> feel like this must be common sampling/signal processing problem ...
+
+well this is really a quantization problem isnt it ?
+same thing we did with quantized neural networks
+
+how does a flash ADC work lol ? 
+> https://www.youtube.com/watch?v=NASkjo7s8f4
+straightforward.
+
+okay then so we could put the thresholds wherever we want ? 
+assuming we can get a reference there ...
+
+------
+
+> so where do we put our references ?
+> what are constraints on scaling them ? 
+  > what we can represent with scale + bias ? 
+  > using a LUT ? 
+  
+this problem is definitely solved somewhere else.
+> k-means
+
+I think at first, dont constrain the problem.
+find the 8 best points
+then after that figure out what the constraints need to be.
+
+------
+
+So I am pretty sure we want to use k-means to get an unconstrained solution.
+Then afterwards we can do something else.
+
+playing around with this:
+'''
+var = 0.2
+adc = 8
+rpr = 16
+p = 0.8
+samples = 100000
+'''
+
+yielded:
+min=5
+max=16
+
+which is interesting...
+only 13 unique states.
+despite doubling our adc range.
+
+------
+
+so does this mean our problem is constrained k-means ? 
+well not really right ? 
+dosnt it matter what our result is after k-means as well ? 
+... important question to answer.
+
+
+nah that doesnt even make sense.
+
+------
+
+kmeans is absolutely the right answer to this.
+it picks the whole numbers because they yield zero error.
+
+------
+
+> okay so now we want to look at actual data.
+
+so this data will be tricky.
+
+> pick a layer.
+> go through and select rows where activation was 1.
+> then sum along them to give us the distributions we want to fit.
+
+BUT the difference is 
+we want to break it down by ADC read, not full 128 column.
+
+------
+
+can we do this specific to each column ? 
+can we configure this on the fly ? 
+
+meaning - if I only turn on 8/16 rows, can I change my ADC thresholds ?
+
+------
+
+what is the next step for this ? 
+
+well we can do 1 of 2:
+> assume we can dynamically configure
+> assume we cannot
+
+with both ways the step forward is the same.
+> integrate with convolution basically.
+> figure out how to even use these centroids.
+> compute expected mean ? quantization will cause a mean I assume.
+
+yeah so we have to build the framework first.
+then we can try dynamic configuration of the ADCs
+
+------
+
+1)
+need a new profile function basically
+that will run through activations
+and figure out the centroids
+
+2)
+pass centroids to pim.c 
+add an ADC function that can do this and variance.
+> this = threshold arbitrary values to [0..7]
+  > then scale them back to whatever they are supposed to be using some function implemntation.
+
+3)
+update rpr.py to compute expected (std, mean)
+pick one that matches our constraints.
+> for this computation, i believe we will use actual values rather than computing with statistics.
+> better to use actual values, then use some average and then compute with stats.
+  > well hold on there. we cannot use np.random.normal() ... we need to compute with distributions not samples.
+
+4) 
+dynamically configure ADCs
+1) bias current 2) variable threshold ADC
+different thresholds for each column ?
+
+------
+
+> might be a good time to clean this code up.
+
+1) 
+struggling here bc we have pretty bad code.
+we need to call this function every time we want to try a new rpr.
+> every layer gets its own rpr.
+> so for every new rpr() we try we have to run this function.
+
+thinking - it wud be better to run self.conv(). change comp -> dont rail at 8, can do that in Python. this way we can get fast profiles.
+
+------
+
+where do we start with (1) ? 
+'''
+w_offset = self.w + params['offset']
+wb = []
+for bit in range(params['bpw']):
+    wb.append(np.bitwise_and(np.right_shift(w_offset, bit), 1))
+...
+...
+self.params['rpr'] = rpr(nrow=nrow, p=p, q=self.q, params=self.params)
+'''   
+> this code exists in conv constructor...
+> def dont this anymore.
+> transform weights()
+> transform inputs()
+
+> check to make sure that adc_scale actually works before we do all this shit.
+  > currently running stuff on Desktop.
+  > works fine.
+
+------
+
+so if we look at what p is from that code above.
+
+[0.74829932 0.74829932 0.74829932 0.74829932 0.74829932 0.74829932 0.74829932 0.79591837]
+> we get this.
+> its a little weird how consistent it is across bits ...
+> but if we get the right answer, its fine ? 
+
+so we cant quite just use self.wb to get the same results here
+> AND why wouldnt you do this idea by block rather than by layer ?
+> def makes more sense to do it by block rather than layer.
+
+its almost like we should constuct convolutions and dense matrices from blocks
+not from arrays.
+create another layer of hierarchy.
+
+------
+
+well ignoring that point, how do we proceed ? 
+well we cud not even do rpr by bit and just squash it.
+that would clean that part of the code up.
+
+------
+
+> self.params['rpr'] = rpr(nrow=nrow, p=p, q=self.q, params=self.params)
+> so this is the call we make for rpr.
+
+we want to stop giving it: p
+and we want to start using the activation information we get from: collect
+
+and collect will give distributions of the output
+then we can call kmeans and get our centroids.
+
+from there, how do we compute expected (mean, variance) ? 
+
+well i think u have to do the same thing as before - that is where u loop through all possible error options given variance and the current state.
+> the only thing that changes is the percent of chance of getting that state is not a function of p.
+
+------
+
+> collapse the p thing to just use self.wb ... dont worry about different bits
+  > put a todo there saying each {w bit, block} should get its own rpr.
+  
+well actually rpr does take the p array,
+so idk.
+
+we are supposed to remove this part anyways lol.
+
+> okay maybe leave it as it is and put the block comment
+
+------
+
+> so we will loop over rpr options.
+> each time need to call collect, get centroids, compute expected (std, mean)
+
+alright - call dist(x) instead of profile or w.e. 
+want to see the same plot we were seeing before.
+
+> why we going so slow ? 
+  > so hard to focus for some reason.
+
+------
+
+> write a function that can compute: (std, mean)
+> ignore p.
+> have this distribution, have our centroids.
+
+> know the percent of time we are going to get these #s. 
+  dont have to worry anymore about p(w=1 | x=1)
+  
+so how do we compute this error ? 
+> p(s) ... using the distribution
+> p(e | s) ... using distribution, variance, and centroids
+
+------
+
+the plan is to compute all these for a wide range of rpr.
+and to do it for different x-bits.
+
+otherwise how wud it look ? 
+> it wud be like
+> for all rpr:
+  > dist(x)
+  
+well maybe thats not bad actually.
+because we can probably use less rpr by pulling out as soon as we get (std, mu) we dont like.
+
+rpr just needs to be passed in, not inside of params.
+
+------
+
+> profile_rpr(x)
+> each time call dist
+  > return centroids, std, mu
+
+pick the best one using this information.
+
+------
+
+for all xb
+    for all wb
+        dist(x)
+        
+want to pick our centroids specific to (xb, wb)
+will of course improve stuff.
+
+that does mean we need to switch adc thresholds or add bias tho...
+> yeah there are so many groups we can make that would benefit from their own centroids.
+
+------
+
+but we cannot have so many groups.
+can we even have more than 1 for this initial trial ?
+
+well each (xb, wb) gets its own rpr
+so i imagine each one gets its own cetroids.
+
+what else was supposed to get its own centroid ? 
+wernt we just planning on doing centroid by layer ?
+>> can this be done independent of cards ? 
+
+well counting cards = rpr
+so i dont think so.
+
+------
+
+so we need to compute centroids for each (xb, wb)
+> but i think we can pre-compute all the distributions forutnately. 
+> ah very good point.
+> for all rpr, for all xb
+> everything will be the same.
+
+------
+
+loop through 
+> pre-compute distributions.
+
+go look at profile_rpr.
+... for wb in range(params['bpw']):
+... for xb in range(params['bpa']): 
+... for rpr in range(rpr_low, rpr_high + 1):
+
+so we want to do different centroids for each (xb, wb) ? 
+the more we do, the more overhead exists.
+
+> well dont bother with xb, zero skipping.
+  > its possible xb wud help with bottom of array problem BUT better to just solve that with storing for rpr when bottom of array problem.
+
+------
+
+so i guess i wudnt even bother with wb, xb, or rpr
+but we wud eventually care about wb and rpr.
+
+------
+
+1) get the distribution for all (layer-wise, not xb, wb, or rpr)
+2) look at prob_err - replace p and binomial, keep var and cdf
+   bin = binom.pmf(s, rpr, p)
+   bin = dist[s] / np.cumsum(dist)
+
+   this will work just fine.
+   everything else remains the same.
+
+------
+
+> we only need to collect (values, counts, centroids) for rpr.
+  > we dont care about the different wb just yet.
+  > AND at the end of the day, I think the most important grouping will just be the number of wordlines we turn on.
+
+------
+
+just gotta set up bare min framework for adc scale.
+which means hitting all 4 points from above.
+
+-------
+
+we are now seeing - rpr = 16, values = [0..16]
+before i thought the highest we wud see is 75% ??
+
+thats because we did this:
+> wb_cols = np.reshape(wb, (self.fh * self.fw * self.fc, self.fn, params['bpw']))
+> col_density = np.mean(wb_cols, axis=0)
+
+which was not in groups of 128, not the whole filter
+well hold on there actually.
+because for first layer its not that much larger.
+in fact its just like 1.1 cols.
+
+well the difference is we considered groups of 16 now
+we turn on 16 rows with 1s
+so it is possible that this happens.
+
+-------
+
+the new goal is changing prob_err to use the real p.
+
+-------
+
+1) need a new profile function basically
+2) pass centroids to pim.c 
+3) update rpr.py to compute expected (std, mean)
+   > add centroids
+   > prob_err dictionary.
+4) dynamically configure ADCs
+5) centroids for [different number of wordlines enabled, xb, wb]
+
+-------
+
+> so we really need to find an efficient way to compute centroids then.
+> this dude is saying use quantile.
+  > not the right answer i dont think.
+
+-------
+
+how do we add this to pim.c
+> int* adc_thresh
+
+> how do do nearest in a list ? 
+  > well we shudnt have to do this
+    > our thresholds should have a pattern that will make this easy.
+
+-------
+
+centroids:
+> will they be uniformly distributed ? 
+> will there be fractions ? 
+
+> DONT consider scale/bias ... that would come afterwards.
+
+-------
+
+so i dont think they need to be uniformly distributed 
+which makes the nearest neighbor thing harder.
+
+> thats a lot of ops ... well its only for every pim operation.
+
+but yeah i think ADC will become a for loop that drops out once error increases. 
+
+-------
+
+> okay we got eval_adc.
+> how do we do variance with this tho ? 
+  > keep lut_var ... but make the values floating point values just sampling a normal distribution
+  > then we just add one of them.
+  > then call the adc function, have it take a float value 
+
+-------
+
+centroids - how do we come up with a reasonable approximation while we wait on a good solution ? 
+> weighted k-means seems okay.
+
+-------
+
+next:
+> pim.c > run with centroids
+> rpr.py > approximate error for rpr, now computing centroids.
+
+-------
+
+have we made too many changes to debug ? 
+idk so many things are dependent on one another
+its not like we can do 1 thing at a time.
+
+dont think we have to revert anything
+just make previous code work is all...
+> with lut_var.
+
+-------
+
+copy and revert:
+> cdot.py
+> conv.py
+> layers.py
+> pim.c
+> var.py
+
+-------
+
+okay hopefully lut_var will work.
+need to 
+
+-------
+
+how was pim_sync.c even running ? 
+we doing floats now ...
+
+-------
+
+really hope we did: resnet18_activations.npy
+these correctly.
+the layer_id shit is tricky
+with blocks being ooo and stuff.
+
+-------
+
+yup its actually preventing this from working
+because we cannot load [x-1] here...
+
+-------
+
+alright so we can just do it at the start of forward 
+seems to work ? 
+need to include the centroids tho.
+
+> return rpr
+> return centroids
+
+why are all the rpr's the same ?
+> across layers
+
+-------
+
+so because we use different rpr for each [xb, wb]
+we need to get different centroids for each [xb, wb]
+
+centroids are bound to the rpr we are using
+which means we are passing in a 3d array. 
+> lut_rpr -> lut_centroids.
+
+but we cud just compute centroids for different rpr.
+we dont need 64 centroids is what we are saying
+although we can have that many if we want.
+
+-------
+
+> compute error with centroids.
+> pass centroids in.
+
+-------
+
+what happens when adc_thresh = 11.5
+> then we can get 0.5 error.
+> well - this will eventually get quantized, so not truly 0.5, more or less who knows.
+
+-------
+
+seems like we need to change how we compute the error.
+
+for a given state
+> what are the errors we can get ? 
+> what are the odds of getting those error.
+
+we can only get an error for an ADC state we can detect.
+huh - so its like 
+what are the chances of landing in the correct state
+and what are the chances of landing in all the other states.
+
+-------
+
+for s in (1, rpr):
+    (error of each adc_state) * (prob of landing in that adc_state)
+
+-------
+
+adc_thresh should be a floor function I believe
+so when we pass adc_thresh, this should be accounted for.
+then we can do:
+cdf(adc_thresh[i-1], adc_thresh[i])
+
+i think we need a separate python script to get this prob_err calculation right.
+
+-------
+
+can use psums.npy -> (ADC=8, RPR=12)
+then we compute centroids
+then we can compute the error.
+
+is this the best way ?
+well we dont need to use psums
+we can create our own distribution
+
+yeah lets do that instead.
+
+-------
+
+so new problem
+is this zero issue
+we automatically get 0
+but its hard to convey that to the kmeans solver.
+
+and thus for adc=8, rpr=8
+we only get 8 centroids
+and lose.
+
+-------
+
+we can easily do integer k-means
+just by always rounding the centroid.
+then do some evaluation of what the best precision is.
+
+-------
+
+make sure this is good:
+> https://github.com/bcrafton/speed_read/commit/6a7aeb509368fbaa5fc17335fb347cee5cb59f57
+
+-------
+
+oh wow, new problem is obvious
+> centroids for rpr=9 -> [ 2. 3. 4. 3.5 3. 6.7635784 5.7635784  5. 7. ]
+> there are horrible choices !!!
+
+it makes the guesses actually worse, should not have more than 1 number bound to 3
+
+oh wait, what ? 
+now i am seeing this for rpr=9
+ [ 0.5 1.5 2.5 3.5 4.5 5.5 6.5 7.7635784 8.527157]
+ 
+OHH, its because we sorted it before pushing it through adc_floor.
+
+-------
+
+okay pretty sure we know whats going wrong.
+> mean = 20,000
+> we are not applying offset correctly ? 
+  > no actually, dont think thats it.
+> we are def rounding down 
+  > pdot[block][bl][bl_ptr] = eval_adc(pdot_var, adc + 1, rpr, adc_thresh);
+  > pdot = int
+  > eval_adc = int ... so it rounds the adc_thresh inside of it
+
+-------
+
+but rounding down wudnt increase the mean ...
+
+how could the mean be 20,000 higher ...
+> 20,000 is before quantization by 2300, so its really only 10.
+
+-------
+
+uhh, we are returning fractions.
+0.5, 1.5, ect
+
+i guess they are getting rounded down so its sorta fine, but idk.
+> yeah it actually works out for RPR=8 case I guess ? 
+
+wud this actually work for 8 ? 
+
+-------
+
+still dont know the problem for why we are so off tho.
+
+[[0.        0.        0.        0.        0.        0.        0.
+  0.        0.       ]
+ [0.        0.        0.        0.        0.        0.        0.
+  0.        0.       ]
+ [0.        0.        0.        0.        0.        0.        0.
+  0.        0.       ]
+ [0.        0.        0.        0.        0.        0.        0.
+  0.        0.       ]
+ [0.        0.        0.        0.        0.        0.        0.
+  0.        0.       ]
+ [0.        0.        0.        0.        0.        0.        0.
+  0.        0.       ]
+ [0.        0.        0.        0.        0.        0.        0.
+  0.        0.       ]
+ [0.        0.        0.        0.        0.        0.        0.
+  0.        0.       ]
+ [0.5       1.5       2.5       3.5       4.5       5.5       6.5
+  7.5       8.       ]
+ [0.5       1.5       2.5       3.5       4.5       5.5       6.5
+  7.7635784 8.527157 ]
+ [0.5       1.5       2.5       3.5       4.5       5.5       6.6591067
+  8.406918  9.495623 ]]
+
+-------
+
+hmmm maybe actually i can see how the round up happens
+
+can definitely see some nasty issues happening here:
+[5.5 6.6591067 8.406918 9.495623]
+
+but i dont see them going away ...
+
+why would rounding increase the mean ? 
+
+-------
+
+okay i can see why we get errors
+but what i dont get
+is why does rpr not compute them correctly ? 
+
+well, lets divide mean and std by q.
+
+-------
+
+okay so issues with fixed point and rounding.
+let pdot remain as it is
+create new variable: psum ? 
+
+so normally what we do is this: 
+psum[block][bl][bl_ptr] = eval_adc(pdot_var, adc + 1, rpr, adc_state, adc_thresh);
+y[r[block] * C + c] += (pdot[block][bl][bl_ptr] << (wb + xb[block]));
+
+BUT the issue is that
+if we instantly update y, we will lose floating point information
+if we *4 to get fixed point, we will have to know when to divide y by 4.
+
+but regardless, you are going to have issues with y_offset
+because it needs to be shifted by 4 if they are to be mixed.
+
+issue with waiting till y is done
+is that we dont sync at the end of a y
+blocks just move on to the next one...
+
+-------
+
+so what next ? 
+> well finish fixed point
+> then {dynamic reconfig + centroids for different rows enabled}
+
+-------
+
+> y[r[block] * C + c] -= 4 * ((wl_sum[block][bl] * 128) << xb[block]);
+> y = y / 4
+> self.adc_state[rpr] = 4 * np.array(centroids)
+
+-------
+
+> so how do we polish this ? 
+  > just make a param called fixed-point ? 
+  > I actually don't think this is a bad implementation.
+  
+-------
+
+what is the correct ratio between adc/array
+
+> 128x128 array = 0.0003 mm^2
+> 16 5 bit ADC = 0.0036 mm^2
+
+> 128x128 array = 0.37 pJ
+> 16 5 bit ADC = 22.45 pJ
+
+hmm so there is clear diff between power and area.
+
+-------
+
+alright so basially just need to make "dist" efficient.
+
+-------
+
+this requires higher level changes
+we want to do profile_rpr, then profile_alloc
+profile_rpr does not require using pim.c, Conv(layer), or w.e.
+
+we do need the inputs to each layer tho.
+1) load them
+2) get them from conv/conf_ref
+
+want to eliminate (1)
+next decision is:
+profile_rpr before profile_alloc
+or profile_rpr merged with profile_alloc
+
+-------
+
+so the merged version
+basically, we are thinking this:
+(1)
+> pred[example], result = self.layers[layer].forward(x=pred[example], profile=True)
+
+keep everything the same, but add a flag that says whether to compute rpr or not.
+
+we can also do this:
+(2)
+self.layers[layer].profile_rpr(x=pred[example])
+pred[example], result = self.layers[layer].forward(x=pred[example])
+
+again keep everything the same, just tell it whether to compute rpr or not in model.profile(x)
+
+-------
+
+profile_rpr before profile_alloc
+would be adding a new function in model
+(3)
+profile_rpr
+that would use the conv_ref function
+to make things go faster.
+
+-------
+
+neither of these right or wrong ... both fine.
+
+lets keep what we have.
+but remember these as options
+
+so next step 
+is doing all dist in 1 go
+preferably in C.
+
+-------
+
+profile.c:
+1) finish it.
+2) return y so we can verify we did it correctly.
+3) get distributions for different (x, w) combinations
+4) get distributions for different (x, w, rpr, #wl enabled)
+
+-------
+
+okay so profile.c still takes forever to run.
+what can we do to fix this ?
+
+dosnt feel like it shud take so long.
+its not that complex of a computation
+
+options:
+1) reducing sample size
+2) loading distributions each time
+3) can we do an approximation of {values, counts} ? 
+>> we also need to verify that our counts are correct ...
+
+ideas for approximation.
+yeah this problem is going to persist as we want to get more and more specific with data.
+
+-------
+
+i think we can probably get a super good approximation.
+
+p(w_col)
+p(x_row)
+
+we cannot assume gaussian tho ...
+does it need to be ?
+the only thing we wont be able to capture is covariance.
+
+treat each column as a separate entity. 
+> p(w_col)
+
+right now, we compress everything into a {values, counts}
+so looking at column level, talking about covariance
+> seems even too in depth.
+
+-------
+
+side script.
+run this function with rpr=8
+or can load that npy file i think.
+
+then get approx for count, values.
+
+-------
+
+the reason approx.py its so fast, is because we are using rpr=12.
+
+-------
+
+> break both W and X into matrices.
+> assuming no covariance
+> figure out what expected #s are.
+
+-------
+
+this is a disaster.
+requires that cards=0 needs this 10b accumulation shit
+each algorithm should get its own c implementation
+> baseline
+> zero skip
+> counting cards
+> centroids
+
+-------
+
+this commit never made it into adc_scale9:
+> https://github.com/bcrafton/speed_read/commit/e8dc16535de43fc0997a8c0eccc201d98b216484
+> meld pim.c ../../speed_read1/src/pim.c
+
+-------
+
+> want more 1s ... better improvement over zero skipping
+> want lower power ADC metrics ... check papers online.
+> power comes from {array size, leakage, sum(rpr - adc), ~percentage of zeros}
+
+> fix eval_adc 
+  > think this is breaking out MSE.
+  > check eval_adc in pim.c
+  > check exp_err in conv.py
+
+> zero skipping same as CC ... that hack we put in.
+> dont skip adc update, skip straight to next xb
+> (e, e_mu) - account for bias and relu
+> centroids by # of wordlines
+> faster profiling ADC expected
+> C code for each algorithm to make things cleaner.
+> 1024x128 arrays.
+
+our direction got skewed again after trying to make ADC profiling faster ...
+... where do we go now ? 
+
+-------
+
+a lot of things depend on getting good centroid approximations and are more computationally challenging than what we currently have.
+> makes sense to make this work well.
+
+> we can just have many methods of calculating centroids ? 
+> then use a switch to select which one is used ? 
+
+-------
+
+think of the x's as binomial distribtutions
+then think of the w's as 1 or 0
+which means each column
+is just the sum of these distributions
+
+i mean its not even a binomial distribution
+its just 0 or 1.
+
+but thats not right
+becuase that means we will always get the same shit.
+so it is like the sum of all these distributions together.
+
+how can we sum all these 128 distributions together, then create expected number of rows turned on 
+
+... also consider that given the different distributions
+different numbers of groups of RPR will be required...
+so everything really does have to be kept as percentge/distribution
+
+-------
+
+0.53 + 0.52 + 0.56 ...
+but each is a percentage chance of getting 1
+can we average them ? then throw them into binomial ? 
+
+but if we come up with percentages
+things wont get quantized and we shud be fine.
+
+is the only thing that matters the number of 1's per column ? 
+if we keep distributions
+cant we just figure out the numbers later ? 12, 12, 6 or w.e.
+
+-------
+
+its like a giant tree
+u have to compute chances of getting a cumulative 0 from all cells
+then (1,2,3,4)
+
+yeah and so the only form of covariance
+will be the input vectors
+
+so is there an easier way to compute these odds ? 
+
+-------
+
+something is definitely wrong with our power numbers.
+we had a bunch of 64s
+in that last one.
+and its telling me less power efficiency ??
+
+> definitely has to do with eval_adc.
+> or comps_enabled or w.e.
+
+but it will be useful to see the luts and centroids that were used.
+
+-------
+
+> {profile_rpr, profile_alloc}
+> nah this dosnt make sense
+
+we want to do profile_adc
+
+-------
+
+we can easily run all these things in parallel.
+just let conv_ref run
+then do 8 different profile.c in parallel or so.
+
+-------
+
+so new problem
+is we want to be able to initialize a network
+then:
+1) then call 'profile_adc'
+   > run and save, or load.
+2) create all our test cases with different params
+
+-------
+
+so we can just have an init function.
+and pass the params in later.
+
+is there a better way ? 
+> only thing i can think of
+> is an entirely different model structure.
+  > like an entirely different {conv, dense, pool, ect} framework JUST for profile_adc.
+
+-------
+
+actually - kinda hate both equally. so dont care so much.
+
+well ideally i think we wud break off conv layer and the CIM weight matrix.
+
+-------
+
+andddd... after all that we run into the last issue
+transform_inputs and transform_weights
+are needed for profile_adc
+
+which makes total sense.
+so next options are:
+
+> 2 different params ... {op, envm}
+  > what if we want to do different wl/bl sizes ? 
+> separate {conv, dense, pool, ect} framework JUST for profile_adc.
+> other ideas ?
+  > u need some information to profile the adcs.
+  > sometimes we want to change those parameters.
+
+-------
+
+so we ran into this weird issue
+was gettign Nan error from kmeans
+
+i believe its because we never ran adc_scale10.
+
+and so in 9, we called profile and it did the profile for:
+adc_scale
+centroids
+
+and so it returned self.act(y_ref)
+
+but the new one just returned y_ref
+which is not complete
+we need self.act(y_ref)
+
+-------
+
+best test would be running adc_scale10.
+
+-------
+
+what was next here ? 
+we want to integrate the older methods to our new setup.
+
+-------
+
+we are still calling 'profile_rpr' in forward.
+
+-------
+
+okay we verified adc_scale10 is broken
+i dont really even know what its doing lol
+it creates a model, runs adc_profile
+never uses either of them
+then it spawns the test creating new models not passig the old ones along.
+> https://github.com/bcrafton/speed_read/blob/adc_scale10/src/tb.py
+
+i think this was just to make sure that we cud do adc_scale separately.
+
+-------
+
+> we need to back verify 'dynamic' with cc_update1.
+
+-------
+
+plot and verify this shit.
+
+do we also want to verify with CIFAR10 ? 
+feel like they wud make it complete
+yeah i think we want to verify with both.
+
+-------
+
+okay, dang ... these looks pretty darn close.
+
+meld pim_dyn.c ../../speed_read1/src/pim.c
+meld plot4.py ../../speed_read1/src/plot4.py
+meld rpr.py ../../speed_read1/src/rpr.py
+
+-------
+
+i am not sure why we reran with just 20%
+because i dont think we changed anything.
+
+ohh
+right it was the weights and stuff
+we throught we wud see similar min/max.
+
+-------
+
+okay after moving the weights.
+fixing the init_x
+we get the EXACT same min/max
+we get the same cycles/stalls
+
+but we are seeing different:
+y_std, y_mean.
+
+-------
+
+beginning to think its just how we are computing the mean/std
+
+OH, didnt we do randomness differently ? 
+
+yeah the table is all messed up r.n.
+
+cc_update1:
+> think the var was doubled (*500, not 1000)
+> think we should expect to see sharp changes in MSE, when we do this quantized var error LUT
+
+adc_scale12:
+> var in this repo is not accurate for pim_dyn.c
+> passing it a floating point array, when it wants int
+> yeah actually 0 idea how this is working lol.
+  > AHH, we cast it to int inside of cdot.py
+
+-------
+
+i think the right move is to update pim_dyn.c to take floating point values
+but maybe to first verify that with the old lut_var it works the same
+we are basically there.
+
+> okay we so made sure cc_update_match matches with us 
+BEFORE switching to floating point
+
+we see >1 MSE for ResNet18 on layer 1
+
+... we never verified with CIFAR10, 
+but dont know what we were getting for that.
+
+should we back verify with CIFAR10 ? 
+
+-------
+
+yeah lets verify all the way back.
+checkout cc_update1 at that commit
+lets see if it actually matches old results
+
+then lets pull cifar10.npy in
+and see if we can get it to match as well.
+
+-------
+
+sooo 
+remember how we at one point changed from 32,64,128 -> 64,128,256
+and we figured out the hard way
+also changed from: (f,b,q) to dict['f'], dict['b'], dict['q'] ?
+
+well i dont think that we ever commited that
+we just verified it and moved on.
+
+-------
+
+OH right, 
+checkout 
+
+1) cifar_match_new
+2) cifar_match_old
+
+it looks like we branched: cifar_match_new
+from cc_update.
+not cc_update1
+
+might want to do some diffs there ?
+
+-------
+
+why does mse skyrocket when we get to 18% variance ? 
+
+0.16*3 = 0.48
+0.18*3 = 0.54
+
+so essentially, an error becomes inevitable even at rpr=1.
+
+-------
+
+plot_perf.py
+plot4.py
+
+which one did it better ?
+
+-------
+
+OH wow - super powerful note
+if we only turn on 1 rows and we get our a 3.
+we need to cap it.
+
+but what about when it is less ?
+yeah then we are screwed. 
+we need to lower than threshold significantly.
+
+meaning we should set the boundary for 1 to be wayyyy less than half.
+not sure if this will compromise other things tho.
+
+-------
+
+plot_perf / plot_util / plot4
+all bin things differently
+but i want scalable solution
+that makes this cleaner.
+
+high dimensional arrays is pretty ideal.
+because then we can do [SKIP][:]
+or w.e.
+
+the dictionary not so great because we cannot prune certain sections.
+
+really should have a good tool to handle these results
+not sure how to do that tho..
+
+-------
+
+so what is the next thing here ? 
+> better plot code ... plot.py
+
+> handle cases where we get dumb errors that can be avoided.
+  > y > nwl
+  > y = 0.49 ... rounding down to 0.
+  > fix pim_dyn.c 
+
+> we had very little improvement on ResNet18.
+  > had to slow wayyy down to get to 0.1 STD.
+  > do we need to think about variance impact in shallow vs deep layers ? 
+    > wud this not be a paper in itself ? 
+    > yeah similar idea to before with CIM-NET
+    
+so what can we do to get better performance on ResNet
+> well there are a few priors.
+
+1) we need a good ResNet or VGG. High accuracy. Each block should have its own max(y). will give more 1s and higher accuracy.
+2) what is the variance threshold we can tolerate.
+3) we need to see what results we are currently getting with this threshold with our updated changes. AND see if there is anything we can change right now to get perf boost.
+
+-------
+
+so we cant use pim_sync right now
+which can be re-named pim_layer i suppose
+layer/block allocation.
+
+we do want to have both right ? 
+
+yeah so its going to be:
+-------
+> no skip / skip
+> cc / no cc
+> dynamic / centroids
+> profile / no profile
+> block / layer
+-------
+> how to do sync ? 
+> can we make this modular ? 
+> python files are such a mess.
+-------
+
+good: 
+=====
+AA.py     
+dot_ref.py    
+tb.py
+tb_cifar.py
+block.py  
+conv_utils.py  
+rpr.py       
+var.py
+kmeans.py   
+
+bad:
+====
+conv.py        
+layers.py  
+cdot.py   
+cprofile.py    
+
+pim_sync.c
+pim.c      
+pim_dyn.c  
+profile.c   
+
+-------
+
+so we arnt really having any unique thoughts
+so we just have to do something.
+
+want to support this sync/layers.
+
+do we start at Python or C ? 
+
+-------
+
+Conv / Model 
+> too complex
+
+pim.c / pim_dyn.c
+> need to make pieces modular. 
+> diffs are so small.
+
+-------
+
+>> much easier to work at desktop machine actually ...
+
+-------
+
+lots of things dont make sense
+> block_map
+not sure what this actually is.
+
+these are the things we want to be cleaning up.
+feels like there shud be a more systematic way of doing this.
+> block_map should be created and then not need to be modified again later.
+
+we shud have functions that return the correct data structures for what we are trying to do.
+
+so definitely feeling like we want to change python stuff first.
+
+-------
+> dynamic / centroids
+  > both of these should use ADC, NOT p=0.75
+  > altho we might need them for the paper ?
+  > or can we change the math to just use ADC ?
+   
+  > this dynamic idea feels silly for any high RPR.
+    > why wouldnt u atleast try to change the thresholds.
+    > or just skip lsb ... use a bias = f(adc count)
+    > there are just better methods to do here.
+
+> block / layer
+
+-------
+
+> really want to get rid of some of these switches:
+        if   self.params['alloc'] == 'block': alloc = self.block_map
+        elif self.params['alloc'] == 'layer': assert (False)
+
+
+
+> if we are going to have bullshit like: "set_block_alloc"
+  > lets contain that bullshit to 1 function.
+  > we moved stuff from cdot -> conv ... but lets take it 1 further ... and move it all into "set_block_alloc"
+
+
+
+> can we just do away with block/layer switch for now ?
+  > then reimplement it cleaner later ??
+
+-------
+
+> {conv.py, model.py}
+
+do we need to setters ?
+> set_block_alloc
+> set_layer_alloc
+> set_adc_profile
+just pass as argument ? 
+
+-------
+
+def weights()
+> this is some next level bull shit.
+
+-------
+
+mac_per_array_block[example][self.block_map[r['id']]] = (r['nmac'] / self.weights[r['id']].factor) / (r['block_cycle'])
+
+-------
+
+model = create_model(weights)
+
+if not load_profile_adc: profile = model.profile_adc(x=x)
+else:                              model.set_profile_adc(profile)
+
+model.init(params)
+> layer.init(params)
+  > self.params['rpr'] = [dynamic or centroids]
+> self.weights.extend(layer.weights())
+> self.set_block_alloc()
+
+model.profile(x=x)
+
+model.forward(x=x, y=y)
+
+-------
+
+1) clean up one piece at a time
+2) rebuild from scratch
+
+think we need to do a combination of these things.
+figure out what needs to be re-written first
+
+> re-write pim kernel
+> re-write profile, adc_profile
+
+i am okay with rebuilding
+but i think we need to do it one piece at a time
+integrating with existing stuff.
+
+-------
+
+how are we supposed to test layer-alloc, if we deleted all the layer alloc stuff ? 
+> i think reset to: august1
+> re-write pim.c modularized
+
+we need to actually code, figure out whats wrong
+then roll things back if needed.
+
+-------
+
+1) kernel (zero skip, baseline)
+
+2) eval_adc
+
+3) comps_enabled
+
+4) correction() -> dynamic stuff.
+
+5) collect sat/pdot_sum
+  > we need to figure out if this part is useful or not ...
+    > can we just add a static bias ?
+
+-------
+
+so re-writing pim was definitely the right starting point.
+> different pim() for pim_sync/pim_dyn/pim_centroids ???
+
+-------
+
+> lets use data structures for pim.c
+
+> more modularity ? 
+  > we didnt do any [1-5]
+
+-------
+
+>> we still have smaller details we want to clean up.
+BUT 
+I think we should start being able to mix {dyn, centroids}
+
+-------
+
+part 1: 
+
+pdot[block][bl][bl_ptr] = min(max((int) round(pdot_var), 0), min(adc, rpr));
+y[r[block] * C + c] += (pdot[block][bl][bl_ptr] << (wb + xb[block]));
+
+if (wl_sum[block][bl] >= adc) {
+  sat[block][bl][bl_ptr] += (pdot[block][bl][bl_ptr] == adc);
+  pdot_sum[block][bl][bl_ptr] += pdot[block][bl][bl_ptr];
+}
+
+-------
+
+part 2: 
+
+if (wl_ptr[block][bl] == WL) {
+  for (int adc_ptr=0; adc_ptr<BL; adc_ptr+=8) {
+    int bl_ptr = adc_ptr + col[block];
+    int c = (bl_ptr + bl * BL) / 8;
+    int wb = col[block];
+
+    if (wl_total[block][bl]) {
+      float p = ((float) pdot_sum[block][bl][bl_ptr]) / ((float) wl_total[block][bl]);
+      p = min(max(p, 0.), 1.);
+      int e = sat_error(p, adc, rpr);
+      y[r[block] * C + c] -= ((sat[block][bl][bl_ptr] * e) << (wb + xb[block]));
+      
+      sat[block][bl][bl_ptr] = 0;
+      pdot_sum[block][bl][bl_ptr] = 0;
+    }
+  }
+}
+
+-------
+
+> int comps = min(wl_sum[block][bl] - 1, adc - 1);
+> pdot[block][bl][bl_ptr] = min(max((int) round(pdot_var), 0), min(adc, rpr));
+
+-------
+
+holy crap this whole time we were running alloc=dynamic ...
+
+-------
+
+something clearly going on with performance of simulation
+why is it so damn slow ? 
+
+well we dont even know if its functional tbf
+
+-------
+
+yeah its definitely not functional
+> we should make sure this is functional for centroids before dynamic ...
+
+-------
+
+> can we use C++ ? 
+  > specifically classes ? 
+  > wud be a lot easier ...
+
+> yeah seems like we can use it.
+
+so seems like we merged {dyn, centroids}
+> finalize the merge ? 
+> do classes ? 
+> work on new sync function ? 
+for sure make a commit before anything.
+
+-------
+
+> classes
+> sync function
+
+-------
+
+====================
+====================
+SYNC 
+SYNC 
+SYNC
+====================
+====================
+
+how do we make layer sync work ? 
+> need to know which blocks are bound to eachother. 
+
+====================
+
+for b in B:
+    block = block_map[b]
+    for bl in BL:
+        KERNEL
+
+====================
+
+for (int d=0; d<D; d++) { 
+  for (int wl=0; wl<NWL; wl++) {
+    for (int bl=0; bl<NBL; bl++) {
+        KERNEL
+
+====================
+
+for b in B
+> def the way to go
+> breaking it down to even arrays wud be smart as well
+> only have 1 loop.
+  > ... no "for bl in BL:"
+  
+>> breaking it down to even arrays wud be smart as well
+   > push the burden on python.
+  
+====================
+  
+we just need to make a barrier[] we pass to all functions
+> which will be done for block-wise data flow.
+
+====================
+
+yeah this really wont be bad idt
+1) add this barrier thing in Python
+2) make the current sync function work ? we should be able to call this thing lol
+
+====================
+
+> specify the group for each block, when all blocks finish, then group proceeds.
+> computation for this is nasty though.
+
+so we just want to find a clean, efficient way of doing it. 
+
+====================
+
+block_sync
+block_done
+> 2 arrays the same size
+> loop through and check that all blocks in group=3 are done.
+> could use this group_id for setting the r/xb/col they are all on.
+
+group_num
+group_size
+> implies all groups will be the same size.
+> the number of blocks isnt the same tho ...
+
+how do we allow for arbitrary group size.
+> ehhh it really feels like it over complicates.
+
+can we generalize this sync stratedgy for all sync ? 
+> sync blocks @ example level
+  > next_r = done basically
+> sync blocks @ layer level
+  > pim_sync
+  
+ehh idk about this either.
+they are totally different groups.
+
+====================
+
+how does next_r and stuff work for this ?
+> we can either keep block granularity
+> or toss it out 
+obviously its not necessary.
+
+we use next_r in pim_sync
+its just not a vector
+... not sure why we need it.
+
+but it does make sense to continue to use it.
+
+====================
+
+okay so right now its looking like we want to feed a vector: block_sync
+which just specifies the group things are apart of.
+
+we cud also just assume that NWL consecutive blocks work together. 
+and pass a single value called "layer_sync"
+
+====================
+
+but if we wanted to be more general for w.e. reason, i think
+> we wud break apart blocks
+> use this flexible layer sync idea.
+  > which still dosnt make sense for example level.
+  > i guess we would just have [duplicate, block] / [example, layer] level sync array things.
+
+====================
+
+but for now, lets just NWL sync I think.
+
+> pim_sync: array_sync, dup_sync.
+> we want to use: block_sync, matrix_sync.
+
+====================
+
+block_done = [B/NWL, NWL]
+B / NWL = N(duplicate)
+
+how do we associate groups ? 
+> NWL adjacent things. 
+
+so ...
+
+Ngroup = B - (B % NWL) 
+for (i=Ngroup; i<Ngroup+NWL...
+
+====================
+
+not a good solution tho.
+this wud be where group map comes in to play.
+
+#blocks
+block->(wl, bl)
+block->group is necessary.
+
+pick one:
+> hack pim.c   
+> hack cdot.py 
+
+====================
+
+> add group_map, ngroup, group_size or w.e. is needed.
+
+ehh but that is gross.
+because group map is only needed for the case where things are fixed and hardcoded. 
+so u are introducing a variable to make things harder. 
+
+yes but i dont really see another way.
+
+> origin/cifar_match_adc_scale_new
+  > layer assert False
+  > June 2
+  
+> origin/cifar_match_new
+  > uses old cifar model ... 128 vs 256.
+  
+> cc_update1
+  > dont have the right cifar model i dont think
+
+> cc_update_match
+  > layer assert False
+  > last commit: "cifar matches with adc_scale13"
+  > June 1.
+
+====================
+
+what branch did we collect results for BB on ? 
+> ofc we shud be looking at this ...
+> this is where we did [layer vs block]
+
+> resnet5
+> needed some changes but it worked out
+	modified:   ../cifar10_weights.npy
+	modified:   layers.py
+	modified:   results.npy
+	modified:   tb.py
+
+====================
+====================
+====================
+
+okay for C++
+think the gameplan is the same as before.
+we really want to do this in a few phases
+
+do zero skipping loop stuff 
+but allow the other stuff to not be done in c++.
+
+====================
+
+// wl ptr is 2d array ... need one for each bl.
+// which feels ridiculous.
+// but can see why this happens.
+// we process each array separately.
+// so unless we want to do all the arrays together we need wl_ptr like this.
+// also - if we want the flexibility for each array to process on its own ... (1 array blocks)
+// then we need to have wl_ptr for each node.
+
+====================
+
+> block + array 
+VS
+> block
+
+====================
+
+think we know the first step is just coding and making something work right now.
+
+====================
+
+> block/array created
+> now we want to instantiate them.
+
+====================
+
+> layer.c 
+  > instantiate all the blocks.
+  > pass them rpr.
+  > handle sync
+
+====================
+
+ASP-DAC October.
+> need to finish up these changes so we can write that paper.
+
+====================
+
+layer->pim()
+kills binary.
+> seems like segfault
+> could also be from a bad init ... since we arnt setting things to zero.
+
+====================
+
+> |7:1023|8:1022|9:1019|12:1015|13:1014|15:1011|16:1010|17:1008|18:1018|19:1016|20:1012|21:1004|22:1003|23:1007|
+weird thing is - no blocks are getting stuck somewhere ... check above.
+... like this happens at the very end.
+
+====================
+
+> block_id
+> in xaddr
+> this is supposed to be wl
+> think we are using block instead
+> makes sense it was this address ...
+
+> probs gonna run into other issues like this.
+
+====================
+
+now we need to integrate {process, correct, collect}
+> should just start with process I think.
+
+so is process done after every single RPR ? 
+or is it done after a full array read ? 
+
+its 1:1 to pim_kernel.
+its for every RPR.
+
+====================
+
+I guess the other thing we wud want to do = 
+  > buffer list of 128b long vectors
+  > basically the same way we did for our tapeout.
+    > instead of this run time calculation.
+    
+====================
+
+1) actually handle block stuff at block level
+2) move wl_sum/wl_... into array
+
+i think the right move right now = move it into the array. 
+then move it out later once we have a match.
+
+====================
+
+def think issue coming from {pdot, pdot_sum, ...} not getting set back to 0.
+
+====================
+
+> why are they taking different #s of cycles ? 
+> that should be something easy to get right .
+
+with/without correct()
+does nothing
+OH right - we are not using CC.
+
+====================
+
+> alright so we are matching for dynamic AND centroids.
+> where do we go from here ? 
+
+1) making sync work ? 
+2) add centroids/dynamic as a parameter.
+
+====================
+
+did we not save the sync code that we made work ? 
+> what branch would it have been on ?
+> classes, august3, august2, ...
+> we have it on laptop thank god.
+
+====================
+
+there are some diffs between our sync and the old one
+> matrix_sync
+> also dont think block_map is in the right order.
+
+nevermind, its actually in the right order.
+
+====================
+
+think we should keep 2 separate layer.pim functions
+but we need to make pim_sync better.
+
+====================
+
+1) pim_sync 
+2) centroids/dynamic -> parameter
+
+====================
+
+> looks like all the arrays are getting stalled.
+  > when we look at the difference between current and previous
+  > clear as day = all extra cycles are also stalls.
+
+====================
+
+cannot find the diff here.
+also - might not be that important
+figure out what the actual plan is for adding sync as an option
+might not need to debug this further
+BIG PICTURE.  
+
+====================
+
+> current implementation = correct.
+  > resnet5, classes1 @ 1993c691b183939bd9d72edbd1e02ff522713db5
+  > are wrong.
+  > they let blocks go same cycle as sync.
+  > bc sync is checked at each block.
+
+> verify this:
+  > assert to make sure the stall thing isnt the problem ? 
+  > assert that block_done != true, matrix_done != true
+
+====================
+
+where do we go from here ? 
+we wud need 2 different layer implementations ... 
+> layer, layer_sync
+
+dont really see an alternative 
+that is less janky.
+> learned our lesson about duplicate if statements and data structures
+
+====================
+
+> two different layer implementations it is then.
+
+1) pim_sync 
+2) centroids/dynamic -> parameter
+
+====================
+
+> undoing what we dont want:
+https://github.com/bcrafton/speed_read/commit/10add6c3f49a7b0d0e30316d67ba3a1a15e56fcd
+
+====================
+
+> pass {centroids, sync} as parameters ?
+ 
+> static bias, rather than dynamic bias ? 
+  > use ADC instead of p=0.7 or w.e.
+
+> generate some plots and shit.
+
+====================
+
+plot each one by layer.
+> {centroids, block, profile}
+> sweep {variance, layer, #array}
+
+> so we want to take plot_util for now.
+
+> create a better plot tool
+> dump data cleaner as well ...
+
+====================
+
+USING PANDAS
+
+> fill in a pandas table like this:
+> skip cards alloc profile ... rpr_alloc | mean std ron mac
+
+even add {layer, example}
+
+then we can do look ups on this table and generate w.e. results we want.
+
+====================
+
+we already have data - "plot_util2.py"
+we can transform this to the format we want
+and then see if we can recreate our plots
+motivating getting the data to pandas array right off the bat. 
+
+====================
+
+okay transformed sim to spit out pandas array we want
+new issue is the multi-dimensional arrays.
+> block_cycle
+> block_density
+> adc
+
+we arnt supposed to have these in pandas
+
+> adc is an easy fix.
+  > just list them out ... adc0, adc1, adc2 ...
+
+====================
+
+pandas working pretty well
+new question = how to make it work with multiple examples.
+
+====================
+
+> trying to re-create counting cards results ...
+> looks like our plot is fixed.
+  problem seems to be rpr is not aggressive at all ...
+  
+====================
+
+how can we make a modular test bench ? 
+> init_x -> get_imagenet(), get_cifar()
+> create_model 
+> weights
+> profile adc
+
+these can all be params
+> test params.
+
+====================
+
+> fixing dynamic is a nightmare.
+  > hardly does anything either.
+
+> dont even need wl_ptr after pim(), just used for wl == WL
+  > so u can use done to handle that part.
+  > just make sure it matches.
+
+====================
+
+for static bias, shud we have a static bias for each column ? 
+> or each xb/wb ? 
+> for each xb/wb/rpr ?
+
+first we need to figure out where the change goes.
+> how to use adc_count
+> create static bias table
+> figure out what parts of dynamic we do want and dont want
+> how it compares to centroids.
+
+====================
+
+> figuring out this abstract class/function we need to make
+> pulled out kmeans and it becomes clear.
+  > perhaps return a dictionary ? 
+
+> make sure to verify every step along the way that results match prior.
+  > currently they match.
+
+====================
+
+implement static
+OR 
+continue modularity of pim method.
+
+====================
+
+correct can be cumulative (at the end of rpr)
+but we need to aggregate all the sats along the way.
+
+====================
+
+finish implementation end-to-end, can correct things later on.
+want the full flow done.
+
+====================
+
+> params->centroids
+  > gotta change this from [0, 1]
+
+> also make lut_bias fixed point so we can accumulate and go over 1.
+
+====================
+
+> does dynamic error approx not account for bias correction in the solution ???
+  > kinda makes sense, why dynamic goes so low on error ...
+  > perhaps we shudnt account for dynamic bias ?
+
+> kmeans does mu/5 ... not mu/64
+  > how does it keep the error low ? 
+
+> using adc_count, we can get really good approx on what dynamic will do .
+
+> dynamic correction is losing to static with SAME RPR.
+  > AND we dont think we did static correctly. 
+
+> we must have not done dynamic correctly as well.
+  > rounding ? 
+
+====================
+
+> make a "TOP" section in todo
+  > too many items piling up
+  > and we end up not doing anything, overwhelmed by too many things, too much planning
+  > just pick on TOP and do it.
+
+====================
+
+> compare classes8 with classes10, make sure we get the same results after all the stuff.
+  > well i guess we wont because of rounding.
+  > AND changing dynamic rpr -> static rpr.
+
+====================
+
+> example - encapsulated inside of { model.forward, model.profile }
+  > we tag each result dictionary with the example from the loop
+  > is this the way to go
+
+> is this what we have always done ? 
+  > didnt we append the array before or something ? 
+  > oh nah, thats after when we wanted to come stuff.
+
+
+so example is actually done correctly i think.
+> its just that pandas dosnt let us combine them easily.
+> we want to average everything that shares everything besides example.
+> yeah, for max flexibility i think we are doing this correctly.
+
+====================
+
+first layer has worst error because it has most nrow.
+> 40% density or w.e.
+
+also mean is totally busted for static rpr, layer 1.
+> layer 1 could have an entirely different breakdown than the rest of layers for adc count.s
+> do we do a different one for each layer ? 
+  > yes actually.
+> so what is it then for layer 1 ? 
+  > wrong bias approx ? 
+
+our mean could be so far off because of the bad profile.
+> need to profile {nrow, adc} by {xb, wb, layer}
+> we would want to update existing classes C++ code for profile.
+> then all the places where the adc_counts is used.
+
+okay so this brings up weird issue
+> we only want 16-8=[8] entry bias table
+> we dont want for each xb, wb.
+> so how can we use this xb, wb information ? 
+
+if an {xb, wb} wants to use a certain rpr ... then we would have to account for its value in the bias table ...
+> well not exactly, we could just have the bias table be 64 wide.
+> otherwise it becomes difficult optimization problem i think.
+
+====================
+
+something strange is happening:
+> y_mean -0.1825714111328125 y_std 0.8075885685470734
+> np.average(mse_lut) = 0.6195874
+> u also need to factor in incorrect nrow=2 tho.
+
+====================
+
+alright we got pretty close with the new fixes.
+
+====================
+
+> profile [xb][wb] @ adc + row ? 
+  > will give better approx. 
+  > at the very least, we would want to approximate row ... 
+    > dont have to use: [xb][wb]
+
+====================
+
+holy shit it was all the rounding error.
+> all those profile.c bugs
+> then this lol.
+
+so we just need to model the rounding error inside of expected_error()
+> not /256 rounding error
+> when you sum that up ... then round 0.5->1, 0.5->0
+
+so when we change array.c round->ceil
+> we go from negative mean to positive mean
+> which shows thats where the bug is
+
+====================
+
+> well how come when we dont even subtract the bias, it dosnt effect our expected error ???
+> we cant apply findings above if bias dosnt change anything ??
+
+could it also be the way we are calculating this stuff ? 
+> mse, mean in expected_error ... not correct.
+> y_std, y_mean are different things.
+
+====================
+
+okay damn, we fixed our model.
+we were doing:
+> print (np.mean(mse_lut), np.mean(scaled_mean))
+> so mean of a scalar = 0.
+
+we still under-estimate error despite having relu included here ...
+changing this line:
+
+> e[:, params['adc']:rpr+1] = e[:, params['adc']:rpr+1] - bias
+to 
+> e[:, params['adc']:rpr+1] = e[:, params['adc']:rpr+1]
+
+has no impact on MSE ... why ? 
+
+====================
+
+changing:
+mse = np.sqrt(np.sum((p * pe * e) ** 2) * nrow)
+to 
+mse = np.sqrt(np.sum((p * pe * e * nrow) ** 2))
+changes mse AND mean ... WTF ? 
+> because it changes how high we can set rpr ... duh.
+
+====================
+
+back to bias - 
+why does this only change the mean ? 
+should we expect this ? 
+
+====================
+
+so if we do the absolute of the error, 
+> mean = np.sum(np.absolute(p * pe * e * nrow))
+nothing happens
+
+====================
+
+so if mean should not constrain error, what do we do ? 
+do we constrain it ?
+
+well i dont think it wud be possible for mean to be larger than error
+
+but this is actually looking correct - only thing is we have to model bias rounding.
+
+====================
+
+>> handle bias rounding, the rest looks good.
+
+====================
+
+should we be subtracting bias here:
+> e[:, params['adc']:rpr+1] = e[:, params['adc']:rpr+1] - bias
+> shouldnt we be adding the bias ? 
+
+nah it looks like this:
+
+e = s - adc
+if rpr > params['adc']:
+    e[:, params['adc']:rpr+1] = e[:, params['adc']:rpr+1] - bias
+
+====================
+
+0.50829834 0.0028177497
+0.5176178 0.0014938174
+0.50999564 0.0015397232
+0.50424147 0.0015135139
+0.47646248 0.0020267766
+0.18017213 0.0005881648
+
+y_mean -0.1145172119140625 y_std 0.43155751328993475 y_max 127.0 y_min 0.0
+y_mean -0.4481201171875 y_std 0.6263609255128877 y_max 127.0 y_min 0.0
+y_mean -0.53118896484375 y_std 0.8616823583857484 y_max 127.0 y_min 0.0
+y_mean -0.560546875 y_std 0.8826374791938842 y_max 127.0 y_min 0.0
+y_mean -0.22613525390625 y_std 0.9530983885974238 y_max 127.0 y_min 0.0
+y_mean -0.276123046875 y_std 0.7137572573077394 y_max 127.0 y_min 0.0
+
+====================
+
+def seems like issue could be bias rounding now.
+we should be over approximating error because of relu.
+
+====================
+
+y_mean -0.10382080078125 y_std 0.4507549018696469 y_max 127.0 y_min 0.0
+y_mean -0.52691650390625 y_std 0.7027833293892684 y_max 127.0 y_min 0.0
+y_mean -0.53802490234375 y_std 0.9469675106236477 y_max 127.0 y_min 0.0
+y_mean -0.522705078125 y_std 0.8469108081299574 y_max 127.0 y_min 0.0
+y_mean -0.19915771484375 y_std 0.7570126407213855 y_max 127.0 y_min 0.0
+y_mean -0.205078125 y_std 0.9501406113815388 y_max 127.0 y_min 0.0
+
+y_mean -0.072784423828125 y_std 0.44188680800122093 y_max 127.0 y_min 0.0
+y_mean -0.32354736328125 y_std 0.5473143005234751 y_max 127.0 y_min 0.0
+y_mean -0.383209228515625 y_std 0.8313073016391619 y_max 127.0 y_min 0.0
+y_mean -0.38720703125 y_std 0.6821327509734169 y_max 127.0 y_min 0.0
+y_mean -0.13018798828125 y_std 0.6236953678888686 y_max 127.0 y_min 0.0
+y_mean -0.1640625 y_std 0.9301469452961452 y_max 127.0 y_min 0.0
+
+====================
+
+> thresh = 0.25
+  > why are we under estimating.
+  > bias DOES have an impact on this.
+
+0.14888172 0.031901136
+0.16746962 0.050551884
+0.16079427 0.04300765
+0.16359356 0.04495114
+0.14751628 0.023516256
+0.110405356 0.013742268
+
+y_mean -0.0133056640625 y_std 0.18808492182915912 y_max 127.0 y_min 0.0
+y_mean -0.0635986328125 y_std 0.25167047185631614 y_max 127.0 y_min 0.0
+y_mean -0.07403564453125 y_std 0.306305276738081 y_max 127.0 y_min 0.0
+y_mean -0.0838623046875 y_std 0.27893723494722056 y_max 127.0 y_min 0.0
+y_mean -0.0224609375 y_std 0.1966725110408699 y_max 127.0 y_min 0.0
+y_mean -0.05224609375 y_std 0.3258175324286067 y_max 127.0 y_min 0.0
+
+> these approx are from not even subtracting the bias ...
+  > e[:, params['adc']:rpr+1] = e[:, params['adc']:rpr+1] # - bias
+
+====================
+
+error, mean
+
+- bias=bias
+0.14929377 0.0017458444
+0.15940799 0.0019591914
+0.16502106 0.0021992717
+0.16550586 0.0021800937
+0.14763668 0.0014217058
+0.11172722 0.0007232436
+
+- bias=0
+0.14888172 0.031901136
+0.16746962 0.050551884
+0.16079427 0.04300765
+0.16359356 0.04495114
+0.14751628 0.023516256
+0.110405356 0.013742268
+
+====================
+
+how come the correct bias dosnt help the error ?
+> it helps for some of the layers.
+
+think we need to think about what could be the issue at this point
+rather than collecting data about the problem.
+
+bias might not be our issue here...
+
+y_mean -0.01043701171875 y_std 0.18720929139971304 y_max 127.0 y_min 0.0
+y_mean -0.05413818359375 y_std 0.23965146903038048 y_max 127.0 y_min 0.0
+y_mean -0.074554443359375 y_std 0.30272119401108794 y_max 127.0 y_min 0.0
+y_mean -0.072509765625 y_std 0.2635324745434755 y_max 127.0 y_min 0.0
+y_mean -0.02008056640625 y_std 0.19646433695852838 y_max 127.0 y_min 0.0
+y_mean -0.0419921875 y_std 0.31202203438053033 y_max 127.0 y_min 0.0
+
+====================
+
+alright - so the problem was in difference in computing:
+y_std, error
+y_mean, mean
+
+well i suppose mean was correct.
+we changed y_std to actually be error in the expected error calculation and stuff seems to work great.
+
+====================
+
+> parallelize kmeans {xb, wb, rpr} loop 
+  > think it should just be vectorize operations
+  > take advantage of extra stats - {rpr, xb, wb} @ {row_count, adc_count}
+
+====================
+
+there was a cycle diff between {kmeans_rpr, kmeans_config}
+want to figure out that issue and fix it.
+
+# without a seed, this can produce different rpr tables between runs.
+# we piped (below) over several iterations
+# y_mean %f y_error %f y_max %f y_min %f
+# %d: alloc: %d nmac %d cycle: %d stall: %d
+# self.params['rpr'] or lut_rpr
+# and saw the different rpr tables leading to different execution times.
+
+====================
+
+0: alloc: 119*4=476 nmac 1769472 cycle: 738 stall: 15408
+y_mean -0.205078125 y_error 0.218017578125 y_max 127.0 y_min 0.0
+1: alloc: 596*4=2384 nmac 37748736 cycle: 948 stall: 575260
+y_mean -0.140472412109375 y_error 0.267547607421875 y_max 127.0 y_min 0.0
+2: alloc: 141*8=1128 nmac 18874368 cycle: 917 stall: 238368
+y_mean -0.118408203125 y_error 0.1259765625 y_max 127.0 y_min 0.0
+3: alloc: 289*8=2312 nmac 37748736 cycle: 1081 stall: 864848
+y_mean -0.0699462890625 y_error 0.0863037109375 y_max 127.0 y_min 0.0
+4: alloc: 68*16=1088 nmac 18874368 cycle: 975 stall: 297056
+y_mean -0.091796875 y_error 0.11474609375 y_max 127.0 y_min 0.0
+5: alloc: 50*16=800 nmac 37748736 cycle: 795 stall: 89312
+>> look at those cycle #s ... we need a larger network.
+
+====================
+
+python: array.c:43: int Array::pim_skip(int, int, int, int): Assertion `(this->x[xaddr] == 0) || (this->x[xaddr] == 1)' failed
+> assert(row < this->params->R);
+> issue seems to be allocating more blocks then there are rows.
+
+====================
+
+> so we have commits on deck
+  > fixing row < R
+  > assert profile_adc was run with {WL, MAX_RPR}
+  > parameterize MAX_RPR ... throw that in array_params = {}
+
+> then we want to try out different {WL, RPR} combinations
+  > AND might need to move to ResNet18 to see some interesting stuff.
+
+> definitely want to see perf/power per layer.
+  > think that some layers bottleneck max performance
+  > ALSO - LSTM probably can achieve much higher performance.
+
+====================
+
+the reason why {xb=7, wb=:} dosnt get rpr=128 ...
+we arnt using optimized kmeans_rpr.
+we average over all {xb, wb}
+
+====================
+
+OH - if we are not profiled for WL=512, BL=128 ... we have problems with error.
+sort of makes sense.
+we were running: https://github.com/bcrafton/speed_read/commit/bf1a54300029fbf2b796765a79fe9654ee81b79b
+
+with WL=512
+and had a profile for 128
+interesting ...
+
+====================
+
+make sure 64/65 = {(xb, wb), rpr} is correct.
+> we changed all the 64/65
+> but want to make sure they are represented by the right thing
+> there should still be hardcoded 64s still
+
+====================
+
+step 1:
+
+> cc/
+> bb/
+> thresh/
+
+deleted:    layer_both.c
+deleted:    plot_methods.py
+deleted:    plot_methods1.py
+deleted:    profile_adc.npy
+deleted:    profile_adc_resnet.npy
+deleted:    results.npy
+deleted:    tb_cifar.py
+deleted:    tb_resnet.py
+deleted:    test_profile.py
+
+====================
+
+step 2:
+
+notes/
+
+====================
+
+step 3:
+
+add readme
+rm notes, merge
+
+====================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
