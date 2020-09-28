@@ -434,11 +434,13 @@ compute
 -------
 
 > better power model
+
 > error vs accuracy plot
 > how does error propagate through the network ? 
   > so put gaussian noise output of first layer and see how its projected after each layer.
   > create a common currency for error between layers.
   > can use this for CC.
+
 > exhaustive RPR table
   > knapsack problem
   > cost = variance
@@ -450,6 +452,9 @@ compute
     > could do something fancy, but idk.
   > return args for profile()
   > parallelize after collecting all args
+
+> generic plot function
+  > feed it {results, perms, x_axis=['var', 'narray', ...]}
 
 > LSTM model
 > SAR ADC model for 7b precision
