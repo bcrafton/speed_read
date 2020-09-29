@@ -434,6 +434,20 @@ compute
 -------
 
 > better power model
+  > vector units, DRAM, eDRAM, SRAM
+    > compute what is necessary to not bottleneck CIM
+    > for memory compute required capacity and bandwidth ... which will compute power and area
+    > same for compute, except only area really
+  > what about arrays themselves ?
+    > BL/WL charing, cells
+    > design this model thinking about how 7b SAR can plug into it.
+
+> configure ADC
+  > precision
+  > columns per adc
+  > 3b ADC vs sense amps ... 3b ADC should win
+    > bl charing, less sum ops
+  > again - make this some sort of template we can extend for SAR, FLASH, ect.
 
 > error vs accuracy plot
 > how does error propagate through the network ? 
@@ -456,7 +470,10 @@ compute
 > generic plot function
   > feed it {results, perms, x_axis=['var', 'narray', ...]}
 
-> LSTM model
+> fully connected layer
+  > matrix multiplication
+  > LSTM model
+
 > SAR ADC model for 7b precision
 >> check OneNote - Research - Fall 2020
    > lots of good ideas
