@@ -448,12 +448,20 @@ compute
   > 3b ADC vs sense amps ... 3b ADC should win
     > bl charing, less sum ops
   > again - make this some sort of template we can extend for SAR, FLASH, ect.
+  > if our RPR is low, we want to use smaller ADCs
+    > what are tradeoffs ?
+
+> sweep ADC model, ADC precision, WL
 
 > error vs accuracy plot
 > how does error propagate through the network ? 
   > so put gaussian noise output of first layer and see how its projected after each layer.
   > create a common currency for error between layers.
   > can use this for CC.
+  1) can we ignore error * error
+  2) is error always the same, part of fmap more important ? 
+     variance should scale with acivation magnitude
+  3) can we predict error prop ? 
 
 > exhaustive RPR table
   > knapsack problem
