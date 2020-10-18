@@ -4475,15 +4475,30 @@ GREAT IDEA:
 BUT:
 > want to setup a better tb/plot combo in master before branching.
 
+====================
 
+new quantize code needed for: 
+1) var vs error vs accuracy
+2) generating networks for speed read
 
+> which quantize branch do we start with ? 
+> do we want to be able to train networks ? 
+> what features did the latest quantize branches have that we want ?
+  > we just want to do the simple quantize matrix multiplication and thats it ...
 
+====================
 
+May 22 - "inference"
+June 15 - "vgg cifar"
 
+> difftool layers.py from different branches
+> look at code to do train, collect, predict together
 
+> create a bunch of folders for branches
+> difftool
+> run code
 
-
-
+====================
 
 
 
