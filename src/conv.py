@@ -165,7 +165,7 @@ class Conv(Layer):
         y_error = np.mean(np.absolute(y - y_ref))
         # assert (self.s == 1)
         
-        print ('y_mean', y_mean, 'y_error', y_error, 'y_max', y_max, 'y_min', y_min)
+        # print ('y_mean', y_mean, 'y_error', y_error, 'y_max', y_max, 'y_min', y_min)
         
         # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
         # results = {}
@@ -181,11 +181,15 @@ class Conv(Layer):
             # the sum here is confusing, since for layer 1, block performs better with less arrays.
             # but it actually makes sense.
             results['array'] = np.sum(self.block_alloc) * nbl
-            print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d' % (self.layer_id, np.sum(self.block_alloc), nbl, nbl * np.sum(self.block_alloc), results['nmac'], results['cycle'], results['stall']))
-                    
+            # print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d' % (self.layer_id, np.sum(self.block_alloc), nbl, nbl * np.sum(self.block_alloc), results['nmac'], results['cycle'], results['stall']))
+            print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d mean: %0.3f error: %0.3f' % 
+              (self.layer_id, np.sum(self.block_alloc), nbl, nbl * np.sum(self.block_alloc), results['nmac'], results['cycle'], results['stall'], y_mean, y_error))
+
         elif self.params['alloc'] == 'layer': 
             results['array'] = self.layer_alloc * nwl * nbl
-            print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d' % (self.layer_id, self.layer_alloc, nwl * nbl, nwl * nbl * self.layer_alloc, results['nmac'], results['cycle'], results['stall']))
+            # print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d' % (self.layer_id, self.layer_alloc, nwl * nbl, nwl * nbl * self.layer_alloc, results['nmac'], results['cycle'], results['stall']))
+            print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d mean: %0.2f error: %0.2f' % 
+              (self.layer_id, self.layer_alloc, nwl * nbl, nwl * nbl * self.layer_alloc, results['nmac'], results['cycle'], results['stall'], y_mean, y_error))
 
         ########################
 
