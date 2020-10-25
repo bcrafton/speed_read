@@ -49,7 +49,7 @@ class Conv(Layer):
 
         self.nmac = (self.fh * self.fw * self.fc * self.fn) * (self.xh * self.xw) // (self.s ** 2)
 
-        self.w, self.b, self.q = weights[self.layer_id]['f'], weights[self.layer_id]['b'], weights[self.layer_id]['y']
+        self.w, self.b, self.q = weights[self.layer_id]['f'], weights[self.layer_id]['b'], weights[self.layer_id]['q']
         # check shape
         assert(np.shape(self.w) == self.filter_size)
         assert(np.shape(self.b) == (self.fn,))

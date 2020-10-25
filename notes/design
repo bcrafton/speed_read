@@ -4500,15 +4500,16 @@ June 15 - "vgg cifar"
 
 ====================
 
+so we def cant measure error at output after quantization and bias ... that makes no sense.
+do it right after matrix multiplication.
+then we can do apples to apples with quantize.
 
+but the best comparison would just be the output of the whole damn network.
+not passing y_ref through each time.
 
+we should have this feature anyways.
 
-
-
-
-
-
-
+====================
 
 
 
