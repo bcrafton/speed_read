@@ -4511,6 +4511,39 @@ we should have this feature anyways.
 
 ====================
 
+Quantize Notes:
+
+> no way to do acc vs mse vs variance all inside speed read ... need quantize branch
+> scalable to understanding how variance projects
+> have the high quality quantize networks
+
+> start with quantize branch 
+  > well not gonna start from scratch
+> train network with "pytorch rules" 
+> then let us play with error at each layer
+
+====================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
