@@ -487,6 +487,9 @@ compute
    > lots of good ideas
 > 2b activations to reduce variance
 
+> sweep array_params adc=[2,4,8]
+  > generate 3 different adc_counts tables in the same dictionary. 
+
 make sure 64/65 = {(xb, wb), rpr} is correct.
 > we changed all the 64/65
 > but want to make sure they are represented by the right thing
