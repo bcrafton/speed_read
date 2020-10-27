@@ -124,8 +124,17 @@ int Array::process(int row, int col, int xb, int rpr) {
     float pdot_var = this->pdot[bl_ptr] + var;
     int pdot_adc;
 
-    if (params->method == CENTROIDS) pdot_adc = eval_adc(pdot_var, this->params->adc, rpr, xb, wb, this->params->adc_state, this->params->adc_thresh);
-    else                             pdot_adc = min(max((int) round(pdot_var), 0), min(this->params->adc, rpr));
+    if (params->method == CENTROIDS) {
+      pdot_adc = eval_adc(pdot_var, this->params->adc, rpr, xb, wb, this->params->adc_state, this->params->adc_thresh);
+    }
+    else {
+      if ((pdot_var > 0.20) && (pdot_var < 1.00)) {
+        pdot_adc = 1;
+      }
+      else {
+        pdot_adc = min(max((int) round(pdot_var), 0), min(this->params->adc, rpr));
+      }
+    }
 
     int yaddr = row * this->params->C + c;
     int shift = wb + xb;

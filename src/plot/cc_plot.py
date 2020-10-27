@@ -40,94 +40,92 @@ comp_pJ = 22. * 1e-12 / 32. / 16.
 # '(rpr_alloc == "%s")' NOT '(rpr_alloc == %s)'
 #####################
 
-fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
-
-ax1.set_title('MSE')
-ax2.set_title('Perf')
-ax3.set_title('Perf/W')
+sigmas = [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.20]
+perf = {}
+power = {}
+error = {}
 
 for skip, cards, rpr_alloc in [(0, 0, 'dynamic'), (1, 0, 'dynamic'), (1, 1, 'static')]:
 
-    ######################################
-
-    sigmas = [0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15]
-    mac_per_cycles = []
-    mac_per_pJs = []
-    errors = []
+    perf[(skip, cards, rpr_alloc)]  = []
+    power[(skip, cards, rpr_alloc)] = []
+    error[(skip, cards, rpr_alloc)] = []
     
     for sigma in sigmas:
         query = '(rpr_alloc == "%s") & (skip == %d) & (cards == %d) & (sigma == %f)' % (rpr_alloc, skip, cards, sigma)
         samples = df.query(query)
         
-        mac_per_cycle = np.sum(samples['nmac']) / np.max(samples['cycle'])
-        mac_per_cycles.append(mac_per_cycle)
+        mac_per_cycle = np.sum(samples['nmac']) / np.max(samples['cycle']) * 2. * 100e6 / 1e12
+        perf[(skip, cards, rpr_alloc)].append(mac_per_cycle)
         
-        error = np.average(samples['std'])
-        errors.append(error)
+        e = np.average(samples['std'])
+        error[(skip, cards, rpr_alloc)].append(e)
 
         adc = np.stack(samples['adc'], axis=0)    
         energy = np.sum(np.array([1,2,3,4,5,6,7,8]) * adc * comp_pJ, axis=1) 
         energy += samples['ron'] * 2e-16
         energy += samples['roff'] * 2e-16
         mac_per_pJ = np.sum(samples['nmac']) / 1e12 / np.sum(energy)
-        mac_per_pJs.append(mac_per_pJ)
-
-    ######################################
-
-    # plt.plot(sigmas, errors, marker='.', label=rpr_alloc)
-    
-    if cards:  label = rpr_alloc
-    elif skip: label = 'skip'
-    else:      label = 'baseline'
+        power[(skip, cards, rpr_alloc)].append(mac_per_pJ)
         
-    ax1.plot(sigmas, errors,         label=label)
-    ax2.plot(sigmas, mac_per_cycles, label=label)
-    ax3.plot(sigmas, mac_per_pJs,    label=label)
+######################################
 
-    print ('mac/cycle', rpr_alloc, mac_per_cycles)
-    print ('    error', rpr_alloc, errors)
-    print ('   mac/pJ', rpr_alloc, mac_per_pJs)
-        
-    ######################################
+color = {
+(0, 0, 'dynamic'): 'green',
+(1, 0, 'dynamic'): 'blue',
+(1, 1, 'static'):  'black',
+}
 
-ax1.set_ylim(bottom=0)
-ax2.set_ylim(bottom=0)
-ax3.set_ylim(bottom=0)
+plt.cla()
+for key in error:
+  plt.plot(sigmas, error[key], color=color[key], marker='.')
+  plt.ylim(bottom=0, top=16)
+  plt.grid(True, linestyle='dotted')
+  plt.gcf().set_size_inches(3.5, 3.0)
+  plt.tight_layout()
+  plt.savefig('cc_error.png')
 
-ax1.grid(True, linestyle='dotted')
-ax2.grid(True, linestyle='dotted')
-ax3.grid(True, linestyle='dotted')
-
-fig.set_size_inches(13.5, 4.5)
-plt.tight_layout()
-
-plt.legend()
-plt.ylim(bottom=0)
-# plt.show()
-plt.savefig('cc.png')
-            
 ####################
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
+
+plt.cla()
+for key in perf:
+  plt.plot(sigmas, perf[key], color=color[key], marker='.')
+  plt.ylim(bottom=0, top=30)
+  plt.grid(True, linestyle='dotted')
+  plt.gcf().set_size_inches(3.5, 3.0)
+  plt.tight_layout()
+  plt.savefig('cc_perf.png')
+
+####################
+
+plt.cla()
+for key in power:
+  plt.plot(sigmas, power[key], color=color[key], marker='.')
+  plt.ylim(bottom=0, top=7)
+  plt.grid(True, linestyle='dotted')
+  plt.gcf().set_size_inches(3.5, 3.0)
+  plt.tight_layout()
+  plt.savefig('cc_power.png')
+
+####################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
