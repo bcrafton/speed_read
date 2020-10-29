@@ -10,6 +10,8 @@ from scipy.stats import norm, binom
 
 from AA import array_allocation
 
+from cprofile import profile
+
 #########################
 
 class Model:
@@ -53,12 +55,16 @@ class Model:
         num_layers = len(self.layers)
         counts = {}
 
+        args = []
         for example in range(num_examples):
             y = x[example]
             for layer in range(num_layers):
-                y, adc_counts = self.layers[layer].profile_adc(x=y)
-                assert (np.all((y % 1) == 0))
-                counts.update(adc_counts)
+                y, id, arg = self.layers[layer].profile_adc(x=y)
+                args.append((id, arg))
+
+        for (id, arg) in args:
+            _, adc_count, row_count = profile(*arg)
+            counts.update({id: {'adc': adc_count, 'row': row_count}})
 
         counts['wl'] = self.array_params['wl']
         counts['max_rpr'] = self.array_params['max_rpr']

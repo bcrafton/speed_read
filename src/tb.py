@@ -64,30 +64,6 @@ array_params = {
 
 ############
 
-arch_params1 = {
-'skip': [1],
-'alloc': ['block'],
-'narray': [2 ** 13],
-'sigma': [0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15],
-'cards': [1],
-'profile': [1],
-'rpr_alloc': ['dynamic', 'static', 'centroids'],
-'thresh': [1.00]
-}
-
-arch_params2 = {
-'skip': [1],
-'alloc': ['block'],
-'narray': [2 ** 13],
-'sigma': [0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15],
-'cards': [0],
-'profile': [1],
-'rpr_alloc': ['dynamic'],
-'thresh': [1.00]
-}
-
-############
-
 arch_params = {
 'skip': [1],
 'alloc': ['block'],
@@ -102,12 +78,6 @@ arch_params = {
 ############
 
 param_sweep = perms(arch_params)
-
-'''
-param_sweep1 = perms(arch_params1)
-param_sweep2 = perms(arch_params2)
-param_sweep = param_sweep1 + param_sweep2
-'''
 
 ####
 
@@ -146,14 +116,15 @@ model, x, y = load_cifar(num_example=1, array_params=array_params)
 
 start = time.time()
 
-load_profile_adc = True
+load_profile_adc = False
 
 if not load_profile_adc:
     profile = model.profile_adc(x=x)
     np.save('profile_adc', profile)
 else:
     profile = np.load('profile_adc.npy', allow_pickle=True).item()
-    model.set_profile_adc(profile)
+
+model.set_profile_adc(profile)
 
 ##########################
 
