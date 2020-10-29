@@ -40,61 +40,37 @@ comp_pJ = 22. * 1e-12 / 32. / 16.
 # '(rpr_alloc == "%s")' NOT '(rpr_alloc == %s)'
 #####################
 
-plt.title('Perf')
+color = {
+2 ** 12:       'red',
+1.5 * 2 ** 12: 'orange',
+2 ** 13:       'yellowgreen',
+1.5 * 2 ** 13: 'green',
+}
 
-for narray in [2 ** 12, 1.5 * 2 ** 12, 2 ** 13, 1.5 * 2 ** 13]:
+for profile in [0, 1]:
+    for narray in [2 ** 12, 1.5 * 2 ** 12, 2 ** 13, 1.5 * 2 ** 13]:
+        sigmas = [0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15]
+        perf = []
+        for sigma in sigmas:
+            query = '(narray == %f) & (sigma == %f) & (profile == %d)' % (narray, sigma, profile)
+            samples = df.query(query)
+            mac_per_cycle = np.sum(samples['nmac']) / np.max(samples['cycle']) * 100e6 / 1e12
+            perf.append(mac_per_cycle)
 
-    ######################################
+        plt.plot(sigmas, perf, marker='.', color=color[narray])
+        plt.ylim(bottom=0, top=21)
+        plt.yticks([0, 5, 10, 15, 20], ['', '', '', ''])
+        plt.xticks([0.05, 0.10, 0.15], ['', '', ''])
+        plt.grid(True, linestyle='dotted')
+        plt.gcf().set_size_inches(3.5, 1.5)
+        plt.tight_layout(0.)
+        plt.savefig('%d.png' % (profile))
 
-    sigmas = [0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15]
-    mac_per_cycles = []
-    mac_per_pJs = []
-    errors = []
-    
-    for sigma in sigmas:
-        query = '(narray == %f) & (sigma == %f)' % (narray, sigma)
-        samples = df.query(query)
-        
-        mac_per_cycle = np.sum(samples['nmac']) / np.max(samples['cycle']) * 100e6 / 1e12
-        mac_per_cycles.append(mac_per_cycle)
-        
-        error = np.average(samples['std'])
-        errors.append(error)
+    plt.cla()
 
-        adc = np.stack(samples['adc'], axis=0)    
-        energy = np.sum(np.array([1,2,3,4,5,6,7,8]) * adc * comp_pJ, axis=1) 
-        energy += samples['ron'] * 2e-16
-        energy += samples['roff'] * 2e-16
-        mac_per_pJ = np.sum(samples['nmac']) / 1e12 / np.sum(energy)
-        mac_per_pJs.append(mac_per_pJ)
+######################################
 
-    ######################################
 
-    label = str(narray)
-    plt.plot(sigmas, mac_per_cycles, label=label)
-    
-    ######################################
-
-plt.ylim(bottom=0)
-
-plt.grid(True, linestyle='dotted')
-
-fig = plt.gcf()
-fig.set_size_inches(3.5, 3.5)
-plt.tight_layout()
-
-plt.legend()
-plt.ylim(bottom=0)
-# plt.show()
-plt.savefig('ce.png')
-            
-####################
-            
-            
-            
-            
-            
-            
             
             
             

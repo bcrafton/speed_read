@@ -150,7 +150,7 @@ def CE():
     'max_rpr': 64,
     }
     
-    arch_params = {
+    arch_params1 = {
     'skip': [1],
     'alloc': ['block'],
     'narray': [2 ** 12, 1.5 * 2 ** 12, 2 ** 13, 1.5 * 2 ** 13],
@@ -160,8 +160,21 @@ def CE():
     'rpr_alloc': ['static'],
     'thresh': [1.00]
     }
-    
-    arch_params = perms(arch_params)
+
+    arch_params2 = {
+    'skip': [1],
+    'alloc': ['layer'],
+    'narray': [2 ** 12, 1.5 * 2 ** 12, 2 ** 13, 1.5 * 2 ** 13],
+    'sigma': [0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15],
+    'cards': [1],
+    'profile': [0],
+    'rpr_alloc': ['static'],
+    'thresh': [1.00]
+    }
+
+    arch_params1 = perms(arch_params1)
+    arch_params2 = perms(arch_params2)
+    arch_params = arch_params1 + arch_params2
     return array_params, arch_params
 
 #######################################################
