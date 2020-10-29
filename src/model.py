@@ -3,13 +3,14 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
+import multiprocessing
+from multiprocessing import Process
+from multiprocessing import Pool
+
 from var import *
 from conv_utils import *
-
 from scipy.stats import norm, binom
-
 from AA import array_allocation
-
 from cprofile import profile
 
 #########################
@@ -53,19 +54,45 @@ class Model:
     def profile_adc(self, x):
         num_examples, _, _, _ = np.shape(x)
         num_layers = len(self.layers)
-        counts = {}
 
-        args = []
+        args_list = []
         for example in range(num_examples):
             y = x[example]
             for layer in range(num_layers):
-                y, id, arg = self.layers[layer].profile_adc(x=y)
-                args.append((id, arg))
+                y, id, args = self.layers[layer].profile_adc(x=y)
+                args_list.append((id, args))
 
+        '''
         for (id, arg) in args:
             _, adc_count, row_count = profile(*arg)
             counts.update({id: {'adc': adc_count, 'row': row_count}})
+        '''
 
+        num_runs = len(args_list)
+        parallel_runs = 8
+
+        thread_results = []
+        manager = multiprocessing.Manager()
+        for _ in range(num_runs):
+            thread_results.append(manager.dict())
+
+        for run in range(0, num_runs, parallel_runs):
+            threads = []
+            
+            for parallel_run in range(min(parallel_runs, num_runs - run)):
+                id, args = args_list[run + parallel_run]
+                args = args + (id, thread_results[run + parallel_run])
+                t = multiprocessing.Process(target=profile, args=args)
+                threads.append(t)
+                t.start()
+
+            for t in threads:
+                t.join()
+
+        counts = {}
+        for result in thread_results:
+            counts.update(result)
+        
         counts['wl'] = self.array_params['wl']
         counts['max_rpr'] = self.array_params['max_rpr']
         return counts

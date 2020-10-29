@@ -70,8 +70,8 @@ arch_params = {
 'narray': [2 ** 13],
 'cards': [1],
 'profile': [1],
-'rpr_alloc': ['static', 'centroids'],
-'sigma': [0.04, 0.08, 0.12, 0.16],
+'rpr_alloc': ['static'],
+'sigma': [0.04],
 'thresh': [1.00]
 }
 
