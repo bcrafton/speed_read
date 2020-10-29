@@ -154,3 +154,34 @@ def CE():
 
 #######################################################
 
+def Simple():
+
+    array_params = {
+    'bpa': 8,
+    'bpw': 8,
+    'adc': 8,
+    'adc_mux': 8,
+    'wl': 128,
+    'bl': 128,
+    'offset': 128,
+    'max_rpr': 64,
+    }
+
+    arch_params = {
+    'skip': [1],
+    'alloc': ['block'],
+    'narray': [2 ** 13],
+    'cards': [1],
+    'profile': [0],
+    'rpr_alloc': ['static'],
+    'sigma': [0.05],
+    'thresh': [0.25]
+    }
+
+    arch_params = perms(arch_params)
+
+    return array_params, arch_params
+
+#######################################################
+
+

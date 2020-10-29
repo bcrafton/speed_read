@@ -4524,7 +4524,64 @@ Quantize Notes:
 
 ====================
 
+(256, 1152, 8)
+(256, 9, 128, 8)
 
+so what does a matrix look like ? 
+
+> [16x16, 3x3x128] = [256, 1152]
+> [1024] = []
+
+> dang in old cifar we just did 128x10 ... thats a single FC layer
+  > but this dosnt look like it wud work lol
+
+first 2 lines in dense forward:
+> assert (np.shape(x) == (4,4,128))
+> x = np.mean(x, axis=(0, 1))
+  
+lol so theres ur pool.
+
+====================
+
+transform_inputs:
+(1024, 27, 8)
+(1024, 1, 128, 8)
+
+(1024, 576, 8)
+(1024, 5, 128, 8)
+
+(256, 576, 8)
+(256, 5, 128, 8)
+
+(256, 1152, 8)
+(256, 9, 128, 8)
+
+(64, 1152, 8)
+(64, 9, 128, 8)
+
+(64, 2304, 8)
+(64, 18, 128, 8)
+
+====================
+
+nrow, nwl, wl, xb = np.shape(x)
+patches = np.reshape(patches, (npatch, -1, self.params['wl'], self.params['bpa']))
+
+====================
+
+pim_static:
+(1024, 1, 128, 8)
+(1024, 5, 128, 8)
+(256, 5, 128, 8)
+(256, 9, 128, 8)
+(64, 9, 128, 8)
+(64, 18, 128, 8)
+
+====================
+
+
+
+====================
 
 
 
