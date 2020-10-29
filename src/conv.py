@@ -155,6 +155,11 @@ class Conv(Layer):
         y_ref = conv_ref(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2, relu_flag=self.relu_flag)
         y, results = self.conv(x=x)
 
+        mean = np.mean(y - y_ref)
+        error = np.mean(np.absolute(y - y_ref))
+        results['cim_mean'] = mean
+        results['cim_error'] = error
+
         y = self.act(y)
         y_ref = self.act(y_ref)
 
