@@ -108,19 +108,31 @@ def Thresh():
     'max_rpr': 64,
     }
     
-    arch_params = {
+    arch_params1 = {
     'skip': [1],
     'alloc': ['block'],
     'narray': [2 ** 13],
     'cards': [1],
     'profile': [1],
     'rpr_alloc': ['static'],
-    'sigma': [0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15],
-    'thresh': [0.25, 0.50, 0.75, 1.00]
+    'sigma': [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.20],
+    'thresh': [0.5, 2.00, 5.00]
     }
 
-    arch_params = perms(arch_params)
-    
+    arch_params2 = {
+    'skip': [1],
+    'alloc': ['block'],
+    'narray': [2 ** 13],
+    'sigma': [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.20],
+    'cards': [0],
+    'profile': [1],
+    'rpr_alloc': ['dynamic'],
+    'thresh': [1.00]
+    }
+
+    arch_params1 = perms(arch_params1)
+    arch_params2 = perms(arch_params2)
+    arch_params = arch_params1 + arch_params2
     return array_params, arch_params
     
 #######################################################
