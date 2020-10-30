@@ -86,7 +86,8 @@ if not load_profile_adc:
     np.save('profile_adc', profile)
 else:
     profile = np.load('profile_adc.npy', allow_pickle=True).item()
-    model.set_profile_adc(profile)
+
+model.set_profile_adc(profile)
 
 ##########################
 

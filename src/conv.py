@@ -125,10 +125,10 @@ class Conv(Layer):
         rpr_low = 1
         rpr_high = self.params['max_rpr']
         patches = self.transform_inputs(x)
-        _, self.adc_count, self.row_count = profile(patches, self.wb, (self.yh * self.yw, self.fn), rpr_low, rpr_high, self.params)
+        # _, self.adc_count, self.row_count = profile(patches, self.wb, (self.yh * self.yw, self.fn), rpr_low, rpr_high, self.params)
         y_ref = conv_ref(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2, relu_flag=self.relu_flag)
         y_ref = self.act(y_ref)
-        return y_ref, {self.layer_id: {'adc': self.adc_count, 'row': self.row_count}}
+        return y_ref, {self.layer_id: (patches, self.wb, (self.yh * self.yw, self.fn), rpr_low, rpr_high, self.params)}
 
     def set_block_alloc(self, block_alloc):
         self.block_alloc = block_alloc

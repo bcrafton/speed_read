@@ -3,12 +3,15 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
+import multiprocessing
+from multiprocessing import Process
+from multiprocessing import Pool
+
 from var import *
 from conv_utils import *
-
 from scipy.stats import norm, binom
-
 from AA import array_allocation
+from cprofile import profile
 
 #########################
 
@@ -51,14 +54,40 @@ class Model:
     def profile_adc(self, x):
         num_examples, _, _, _ = np.shape(x)
         num_layers = len(self.layers)
-        counts = {}
-
+        args_list = {}
         for example in range(num_examples):
             y = x[example]
             for layer in range(num_layers):
-                y, adc_counts = self.layers[layer].profile_adc(x=y)
-                assert (np.all((y % 1) == 0))
-                counts.update(adc_counts)
+                y, args = self.layers[layer].profile_adc(x=y)
+                args_list.update(args)
+
+        manager = multiprocessing.Manager()
+        thread_results = []
+
+        keys = list(args_list.keys())
+        total = len(keys)
+        nthread = 8
+        for run in range(0, total, nthread):
+
+            threads = []
+            for parallel_run in range(min(nthread, total - run)):
+                thread_result = manager.dict()
+                thread_results.append(thread_result)
+
+                id = keys[run + parallel_run]
+                args = args_list[id]
+                args = args + (id, thread_result)
+
+                t = multiprocessing.Process(target=profile, args=args)
+                threads.append(t)
+                t.start()
+
+            for t in threads:
+                t.join()
+
+        counts = {}
+        for result in thread_results:
+            counts.update(result)
 
         counts['wl'] = self.array_params['wl']
         counts['max_rpr'] = self.array_params['max_rpr']

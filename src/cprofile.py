@@ -10,7 +10,7 @@ profile_lib.profile.restype = ctypes.c_int
 
 ###########################
 
-def profile(x, w, y_shape, rpr_low, rpr_high, params):
+def profile(x, w, y_shape, rpr_low, rpr_high, params, id, results):
 
     nrow, nwl, wl, xb = np.shape(x)
     nwl, wl, nbl, bl = np.shape(w) # nwl, nbl, wl, bl
@@ -42,8 +42,7 @@ def profile(x, w, y_shape, rpr_low, rpr_high, params):
     ctypes.c_int(nbl),
     ctypes.c_int(wl),
     ctypes.c_int(bl))
-
-    return y, count_adc, count_row
     
+    results[id] = {'adc': count_adc, 'row': count_row}
     
     
