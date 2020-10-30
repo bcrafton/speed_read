@@ -463,6 +463,11 @@ compute
      variance should scale with acivation magnitude
   3) can we predict error prop ? 
 
+> BB / CC Synergy
+  > sometimes you dont get something for running CC faster
+  > so it makes sense to slow down, have less error, if BB gonna bottleneck anyways
+  > example: this fc layer.
+
 > exhaustive RPR table
   > knapsack problem
   > cost = variance

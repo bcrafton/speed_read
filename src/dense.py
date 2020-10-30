@@ -30,6 +30,11 @@ class Dense(Layer):
         self.params = params.copy()
         self.relu_flag = relu_flag
 
+        remainder = self.output_size % (self.params['bl'] // self.params['bpw'])
+        self.output_size_pad = self.output_size
+        if remainder:
+            self.output_size_pad += (self.params['bl'] // self.params['bpw']) - remainder
+
         self.nmac = self.input_size * self.output_size
 
         # self.w, self.b, self.q = weights['w'], weights['b'], weights['q']
@@ -68,7 +73,7 @@ class Dense(Layer):
             assert (False)
 
         elif self.params['rpr_alloc'] == 'dynamic':
-            assert (False)
+            self.params['rpr'], _ = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, nrow=self.input_size, q=self.q)
 
         elif self.params['rpr_alloc'] == 'static':
             self.params['rpr'], self.lut_bias = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, nrow=self.input_size, q=self.q)
@@ -89,7 +94,7 @@ class Dense(Layer):
         # _, self.adc_count, self.row_count = profile(patches, self.wb, (1, self.output_size), rpr_low, rpr_high, self.params)
         y_ref = dot_ref(x=x, w=self.w, b=self.b, q=self.q)
         y_ref = self.act(y_ref)
-        return y_ref, {self.layer_id: (patches, self.wb, (1, self.output_size), rpr_low, rpr_high, self.params)}
+        return y_ref, {self.layer_id: (patches, self.wb, (1, self.output_size_pad), rpr_low, rpr_high, self.params)}
 
     def set_block_alloc(self, block_alloc):
         self.block_alloc = block_alloc
@@ -114,6 +119,11 @@ class Dense(Layer):
         y_ref = dot_ref(x=x, w=self.w, b=self.b, q=self.q)
         y, results = self.conv(x=x)
 
+        mean = np.mean(y - y_ref)
+        error = np.mean(np.absolute(y - y_ref))
+        results['cim_mean'] = mean
+        results['cim_error'] = error
+
         y = self.act(y)
         y_ref = self.act(y_ref)
 
@@ -124,7 +134,7 @@ class Dense(Layer):
         y_error = np.mean(np.absolute(y - y_ref))
         # assert (self.s == 1)
         
-        print ('y_mean', y_mean, 'y_error', y_error, 'y_max', y_max, 'y_min', y_min)
+        # print ('y_mean', y_mean, 'y_error', y_error, 'y_max', y_max, 'y_min', y_min)
         
         # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
         # results = {}
@@ -138,11 +148,15 @@ class Dense(Layer):
         
         if self.params['alloc'] == 'block':
             results['array'] = np.sum(self.block_alloc) * nbl
-            print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d' % (self.layer_id, np.sum(self.block_alloc), nbl, nbl * np.sum(self.block_alloc), results['nmac'], results['cycle'], results['stall']))
-                    
+            # print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d' % (self.layer_id, np.sum(self.block_alloc), nbl, nbl * np.sum(self.block_alloc), results['nmac'], results['cycle'], results['stall']))
+            print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d mean: %0.3f error: %0.3f' % 
+              (self.layer_id, np.sum(self.block_alloc), nbl, nbl * np.sum(self.block_alloc), results['nmac'], results['cycle'], results['stall'], y_mean, y_error))
+
         elif self.params['alloc'] == 'layer': 
             results['array'] = self.layer_alloc * nwl * nbl
-            print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d' % (self.layer_id, self.layer_alloc, nwl * nbl, nwl * nbl * self.layer_alloc, results['nmac'], results['cycle'], results['stall']))
+            # print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d' % (self.layer_id, self.layer_alloc, nwl * nbl, nwl * nbl * self.layer_alloc, results['nmac'], results['cycle'], results['stall']))
+            print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d mean: %0.2f error: %0.2f' % 
+              (self.layer_id, self.layer_alloc, nwl * nbl, nwl * nbl * self.layer_alloc, results['nmac'], results['cycle'], results['stall'], y_mean, y_error))
 
         ########################
 
@@ -160,17 +174,17 @@ class Dense(Layer):
         elif self.params['alloc'] == 'layer': alloc = self.layer_alloc
         
         if self.params['rpr_alloc'] == 'centroids':
-            y, metrics = pim(xb, self.wb, (1, self.output_size), self.params['var'], self.params['rpr'], alloc, self.adc_state, self.adc_thresh, self.params)
-            y = np.reshape(y, self.output_size)
+            y, metrics = pim(xb, self.wb, (1, self.output_size_pad), self.params['var'], self.params['rpr'], alloc, self.adc_state, self.adc_thresh, self.params)
+            y = np.reshape(y, self.output_size_pad)[:self.output_size]
             y = y / 4
         elif self.params['rpr_alloc'] == 'dynamic':
             # want to pass some table to C instead of computing stuff inside.
-            y, metrics = pim_dyn(xb, self.wb, (1, self.output_size), self.params['var'], self.params['rpr'], alloc, self.params)
-            y = np.reshape(y, self.output_size)
+            y, metrics = pim_dyn(xb, self.wb, (1, self.output_size_pad), self.params['var'], self.params['rpr'], alloc, self.params)
+            y = np.reshape(y, self.output_size_pad)[:self.output_size]
         elif self.params['rpr_alloc'] == 'static':
             # think we want to pass a bias table
-            y, metrics = pim_static(xb, self.wb, (1, self.output_size), self.params['var'], self.params['rpr'], alloc, self.lut_bias, self.params)
-            y = np.reshape(y, self.output_size)
+            y, metrics = pim_static(xb, self.wb, (1, self.output_size_pad), self.params['var'], self.params['rpr'], alloc, self.lut_bias, self.params)
+            y = np.reshape(y, self.output_size_pad)[:self.output_size]
         else:
             assert (False)
         
