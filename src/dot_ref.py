@@ -35,9 +35,11 @@ def conv_ref(x, f, b, q, pool, stride, pad1, pad2, relu_flag):
 
 def dot_ref(x, w, b, q):
     y = x @ w
+    '''
     y = y / q
     y = np.floor(y)
     y = np.clip(y, -128, 127)
+    '''
     return y
     
 ##################################################
