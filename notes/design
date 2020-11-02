@@ -4524,20 +4524,42 @@ Quantize Notes:
 
 ====================
 
+Knapsack
+--------
 
+how can knapsack be implemented ? 
+> start outside of speed_read
+> setup problem
+> table ~ {xb, wb, rpr} = (performance, error)
+> so its not true knapsack right ? you can only pick 1 {xb, wb, rpr} per {xb, wb}
 
+> If the items are subdivided into k classes denoted N i {\displaystyle N_{i}} N_{i}, and exactly one item must be taken from each class, we get the multiple-choice knapsack problem: 
+> If for each item the profit and weight are equal, we get the subset sum problem (often the corresponding decision problem is given instead): 
 
+seems pretty easy - especially for 16 rpr - and would be super satisfying ...
 
+====================
 
+https://github.com/tmarinkovic/multiple-choice-knapsack-problem
+https://gist.github.com/USM-F/1287f512de4ffb2fb852e98be1ac271d
 
+https://en.wikipedia.org/wiki/List_of_knapsack_problems
 
+====================
 
+looks like we will have to write our own implementation.
+but will be worth it I think.
 
+====================
 
+dynamic programming wont work:
+https://stackoverflow.com/questions/8860882/knapsack-with-continuous-non-distinct-constraint
 
+we can use:
+1) linear programming 
+2) branch and bound
 
-
-
+====================
 
 
 
