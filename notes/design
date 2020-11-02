@@ -4561,6 +4561,35 @@ we can use:
 
 ====================
 
+branch and bound going to be the easiest here.
+use greedy solution as the bound.
+
+so we need a branch and bound implementation for knapsack which we already have.
+
+====================
+
+so there is a very easy solution to this problem!
+branch and bound - you normally create branches - {0, 1} at each step
+now we will just create 64 branches 
+VERY simple and ez.
+
+====================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
