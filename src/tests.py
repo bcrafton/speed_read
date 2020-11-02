@@ -186,8 +186,8 @@ def Simple():
     'bpw': 8,
     'adc': 8,
     'adc_mux': 8,
-    'wl': 128,
-    'bl': 128,
+    'wl': 256,
+    'bl': 256,
     'offset': 128,
     'max_rpr': 64,
     }

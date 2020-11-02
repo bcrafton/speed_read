@@ -1,7 +1,9 @@
 
 import numpy as np
 from scipy.stats import norm, binom
-    
+
+from optimize_rpr import optimize_rpr
+
 ##########################################
 
 def expected_error(params, adc_count, row_count, rpr, nrow, bias):
@@ -62,7 +64,11 @@ def static_rpr(low, high, params, adc_count, row_count, nrow, q):
         
     if not (params['skip'] and params['cards']):
         return rpr_lut, bias_lut
-    
+
+    delay      = np.zeros(shape=(8, 8, 64))
+    error      = np.zeros(shape=(8, 8, 64))
+    bias_table = np.zeros(shape=(8, 8, 64))
+
     for wb in range(params['bpw']):
         for xb in range(params['bpa']):
             for rpr in range(low, high + 1):
@@ -74,7 +80,6 @@ def static_rpr(low, high, params, adc_count, row_count, nrow, q):
                     prob = count / (np.sum(count) + 1e-6)
                     weight = np.arange(sat_high - sat_low, dtype=np.float32)
                     bias = np.sum(prob * weight)
-                    # print (xb, wb, rpr, np.around(prob, 3), bias)
                 else:
                     bias = 0.
 
@@ -84,24 +89,19 @@ def static_rpr(low, high, params, adc_count, row_count, nrow, q):
 
                 scale = 2**wb * 2**xb
                 mse, mean = expected_error(params=params, adc_count=adc_count[xb][wb], row_count=row_count[xb], rpr=rpr, nrow=expected_cycles, bias=bias)
-                scaled_mse = (scale / q) * 64. * mse
-                scaled_mean = (scale / q) * 64. * mean
+                scaled_mse = (scale / q) * mse
+                scaled_mean = (scale / q) * mean
 
-                # print (xb, wb, rpr, adc_count[xb, wb, rpr])
+                bias_table[xb][wb][rpr - 1] = bias
+                error[xb][wb][rpr - 1] = scaled_mse
+                delay[xb][wb][rpr - 1] = expected_cycles
 
-                if rpr == low:
-                    rpr_lut[xb][wb] = rpr
-                    bias_lut[xb][wb] = bias
-                    mse_lut[xb][wb] = scaled_mse
-                    mean_lut[xb][wb] = scaled_mean
+    rpr_lut = optimize_rpr(error, delay, params['thresh'])
+    for wb in range(params['bpw']):
+        for xb in range(params['bpa']):
+            rpr = rpr_lut[xb][wb]
+            bias_lut[xb][wb] = bias_table[xb][wb][rpr - 1]
 
-                if scaled_mse < params['thresh']:
-                    rpr_lut[xb][wb] = rpr
-                    bias_lut[xb][wb] = bias
-                    mse_lut[xb][wb] = scaled_mse
-                    mean_lut[xb][wb] = scaled_mean
-
-    # print (np.mean(mse_lut), np.mean(mean_lut))
     return rpr_lut, bias_lut
     
     

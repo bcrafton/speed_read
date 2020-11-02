@@ -38,11 +38,11 @@ from tests import Simple
 
 ############
 
-array_params, arch_params = CC()
+# array_params, arch_params = CC()
 # array_params, arch_params = BB()
 # array_params, arch_params = Thresh()
 # array_params, arch_params = CE()
-# array_params, arch_params = Simple()
+array_params, arch_params = Simple()
 
 ############
 
@@ -81,7 +81,7 @@ model, x, y = load_cifar(num_example=1, array_params=array_params)
 
 start = time.time()
 
-load_profile_adc = False
+load_profile_adc = True
 
 if not load_profile_adc:
     profile = model.profile_adc(x=x)
