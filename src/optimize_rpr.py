@@ -34,17 +34,21 @@ def optimize_rpr(error, delay, threshold):
 
     ##########################################
 
-    knapsack_problem.solve(solver=cvxpy.GLPK_MI, verbose=True)
+    knapsack_problem.solve(solver=cvxpy.GLPK_MI)
+    if knapsack_problem.status != "optimal":
+        print("status:", knapsack_problem.status)
+        print (selection.value)
+        assert (knapsack_problem.status == "optimal")
 
     ##########################################
 
-    select = np.array(selection.value, dtype=int)
+    select = np.array(selection.value, dtype=np.int32)
     rpr_lut = np.reshape(select, (xb, wb, rpr))
 
     ones = np.sum(rpr_lut, axis=2)
     assert (np.all(ones == 1))
 
-    scale = np.arange(1, rpr + 1, dtype=int)
+    scale = np.arange(1, rpr + 1, dtype=np.int32)
     rpr_lut = np.sum(rpr_lut * scale, axis=2)
     assert (np.all(rpr_lut > 0))
 

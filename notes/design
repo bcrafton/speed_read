@@ -4581,10 +4581,18 @@ hard to get an upper bound.
 ====================
 
 trying ILP
+> works great.
 
+====================
 
+having problems with approximating error in static RPR
+> ADC threshold 1 = 0.2
+> ADC threshold 2 = INF @ RPR = 1
+  > since #WL enabled cannot be greater than output.
 
+may as well write a nice little script to compute the proper ADC thresholds.
 
+====================
 
 
 

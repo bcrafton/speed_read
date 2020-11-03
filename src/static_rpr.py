@@ -4,6 +4,9 @@ from scipy.stats import norm, binom
 
 from optimize_rpr import optimize_rpr
 
+import sys
+np.set_printoptions(threshold=sys.maxsize)
+
 ##########################################
 
 def expected_error(params, adc_count, row_count, rpr, nrow, bias):
@@ -15,12 +18,16 @@ def expected_error(params, adc_count, row_count, rpr, nrow, bias):
     s  = np.arange(rpr + 1, dtype=np.float32)
     
     adc      = np.arange(params['adc'] + 1, dtype=np.float32).reshape(-1, 1)
-    adc_low  = np.array([-1e6, 0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5]).reshape(-1, 1)
-    adc_high = np.array([0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 1e6]).reshape(-1, 1)
+    adc_low  = np.array([-1e6, 0.2, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5]).reshape(-1, 1)
+    adc_high = np.array([0.2, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 1e6]).reshape(-1, 1)
     
-    pe = norm.cdf(adc_high, s, params['sigma'] * np.sqrt(s) + 1e-6) - norm.cdf(adc_low, s, params['sigma'] * np.sqrt(s) + 1e-6)
+    if rpr < params['adc']:
+        adc_low[rpr+1:] = 1e6
+        adc_high[rpr:] = 1e6
+
+    pe = norm.cdf(adc_high, s, params['sigma'] * np.sqrt(s) + 1e-9) - norm.cdf(adc_low, s, params['sigma'] * np.sqrt(s) + 1e-9)
     e = s - adc
-    p = adc_count[rpr, 0:rpr + 1] / (np.sum(adc_count[rpr]) + 1e-6)
+    p = adc_count[rpr, 0:rpr + 1] / (np.sum(adc_count[rpr]) + 1e-9)
 
     #######################
     # error from rpr > adc
@@ -95,6 +102,20 @@ def static_rpr(low, high, params, adc_count, row_count, nrow, q):
                 bias_table[xb][wb][rpr - 1] = bias
                 error[xb][wb][rpr - 1] = scaled_mse
                 delay[xb][wb][rpr - 1] = expected_cycles
+
+    # print (np.min(error, axis=2))
+    # print ()
+    # print (np.max(error, axis=2))
+
+    # print (np.sum(np.min(error, axis=2)))
+    # print (np.sum(np.max(error, axis=2)))
+
+    assert (np.sum(np.min(error, axis=2)) <= params['thresh'])
+
+    # KeyError: 'infeasible problem'
+    # https://stackoverflow.com/questions/46246349/infeasible-solution-for-an-lp-even-though-there-exists-feasible-solutionusing-c
+    # need to clip precision.
+    error = np.clip(error, 1e-6, np.inf)
 
     rpr_lut = optimize_rpr(error, delay, params['thresh'])
     for wb in range(params['bpw']):
