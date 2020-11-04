@@ -13,53 +13,41 @@ profile = np.load('../profile_adc.npy', allow_pickle=True).item()
 adc_count = profile[1]['adc']
 row_count = profile[1]['row']
 
-# print (np.shape(adc_count))
-# print (np.shape(row_count))
-
 ###############################
 
-def xy(x, w, rpr=16):
-    y = adc_count[x][w][rpr][0:rpr+1]
-    y = y / np.sum(y)
-    x = range(len(y))
-    return x, y
-    
-###############################
+plt.cla()
 
-'''
-fig, axs = plt.subplots(3, 1)
+y = profile[1]['adc'][0][0][16][0:17]
+y = y / np.sum(y)
+x = range(len(y))
 
-x, y = xy(0,0,16)
-axs[0].bar(x=x, height=y, width=0.5)
-axs[0].set_xticks(x)
-
-x, y = xy(6,0,16)
-axs[1].bar(x=x, height=y, width=0.5)
-axs[1].set_xticks(x)
-
-x, y = xy(5,5,16)
-axs[2].bar(x=x, height=y, width=0.5)
-axs[2].set_xticks(x)
-'''
-
-###############################
-
-fig, axs = plt.subplots(2, 1)
-
-x, y = xy(0,0,16)
-axs[0].bar(x=x, height=y, width=0.5)
-axs[0].set_xticks(x)
-
-x, y = xy(4,0,16)
-axs[1].bar(x=x, height=y, width=0.5)
-axs[1].set_xticks(x)
-
-###############################
-
+plt.bar(x=x, height=y, width=0.5)
+plt.ylim(0., 0.175)
+plt.yticks([0.05, 0.10, 0.15], ['', '', ''])
+plt.xticks(x, len(x) * [''])
 fig = plt.gcf()
-fig.set_size_inches(5., 4.)
-plt.tight_layout()
-plt.savefig('pmf.png', dpi=300)
+fig.set_size_inches(3.3, 0.8)
+plt.tight_layout(0.)
+plt.grid(True, axis='y', linestyle='dotted')
+plt.savefig('pmf1.png', dpi=500)
+
+###############################
+
+plt.cla()
+
+y = profile[1]['adc'][4][0][16][0:17]
+y = y / np.sum(y)
+x = range(len(y))
+
+plt.bar(x=x, height=y, width=0.5)
+plt.ylim(0., 0.175)
+plt.yticks([0.05, 0.10, 0.15], ['', '', ''])
+plt.xticks(x, len(x) * [''])
+fig = plt.gcf()
+fig.set_size_inches(3.3, 0.8)
+plt.tight_layout(0.)
+plt.grid(True, axis='y', linestyle='dotted')
+plt.savefig('pmf2.png', dpi=500)
 
 ###############################
 
