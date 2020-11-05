@@ -4610,8 +4610,39 @@ so basically re-run the sims with new perf boost and create pretty figures with 
 
 ====================
 
+Absolute Error:
 
+> how do we compare error at the output of the network
 
+(1)
+forward (x, x_ref)
+  return y, y_ref
+
+> intermediate comparison
+> dont need to save all the results from inbetween
+  > although saving them really wouldnt be that bad ... then more in-depth comparisons can be done.
+
+(2) 
+forward (x, ref=False)
+  if ref: return y_ref
+  else:   return y
+
+> pretty much same as above
+
+(3)
+tf, quantize, new model and do a comparison afterwards
+
+====================
+
+at the end though, this is still messy bc we are doing absolute error for
+(1) output of network
+(2) intermediate layers
+AND 
+how is intermediate layers correlated to accuracy
+AND
+how do you control error for the whole network based on intermediate layers.
+
+====================
 
 
 
