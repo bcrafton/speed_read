@@ -4594,10 +4594,21 @@ may as well write a nice little script to compute the proper ADC thresholds.
 
 ====================
 
+thresh=1.00, WL=256, narray=4096 ... 1.225
+thresh=1.00, WL=256, narray=8192 ... 1.235
+thresh=1.00, WL=128, narray=8192 ... 1.1895
 
+but we need to lower the thresh to bring that error down.
+would still like to see ~1.21x performance though.
 
+ehh maybe we dont need to do this.
+because we can just do the thresholds in the next figure.
 
+====================
 
+so basically re-run the sims with new perf boost and create pretty figures with Desktop machine.
+
+====================
 
 
 

@@ -92,16 +92,18 @@ def static_rpr(low, high, params, adc_count, row_count, nrow, q):
 
                 #####################################################
 
-                expected_cycles = np.ceil(nrow / params['wl']) * np.ceil(nrow_array[xb][rpr])
+                # not sure what right answer is here.
+                total_row = np.ceil(nrow / params['wl'] * nrow_array[xb][rpr])
+                # total_row = nrow / params['wl'] * nrow_array[xb][rpr]
 
                 scale = 2**wb * 2**xb
-                mse, mean = expected_error(params=params, adc_count=adc_count[xb][wb], row_count=row_count[xb], rpr=rpr, nrow=expected_cycles, bias=bias)
+                mse, mean = expected_error(params=params, adc_count=adc_count[xb][wb], row_count=row_count[xb], rpr=rpr, nrow=total_row, bias=bias)
                 scaled_mse = (scale / q) * mse
                 scaled_mean = (scale / q) * mean
 
                 bias_table[xb][wb][rpr - 1] = bias
                 error[xb][wb][rpr - 1] = scaled_mse
-                delay[xb][wb][rpr - 1] = expected_cycles
+                delay[xb][wb][rpr - 1] = nrow_array[xb][rpr]
 
     # print (np.min(error, axis=2))
     # print ()
