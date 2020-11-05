@@ -92,7 +92,7 @@ def static_rpr(low, high, params, adc_count, row_count, nrow, q):
 
                 #####################################################
 
-                # not sure what right answer is here.
+                # total_row = np.ceil(nrow / params['wl']) * np.ceil(nrow_array[xb][rpr])
                 total_row = np.ceil(nrow / params['wl'] * nrow_array[xb][rpr])
                 # total_row = nrow / params['wl'] * nrow_array[xb][rpr]
 

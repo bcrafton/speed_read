@@ -35,14 +35,16 @@ from tests import BB
 from tests import Thresh
 from tests import CE
 from tests import Simple
+from tests import dac2
 
 ############
 
-array_params, arch_params = CC()
+# array_params, arch_params = CC()
 # array_params, arch_params = BB()
 # array_params, arch_params = Thresh()
 # array_params, arch_params = CE()
 # array_params, arch_params = Simple()
+array_params, arch_params = dac2()
 
 ############
 
