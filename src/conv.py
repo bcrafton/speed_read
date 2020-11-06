@@ -111,7 +111,7 @@ class Conv(Layer):
             # self.params['rpr'], _ = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, nrow=self.fh * self.fw * self.fc, q=self.q)
 
         elif self.params['rpr_alloc'] == 'static':
-            self.params['rpr'], self.lut_bias = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, nrow=self.fh * self.fw * self.fc, q=self.q)
+            self.params['rpr'], self.lut_bias = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, sat_count=self.sat_count, nrow=self.fh * self.fw * self.fc, q=self.q)
             self.lut_bias = self.lut_bias * 256
             self.lut_bias = self.lut_bias.astype(np.int32)
         else:
@@ -120,6 +120,7 @@ class Conv(Layer):
     def set_profile_adc(self, counts):
         self.adc_count = counts[self.layer_id]['adc']
         self.row_count = counts[self.layer_id]['row']
+        self.sat_count = counts[self.layer_id]['sat']
 
     def profile_adc(self, x):
         rpr_low = 1

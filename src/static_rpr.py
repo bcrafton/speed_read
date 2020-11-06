@@ -9,7 +9,7 @@ np.set_printoptions(threshold=sys.maxsize)
 
 ##########################################
 
-def expected_error(params, adc_count, row_count, rpr, nrow, bias):
+def expected_error(params, adc_count, row_count, sat_count, rpr, nrow, bias):
 
     #######################
     # error from rpr <= adc
@@ -32,9 +32,14 @@ def expected_error(params, adc_count, row_count, rpr, nrow, bias):
     #######################
     # error from rpr > adc
     #######################
-    
+
+    sat_count = sat_count[rpr][1:rpr+1]
+    sat_pmf = sat_count / (np.sum(sat_count) + 1e-9)
+    sat = np.arange(1, rpr+1, dtype=np.float32)
+
     if rpr > params['adc']:
         e[:, params['adc']:rpr+1] = e[:, params['adc']:rpr+1] - bias
+        # e[:, params['adc']:rpr+1] = e[:, params['adc']:rpr+1] - round(bias * np.sum(sat_pmf * sat))
         # e[:, params['adc']:rpr+1] = e[:, params['adc']:rpr+1] - round(nrow * bias) // nrow
 
     # mse = np.sum((p * pe * e * nrow) ** 2)
@@ -48,7 +53,7 @@ def expected_error(params, adc_count, row_count, rpr, nrow, bias):
 
 ##########################################
 
-def static_rpr(low, high, params, adc_count, row_count, nrow, q):
+def static_rpr(low, high, params, adc_count, row_count, sat_count, nrow, q):
 
     weight = np.arange(params['max_rpr']+1, dtype=np.float32)
     nrow_array = np.sum(row_count * weight, axis=2) / (np.sum(row_count, axis=2) + 1e-6)
@@ -97,7 +102,7 @@ def static_rpr(low, high, params, adc_count, row_count, nrow, q):
                 # total_row = nrow / params['wl'] * nrow_array[xb][rpr]
 
                 scale = 2**wb * 2**xb
-                mse, mean = expected_error(params=params, adc_count=adc_count[xb][wb], row_count=row_count[xb], rpr=rpr, nrow=total_row, bias=bias)
+                mse, mean = expected_error(params=params, adc_count=adc_count[xb][wb], row_count=row_count[xb], sat_count=sat_count[xb][wb], rpr=rpr, nrow=total_row, bias=bias)
                 scaled_mse = (scale / q) * mse
                 scaled_mean = (scale / q) * mean
 

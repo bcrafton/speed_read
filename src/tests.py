@@ -199,8 +199,8 @@ def Simple():
     'cards': [1],
     'profile': [0],
     'rpr_alloc': ['static'],
-    'sigma': [0.05],
-    'thresh': [0.25]
+    'sigma': [0.15],
+    'thresh': [1.00]
     }
 
     arch_params = perms(arch_params)
