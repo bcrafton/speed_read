@@ -4744,7 +4744,9 @@ error sources we dont consider
 
 ====================
 
-
+whatever rpr is chosen, going to have bias since last state has error on just negative side
+> no avoiding this issue ... even with 2 states, cant get 3 for 2, but can get 1.
+> cant move thresholds
 
 
 
