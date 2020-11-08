@@ -67,6 +67,8 @@ class AvgPool(Layer):
 
 class MaxPool(Layer):
     def __init__(self, input_size, kernel_size, stride, params, weights):
+        assert False, "Integrate + Verify conv_utils/max_pool()"
+
         self.layer_id = Layer.layer_id
         Layer.layer_id += 1
         
