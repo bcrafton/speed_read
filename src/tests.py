@@ -189,13 +189,13 @@ def Simple():
     'wl': 256,
     'bl': 256,
     'offset': 128,
-    'max_rpr': 64,
+    'max_rpr': 16,
     }
 
     arch_params = {
     'skip': [1],
     'alloc': ['block'],
-    'narray': [2 ** 13],
+    'narray': [2 ** 11],
     'cards': [1],
     'profile': [0],
     'rpr_alloc': ['static'],

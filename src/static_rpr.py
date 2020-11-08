@@ -77,9 +77,9 @@ def static_rpr(low, high, params, adc_count, row_count, sat_count, nrow, q):
     if not (params['skip'] and params['cards']):
         return rpr_lut, bias_lut
 
-    delay      = np.zeros(shape=(8, 8, 64))
-    error      = np.zeros(shape=(8, 8, 64))
-    bias_table = np.zeros(shape=(8, 8, 64))
+    delay      = np.zeros(shape=(8, 8, params['max_rpr']))
+    error      = np.zeros(shape=(8, 8, params['max_rpr']))
+    bias_table = np.zeros(shape=(8, 8, params['max_rpr']))
 
     for wb in range(params['bpw']):
         for xb in range(params['bpa']):

@@ -11,6 +11,20 @@ def avg_pool(x, p):
   x = np.mean(x, axis=(2, 3))
   return x
 
+def max_pool(x, k, s):
+    p = k // 2
+
+    xh, xw, xc = np.shape(x)
+    yh, yw, yc = (xh // s), (xw // s), xc
+
+    x = np.pad(array=x, pad_width=[[p,p], [p,p], [0,0]], mode='constant')
+    y = np.zeros(shape=(yh, yw, yc))
+    for h in range(yh):
+        for w in range(yw):
+            y[h, w, :] = np.max(x[h*s:(h*s+k), w*s:(w*s+k), :], axis=(0, 1))
+
+    return y
+
 def conv_output_length(input_length, filter_size, padding, stride, dilation=1):
   """Determines output length of a convolution given input length.
 
