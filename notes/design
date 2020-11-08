@@ -4732,9 +4732,17 @@ why are we always less than ???
 > under approx bias that much ? 
 > wud be good to try with not 64 ...
 
+====================
 
+error sources we dont consider
+> variance 7 -> 8 ... add bias ... goes to 9.15
 
+> we should not round until after done with all 64 sub-ops.
+  > need a p_y for each array ... where at the end we add it to y.
 
+> ALSO we shift the bias over ... so the only place you get rounding errors is where shifting dosnt get you a whole number ... which are small anyways.
+
+====================
 
 
 

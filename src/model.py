@@ -106,7 +106,7 @@ class Model:
         for example in range(num_examples):
             pred[example] = x[example]
             for layer in range(num_layers):
-                pred[example], result = self.layers[layer].forward(x=pred[example], profile=True)
+                pred[example], _, result = self.layers[layer].forward(x=pred[example], profile=True)
                 assert (np.all((pred[example] % 1) == 0))
                 for r in result:
                     mac_per_array_layer[example][r['id']] = (r['nmac'] / self.weights[r['id']].factor) / (r['cycle'] * self.weights[r['id']].layer_alloc)
@@ -124,35 +124,16 @@ class Model:
         num_examples, _, _, _ = np.shape(x)
         num_layers = len(self.layers)
 
-        pred = [None] * num_examples
-        # results = [[] for weight in range(self.nweight)] 
-        
-        '''
-        results = {}
-        for weight in range(self.nweight):
-            results[weight] = []
-        '''
-        
         results = []
-        
         for example in range(num_examples):
-            pred[example] = x[example]
+            out, out_ref = x[example], x[example]
             for layer in range(num_layers):
-                pred[example], result = self.layers[layer].forward(x=pred[example])
-                assert (np.all((pred[example] % 1) == 0))
-                '''
-                for r in result:
-                    results[r['id']].append(r)
-                '''
+                out, out_ref, result = self.layers[layer].forward(x=out, x_ref=out_ref)
                 for r in result:
                     r['example'] = example
                     results.append(r)
-                
-        # this is dumb, just stick this in the results.
-        # results['block_mac'] = self.mac_per_array_block
-        # results['layer_mac'] = self.mac_per_array_layer
 
-        return pred, results
+        return out, out_ref, results
 
     def set_layer_alloc(self):
         nmac = np.zeros(shape=self.nweight, dtype=np.int32)

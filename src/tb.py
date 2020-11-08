@@ -39,11 +39,11 @@ from tests import dac2
 
 ############
 
-# array_params, arch_params = CC()
+array_params, arch_params = CC()
 # array_params, arch_params = BB()
 # array_params, arch_params = Thresh()
 # array_params, arch_params = CE()
-array_params, arch_params = Simple()
+# array_params, arch_params = Simple()
 # array_params, arch_params = dac2()
 
 ############
@@ -55,10 +55,12 @@ def run_command(x, y, model, params, return_list):
     if params['profile']:
         model.profile(x=x)
     
-    _, result = model.forward(x=x, y=y)
-    
+    out, out_ref, result = model.forward(x=x, y=y)
+    abs_error = np.mean(np.absolute(out - out_ref))
+    abs_mean = np.mean(np.absolute(out_ref))
+
     # return_dict[(params['skip'], params['cards'], params['alloc'], params['profile'], params['narray'], params['sigma'], params['rpr_alloc'])] = result
-    
+
     update = {
     'skip':      params['skip'],
     'cards':     params['cards'],
@@ -67,7 +69,8 @@ def run_command(x, y, model, params, return_list):
     'narray':    params['narray'],
     'sigma':     params['sigma'],
     'rpr_alloc': params['rpr_alloc'],
-    'thresh':    params['thresh']
+    'thresh':    params['thresh'],
+    'abs_error': abs_error
     }
     
     for r in result:

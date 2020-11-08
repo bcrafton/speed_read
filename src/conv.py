@@ -150,10 +150,10 @@ class Conv(Layer):
         y = np.clip(y, -128, 127)
         return y
 
-    def forward(self, x, profile=False):
+    def forward(self, x, x_ref, profile=False):
         # 1) tensorflow to compute y_ref
         # 2) save {x,y1,y2,...} as tb from tensorflow 
-        y_ref = conv_ref(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2, relu_flag=self.relu_flag)
+        y_ref = conv_ref(x=x_ref, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2, relu_flag=self.relu_flag)
         y, results = self.conv(x=x)
 
         mean = np.mean(y - y_ref)
@@ -199,7 +199,7 @@ class Conv(Layer):
 
         ########################
 
-        y = y_ref
+        # y = y_ref
         # assert (y_std <= 0)
         
         '''
@@ -213,7 +213,7 @@ class Conv(Layer):
         '''
         ########################
 
-        return y, [results]
+        return y, y_ref, [results]
         
     def conv(self, x):
 

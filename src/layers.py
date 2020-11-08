@@ -19,7 +19,7 @@ class Layer:
     def __init__(self):
         assert(False)
         
-    def forward(self, x, profile=False):   
+    def forward(self, x, x_ref, profile=False):
         assert(False)
         
     def init(self, params):
@@ -29,7 +29,7 @@ class Layer:
         pass
         
     def profile_adc(self, x):
-        y, _ = self.forward(x)
+        y, _, _ = self.forward(x=x, x_ref=x)
         return y, {}
         
     def nblock(self):
@@ -57,11 +57,18 @@ class AvgPool(Layer):
         
         assert (self.k == self.s)
 
-    def forward(self, x, profile=False):
-        # max pool and avg pool mess things up a bit because they dont do the right padding in tensorflow.
+    # max pool and avg pool mess things up a bit because they dont do the right padding in tensorflow.
+    def forward(self, x, x_ref, profile=False):
+        # cim
         y = avg_pool(x, self.k)
         y = np.clip(np.floor(y), -128, 127)
-        return y, []
+        # ref
+        y_ref = avg_pool(x_ref, self.k)
+        y_ref = np.clip(np.floor(y_ref), -128, 127)
+        # return
+        assert (np.all((y % 1) == 0))
+        assert (np.all((y_ref % 1) == 0))
+        return y, y_ref, []
 
 #############
 
