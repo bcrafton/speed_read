@@ -106,17 +106,13 @@ class Model:
         num_examples, _, _, _ = np.shape(x)
         num_layers = len(self.layers)
 
-        pred = [None] * num_examples
-        results = {}
-
         mac_per_array_layer = np.zeros(shape=(num_examples, self.nweight))
         mac_per_array_block = np.zeros(shape=(num_examples, self.nblock))
         
         for example in range(num_examples):
-            pred[example] = x[example]
+            out, out_ref = x[example], x[example]
             for layer in range(num_layers):
-                pred[example], _, result = self.layers[layer].forward(x=pred[example], profile=True)
-                assert (np.all((pred[example] % 1) == 0))
+                out, out_ref, result = self.layers[layer].forward(x=out, x_ref=out_ref, profile=True)
                 for r in result:
                     mac_per_array_layer[example][r['id']] = (r['nmac'] / self.weights[r['id']].factor) / (r['cycle'] * self.weights[r['id']].layer_alloc)
                     mac_per_array_block[example][self.block_map[r['id']]] = (r['nmac'] / self.weights[r['id']].factor) / (r['block_cycle'])
@@ -142,8 +138,8 @@ class Model:
                 for r in result:
                     r['example'] = example
                     results.append(r)
-            correct += (np.argmax(out) == y[example])
-        print (correct / num_examples)
+            # correct += (np.argmax(out) == y[example])
+        # print (correct / num_examples)
         return out, out_ref, results
 
     def set_layer_alloc(self):

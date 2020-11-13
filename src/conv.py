@@ -97,7 +97,7 @@ class Conv(Layer):
 
         elif self.params['rpr_alloc'] == 'dynamic':
             ## TODO: cant this be "self.wb" and cant we throw it in a different function ??
-
+            '''
             w_offset = self.w + self.params['offset']
             wb = []
             for bit in range(self.params['bpw']):
@@ -110,7 +110,8 @@ class Conv(Layer):
             nrow = self.fh * self.fw * self.fc
             p = np.max(col_density, axis=0)
             self.params['rpr'] = dynamic_rpr(nrow=nrow, p=p, q=self.q, params=self.params)
-            # self.params['rpr'], _ = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, nrow=self.fh * self.fw * self.fc, q=self.q)
+            '''
+            self.params['rpr'], _ = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, sat_count=self.sat_count, nrow=self.fh * self.fw * self.fc, q=self.q)
 
         elif self.params['rpr_alloc'] == 'static':
             self.params['rpr'], self.lut_bias = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, sat_count=self.sat_count, nrow=self.fh * self.fw * self.fc, q=self.q)
@@ -203,19 +204,9 @@ class Conv(Layer):
 
         ########################
 
-        # y = y_ref
-        # assert (y_std <= 0)
-        y_ref = y
+        y = y_ref
+        # y_ref = y
 
-        '''
-        y = y + self.b
-        if self.relu_flag:
-            y = relu(y)
-        y = avg_pool(y, self.p)
-        y = y / self.q
-        y = np.round(y)
-        y = np.clip(y, -128, 127)
-        '''
         ########################
 
         return y, y_ref, [results]

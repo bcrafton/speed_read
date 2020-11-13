@@ -4771,19 +4771,32 @@ could the average pool be what makes it so resilent to noise ?
 
 ====================
 
-> verify maxpool ? 
+> verify maxpool [done]
   > run both, assert np all.
-  >> done
 
-> un-change:
+> un-change [done]
   > model.py
   > static_rpr.py -> need to take q from block wrapper ... otherwise static_rpr will be fucked.
     > can probably do this in imagenet_scale.py
 
-> 8b weights ... so we can put on github.
+> 8b weights [done] 
+  > so we can put on github.
 
-> cud do resnet performance on different branch
+====================
+
+> resnet perf [TODO]
+  > resnet performance on different branch
   > but makes sense to push everything forward rather than back-tracking.
+
+> so we will need to fix profile ... which was broken before resnet.
+
+> why is profile flag passed in forward() ??
+
+====================
+
+> problem with dense & array allocation.
+  > need to be able to assign 1 row to multiple PEs
+  > because dense with 1 PE becomes bottleneck in some configs
 
 ====================
 

@@ -73,7 +73,7 @@ class Dense(Layer):
             assert (False)
 
         elif self.params['rpr_alloc'] == 'dynamic':
-            self.params['rpr'], _ = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, nrow=self.input_size, q=self.q)
+            self.params['rpr'], _ = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, sat_count=self.sat_count, nrow=self.input_size, q=self.q)
 
         elif self.params['rpr_alloc'] == 'static':
             self.params['rpr'], self.lut_bias = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, sat_count=self.sat_count, nrow=self.input_size, q=self.q)
@@ -99,9 +99,11 @@ class Dense(Layer):
 
     def set_block_alloc(self, block_alloc):
         self.block_alloc = block_alloc
+        assert( np.sum(self.block_alloc) == self.nbl )
 
     def set_layer_alloc(self, layer_alloc):
         self.layer_alloc = layer_alloc
+        assert( np.sum(self.layer_alloc) == 1 )
         
     def weights(self):
         return [self]
@@ -161,8 +163,8 @@ class Dense(Layer):
 
         ########################
 
-        # y = y_ref
-        y_ref = y
+        y = y_ref
+        # y_ref = y
         return y, y_ref, [results]
         
     def conv(self, x):
