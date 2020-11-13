@@ -44,9 +44,9 @@ def create_model(array_params):
     Conv(input_size=(8,8,128), filter_size=(3,3,128,256), pool=1, stride=1, pad1=1, pad2=1, params=array_params, weights=weights),
     Conv(input_size=(8,8,256), filter_size=(3,3,256,256), pool=1, stride=1, pad1=1, pad2=1, params=array_params, weights=weights),
 
-    # AvgPool(input_size=(8, 8, 256), kernel_size=2, stride=2, params=array_params, weights=weights),
-    # AvgPool(input_size=(4, 4, 256), kernel_size=4, stride=4, params=array_params, weights=weights),
-    # Dense(size=(256, 10), params=array_params, weights=weights)
+    AvgPool(input_size=(8, 8, 256), kernel_size=2, stride=2, params=array_params, weights=weights),
+    AvgPool(input_size=(4, 4, 256), kernel_size=4, stride=4, params=array_params, weights=weights),
+    Dense(size=(256, 10), params=array_params, weights=weights)
     ]
 
     model = Model(layers=layers, array_params=array_params)

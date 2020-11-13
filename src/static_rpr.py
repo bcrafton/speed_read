@@ -55,7 +55,7 @@ def expected_error(params, adc_count, row_count, sat_count, rpr, nrow, bias):
 
 def static_rpr(low, high, params, adc_count, row_count, sat_count, nrow, q):
 
-    weight = np.arange(params['max_rpr']+1, dtype=np.float32)
+    weight = np.arange(high + 1, dtype=np.float32)
     nrow_array = np.sum(row_count * weight, axis=2) / (np.sum(row_count, axis=2) + 1e-6)
 
     ############
@@ -77,9 +77,9 @@ def static_rpr(low, high, params, adc_count, row_count, sat_count, nrow, q):
     if not (params['skip'] and params['cards']):
         return rpr_lut, bias_lut
 
-    delay      = np.zeros(shape=(8, 8, params['max_rpr']))
-    error      = np.zeros(shape=(8, 8, params['max_rpr']))
-    bias_table = np.zeros(shape=(8, 8, params['max_rpr']))
+    delay      = np.zeros(shape=(8, 8, high))
+    error      = np.zeros(shape=(8, 8, high))
+    bias_table = np.zeros(shape=(8, 8, high))
 
     for wb in range(params['bpw']):
         for xb in range(params['bpa']):

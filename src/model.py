@@ -87,7 +87,16 @@ class Model:
 
         counts = {}
         for result in thread_results:
-            counts.update(result)
+            for key in result.keys():
+                if key in counts:
+                    counts[key]['adc'] += result[key]['adc']
+                    counts[key]['row'] += result[key]['row']
+                    counts[key]['sat'] += result[key]['sat']
+                else:
+                    counts[key] = {}
+                    counts[key]['adc'] = result[key]['adc']
+                    counts[key]['row'] = result[key]['row']
+                    counts[key]['sat'] = result[key]['sat']
 
         counts['wl'] = self.array_params['wl']
         counts['max_rpr'] = self.array_params['max_rpr']
@@ -124,6 +133,7 @@ class Model:
         num_examples, _, _, _ = np.shape(x)
         num_layers = len(self.layers)
 
+        correct = 0
         results = []
         for example in range(num_examples):
             out, out_ref = x[example], x[example]
@@ -132,7 +142,8 @@ class Model:
                 for r in result:
                     r['example'] = example
                     results.append(r)
-
+            correct += (np.argmax(out) == y[example])
+        print (correct / num_examples)
         return out, out_ref, results
 
     def set_layer_alloc(self):

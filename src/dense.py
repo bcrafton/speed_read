@@ -76,7 +76,7 @@ class Dense(Layer):
             self.params['rpr'], _ = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, nrow=self.input_size, q=self.q)
 
         elif self.params['rpr_alloc'] == 'static':
-            self.params['rpr'], self.lut_bias = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, nrow=self.input_size, q=self.q)
+            self.params['rpr'], self.lut_bias = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, sat_count=self.sat_count, nrow=self.input_size, q=self.q)
             self.lut_bias = self.lut_bias * 256
             self.lut_bias = self.lut_bias.astype(np.int32)
         else:
@@ -85,6 +85,7 @@ class Dense(Layer):
     def set_profile_adc(self, counts):
         self.adc_count = counts[self.layer_id]['adc']
         self.row_count = counts[self.layer_id]['row']
+        self.sat_count = counts[self.layer_id]['sat']
 
     def profile_adc(self, x):
         rpr_low = 1
@@ -114,9 +115,9 @@ class Dense(Layer):
         y = np.clip(y, -128, 127)
         return y
 
-    def forward(self, x, profile=False):
+    def forward(self, x, x_ref, profile=False):
         x = np.reshape(x, self.input_size)
-        y_ref = dot_ref(x=x, w=self.w, b=self.b, q=self.q)
+        y_ref = dot_ref(x=x_ref, w=self.w, b=self.b, q=self.q)
         y, results = self.conv(x=x)
 
         mean = np.mean(y - y_ref)
@@ -160,8 +161,9 @@ class Dense(Layer):
 
         ########################
 
-        y = y_ref
-        return y, [results]
+        # y = y_ref
+        y_ref = y
+        return y, y_ref, [results]
         
     def conv(self, x):
         

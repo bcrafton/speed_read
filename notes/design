@@ -4748,6 +4748,30 @@ whatever rpr is chosen, going to have bias since last state has error on just ne
 > no avoiding this issue ... even with 2 states, cant get 3 for 2, but can get 1.
 > cant move thresholds
 
+====================
+
+still need to integrate:
+> xb, wb pmf
+> xb, wb bias 
+
+but question right now is, how come error is so large for layer 5 ? 
+
+====================
+
+error so large for layer 5 because its magnitude is so large.
+> and thus has minimal impact on shit.
+
+difficult to quantify that for farther down layers tho.
+> error distributions are super normal
+> which means our accuracy calc works fine.
+
+====================
+
+could the average pool be what makes it so resilent to noise ? 
+
+
+
+
 
 
 
