@@ -19,7 +19,7 @@ from kmeans_rpr import kmeans_rpr
 #########################
 
 class Conv(Layer):
-    def __init__(self, input_size, filter_size, pool, stride, pad1, pad2, params, weights, relu_flag=True):
+    def __init__(self, input_size, filter_size, pool, stride, pad1, pad2, params, weights, relu_flag=True, quantize_flag=True):
         self.layer_id = Layer.layer_id
         Layer.layer_id += 1
         self.weight_id = Layer.weight_id
@@ -39,6 +39,7 @@ class Conv(Layer):
         self.p1 = pad1
         self.p2 = pad2
         self.relu_flag = relu_flag
+        self.quantize_flag = quantize_flag
 
         self.params = params.copy()
 
@@ -57,9 +58,10 @@ class Conv(Layer):
         # cast as int
         self.w = self.w.astype(int)
         self.b = self.b.astype(int)
-        self.q = self.q.astype(int)
+        # self.q = self.q.astype(int)
         # q must be larger than 0
-        # assert(self.q > 0)
+        if self.quantize_flag:
+            assert(self.q > 0)
 
         maxval = pow(2, self.params['bpw'] - 1)
         minval = -1 * maxval
@@ -144,10 +146,12 @@ class Conv(Layer):
         y = y + self.b
         if self.relu_flag:
             y = relu(y)
-        y = avg_pool(y, self.p)
-        y = y / self.q
-        y = np.round(y)
-        y = np.clip(y, -128, 127)
+        assert(self.p == 1)
+        # y = avg_pool(y, self.p)
+        if self.quantize_flag:
+            y = y / self.q
+            y = np.round(y)
+            y = np.clip(y, -128, 127)
         return y
 
     def forward(self, x, x_ref, profile=False):

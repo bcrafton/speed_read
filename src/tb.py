@@ -79,14 +79,14 @@ def run_command(x, y, model, params, return_list):
         
 ####
 
-# model, x, y = load_resnet(num_example=1, array_params=array_params)
-model, x, y = load_cifar(num_example=100, array_params=array_params)
+model, x, y = load_resnet(num_example=10, array_params=array_params)
+# model, x, y = load_cifar(num_example=100, array_params=array_params)
 
 ####
 
 start = time.time()
 
-load_profile_adc = False
+load_profile_adc = True
 
 if not load_profile_adc:
     profile = model.profile_adc(x=x)

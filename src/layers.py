@@ -74,7 +74,7 @@ class AvgPool(Layer):
 
 class MaxPool(Layer):
     def __init__(self, input_size, kernel_size, stride, params, weights):
-        assert False, "Integrate + Verify conv_utils/max_pool()"
+        # assert False, "Integrate + Verify conv_utils/max_pool()"
 
         self.layer_id = Layer.layer_id
         Layer.layer_id += 1
@@ -89,8 +89,9 @@ class MaxPool(Layer):
         self.output_size = input_size[0] // stride, input_size[1] // stride, input_size[2]
         self.yh, self.yw, self.yc = self.output_size
 
-    def forward(self, x, profile=False):
-        # max pool and avg pool mess things up a bit because they dont do the right padding in tensorflow.
+    # max pool and avg pool mess things up a bit because they dont do the right padding in tensorflow.
+    def forward(self, x, x_ref, profile=False):
+        '''
         x = np.pad(array=x, pad_width=[[self.pad,self.pad], [self.pad,self.pad], [0,0]], mode='constant')
         y = np.zeros(shape=self.output_size)
         for h in range(self.yh):
@@ -98,6 +99,17 @@ class MaxPool(Layer):
                 y[h, w, :] = np.max( x[h*self.s:(h*self.s+self.k), w*self.s:(w*self.s+self.k), :], axis=(0, 1) )
 
         return y, []
+        '''
+        # cim
+        y = max_pool(x=x, k=self.k, s=self.s)
+        y = np.clip(np.floor(y), -128, 127)
+        # ref
+        y_ref = max_pool(x=x_ref, k=self.k, s=self.s)
+        y_ref = np.clip(np.floor(y_ref), -128, 127)
+        # return
+        assert (np.all((y % 1) == 0))
+        assert (np.all((y_ref % 1) == 0))
+        return y, y_ref, []
 
 #############
 

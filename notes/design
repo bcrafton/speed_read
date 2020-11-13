@@ -4769,9 +4769,23 @@ difficult to quantify that for farther down layers tho.
 
 could the average pool be what makes it so resilent to noise ? 
 
+====================
 
+> verify maxpool ? 
+  > run both, assert np all.
+  >> done
 
+> un-change:
+  > model.py
+  > static_rpr.py -> need to take q from block wrapper ... otherwise static_rpr will be fucked.
+    > can probably do this in imagenet_scale.py
 
+> 8b weights ... so we can put on github.
+
+> cud do resnet performance on different branch
+  > but makes sense to push everything forward rather than back-tracking.
+
+====================
 
 
 
