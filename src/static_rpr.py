@@ -54,9 +54,12 @@ def expected_error(params, adc_count, row_count, sat_count, rpr, nrow, bias):
 ##########################################
 
 def static_rpr(low, high, params, adc_count, row_count, sat_count, nrow, q):
+    '''
     if q < 1:
         assert (q == 0)
         q = 1
+    '''
+    assert (q > 0)
 
     weight = np.arange(high + 1, dtype=np.float32)
     nrow_array = np.sum(row_count * weight, axis=2) / (np.sum(row_count, axis=2) + 1e-6)
