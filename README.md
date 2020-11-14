@@ -18,6 +18,8 @@ What things you need to install the software and how to install them
 Python 3
 gcc
 g++
+cvxpy
+cvxopt
 ```
 
 ### Installing
