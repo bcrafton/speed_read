@@ -4800,6 +4800,51 @@ could the average pool be what makes it so resilent to noise ?
 
 ====================
 
+problem clearly associated with resblock2.
+error is super high for conv2, conv3 in resblock2.
+
+problem is obvious now - its because we dont quantize before computing their error
+
+(1)
+we could show {conv2, conv3} as a single layer ?
+
+(2)
+quantizing it, but passing along un-quantized version just so we can compute actual error
+
+====================
+
+very satisfying:
+> np.count_nonzero(y_ref > 0.) / np.prod(np.shape(y_ref))
+  > 0.71
+  > AFTER ADDING THE BIAS
+> meaning that our error approx is on point.
+
+> kinda want to return error approx and print it out.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

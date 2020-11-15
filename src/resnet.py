@@ -59,8 +59,8 @@ def create_model(array_params):
     Block2(input_size=(14, 14, 256), filter_size=(256, 512), stride=2, params=array_params, weights=weights),
     Block1(input_size=(  7, 7, 512), filter_size=(512, 512), stride=1, params=array_params, weights=weights),
 
-    AvgPool(input_size=(7, 7, 512), kernel_size=7, stride=7, params=array_params, weights=weights),
-    Dense(size=(512, 1000), params=array_params, weights=weights)
+    # AvgPool(input_size=(7, 7, 512), kernel_size=7, stride=7, params=array_params, weights=weights),
+    # Dense(size=(512, 1000), params=array_params, weights=weights)
     ]
 
     model = Model(layers=layers, array_params=array_params)

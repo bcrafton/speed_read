@@ -111,10 +111,10 @@ class Conv(Layer):
             p = np.max(col_density, axis=0)
             self.params['rpr'] = dynamic_rpr(nrow=nrow, p=p, q=self.q, params=self.params)
             '''
-            self.params['rpr'], _ = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, sat_count=self.sat_count, nrow=self.fh * self.fw * self.fc, q=self.q)
+            self.params['rpr'], _, _ = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, sat_count=self.sat_count, nrow=self.fh * self.fw * self.fc, q=self.q)
 
         elif self.params['rpr_alloc'] == 'static':
-            self.params['rpr'], self.lut_bias = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, sat_count=self.sat_count, nrow=self.fh * self.fw * self.fc, q=self.q)
+            self.params['rpr'], self.lut_bias, self.exp_error = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, sat_count=self.sat_count, nrow=self.fh * self.fw * self.fc, q=self.q)
             self.lut_bias = self.lut_bias * 256
             self.lut_bias = self.lut_bias.astype(np.int32)
         else:
@@ -131,7 +131,7 @@ class Conv(Layer):
         patches = self.transform_inputs(x)
         # _, self.adc_count, self.row_count = profile(patches, self.wb, (self.yh * self.yw, self.fn), rpr_low, rpr_high, self.params)
         y_ref = conv_ref(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2, relu_flag=self.relu_flag)
-        y_ref = self.act(y_ref)
+        y_ref = self.act(y_ref, quantize_flag=self.quantize_flag)
         return y_ref, {self.layer_id: (patches, self.wb, (self.yh * self.yw, self.fn), rpr_low, rpr_high, self.params)}
 
     def set_block_alloc(self, block_alloc):
@@ -143,13 +143,13 @@ class Conv(Layer):
     def weights(self):
         return [self]
 
-    def act(self, y):
+    def act(self, y, quantize_flag):
         y = y + self.b
         if self.relu_flag:
             y = relu(y)
         assert(self.p == 1)
         # y = avg_pool(y, self.p)
-        if self.quantize_flag:
+        if quantize_flag:
             y = y / self.q
             y = np.round(y)
             y = np.clip(y, -128, 127)
@@ -166,41 +166,39 @@ class Conv(Layer):
         results['cim_mean'] = mean
         results['cim_error'] = error
 
-        y = self.act(y)
-        y_ref = self.act(y_ref)
+        z = self.act(y, quantize_flag=True)
+        z_ref = self.act(y_ref, quantize_flag=True)
 
-        y_min = np.min(y_ref)
-        y_max = np.max(y_ref)
-        y_mean = np.mean(y - y_ref)
-        y_std = np.std(y - y_ref)
-        y_error = np.mean(np.absolute(y - y_ref))
-        # assert (self.s == 1)
-        
-        # print ('y_mean', y_mean, 'y_error', y_error, 'y_max', y_max, 'y_min', y_min)
-        
-        # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
-        # results = {}
+        nonzero = np.count_nonzero(z_ref) / np.prod(np.shape(z_ref))
+
+        z_min = np.min(z_ref)
+        z_max = np.max(z_ref)
+        z_mean = np.mean(z - z_ref)
+        z_std = np.std(z - z_ref)
+        z_error = np.mean(np.absolute(z - z_ref))
+
         results['id']    = self.weight_id
         results['nmac']  = self.nmac
-        results['std']   = y_std
-        results['mean']  = y_mean
-        results['error'] = y_error
-        
+        results['std']   = z_std
+        results['mean']  = z_mean
+        results['error'] = z_error
+
         nwl, _, nbl, _ = np.shape(self.wb)
-        
-        if self.params['alloc'] == 'block': 
-            # the sum here is confusing, since for layer 1, block performs better with less arrays.
-            # but it actually makes sense.
+
+        if self.params['alloc'] == 'block':
             results['array'] = np.sum(self.block_alloc) * nbl
-            # print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d' % (self.layer_id, np.sum(self.block_alloc), nbl, nbl * np.sum(self.block_alloc), results['nmac'], results['cycle'], results['stall']))
-            print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d mean: %0.3f error: %0.3f' % 
-              (self.layer_id, np.sum(self.block_alloc), nbl, nbl * np.sum(self.block_alloc), results['nmac'], results['cycle'], results['stall'], y_mean, y_error))
+            print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d mean: %0.3f error: %0.3f/%0.3f %0.3f' % 
+              (self.layer_id, np.sum(self.block_alloc), nbl, nbl * np.sum(self.block_alloc), results['nmac'], results['cycle'], results['stall'], z_mean, z_error, nonzero * self.exp_error, nonzero))
 
         elif self.params['alloc'] == 'layer': 
             results['array'] = self.layer_alloc * nwl * nbl
-            # print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d' % (self.layer_id, self.layer_alloc, nwl * nbl, nwl * nbl * self.layer_alloc, results['nmac'], results['cycle'], results['stall']))
             print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d mean: %0.2f error: %0.2f' % 
-              (self.layer_id, self.layer_alloc, nwl * nbl, nwl * nbl * self.layer_alloc, results['nmac'], results['cycle'], results['stall'], y_mean, y_error))
+              (self.layer_id, self.layer_alloc, nwl * nbl, nwl * nbl * self.layer_alloc, results['nmac'], results['cycle'], results['stall'], z_mean, z_error))
+
+        ########################
+
+        y = self.act(y, quantize_flag=self.quantize_flag)
+        y_ref = self.act(y_ref, quantize_flag=self.quantize_flag)
 
         ########################
 

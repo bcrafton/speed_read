@@ -40,7 +40,7 @@ class Block1(Layer):
     def profile_adc(self, x):
         y1, r1 = self.conv1.profile_adc(x)
         y2, r2 = self.conv2.profile_adc(y1)
-        y3 = relu(x + y2)
+        y3 = self.act(relu(self.s * x + self.s2 * y2))
         
         result = {}
         result.update(r1)
@@ -112,7 +112,7 @@ class Block2(Layer):
         y1, r1 = self.conv1.profile_adc(x)
         y2, r2 = self.conv2.profile_adc(y1)
         y3, r3 = self.conv3.profile_adc(x)
-        y4 = relu(y2 + y3)
+        y4 = self.act(relu(self.s2 * y2 + self.s3 * y3))
         
         result = {}
         result.update(r1)

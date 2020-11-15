@@ -33,7 +33,7 @@ def CC():
     'wl': 256,
     'bl': 256,
     'offset': 128,
-    'max_rpr': 64,
+    'max_rpr': 16,
     }
     
     arch_params1 = {

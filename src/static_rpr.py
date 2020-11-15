@@ -81,11 +81,11 @@ def static_rpr(low, high, params, adc_count, row_count, sat_count, nrow, q):
             rpr_lut[xb][wb] = params['adc']
         
     if not (params['skip'] and params['cards']):
-        return rpr_lut, bias_lut
+        return rpr_lut, bias_lut, 0.
 
-    delay      = np.zeros(shape=(8, 8, high))
-    error      = np.zeros(shape=(8, 8, high))
-    bias_table = np.zeros(shape=(8, 8, high))
+    delay       = np.zeros(shape=(8, 8, high))
+    error_table = np.zeros(shape=(8, 8, high))
+    bias_table  = np.zeros(shape=(8, 8, high))
 
     for wb in range(params['bpw']):
         for xb in range(params['bpa']):
@@ -97,7 +97,7 @@ def static_rpr(low, high, params, adc_count, row_count, sat_count, nrow, q):
                     count = adc_count[xb, wb, rpr, sat_low:sat_high]
                     prob = count / (np.sum(count) + 1e-6)
                     weight = np.arange(sat_high - sat_low, dtype=np.float32)
-                    bias = np.sum(prob * weight)
+                    bias = 0. # np.sum(prob * weight)
                 else:
                     bias = 0.
 
@@ -113,30 +113,25 @@ def static_rpr(low, high, params, adc_count, row_count, sat_count, nrow, q):
                 scaled_mean = (scale / q) * mean
 
                 bias_table[xb][wb][rpr - 1] = bias
-                error[xb][wb][rpr - 1] = scaled_mse
+                error_table[xb][wb][rpr - 1] = scaled_mse
                 delay[xb][wb][rpr - 1] = nrow_array[xb][rpr]
 
-    # print (np.min(error, axis=2))
-    # print ()
-    # print (np.max(error, axis=2))
-
-    # print (np.sum(np.min(error, axis=2)))
-    # print (np.sum(np.max(error, axis=2)))
-
-    assert (np.sum(np.min(error, axis=2)) <= params['thresh'])
+    assert (np.sum(np.min(error_table, axis=2)) <= params['thresh'])
 
     # KeyError: 'infeasible problem'
     # https://stackoverflow.com/questions/46246349/infeasible-solution-for-an-lp-even-though-there-exists-feasible-solutionusing-c
     # need to clip precision.
-    error = np.clip(error, 1e-6, np.inf)
+    error_table = np.clip(error_table, 1e-6, np.inf)
+    error = 0.
 
-    rpr_lut = optimize_rpr(error, delay, params['thresh'])
+    rpr_lut = optimize_rpr(error_table, delay, params['thresh'])
     for wb in range(params['bpw']):
         for xb in range(params['bpa']):
             rpr = rpr_lut[xb][wb]
             bias_lut[xb][wb] = bias_table[xb][wb][rpr - 1]
+            error += error_table[xb][wb][rpr-1]
 
-    return rpr_lut, bias_lut
+    return rpr_lut, bias_lut, error
     
     
 ##########################################
