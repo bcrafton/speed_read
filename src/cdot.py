@@ -197,6 +197,9 @@ def pim_static(x, w, y_shape, lut_var, lut_rpr, alloc, lut_bias, params):
     lut_rpr = np.ascontiguousarray(lut_rpr, np.int32)
     metrics = np.ascontiguousarray(metrics, np.int64)
 
+    confusion = np.zeros(shape=(8, 8, params['max_rpr']+1, params['max_rpr']+1))
+    confusion = np.ascontiguousarray(confusion, np.int64)
+
     lut_bias = np.ascontiguousarray(lut_bias, np.int32)
 
     # self.adc_state = np.zeros(shape=(rpr_high + 1, self.params['adc'] + 1))
@@ -240,7 +243,8 @@ def pim_static(x, w, y_shape, lut_var, lut_rpr, alloc, lut_bias, params):
     ctypes.c_void_p(lut_var.ctypes.data), 
     ctypes.c_void_p(lut_rpr.ctypes.data), 
     ctypes.c_void_p(lut_bias.ctypes.data),
-    ctypes.c_void_p(metrics.ctypes.data), 
+    ctypes.c_void_p(metrics.ctypes.data),
+    ctypes.c_void_p(confusion.ctypes.data),
     ctypes.c_void_p(block_map.ctypes.data),
     ctypes.c_void_p(adc_state.ctypes.data), 
     ctypes.c_void_p(adc_thresh.ctypes.data), 
@@ -257,5 +261,5 @@ def pim_static(x, w, y_shape, lut_var, lut_rpr, alloc, lut_bias, params):
     ctypes.c_int(sync),
     ctypes.c_int(2))
     
-    return y, metrics
+    return y, metrics, confusion
     

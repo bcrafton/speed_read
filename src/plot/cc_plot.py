@@ -47,7 +47,7 @@ perf = {}
 power = {}
 error = {}
 
-for skip, cards, rpr_alloc in [(0, 0, 'dynamic'), (1, 0, 'dynamic'), (1, 1, 'static')]:
+for skip, cards, rpr_alloc in [(0, 0, 'dynamic'), (1, 1, 'static')]:
 
     perf[(skip, cards, rpr_alloc)]  = []
     power[(skip, cards, rpr_alloc)] = []
@@ -71,6 +71,15 @@ for skip, cards, rpr_alloc in [(0, 0, 'dynamic'), (1, 0, 'dynamic'), (1, 1, 'sta
             energy += samples['ron'] * 2e-16
             energy += samples['roff'] * 2e-16
             top_per_pJ += 2. * np.sum(samples['nmac']) / 1e12 / np.sum(energy)
+
+            if rpr_alloc == 'static':
+                print ('cc', sigma)
+                print (samples['cycle'])
+                print ()
+            if skip == 1 and rpr_alloc == 'dynamic':
+                print ('skip', sigma)
+                print (samples['cycle'])
+                print ()
 
         perf[(skip, cards, rpr_alloc)].append(top_per_sec / num_example)
         error[(skip, cards, rpr_alloc)].append(e / num_example)

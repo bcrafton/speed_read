@@ -30,7 +30,7 @@ class Layer:
         
     def profile_adc(self, x):
         y, _, _ = self.forward(x=x, x_ref=x)
-        return y, {}
+        return y, {}, {}, {}
         
     def nblock(self):
         return 0

@@ -136,6 +136,14 @@ int Array::process(int row, int col, int xb, int rpr) {
       }
     }
 
+    int x_addr = xb * (8) * (this->params->max_rpr + 1) * (this->params->max_rpr + 1);
+    int w_addr =       wb * (this->params->max_rpr + 1) * (this->params->max_rpr + 1);
+    int act_addr =                             pdot_adc * (this->params->max_rpr + 1);
+    int exp_addr =                                                 this->pdot[bl_ptr];
+    int size = 8 * 8 * (this->params->max_rpr + 1) * (this->params->max_rpr + 1);
+    assert (x_addr + w_addr + act_addr + exp_addr < size);
+    this->params->confusion[x_addr + w_addr + act_addr + exp_addr] += 1;
+
     int yaddr = row * this->params->C + c;
     int shift = wb + xb;
     this->y[yaddr] += pdot_adc << shift;

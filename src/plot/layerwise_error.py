@@ -40,12 +40,12 @@ comp_pJ = 22. * 1e-12 / 32. / 16.
 # '(rpr_alloc == "%s")' NOT '(rpr_alloc == %s)'
 #####################
 
-sigmas = [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.20]
+sigmas = [0.04, 0.08, 0.12, 0.16]
 
 mean = {}
 error = {}
 
-for id in [0, 1, 2, 3, 4, 5]:
+for id in range(20):
 
     error[id] = []
     mean[id] = []
@@ -64,7 +64,11 @@ for id in [0, 1, 2, 3, 4, 5]:
 
 plt.cla()
 for key in error:
-  plt.plot(sigmas, error[key], marker='.', label=str(key))
+  if key < 5:    color = 'blue'
+  elif key < 10: color = 'red'
+  elif key < 15: color = 'green'
+  else:          color = 'black'
+  plt.plot(sigmas, error[key], marker='.', label=str(key), color=color)
 plt.xticks([0.0, 0.05, 0.10, 0.15, 0.20], ['', '', '', '', ''])
 plt.grid(True, linestyle='dotted')
 plt.legend()

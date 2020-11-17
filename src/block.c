@@ -36,7 +36,7 @@ int Block::pim(int row) {
         this->arrays[i]->correct(row, this->col, this->xb, rpr);
       }
       else if (params->method == STATIC) {
-        this->arrays[i]->correct_static(row, this->col, this->xb, rpr);
+        // this->arrays[i]->correct_static(row, this->col, this->xb, rpr);
       }
       this->arrays[i]->clear();
     }

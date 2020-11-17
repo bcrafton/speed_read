@@ -54,12 +54,24 @@ class Model:
     def profile_adc(self, x):
         num_examples, _, _, _ = np.shape(x)
         num_layers = len(self.layers)
+        counts = {}
+
         args_list = {}
         for example in range(num_examples):
             y = x[example]
             for layer in range(num_layers):
-                y, args = self.layers[layer].profile_adc(x=y)
+                y, args, ratio, nrow = self.layers[layer].profile_adc(x=y)
                 args_list.update(args)
+
+                for l in ratio.keys():
+                    if l not in counts.keys():
+                        counts[l] = {'adc': 0., 'row': 0., 'sat': 0., 'ratio': 0.}
+                    counts[l]['ratio'] += ratio[l] / num_examples
+
+                for l in nrow.keys():
+                    if l not in counts.keys():
+                        counts[l] = {'adc': 0., 'row': 0., 'sat': 0., 'ratio': 0.}
+                    counts[l]['row'] += nrow[l] / num_examples
 
         manager = multiprocessing.Manager()
         thread_results = []
@@ -85,18 +97,11 @@ class Model:
             for t in threads:
                 t.join()
 
-        counts = {}
         for result in thread_results:
             for key in result.keys():
-                if key in counts:
-                    counts[key]['adc'] += result[key]['adc']
-                    counts[key]['row'] += result[key]['row']
-                    counts[key]['sat'] += result[key]['sat']
-                else:
-                    counts[key] = {}
-                    counts[key]['adc'] = result[key]['adc']
-                    counts[key]['row'] = result[key]['row']
-                    counts[key]['sat'] = result[key]['sat']
+                counts[key]['adc'] += result[key]['adc']
+                # counts[key]['row'] += result[key]['row']
+                counts[key]['sat'] += result[key]['sat']
 
         counts['wl'] = self.array_params['wl']
         counts['max_rpr'] = self.array_params['max_rpr']

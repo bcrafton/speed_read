@@ -18,7 +18,7 @@ def profile(x, w, y_shape, rpr_low, rpr_high, params, id, results):
         
     y = np.zeros(shape=y_shape)
     count_adc = np.zeros(shape=(8, 8, rpr_high+1, rpr_high+1))
-    count_row = np.zeros(shape=(8, rpr_high+1, rpr_high+1))
+    count_row = np.zeros(shape=(8, rpr_high+1, params['wl']+1))
     count_sat = np.zeros(shape=(8, 8, rpr_high+1, rpr_high+1))
 
     x = np.ascontiguousarray(x, np.int32)

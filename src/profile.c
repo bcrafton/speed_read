@@ -76,8 +76,8 @@ int profile(int* x, int* w, int* y, long* count_adc, long* count_row, long* coun
               row += 1;
             } // while (wl_ptr < wl) {
 
-            int xb_addr = xb * (max_rpr+1) * (max_rpr+1);
-            int rpr_addr = rpr * (max_rpr+1);
+            int xb_addr = xb * (max_rpr+1) * (WL+1);
+            int rpr_addr = rpr * (WL+1);
             count_row[xb_addr + rpr_addr + row] += 1;
 
             for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
