@@ -503,6 +503,10 @@ make sure 64/65 = {(xb, wb), rpr} is correct.
 
 > endurance vs variance
 
+> how to compute mean average error for 0.20 variance ? 
+  > {p, pe, e, nrow}
+  > nrow samples from (p * pe) @ error = e
+
 -------
 
 
