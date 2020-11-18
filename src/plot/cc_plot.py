@@ -47,11 +47,10 @@ perf = {}
 power = {}
 error = {}
 
-for skip, cards, rpr_alloc in [(0, 0, 'dynamic'), (1, 1, 'static')]:
-
-    perf[(skip, cards, rpr_alloc)]  = []
-    power[(skip, cards, rpr_alloc)] = []
-    error[(skip, cards, rpr_alloc)] = []
+for skip, cards, rpr_alloc, thresh in [(0, 0, 'dynamic', 0.10), (1, 0, 'dynamic', 0.10), (1, 1, 'static', 0.10), (1, 1, 'static', 0.25), (1, 1, 'static', 0.50)]:
+    perf[(skip, cards, rpr_alloc, thresh)]  = []
+    power[(skip, cards, rpr_alloc, thresh)] = []
+    error[(skip, cards, rpr_alloc, thresh)] = []
 
     for sigma in sigmas:
         e = 0.
@@ -59,7 +58,7 @@ for skip, cards, rpr_alloc in [(0, 0, 'dynamic'), (1, 1, 'static')]:
         top_per_pJ = 0.
 
         for example in range(num_example):
-            query = '(rpr_alloc == "%s") & (skip == %d) & (cards == %d) & (sigma == %f) & (example == %d)' % (rpr_alloc, skip, cards, sigma, example)
+            query = '(rpr_alloc == "%s") & (skip == %d) & (cards == %d) & (sigma == %f) & (example == %d) & (thresh == %f)' % (rpr_alloc, skip, cards, sigma, example, thresh)
             samples = df.query(query)
 
             top_per_sec += 2. * np.sum(samples['nmac']) / np.max(samples['cycle']) * 100e6 / 1e12
@@ -72,25 +71,18 @@ for skip, cards, rpr_alloc in [(0, 0, 'dynamic'), (1, 1, 'static')]:
             energy += samples['roff'] * 2e-16
             top_per_pJ += 2. * np.sum(samples['nmac']) / 1e12 / np.sum(energy)
 
-            if rpr_alloc == 'static':
-                print ('cc', sigma)
-                print (samples['cycle'])
-                print ()
-            if skip == 1 and rpr_alloc == 'dynamic':
-                print ('skip', sigma)
-                print (samples['cycle'])
-                print ()
-
-        perf[(skip, cards, rpr_alloc)].append(top_per_sec / num_example)
-        error[(skip, cards, rpr_alloc)].append(e / num_example)
-        power[(skip, cards, rpr_alloc)].append(top_per_pJ / num_example)
+        perf[(skip, cards, rpr_alloc, thresh)].append(top_per_sec / num_example)
+        error[(skip, cards, rpr_alloc, thresh)].append(e / num_example)
+        power[(skip, cards, rpr_alloc, thresh)].append(top_per_pJ / num_example)
 
 ######################################
 
 color = {
-(0, 0, 'dynamic'): 'green',
-(1, 0, 'dynamic'): 'blue',
-(1, 1, 'static'):  'black',
+(0, 0, 'dynamic', 0.10): 'green',
+(1, 0, 'dynamic', 0.10): 'blue',
+(1, 1, 'static', 0.10):  'black',
+(1, 1, 'static', 0.25):  'black',
+(1, 1, 'static', 0.50):  'black',
 }
 
 plt.cla()

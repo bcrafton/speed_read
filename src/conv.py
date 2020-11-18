@@ -191,11 +191,12 @@ class Conv(Layer):
         z_std = np.std(z - z_ref)
         z_error = np.mean(np.absolute(z - z_ref))
 
-        results['id']    = self.weight_id
-        results['nmac']  = self.nmac
-        results['std']   = z_std
-        results['mean']  = z_mean
-        results['error'] = z_error
+        results['id']       = self.weight_id
+        results['layer_id'] = self.layer_id
+        results['nmac']     = self.nmac
+        results['std']      = z_std
+        results['mean']     = z_mean
+        results['error']    = z_error
 
         nwl, _, nbl, _ = np.shape(self.wb)
 
@@ -216,8 +217,12 @@ class Conv(Layer):
 
         ########################
 
+        # accuracy: y_ref = y
+        # perf:     y = y_ref
+        # error:    None
+
         # y = y_ref
-        # y_ref = y
+        y_ref = y
 
         ########################
 
