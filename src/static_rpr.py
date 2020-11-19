@@ -18,18 +18,26 @@ def expected_error(params, adc_count, row_count, sat_count, rpr, nrow, bias):
     s  = np.arange(rpr + 1, dtype=np.float32)
     
     adc      = np.arange(params['adc'] + 1, dtype=np.float32).reshape(-1, 1)
-    adc_low  = np.array([-1e6, 0.2, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5]).reshape(-1, 1)
-    adc_high = np.array([0.2, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 1e6]).reshape(-1, 1)
+    adc_low  = np.array([-1e6, 1e-6, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5]).reshape(-1, 1)
+    adc_high = np.array([1e-6, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 1e6]).reshape(-1, 1)
     
     if rpr < params['adc']:
         adc_low[rpr+1:] = 1e6
         adc_high[rpr:] = 1e6
     
-    pe = norm.cdf(adc_high, s, params['sigma'] * np.sqrt(s) + 1e-9) - norm.cdf(adc_low, s, params['sigma'] * np.sqrt(s) + 1e-9)
-    e = adc - s
-    p = adc_count[rpr, 0:rpr + 1] / (np.sum(adc_count[rpr]) + 1e-9)
+    pe = norm.cdf(adc_high, s, params['sigma'] * np.sqrt(s) + 1e-16) - norm.cdf(adc_low, s, params['sigma'] * np.sqrt(s) + 1e-16) - norm.cdf(-3.)
+    pe = np.clip(pe, 0., np.inf)
+    pe = pe / np.sum(pe, axis=0, keepdims=True)    
 
-    assert ( np.all(np.sum(pe, axis=0) == 1) )
+    e = adc - s
+    p = adc_count[rpr, 0:rpr + 1] / (np.sum(adc_count[rpr]) + 1e-16)
+
+    '''
+    if (rpr == 4):
+        print (np.around(pe, 2))
+    '''
+
+    assert ( np.all( np.absolute(1 - np.sum(pe, axis=0)) <= 1e-9) )
     assert ( np.absolute(np.sum(pe * p) - 1) <= 1e-6 )
     if rpr < params['max_rpr']:
         assert ( np.sum(adc_count[rpr, rpr+1:]) == 0 )
@@ -61,8 +69,6 @@ def expected_error(params, adc_count, row_count, sat_count, rpr, nrow, bias):
         # e[:, params['adc']:rpr+1] = e[:, params['adc']:rpr+1] - round(nrow * bias) // nrow
     '''
 
-    
-
     # mse = np.sum((p * pe * e * nrow) ** 2)
     # mse = np.sqrt(np.sum((p * pe * e * nrow) ** 2))
     # mse = np.sqrt(np.sum((p * pe * e) ** 2) * nrow)
@@ -70,12 +76,91 @@ def expected_error(params, adc_count, row_count, sat_count, rpr, nrow, bias):
     
     mse = np.sum(np.absolute(p * pe * e * nrow))
     mean = np.sum(p * pe * e * nrow)
+    ppee = np.sum(np.absolute(p * pe * e))
     
-    # mse = mse - (mse - np.absolute(mean)) # / np.sqrt(2)
+    # dont work at all ...
+    # mse = mse - (mse - np.absolute(mean)) 
     # mse = np.absolute(mean)
-    # mse = (mse + np.absolute(mean)) / 2
     
-    return mse, mean, np.sum(np.absolute(p * pe * e))
+    # sorta works:
+    # mse = (mse + np.absolute(mean)) / 2.
+    
+    ###########################################
+    
+    # mse = np.sum(np.absolute(p * pe * e)) + max(0, nrow-1) * np.sum(p * pe * e)
+    mse = (np.sqrt(nrow) * np.absolute(mean) + mse) / (np.sqrt(nrow) + 1)
+    
+    ###########################################
+    
+    '''
+    mse = 0.
+    sample_p = (p * pe).flatten()
+    sample_e = e.flatten()
+    sample_n = np.ceil(nrow).astype(int)
+    for _ in range(100):
+        mse += np.absolute(np.random.choice(a=sample_e, p=sample_p, size=sample_n).sum())
+    mse /= 100
+    '''
+    
+    ###########################################
+    
+    # works well:
+    '''
+    sample_p = (p * pe).flatten()
+    sample_e = e.flatten()
+
+    mse1 = 0.
+    sample_n = np.ceil(nrow).astype(int)
+    for _ in range(100):
+        mse1 += np.absolute(np.random.choice(a=sample_e, p=sample_p, size=sample_n).sum())
+    mse1 /= 100
+    
+    mse2 = 0.
+    sample_n = np.floor(nrow).astype(int)
+    for _ in range(100):
+        mse2 += np.absolute(np.random.choice(a=sample_e, p=sample_p, size=sample_n).sum())
+    mse2 /= 100
+    
+    frac = nrow % 1
+    mse = frac * mse1 + (1 - frac) * mse2
+    '''
+    
+    ###########################################
+    '''
+    if rpr == 16:
+        import matplotlib.pyplot as plt
+        means = []
+        mses1 = []
+        mses2 = []
+        mses3 = []
+        nrows = range(1, 100)
+
+        sample_p = (p * pe).flatten()
+        sample_e = e.flatten()
+
+        for nrow in nrows:
+            mse = 0.
+            for _ in range(1000):
+                mse += np.absolute(np.random.choice(a=sample_e, p=sample_p, size=nrow).sum())
+            mse /= 1000
+            mses1.append(mse)
+            mses2.append(np.sum(np.absolute(p * pe * e * nrow)))
+            a = np.sum(np.absolute(p * pe * e))
+            b = np.absolute(np.sum(p * pe * e * (nrow - 1)))
+            mses3.append(a + b)
+            means.append(np.absolute(np.sum(p * pe * e * nrow)))
+    
+        plt.plot(nrows, mses1, marker='.', label='actual')
+        plt.plot(nrows, mses2, marker='.', label='abs error')
+        plt.plot(nrows, mses3, marker='.', label='guess')
+        plt.plot(nrows, means, marker='.', label='mean')
+        plt.legend()
+        plt.show()
+        plt.cla()
+    '''
+    ###########################################
+
+    return mse, mean, ppee
 
 ##########################################
 
@@ -180,7 +265,7 @@ def static_rpr(low, high, params, adc_count, row_count, sat_count, nrow, q, rati
     # assert (False)
     # print (np.sum(error), np.sum(mean))
     
-    return rpr_lut, bias_lut, np.sum(error), row
+    return rpr_lut, bias_lut, ppee, row, np.sum(error)
     
     
 ##########################################

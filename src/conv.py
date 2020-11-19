@@ -111,10 +111,10 @@ class Conv(Layer):
             p = np.max(col_density, axis=0)
             self.params['rpr'] = dynamic_rpr(nrow=nrow, p=p, q=self.q, params=self.params)
             '''
-            self.params['rpr'], _, self.exp_error, self.row_table = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, sat_count=self.sat_count, nrow=self.fh * self.fw * self.fc, q=self.q, ratio=self.ratio)
+            self.params['rpr'], _, self.ppee, self.row_table = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, sat_count=self.sat_count, nrow=self.fh * self.fw * self.fc, q=self.q, ratio=self.ratio)
 
         elif self.params['rpr_alloc'] == 'static':
-            self.params['rpr'], self.lut_bias, self.exp_error, self.row_table = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, sat_count=self.sat_count, nrow=self.fh * self.fw * self.fc, q=self.q, ratio=self.ratio)
+            self.params['rpr'], self.lut_bias, self.ppee, self.row_table, self.exp_error = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, sat_count=self.sat_count, nrow=self.fh * self.fw * self.fc, q=self.q, ratio=self.ratio)
             self.lut_bias = self.lut_bias * 256
             self.lut_bias = self.lut_bias.astype(np.int32)
             # print (self.params['cards'], self.layer_id, self.exp_error, cycles)
@@ -207,8 +207,8 @@ class Conv(Layer):
 
         if self.params['alloc'] == 'block':
             results['array'] = np.sum(self.block_alloc) * nbl
-            print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d mean: %0.3f error: %0.3f/%0.3f %0.3f' % 
-              (self.layer_id, np.sum(self.block_alloc), nbl, nbl * np.sum(self.block_alloc), results['nmac'], results['cycle'], results['stall'], z_mean, z_error, self.exp_error, error))
+            print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d mean: %0.3f error: %0.3f/%0.3f' % 
+              (self.layer_id, np.sum(self.block_alloc), nbl, nbl * np.sum(self.block_alloc), results['nmac'], results['cycle'], results['stall'], z_mean, z_error, self.exp_error))
 
         elif self.params['alloc'] == 'layer': 
             results['array'] = self.layer_alloc * nwl * nbl
@@ -226,11 +226,12 @@ class Conv(Layer):
 
         ########################
 
-        # y = y_ref
+        y = y_ref
         # y_ref = y
 
         ########################
-
+        
+        # assert (False)
         return y, y_ref, [results]
         
     def conv(self, x):
@@ -274,16 +275,21 @@ class Conv(Layer):
             mse = np.sum(np.absolute(confusion * e), axis=(2, 3)) * scale / (npatch * 64)
             # print (np.around(mse, 2))
             
-            # print (np.shape(patches))
+            '''
+            row_table = (mse + 1e-15) / (mse_norm + 1e-15)
+            row_table += 1e-15
+            self.row_table += 1e-15
+            print (np.around(row_table, 2))
+            print (np.around(self.row_table, 2))
+            print (np.around(row_table / self.row_table, 2))
+            print ()
+            print ()
+            '''
             
-            row_table = mse / (mse_norm + 1e-9)
-            row_table += 1e-9
-            self.row_table += 1e-9
-            # print (np.around(row_table, 2))
-            # print (np.around(self.row_table, 2))
-            # print (np.around(row_table / self.row_table, 2))
-            
-            # print (self.params['rpr'])
+            print ( np.around( (self.ppee + 1e-9) / (mse_norm + 1e-9) ) )
+            print ( np.sum(self.ppee), np.sum(mse_norm) )
+            print (self.params['rpr'])
+
         else:
             assert (False)
         

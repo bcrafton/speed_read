@@ -4821,6 +4821,39 @@ very satisfying:
 
 > kinda want to return error approx and print it out.
 
+====================
+
+so we figured out that for 0.16:
+> print ( np.around( (self.ppee + 1e-9) / (mse_norm + 1e-9), 3) )
+> was not equal at all.
+
+thought this was adc_eval
+but instead it was cdf vs lut_var
+
+this was because lut_var = 3 sigma ... but cdf could be 5 sigma
+solve this 2 ways
+> trim cdf
+> add to lut_var
+
+====================
+
+then we tried our method like ...
+
+sample_n = np.ceil(nrow).astype(int)
+sample_p = (p * pe).flatten()
+sample_e = np.absolute(e).flatten()
+mse = 0.
+for _ in range(100):
+    mse += np.random.choice(a=sample_e, p=sample_p, size=sample_n).sum()
+mse /= 100
+
+and now it over  estimates because we did ceil
+
+====================
+
+so new question is how can we approximate error without doing this loop thing.
+
+====================
 
 
 

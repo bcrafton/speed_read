@@ -117,8 +117,8 @@ int Array::process(int row, int col, int xb, int rpr) {
     int c = (bl_ptr + this->array_id * this->params->BL) / 8;
     int wb = col;
 
-    int key = rand() % 1001;
-    int var_addr = this->pdot[bl_ptr] * 1001 + key;
+    int key = rand() % 10001;
+    int var_addr = this->pdot[bl_ptr] * 10001 + key;
     float var = this->params->lut_var[var_addr];
 
     float pdot_var = this->pdot[bl_ptr] + var;
