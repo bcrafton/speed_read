@@ -4821,18 +4821,38 @@ very satisfying:
 
 > kinda want to return error approx and print it out.
 
+====================
+
+here is vgg11:
+https://github.com/bcrafton/quantize/blob/vgg_cifar/cifar10.py
+https://github.com/bcrafton/speed_read/blob/vgg/src/tb_vgg.py
+
+====================
+
+so (0.04, 0.16) is causing issues for accuracy
+inconsistent control of error across them
+
+can we setup a mini test bench to try to solve this ? 
+> need {p, pe, e, nrow}
+> sample p nrow times 
+  > could get actual distribution of nrow ... but i dont think necessary.
+> average all errors together.
+
+> dosnt work
+
+====================
+
+just realized tho.
+that we did the {pe * e * p} / nrow thing before ... but we only did it for 0.04.
+
+can we go back and try this for 0.16 ? 
+see where the issue is ?  
+
+we now that some of it would be from quantization ... we think
+but we are def off somewhere in this calculation.
 
 
-
-
-
-
-
-
-
-
-
-
+====================
 
 
 
