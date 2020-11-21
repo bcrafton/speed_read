@@ -507,6 +507,9 @@ make sure 64/65 = {(xb, wb), rpr} is correct.
   > {p, pe, e, nrow}
   > nrow samples from (p * pe) @ error = e
 
+>> use np.choice(y - y_ref, ,) instead of np.random.normal
+> wud give actual distribution and not some jank thing.
+
 -------
 
 
