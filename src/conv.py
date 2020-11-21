@@ -176,8 +176,10 @@ class Conv(Layer):
 
         mean = np.mean(y - y_ref)
         error = np.mean(np.absolute(y - y_ref))
+        std = np.std(y - y_ref)
         results['cim_mean'] = mean
         results['cim_error'] = error
+        results['cim_std'] = std
 
         z = self.act(y, quantize_flag=True)
         z_ref = self.act(y_ref, quantize_flag=True)

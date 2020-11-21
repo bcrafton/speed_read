@@ -4854,12 +4854,13 @@ but we are def off somewhere in this calculation.
 
 ====================
 
+I think the big thing here is how error scales when mean is low.
+because its summing: [nrow, xb, wb]
+and all those can be positive and negative.
 
+so i imagine sqrt(N) is not a bad estimation ...
 
-
-
-
-
+====================
 
 
 

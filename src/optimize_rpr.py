@@ -6,11 +6,12 @@ np.set_printoptions(threshold=sys.maxsize)
     
 ##########################################
 
-def optimize_rpr(error, delay, threshold):
+def optimize_rpr(error, mean, delay, threshold):
     xb, wb, rpr = np.shape(error)
     assert (np.shape(error) == np.shape(delay))
 
-    weight = np.reshape(error, -1)
+    weight1 = np.reshape(error, -1)
+    weight2 = np.reshape(mean, -1)
     value = np.reshape(delay, -1)
 
     ##########################################
@@ -18,11 +19,15 @@ def optimize_rpr(error, delay, threshold):
     selection = cvxpy.Variable((xb * wb * rpr), boolean=True)
     select_constraint = []
     for i in range(0, xb * wb * rpr, rpr):
+        # print (i, i + rpr)
         select_constraint.append( cvxpy.sum(selection[i : i + rpr]) == 1 )
 
     ##########################################
 
-    weight_constraint = weight @ selection <= threshold
+    # cvxpy.atoms.elementwise.abs.abs(weight2 @ selection) <= threshold
+    weight_constraint1 = weight1 @ selection <= threshold
+    weight_constraint2 = weight2 @ selection <= threshold
+    weight_constraint3 = weight2 @ selection >= -threshold
 
     ##########################################
 
@@ -30,11 +35,15 @@ def optimize_rpr(error, delay, threshold):
 
     ##########################################
 
-    knapsack_problem = cvxpy.Problem(cvxpy.Minimize(total_value), select_constraint + [weight_constraint])
+    knapsack_problem = cvxpy.Problem(cvxpy.Minimize(total_value), select_constraint + [weight_constraint1, weight_constraint2, weight_constraint3])
 
     ##########################################
 
-    knapsack_problem.solve(solver=cvxpy.GLPK_MI)
+    # knapsack_problem.solve(solver=cvxpy.GLPK_MI)
+    # print(cvxpy.installed_solvers())
+    # ['CVXOPT', 'ECOS', 'GLPK', 'GLPK_MI', 'OSQP', 'SCS']
+    knapsack_problem.solve(solver='GLPK_MI')
+
     if knapsack_problem.status != "optimal":
         print("status:", knapsack_problem.status)
         print (selection.value)

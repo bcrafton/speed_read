@@ -18,8 +18,8 @@ def expected_error(params, adc_count, row_count, sat_count, rpr, nrow, bias):
     s  = np.arange(rpr + 1, dtype=np.float32)
     
     adc      = np.arange(params['adc'] + 1, dtype=np.float32).reshape(-1, 1)
-    adc_low  = np.array([-1e6, 0.2, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5]).reshape(-1, 1)
-    adc_high = np.array([0.2, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 1e6]).reshape(-1, 1)
+    adc_low  = np.array([-1e6, 1e-6, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5]).reshape(-1, 1)
+    adc_high = np.array([1e-6, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 1e6]).reshape(-1, 1)
     
     if rpr < params['adc']:
         adc_low[rpr+1:] = 1e6
@@ -41,6 +41,7 @@ def expected_error(params, adc_count, row_count, sat_count, rpr, nrow, bias):
     mse = np.sum(np.absolute(p * pe * e * nrow))
     mean = np.sum(p * pe * e * nrow)
 
+    # mse = ((np.sqrt(nrow) - 1) * mean + mse) / np.sqrt(nrow)
     return mse, mean
 
 ##########################################
@@ -84,7 +85,7 @@ def static_rpr(low, high, params, adc_count, row_count, sat_count, nrow, q, rati
                 scale = 2**wb * 2**xb
                 mse, mean = expected_error(params=params, adc_count=adc_count[xb][wb], row_count=row_count[xb], sat_count=sat_count[xb][wb], rpr=rpr, nrow=total_row, bias=bias)
                 scaled_mse = (scale / q) * mse * ratio
-                scaled_mean = (scale / q) * mean
+                scaled_mean = (scale / q) * mean * ratio
 
                 bias_table[xb][wb][rpr - 1] = bias
                 error_table[xb][wb][rpr - 1] = scaled_mse
@@ -92,19 +93,22 @@ def static_rpr(low, high, params, adc_count, row_count, sat_count, nrow, q, rati
 
                 delay[xb][wb][rpr - 1] = row_count[xb][rpr - 1]
 
+    assert (np.sum(mean_table[:, :, 0]) >= -params['thresh'])
+    assert (np.sum(mean_table[:, :, 0]) <=  params['thresh'])
     assert (np.sum(np.min(error_table, axis=2)) <= params['thresh'])
 
     # KeyError: 'infeasible problem'
     # https://stackoverflow.com/questions/46246349/infeasible-solution-for-an-lp-even-though-there-exists-feasible-solutionusing-c
     # need to clip precision.
-    error_table = np.clip(error_table, 1e-9, np.inf)
+    error_table = np.clip(error_table, 1e-9, np.inf) - np.clip(np.absolute(mean_table), 1e-9, np.inf)
+    mean_table = np.sign(mean_table) * np.clip(np.absolute(mean_table), 1e-9, np.inf)
 
     mean = np.zeros(shape=(8, 8))
     error = np.zeros(shape=(8, 8))
     cycle = np.zeros(shape=(8, 8))
 
     if params['skip'] and params['cards']:
-        rpr_lut = optimize_rpr(error_table, delay, params['thresh'])
+        rpr_lut = optimize_rpr(error_table, mean_table, delay, params['thresh'])
         for wb in range(params['bpw']):
             for xb in range(params['bpa']):
                 rpr = rpr_lut[xb][wb]
