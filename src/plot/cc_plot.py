@@ -80,26 +80,26 @@ for skip, cards, rpr_alloc, thresh in [(0, 0, 'dynamic', 0.10), (1, 0, 'dynamic'
 color = {
 (0, 0, 'dynamic', 0.10): 'green',
 (1, 0, 'dynamic', 0.10): 'blue',
-(1, 1, 'static', 0.10):  'black',
-(1, 1, 'static', 0.25):  'black',
-(1, 1, 'static', 0.50):  'black',
+(1, 1, 'static', 0.10):  '#808080',
+(1, 1, 'static', 0.25):  '#404040',
+(1, 1, 'static', 0.50):  '#000000',
 }
 
 plt.cla()
 for key in error:
   plt.plot(sigmas, error[key], color=color[key], marker='.')
   ###############################
-  # plt.ylim(bottom=0, top=3.5)
-  # plt.yticks([1, 2, 3], ['', '', ''])
-  # plt.xticks([0.0, 0.05, 0.10, 0.15, 0.20], ['', '', '', '', ''])
+  plt.ylim(bottom=0, top=3.5)
+  plt.yticks([1, 2, 3], ['', '', ''])
+  plt.xticks([0.0, 0.05, 0.10, 0.15, 0.20], ['', '', '', '', ''])
   ###############################
-  # plt.ylim(bottom=0, top=17.5)
-  # plt.yticks([5, 10, 15], ['', '', ''])
+  plt.ylim(bottom=0, top=17.5)
+  plt.yticks([5, 10, 15], ['', '', ''])
   plt.xticks([0.0, 0.05, 0.10, 0.15, 0.20], ['', '', '', '', ''])
   ###############################
   plt.grid(True, linestyle='dotted')
-  # plt.gcf().set_size_inches(3.5, 1.25)
-  # plt.tight_layout(0.)
+  plt.gcf().set_size_inches(3.3, 1.)
+  plt.tight_layout(0.)
   plt.savefig('cc_error.png', dpi=500)
 
 ####################
@@ -110,26 +110,26 @@ for key in error:
 
 plt.cla()
 for key in perf:
-  plt.plot(sigmas, perf[key], color=color[key], marker='.')
-  # plt.ylim(bottom=0, top=42.5)
-  # plt.yticks([10, 20, 30, 40], ['', '', '', ''])
+  plt.plot(sigmas, perf[key], color=color[key], marker='.', markersize=3, linewidth=1)
+  plt.ylim(bottom=0, top=22.5)
+  plt.yticks([5, 10, 15, 20], ['', '', '', ''])
   plt.xticks([0.0, 0.05, 0.10, 0.15, 0.20], ['', '', '', '', ''])
   plt.grid(True, linestyle='dotted')
-  # plt.gcf().set_size_inches(3.5, 1.25)
-  # plt.tight_layout(0.)
+  plt.gcf().set_size_inches(3.3, 1.)
+  plt.tight_layout(0.)
   plt.savefig('cc_perf.png', dpi=500)
 
 ####################
 
 plt.cla()
 for key in power:
-  plt.plot(sigmas, power[key], color=color[key], marker='.')
-  # plt.ylim(bottom=0, top=9.)
-  # plt.yticks([2, 4, 6, 8], ['', '', '', ''])
+  plt.plot(sigmas, power[key], color=color[key], marker='.', markersize=3, linewidth=1)
+  plt.ylim(bottom=0, top=9.)
+  plt.yticks([2, 4, 6, 8], ['', '', '', ''])
   plt.xticks([0.0, 0.05, 0.10, 0.15, 0.20], ['', '', '', '', ''])
   plt.grid(True, linestyle='dotted')
-  # plt.gcf().set_size_inches(3.5, 1.25)
-  # plt.tight_layout(0.)
+  plt.gcf().set_size_inches(3.3, 1.)
+  plt.tight_layout(0.)
   plt.savefig('cc_power.png', dpi=500)
 
 ####################
