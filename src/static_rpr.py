@@ -9,6 +9,11 @@ np.set_printoptions(threshold=sys.maxsize)
 
 ##########################################
 
+def round_fraction(x, f):
+    return np.around(x / f) * f
+
+##########################################
+
 def expected_error(params, adc_count, row_count, sat_count, rpr, nrow, bias):
 
     #######################
@@ -100,8 +105,12 @@ def static_rpr(low, high, params, adc_count, row_count, sat_count, nrow, q, rati
     # KeyError: 'infeasible problem'
     # https://stackoverflow.com/questions/46246349/infeasible-solution-for-an-lp-even-though-there-exists-feasible-solutionusing-c
     # need to clip precision.
-    error_table = np.clip(error_table, 1e-9, np.inf) - np.clip(np.absolute(mean_table), 1e-9, np.inf)
-    mean_table = np.sign(mean_table) * np.clip(np.absolute(mean_table), 1e-9, np.inf)
+    #
+    # error_table = np.clip(error_table, 1e-6, np.inf) - np.clip(np.absolute(mean_table), 1e-6, np.inf)
+    # mean_table = np.sign(mean_table) * np.clip(np.absolute(mean_table), 1e-6, np.inf)
+    # 
+    error_table = round_fraction(error_table, 1e-4) - round_fraction(np.absolute(mean_table), 1e-4)
+    mean_table = np.sign(mean_table) * round_fraction(np.absolute(mean_table), 1e-4)
 
     mean = np.zeros(shape=(8, 8))
     error = np.zeros(shape=(8, 8))

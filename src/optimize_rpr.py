@@ -3,7 +3,17 @@ import cvxpy
 import numpy as np
 import sys
 np.set_printoptions(threshold=sys.maxsize)
-    
+
+import cvxopt
+cvxopt.glpk.options["maxiters"] = 5
+cvxopt.glpk.options["show_progress"] = False
+
+'''
+from cvxopt import solvers
+solvers.options['show_progress'] = False
+solvers.options['maxiters'] = 0.1
+'''
+
 ##########################################
 
 def optimize_rpr(error, mean, delay, threshold):
