@@ -168,8 +168,16 @@ int Array::collect(int row, int col, int xb, int rpr) {
     int comps;
     int wb = col;
 
-    if (params->method == CENTROIDS) comps = comps_enabled(this->wl_sum, this->params->adc, rpr, xb, wb, this->params->adc_state, this->params->adc_thresh) - 1;
-    else                             comps = min(this->wl_sum - 1, this->params->adc - 1);
+    if (params->skip == 0) {
+      if (this->wl_sum > 0) {
+        comps = this->params->adc - 1;
+      }
+      else {
+        comps = 0;
+      }
+    }
+    else if (params->method == CENTROIDS) comps = comps_enabled(this->wl_sum, this->params->adc, rpr, xb, wb, this->params->adc_state, this->params->adc_thresh) - 1;
+    else                                  comps = min(this->wl_sum - 1, this->params->adc - 1);
     assert((comps >= 0) && (comps < this->params->adc));
     assert ((this->params->BL % 8) == 0);
     this->params->metrics[comps] += this->params->BL / 8;

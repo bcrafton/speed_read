@@ -4862,9 +4862,14 @@ so i imagine sqrt(N) is not a bad estimation ...
 
 ====================
 
+imagenet gets worse perf/energy than cifar despite %1s being lower
+this because it spends so many arrays on first few layers which have a lot more 1s.
 
+====================
 
-
+figure out what we need to push from all these speed_read.
+> 3 locally
+> 1 on exxact
 
 
 
