@@ -61,7 +61,7 @@ def CC():
     arch_params3 = {
     'alloc': ['block'],
     'narray': [2 ** 12],
-    'sigma': [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.20],
+    'sigma': [0.05],
     'cards': [0],
     'profile': [1],
     'rpr_alloc': ['dynamic'],
@@ -72,7 +72,7 @@ def CC():
     arch_params1 = perms(arch_params1)
     arch_params2 = perms(arch_params2)
     arch_params3 = perms(arch_params3)
-    arch_params = arch_params1 + arch_params2 + arch_params3
+    arch_params = arch_params3
     return array_params, arch_params
     
 #######################################################

@@ -1,6 +1,7 @@
 
 import numpy as np
 from scipy.stats import norm, binom
+import matplotlib.pyplot as plt
 
 from optimize_rpr import optimize_rpr
 
@@ -46,7 +47,7 @@ def expected_error(params, adc_count, row_count, sat_count, rpr, nrow, bias):
 
 ##########################################
 
-def static_rpr(low, high, params, adc_count, row_count, sat_count, nrow, q, ratio):
+def static_rpr(id, low, high, params, adc_count, row_count, sat_count, nrow, q, ratio):
     assert (q > 0)
 
     ############
@@ -121,6 +122,46 @@ def static_rpr(low, high, params, adc_count, row_count, sat_count, nrow, q, rati
             mean[xb][wb] = mean_table[xb][wb][rpr-1]
             cycle[xb][wb] = delay[xb][wb][rpr-1]
 
+    ###############################################################
+
+    error = error / np.sum(error) * 100.
+
+    # region = np.sum(error[3:7, 4:8])
+    region = np.sum(np.sort(error.flatten())[54:64])
+    # print (np.around(error, 1))
+    print (region)
+
+    import matplotlib
+    normalize = matplotlib.colors.Normalize(vmin=0, vmax=50)
+    plt.imshow(50 - error - 3, cmap='gray', norm=normalize, aspect=0.66)
+   
+    for i in range(0, 8):
+      for j in range(0, 8):
+          text = plt.text(j, i, '%0.1f' % error[i, j], ha="center", va="center", color="black")
+          pass
+
+    plt.xticks([0, 1, 2, 3, 4, 5, 6, 7], 8 * [''])
+    plt.yticks([0, 1, 2, 3, 4, 5, 6, 7], 8 * [''])
+
+    ax = plt.gca();
+    ax.set_xticks(np.arange(-.5, 8, 1), minor=True)
+    ax.set_yticks(np.arange(-.5, 8, 1), minor=True)
+    ax.grid(which='minor', color='w', linestyle='-', linewidth=0.5)
+    # plt.minorticks_off()
+
+    ax.tick_params(axis='x', which='minor', colors=(0,0,0,0))
+    ax.tick_params(axis='y', which='minor', colors=(0,0,0,0))
+
+    ax.tick_params(axis='x', colors=(0,0,0,0))
+    ax.tick_params(axis='y', colors=(0,0,0,0))
+
+    # plt.gcf().set_size_inches(2., 1.32)
+    plt.tight_layout(0.)
+    plt.savefig('error%d.png' % (id), dpi=600)
+    plt.cla()
+
+    ###############################################################
+    
     return rpr_lut, bias_lut
     
     
