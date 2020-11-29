@@ -5,14 +5,24 @@ import sys
 np.set_printoptions(threshold=sys.maxsize)
 
 import cvxopt
-cvxopt.glpk.options["maxiters"] = 5
-cvxopt.glpk.options["show_progress"] = False
+cvxopt.glpk.options["maxiters"] = 1
+cvxopt.glpk.options['show_progress'] = True
+# cvxopt.glpk.options['tm_lim'] = 30
+cvxopt.glpk.options['msg_lev'] = 'GLP_MSG_ON'
 
-'''
-from cvxopt import solvers
-solvers.options['show_progress'] = False
-solvers.options['maxiters'] = 0.1
-'''
+cvxopt.solvers.options['maxiters'] = 1
+cvxopt.solvers.options['show_progress'] = True
+# cvxopt.solvers.options['tm_lim'] = 30
+cvxopt.solvers.options['msg_lev'] = 'GLP_MSG_ON'
+
+# /home/brian/env/py3/lib/python3.5/site-packages/cvxpy/reductions/solvers/conic_solvers/glpk_mi_conif.py
+# search in here to play with params.
+
+# https://github.com/cvxgrp/cvxpy/pull/254
+# https://github.com/cvxgrp/cvxpy/pull/254/commits/c4207f2e2616ac2a3e2e6c906c0660d36dcc6814
+
+# https://github.com/cvxgrp/cvxpy/issues/251
+# https://github.com/cvxgrp/cvxpy/issues/351
 
 ##########################################
 
@@ -52,12 +62,14 @@ def optimize_rpr(error, mean, delay, threshold):
     # knapsack_problem.solve(solver=cvxpy.GLPK_MI)
     # print(cvxpy.installed_solvers())
     # ['CVXOPT', 'ECOS', 'GLPK', 'GLPK_MI', 'OSQP', 'SCS']
-    knapsack_problem.solve(solver='GLPK_MI')
+    
+    # knapsack_problem.solve(solver='GLPK_MI', options=cvxopt.glpk.options, glpk={'msg_lev': 'GLP_MSG_ON'}, verbose=True)
+    knapsack_problem.solve(solver='GLPK_MI', options=cvxopt.glpk.options, glpk={'msg_lev': 'GLP_MSG_ON'}, verbose=True)
 
     if knapsack_problem.status != "optimal":
         print("status:", knapsack_problem.status)
-        print (selection.value)
-        assert (knapsack_problem.status == "optimal")
+        # print (selection.value)
+        # assert (knapsack_problem.status == "optimal")
 
     ##########################################
 

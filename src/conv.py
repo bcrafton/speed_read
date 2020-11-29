@@ -93,7 +93,7 @@ class Conv(Layer):
             # self.params['rpr'] or lut_rpr
             # and saw the different rpr tables leading to different execution times.
 
-            self.params['rpr'], self.adc_state, self.adc_thresh = kmeans_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, nrow=self.fh * self.fw * self.fc, q=self.q)
+            self.params['rpr'], self.adc_state, self.adc_thresh = kmeans_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, nrow=self.fh * self.fw * self.fc, q=self.q, ratio=self.ratio)
 
         elif self.params['rpr_alloc'] == 'dynamic':
             ## TODO: cant this be "self.wb" and cant we throw it in a different function ??

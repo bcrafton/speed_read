@@ -4871,6 +4871,38 @@ figure out what we need to push from all these speed_read.
 > 3 locally
 > 1 on exxact
 
+====================
+
+lets make kmeans work well now.
+
+would be nice if we cud find where it worked - and then do a diff to see what we changed for static_rpr.
+> have to go further back than branch:opt3
+> cdot was fine ... but think there are other things.
+
+====================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -149,6 +149,28 @@ ResNet18
 
 > static rpr max > 16
 
+> exhaustive RPR table
+  > knapsack problem
+  > cost = variance
+  > value = 1/time
+  
+> parallel-ize profile_adc
+  > could even parallel-ize forward ... since we use y_ref anyways
+  > BUT this is tricky because because of ResBlock
+    > could do something fancy, but idk.
+  > return args for profile()
+  > parallelize after collecting all args
+
+make sure 64/65 = {(xb, wb), rpr} is correct.
+> we changed all the 64/65
+> but want to make sure they are represented by the right thing
+> there should still be hardcoded 64s still
+> https://github.com/bcrafton/speed_read/commit/49ba1b31e1dd06d7b9f1b80d69d7923482149b48
+
+> how to compute mean average error for 0.20 variance ? 
+  > {p, pe, e, nrow}
+  > nrow samples from (p * pe) @ error = e
+
 future / not doing:
 -------
 -------
@@ -452,6 +474,10 @@ compute
     > what are tradeoffs ?
 
 > sweep ADC model, ADC precision, WL
+> SAR ADC model for 7b precision
+>> check OneNote - Research - Fall 2020
+   > lots of good ideas
+> 2b activations to reduce variance
 
 > error vs accuracy plot
 > how does error propagate through the network ? 
@@ -468,18 +494,6 @@ compute
   > so it makes sense to slow down, have less error, if BB gonna bottleneck anyways
   > example: this fc layer.
 
-> exhaustive RPR table
-  > knapsack problem
-  > cost = variance
-  > value = 1/time
-
-> parallel-ize profile_adc
-  > could even parallel-ize forward ... since we use y_ref anyways
-  > BUT this is tricky because because of ResBlock
-    > could do something fancy, but idk.
-  > return args for profile()
-  > parallelize after collecting all args
-
 > generic plot function
   > feed it {results, perms, x_axis=['var', 'narray', ...]}
 
@@ -487,25 +501,10 @@ compute
   > matrix multiplication
   > LSTM model
 
-> SAR ADC model for 7b precision
->> check OneNote - Research - Fall 2020
-   > lots of good ideas
-> 2b activations to reduce variance
-
 > sweep array_params adc=[2,4,8]
   > generate 3 different adc_counts tables in the same dictionary. 
 
-make sure 64/65 = {(xb, wb), rpr} is correct.
-> we changed all the 64/65
-> but want to make sure they are represented by the right thing
-> there should still be hardcoded 64s still
-> https://github.com/bcrafton/speed_read/commit/49ba1b31e1dd06d7b9f1b80d69d7923482149b48
-
 > endurance vs variance
-
-> how to compute mean average error for 0.20 variance ? 
-  > {p, pe, e, nrow}
-  > nrow samples from (p * pe) @ error = e
 
 >> use np.choice(y - y_ref, ,) instead of np.random.normal
 > wud give actual distribution and not some jank thing.
