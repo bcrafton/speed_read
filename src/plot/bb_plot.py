@@ -42,7 +42,7 @@ comp_pJ = 22. * 1e-12 / 32. / 16.
 
 fig, (ax1, ax2) = plt.subplots(1, 2)
 
-for skip in [0, 1]:
+for (skip, alloc, profile) in [(1, 'block', 1),  (1, 'layer', 1), (1, 'layer', 0), (0, 'layer', 1)]:
 
     ######################################
 
@@ -52,7 +52,7 @@ for skip in [0, 1]:
     errors = []
     
     for narray in narrays:
-        query = '(skip == %d) & (profile == 1) & (alloc == "block") & (narray == %d)' % (skip, narray)
+        query = '(skip == %d) & (profile == %d) & (alloc == "%s") & (narray == %d)' % (skip, profile, alloc, narray)
         samples = df.query(query)
         
         mac_per_cycle = np.sum(samples['nmac']) / np.max(samples['cycle'])

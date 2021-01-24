@@ -39,8 +39,8 @@ from tests import dac2
 
 ############
 
-array_params, arch_params = CC()
-# array_params, arch_params = BB()
+# array_params, arch_params = CC()
+array_params, arch_params = BB()
 # array_params, arch_params = Thresh()
 # array_params, arch_params = CE()
 # array_params, arch_params = Simple()
@@ -99,7 +99,7 @@ model.set_profile_adc(profile)
 ##########################
 
 num_runs = len(arch_params)
-parallel_runs = 8
+parallel_runs = 24
 
 thread_results = []
 manager = multiprocessing.Manager()

@@ -199,6 +199,9 @@ class Conv(Layer):
         results['std']      = z_std
         results['mean']     = z_mean
         results['error']    = z_error
+        results['x_shape']  = self.input_size
+        results['w_shape']  = self.filter_size
+        results['y_shape']  = (self.yh * self.yw, self.fn)
 
         nwl, _, nbl, _ = np.shape(self.wb)
 
