@@ -4881,12 +4881,32 @@ would be nice if we cud find where it worked - and then do a diff to see what we
 
 ====================
 
+cannot see how ResNet works in our framework.
+> we dont use the scale value like we are supposed to.
+> actually we might do smething super janky
+  > think we might have passed quantize value for the res block into everyone or something like that
+> like i think layers in the same block will share the same q value.
 
+yeah that is what happens i think.
+maybe not the best idea.
+yeah dang might need to edit that ...
 
+no - you are doing it right actually. check Block2 ...
+Block1 didnt require it.
 
+====================
 
+my thoughts for handling a transformer is quantize the input.
+dont quantize the output.
 
+looks like the thing online dosnt quantize the activations at all ...
 
+====================
+
+we also need to have variance-aware models.
+how are these trained and where can we get them ? 
+
+====================
 
 
 
