@@ -125,7 +125,7 @@ class Linear(Layer):
 
         # print (y_ref.flatten()[0:10])
         # print (x.flatten()[0:10])
-        sparse = np.count_nonzero(self.w) / np.prod(np.shape(self.w))
+        # sparse = np.count_nonzero(self.w) / np.prod(np.shape(self.w))
         # print (sparse)
 
         # idx = np.where((y - y_ref) != 0)

@@ -3,7 +3,7 @@ import numpy as np
 
 #############################################################
 
-N = 10
+N = 1000
 x = np.random.randint(low=-8, high=7+1, size=N)
 w = np.random.randint(low=-8, high=7+1, size=(N, N))
 truth = x @ w
@@ -24,8 +24,9 @@ bias1 = 8 * np.sum(w, axis=0)
 # print (y[0])
 
 y = y + bias - bias0 - bias1
-print (y)
-print (truth)
+# print (y)
+# print (truth)
+print (np.allclose(y, truth))
 
 #############################################################
 
