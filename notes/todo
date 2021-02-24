@@ -455,6 +455,12 @@ compute
 
 -------
 
+> variance aware models
+  > train to handle variance so we can do comparison
+
+> improved negative activations implementation
+  > handle with flag when activations are positive
+
 > better power model
   > vector units, DRAM, eDRAM, SRAM
     > compute what is necessary to not bottleneck CIM

@@ -4908,6 +4908,8 @@ how are these trained and where can we get them ?
 
 ====================
 
+{profile_adc, profile} for Bert.
+these 2 should enable us to run BB and CC.
 
 
 
@@ -4916,8 +4918,7 @@ how are these trained and where can we get them ?
 
 
 
-
-
+====================
 
 
 
