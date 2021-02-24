@@ -25,12 +25,16 @@ class Bert:
         self.embed = EmbedLayer(weights['embed'])
         self.encoder = []
         for l in range(12):
-            self.encoder.append(BertLayer(weights['encoder'][l]))
-        self.pooler = LinearLayer(weights['pool'])
-        self.classifier = LinearLayer(weights['class'])
+            self.encoder.append(BertLayer(params=array_params, weights=weights['encoder'][l]))
+        self.pooler = LinearLayer(params=array_params, weights=weights['pool'])
+        self.classifier = LinearLayer(params=array_params, weights=weights['class'])
 
     def init(self, params):
-        pass
+        self.embed.init(params)
+        for layer in self.encoder:
+            layer.init(params)
+        self.pooler.init(params)
+        self.classifier.init(params)
 
     def set_profile_adc(self, counts):
         pass
@@ -49,7 +53,8 @@ class Bert:
         h = embed
         for l in range(12):
             h = self.encoder[l].forward(h, mask)
-        h = h[:, 0]
+        batch, word, vec = np.shape(h)
+        h = h[:, 0, :].reshape(batch, 1, vec)
         p = np.tanh(self.pooler.forward(h))
         o = self.classifier.forward(p)
         return o, o, {}

@@ -210,8 +210,8 @@ def Simple():
     'narray': [2 ** 12],
     'cards': [0],
     'profile': [0],
-    'rpr_alloc': ['static'],
-    'sigma': [0.05],
+    'rpr_alloc': ['none'],
+    'sigma': [0.01],
     'thresh': [1.00]
     }
 

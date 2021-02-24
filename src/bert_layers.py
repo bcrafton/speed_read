@@ -2,6 +2,7 @@
 import numpy as np
 import math
 from scipy.special import erf
+from linear import Linear
 
 #########################################################################
 
@@ -27,21 +28,29 @@ def quantize_and_dequantize(x):
     x = np.clip(x, -128, 127)
     x = x * scale
     return x#, scale
-    
+
 #########################################################################
 
 class BertLayer():
-    def __init__(self, weights):
-        self.query = LinearLayer(weights['q'])
-        self.key = LinearLayer(weights['k'])
-        self.value = LinearLayer(weights['v'])
-        self.attention = LinearLayer(weights['a'])
+    def __init__(self, params, weights):
+        self.query = LinearLayer(params=params, weights=weights['q'])
+        self.key = LinearLayer(params=params, weights=weights['k'])
+        self.value = LinearLayer(params=params, weights=weights['v'])
+        self.attention = LinearLayer(params=params, weights=weights['a'])
         self.norm1 = NormLayer(weights['a']['norm'])
 
-        self.hidden = LinearLayer(weights['h'])
-        self.output = LinearLayer(weights['o'])
+        self.hidden = LinearLayer(params=params, weights=weights['h'])
+        self.output = LinearLayer(params=params, weights=weights['o'])
         self.norm2 = NormLayer(weights['o']['norm'])
-    
+
+    def init(self, params):
+        self.query.init(params)
+        self.key.init(params)
+        self.value.init(params)
+        self.attention.init(params)
+        self.hidden.init(params)
+        self.output.init(params)
+
     def forward(self, x, mask):
         batch = np.shape(x)[0]
         q = self.query.forward(x).reshape(batch, 128, 12, 64).transpose(0, 2, 1, 3)
@@ -69,22 +78,38 @@ class BertLayer():
         return o
 
 class LinearLayer():
-    def __init__(self, weights):
-        self.w = weights['w']
-        self.b = weights['b']
+    def __init__(self, params, weights):
+        self.input_size, self.output_size = np.shape(weights['w'])
+        self.weights = weights
+        self.weights['w'], self.sw = quantize(self.weights['w'])
+        self.linear = Linear((self.input_size, self.output_size), params, weights)
+        
+    def init(self, params):
+        self.linear.init(params)
+    
     def forward(self, x):
-        #####################################
-        '''
-        qx = quantize_and_dequantize(x)
-        qw = quantize_and_dequantize(self.w)
-        return qx @ qw + self.b
-        '''
-        #####################################
+        batch, word, vec = np.shape(x)
+        assert (batch == 1)
+        x = np.reshape(x, (word, vec))        
+
         qx, sx = quantize(x)
-        qw, sw = quantize(self.w)
-        qy = qx @ qw
-        y = (sx * sw) * qy + self.b
-        #####################################
+        # quantize w before giving it to Linear.
+        # qw, sw = quantize(self.weights['w'])
+        b = self.weights['b']
+
+        qy = qx @ self.weights['w']
+        y = (sx * self.sw) * qy + b
+
+        # 1) we need to actually quantize the weights that go in here.
+        # 2) we need to handle negative inputs ...
+        pim, pim_ref, results = self.linear.forward(qx, qx)
+
+        print (qy.flatten()[0:10])
+        print (pim_ref.flatten()[0:10])
+        error = np.mean(np.absolute(qy - pim_ref))
+        assert (error == 0)
+
+        y = np.reshape(y, (batch, word, self.output_size))
         return y
         
 class NormLayer():
@@ -92,6 +117,8 @@ class NormLayer():
         self.w = weights['w']
         self.b = weights['b']
         self.eps = weights['eps']
+    def init(self, params):
+        pass
     def forward(self, x):
         mean = np.mean(x, axis=(2), keepdims=True)
         x = x - mean
@@ -105,7 +132,8 @@ class EmbedLayer():
         self.tok = weights['tok']
         self.pos = weights['pos']
         self.norm = NormLayer(weights['norm'])
-        
+    def init(self, params):
+        pass
     def forward(self, ids, tok):
         inputs_embeds = self.word[ids]
         token_type_embeddings = self.tok[tok]
@@ -117,7 +145,8 @@ class EmbedLayer():
         embeddings = self.norm.forward(embeddings)
         
         return embeddings
-        
+
+'''
 class Model():
     def __init__(self):
         weights = np.load('weights.npy', allow_pickle=True).item()
@@ -139,7 +168,7 @@ class Model():
         p = np.tanh(self.pooler.forward(h))
         o = self.classifier.forward(p)
         return o
-        
+'''
         
         
         

@@ -1,0 +1,32 @@
+import numpy as np
+from numpy.random import randint
+
+MIN_X = -8
+MAX_X = 7
+OFF_X = 8
+
+MIN_W = -8
+MAX_W = 7
+OFF_W = 8
+
+N = 1
+
+w = randint(MIN_W, MAX_W, N)
+x = randint(MIN_X, MAX_X, N)
+
+truth = np.dot(x, w)
+
+####### Only use offset-adjusted values below here #######
+w = w + OFF_W
+x = x + OFF_X 
+test = np.dot(x,w)
+
+####### Offset Procedure #######
+fixed_bias = N*OFF_X*OFF_W # Fixed positive component of offset
+
+bias_0 = OFF_W*np.sum(x)
+bias_1 = OFF_X*np.sum(w)
+
+test = test + fixed_bias - bias_0 - bias_1
+
+assert(np.allclose(test,truth))

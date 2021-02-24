@@ -1,0 +1,14 @@
+
+Ok, so I worked through it and verified with a python demo, attached.
+
+We can work with numbers completely in the adjusted (post-offset) format but there are two additional adjustment terms.
+
+For each x DOT w, with x and w (arbitrary-precision vectors with N elements) having been adjusted by fixed X_OFF and W_OFF, we have to add on these terms:
+
+    + N*X_OFF*W_OFF (computed once for choice of X_OFF and W_OFF) New, Positive
+    - X_OFF*sum(w) New
+    - W_OFF*sum(x) Old
+
+So we have one new adjustment term which depends on the sum over each (adjusted) x-vector.
+
+Let me know if anything seems off
