@@ -155,6 +155,7 @@ plt.bar(x=layers + width, height=skip_block,  width=width, label='performance-ba
 
 plt.xticks(layers)
 plt.yticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+plt.ylim(bottom=0.0, top=1.0)
 # plt.grid(True, axis='y', linestyle='dotted', color='black')
 # plt.grid(True, axis='y', linestyle=(0, (5, 10)), color='black')
 plt.grid(True, axis='y', linestyle=(0, (5, 8)), color='black')
@@ -163,9 +164,9 @@ plt.grid(True, axis='y', linestyle=(0, (5, 8)), color='black')
 ax.axes.xaxis.set_ticklabels([])
 ax.axes.yaxis.set_ticklabels([])
 
-fig.set_size_inches(8., 2.5)
-plt.tight_layout()
-fig.savefig('skip-util.png', dpi=300)
+fig.set_size_inches(8., 1.75)
+plt.tight_layout(0.)
+fig.savefig('skip-util.png', dpi=500)
 
 ####################
 
