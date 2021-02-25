@@ -51,6 +51,32 @@ class BertLayer():
         self.hidden.init(params)
         self.output.init(params)
 
+    def profile_adc(self, x, mask, counters):
+        batch = np.shape(x)[0]
+        q = self.query.profile_adc(x, counters).reshape(batch, 128, 12, 64).transpose(0, 2, 1, 3)
+        k = self.key.profile_adc(x, counters).reshape(batch, 128, 12, 64).transpose(0, 2, 1, 3)
+        v = self.value.profile_adc(x, counters).reshape(batch, 128, 12, 64).transpose(0, 2, 1, 3)
+        
+        attention_scores = np.matmul(q, k.transpose(0, 1, 3, 2))
+        attention_scores = attention_scores / math.sqrt(64)
+        attention_scores = attention_scores + mask
+        attention_probs = softmax(attention_scores)
+
+        context_layer = np.matmul(attention_probs, v)
+        context_layer = context_layer.transpose(0, 2, 1, 3)
+        context_layer = context_layer.reshape(batch, 128, 768)
+
+        a = self.attention.profile_adc(context_layer, counters)
+        a = self.norm1.forward(a + x)
+        
+        h = self.hidden.profile_adc(a, counters)
+        h = gelu(h)
+        
+        o = self.output.profile_adc(h, counters)
+        o = self.norm2.forward(o + a)
+        
+        return o
+
     def forward(self, x, mask):
         batch = np.shape(x)[0]
         q = self.query.forward(x).reshape(batch, 128, 12, 64).transpose(0, 2, 1, 3)
@@ -81,11 +107,26 @@ class LinearLayer():
     def __init__(self, params, weights):
         self.input_size, self.output_size = np.shape(weights['w'])
         self.weights = weights
-        self.weights['w'], self.sw = quantize(self.weights['w'])
         self.linear = Linear((self.input_size, self.output_size), params, weights)
         
     def init(self, params):
         self.linear.init(params)
+    
+    def profile_adc(self, x, counters):
+        batch, word, vec = np.shape(x)
+        assert (batch == 1)
+        x = np.reshape(x, (word, vec))        
+
+        qx, sx = quantize(x)
+        b = self.weights['b']
+        qy = qx @ self.weights['w']
+        y = (sx * self.weights['s']) * qy + b
+        
+        qx += 128
+        _ = self.linear.profile_adc(qx, counters)
+
+        y = np.reshape(y, (batch, word, self.output_size))
+        return y
     
     def forward(self, x):
         batch, word, vec = np.shape(x)
@@ -98,7 +139,7 @@ class LinearLayer():
         b = self.weights['b']
 
         qy = qx @ self.weights['w']
-        y = (sx * self.sw) * qy + b
+        y = (sx * self.weights['s']) * qy + b
 
         # 1) we need to actually quantize the weights that go in here.
         # 2) we need to handle negative inputs ...

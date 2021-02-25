@@ -4,18 +4,23 @@ from conv_utils import *
 from scipy.stats import norm
 
 import ctypes
+import sys, os, psutil
 
 profile_lib = ctypes.cdll.LoadLibrary('./profile.so')
 profile_lib.profile.restype = ctypes.c_int
 
 ###########################
 
-def profile(x, w, y_shape, rpr_low, rpr_high, params, id, results):
+def profile(x_shape, x, w_shape, w, y_shape, rpr_low, rpr_high, params, id, results):
 
+    x = np.unpackbits(x).reshape(x_shape)
     nrow, nwl, wl, xb = np.shape(x)
+    
+    w = np.unpackbits(w).reshape(w_shape)
     nwl, wl, nbl, bl = np.shape(w) # nwl, nbl, wl, bl
+    
     nrow, ncol = y_shape
-        
+
     y = np.zeros(shape=y_shape)
     count_adc = np.zeros(shape=(8, 8, rpr_high+1, rpr_high+1))
     count_row = np.zeros(shape=(8, rpr_high+1, params['wl']+1))
@@ -46,7 +51,7 @@ def profile(x, w, y_shape, rpr_low, rpr_high, params, id, results):
     ctypes.c_int(nbl),
     ctypes.c_int(wl),
     ctypes.c_int(bl))
-    
+
     results[id] = {'adc': count_adc, 'row': count_row, 'sat': count_sat}
     
     

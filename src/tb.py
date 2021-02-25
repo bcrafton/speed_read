@@ -1,6 +1,7 @@
 
 import os
 import sys
+import psutil
 import argparse
 import numpy as np
 import tensorflow as tf
@@ -84,22 +85,23 @@ def run_command(x, y, model, params, return_list):
 # model, x, y = load_cifar(num_example=1, array_params=array_params)
 model, x, y = load_mrpc(num_example=1, array_params=array_params)
 
+process = psutil.Process(os.getpid())
+print('Memory Util:', process.memory_info().rss / 1e9, 'GB')  # in bytes 
+
 ####
 
 start = time.time()
 
 load_profile_adc = False
-
 if not load_profile_adc:
     profile = model.profile_adc(x=x)
     np.save('profile_adc', profile)
 else:
     profile = np.load('profile_adc.npy', allow_pickle=True).item()
-
 model.set_profile_adc(profile)
 
 ##########################
-
+'''
 num_runs = len(arch_params)
 parallel_runs = 8
 
@@ -126,8 +128,8 @@ for r in thread_results:
 
 np.save('results', results)
 print ('time taken:', time.time() - start)
-
-####
+'''
+##########################
 
 
 

@@ -16,6 +16,8 @@ from dynamic_rpr import dynamic_rpr
 from static_rpr import static_rpr
 from kmeans_rpr import kmeans_rpr
 
+import sys, os, psutil
+
 #########################
 
 class Linear(Layer):
@@ -46,7 +48,7 @@ class Linear(Layer):
         # assert(np.shape(self.b) == (self.output_size,))
         # assert(np.shape(self.q) == ())
         # cast as int
-        self.w = self.w.astype(int)
+        self.w = self.w.astype(np.int8)
         # self.b = self.b.astype(int)
         # self.q = self.q.astype(int)
         # q must be larger than 0
@@ -58,11 +60,13 @@ class Linear(Layer):
         assert (np.all(self.w >= minval))
         assert (np.all(self.w <= maxval))
 
-        self.wb = self.transform_weights()
-        nwl, _, nbl, _ = np.shape(self.wb) 
+        wb = self.transform_weights().astype(np.int8)
+        self.w_shape = np.shape(wb)
+        nwl, _, nbl, _ = self.w_shape
         self.factor = nwl * nbl
         self.nwl = nwl
         self.nbl = nbl
+        self.wb = np.packbits(wb)
 
         #########################
 
@@ -92,15 +96,30 @@ class Linear(Layer):
         self.row_count = counts[self.layer_id]['row']
         self.sat_count = counts[self.layer_id]['sat']
 
-    def profile_adc(self, x):
+    def profile_adc(self, x, counters):
         rpr_low = 1
-        rpr_high = self.params['max_rpr']
-        x = np.reshape(x, self.input_size)
-        patches = self.transform_inputs(x)
-        # _, self.adc_count, self.row_count = profile(patches, self.wb, (1, self.output_size), rpr_low, rpr_high, self.params)
-        y_ref = dot_ref(x=x, w=self.w, b=self.b, q=self.q)
-        y_ref = self.act(y_ref)
-        return y_ref, {self.layer_id: (patches, self.wb, (1, self.output_size_pad), rpr_low, rpr_high, self.params)}
+        rpr_high = self.params['max_rpr']        
+        patches = self.transform_inputs(x).astype(np.int8)
+        npatch, nwl, wl, xb = np.shape(patches)
+
+        rpr  = np.arange(rpr_low, rpr_high + 1)
+        nrow = np.sum(patches, axis=2)
+        nrow = nrow.reshape(npatch, nwl, xb, 1)
+        nrow = np.ceil(nrow / rpr)
+        nrow = np.clip(nrow, 1, np.inf)
+        nrow = np.sum(nrow, axis=1)
+        nrow = np.mean(nrow, axis=0)
+        
+        y_ref = x @ self.w
+        ratio = np.count_nonzero(y_ref) / np.prod(np.shape(y_ref))
+        
+        x_shape = np.shape(patches)
+        patches = np.packbits(patches)
+        
+        counters['adc'].update({self.layer_id: (x_shape, patches, self.w_shape, self.wb, (npatch, self.output_size_pad), rpr_low, rpr_high, self.params)})
+        counters['ratio'].update({self.layer_id: ratio})
+        counters['row'].update({self.layer_id: nrow})
+        return y_ref
 
     def set_block_alloc(self, block_alloc):
         self.block_alloc = block_alloc
@@ -247,7 +266,7 @@ class Linear(Layer):
         return xb
         
     def transform_weights(self):
-        w_offset = np.copy(self.w) + self.params['offset']
+        w_offset = self.w + self.params['offset']
         w_matrix = np.reshape(w_offset, (self.input_size, self.output_size))
         
         wb = []
