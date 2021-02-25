@@ -55,7 +55,7 @@ for (skip, alloc, profile) in [(1, 'block', 1),  (1, 'layer', 1), (1, 'layer', 0
     # TODO: VGG[1 vs 3] will look better becauseonly 3.5x over 3rd place
     # TODO: we dont want to sweep over narray ... they all end up being the same.
     narrays = []
-    layers = range(8)
+    layers = range(20)
     mac_per_cycles = []
     mac_per_pJs = []
     errors = []
@@ -122,7 +122,7 @@ for (skip, alloc, profile) in [(1, 'block', 1),  (1, 'layer', 1), (1, 'layer', 0
         ######################################
 
     # for layer in layers:
-    ys.append(mac_total / energy_total / 1e12)
+    ys.append(2 * mac_total / energy_total / 1e12)
 
     ######################################
 

@@ -93,7 +93,7 @@ def BB():
     arch_params = {
     'skip': [0, 1],
     'alloc': ['layer', 'block'],
-    'narray': [5472, 2 ** 13, 1.5 * 2 ** 13, 2 ** 14, 1.5 * 2 ** 14],
+    'narray': [2 ** 14],
     'sigma': [0.01],
     'cards': [0],
     'profile': [0, 1],
