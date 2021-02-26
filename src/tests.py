@@ -208,9 +208,9 @@ def Simple():
     'skip': [1],
     'alloc': ['block'],
     'narray': [2 ** 12],
-    'cards': [0],
+    'cards': [1],
     'profile': [0],
-    'rpr_alloc': ['none'],
+    'rpr_alloc': ['static'],
     'sigma': [0.01],
     'thresh': [1.00]
     }

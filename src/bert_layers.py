@@ -14,6 +14,12 @@ def softmax(x):
 def gelu(x):
     return x * 0.5 * (1. + erf(x / np.sqrt(2.)))
 
+def quantize_scale(x, scale):
+    x = x / scale
+    x = np.around(x)
+    x = np.clip(x, -128, 127)
+    return x
+
 def quantize(x):
     scale = np.max(np.absolute(x)) / 127
     x = x / scale
@@ -50,6 +56,14 @@ class BertLayer():
         self.attention.init(params)
         self.hidden.init(params)
         self.output.init(params)
+
+    def set_profile_adc(self, counts):
+        self.query.set_profile_adc(counts)
+        self.key.set_profile_adc(counts)
+        self.value.set_profile_adc(counts)
+        self.attention.set_profile_adc(counts)
+        self.hidden.set_profile_adc(counts)
+        self.output.set_profile_adc(counts)
 
     def profile_adc(self, x, mask, counters):
         batch = np.shape(x)[0]
@@ -111,16 +125,19 @@ class LinearLayer():
         
     def init(self, params):
         self.linear.init(params)
-    
+
+    def set_profile_adc(self, counts):
+        self.linear.set_profile_adc(counts)
+
     def profile_adc(self, x, counters):
         batch, word, vec = np.shape(x)
         assert (batch == 1)
         x = np.reshape(x, (word, vec))        
 
-        qx, sx = quantize(x)
+        qx = quantize_scale(x, self.weights['sx'])
         b = self.weights['b']
         qy = qx @ self.weights['w']
-        y = (sx * self.weights['s']) * qy + b
+        y = (self.weights['sx'] * self.weights['sw']) * qy + b
         
         qx += 128
         _ = self.linear.profile_adc(qx, counters)
@@ -133,28 +150,19 @@ class LinearLayer():
         assert (batch == 1)
         x = np.reshape(x, (word, vec))        
 
-        qx, sx = quantize(x)
-        # quantize w before giving it to Linear.
-        # qw, sw = quantize(self.weights['w'])
+        qx = quantize_scale(x, self.weights['sx'])
         b = self.weights['b']
-
         qy = qx @ self.weights['w']
-        y = (sx * self.weights['s']) * qy + b
+        y = (self.weights['sx'] * self.weights['sw']) * qy + b
 
-        # 1) we need to actually quantize the weights that go in here.
-        # 2) we need to handle negative inputs ...
         qx += 128
         pim, pim_ref, results = self.linear.forward(qx, qx)
         pim_ref -= np.sum(self.weights['w'], axis=0) * 128
-        # dont need this term for {pim, pim_ref}:
-        # pim_ref uses signed w
-        # pim: y -= sum(x + 128) * 128 ... so it actually does this term by accident
-        # pim_ref -= np.shape(self.weights['w'])[0] * (128 * 128)
 
-        # error = np.mean(np.absolute(qy - pim_ref))
+        error = np.mean(np.absolute(qy - pim_ref))
         # print (qy.flatten()[0:10])
         # print (pim_ref.flatten()[0:10])
-        # assert (error == 0)
+        assert (error == 0)
 
         y = np.reshape(y, (batch, word, self.output_size))
         return y

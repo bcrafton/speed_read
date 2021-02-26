@@ -43,6 +43,7 @@ class Linear(Layer):
 
         # self.w, self.b, self.q = weights['w'], weights['b'], weights['q']
         self.w = weights['w']
+        self.q = 1. / weights['sx']
         # check shape
         assert(np.shape(self.w) == self.size)
         # assert(np.shape(self.b) == (self.output_size,))
@@ -79,22 +80,27 @@ class Linear(Layer):
             assert (False)
 
         elif self.params['rpr_alloc'] == 'dynamic':
-            self.params['rpr'], _ = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, sat_count=self.sat_count, nrow=self.input_size, q=self.q)
+            self.params['rpr'], _ = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, sat_count=self.sat_count, nrow=self.input_size, q=self.q, ratio=self.ratio)
 
         elif self.params['rpr_alloc'] == 'static':
-            self.params['rpr'], self.lut_bias = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, sat_count=self.sat_count, nrow=self.input_size, q=self.q)
+            self.params['rpr'], self.lut_bias = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, sat_count=self.sat_count, nrow=self.input_size, q=self.q, ratio=self.ratio)
             self.lut_bias = self.lut_bias * 256
             self.lut_bias = self.lut_bias
         else:
+            assert (False)
             self.params['rpr'] = np.ones(shape=(8, 8)).astype(np.int32) * 8
             self.lut_bias = np.zeros(shape=(8, 8)).astype(np.int32)
 
         self.block_alloc = np.ones(shape=self.nwl).astype(np.int32)
 
     def set_profile_adc(self, counts):
-        self.adc_count = counts[self.layer_id]['adc']
-        self.row_count = counts[self.layer_id]['row']
-        self.sat_count = counts[self.layer_id]['sat']
+        # it makes no sense to invert [parameter, layer_id]
+        # we should set it back
+        # only need change [linear.py, bert.py]
+        self.adc_count = counts['adc'][self.layer_id]
+        self.row_count = counts['row'][self.layer_id]
+        self.sat_count = counts['sat'][self.layer_id]
+        self.ratio = counts['ratio'][self.layer_id]
 
     def profile_adc(self, x, counters):
         rpr_low = 1
@@ -116,6 +122,9 @@ class Linear(Layer):
         x_shape = np.shape(patches)
         patches = np.packbits(patches)
         
+        # it makes no sense to invert [parameter, layer_id]
+        # we should set it back
+        # only need change [linear.py, bert.py]
         counters['adc'].update({self.layer_id: (x_shape, patches, self.w_shape, self.wb, (npatch, self.output_size_pad), rpr_low, rpr_high, self.params)})
         counters['ratio'].update({self.layer_id: ratio})
         counters['row'].update({self.layer_id: nrow})
@@ -158,10 +167,12 @@ class Linear(Layer):
         error = np.mean(np.absolute(y - y_ref))
         results['cim_mean'] = mean
         results['cim_error'] = error
+
         '''
         y = self.act(y)
         y_ref = self.act(y_ref)
         '''
+
         y_min = np.min(y_ref)
         y_max = np.max(y_ref)
         y_mean = np.mean(y - y_ref)
@@ -179,19 +190,15 @@ class Linear(Layer):
         results['mean']  = y_mean
         results['error'] = y_error
         
-        nwl, _, nbl, _ = np.shape(self.wb)
-        
         if self.params['alloc'] == 'block':
-            results['array'] = np.sum(self.block_alloc) * nbl
-            # print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d' % (self.layer_id, np.sum(self.block_alloc), nbl, nbl * np.sum(self.block_alloc), results['nmac'], results['cycle'], results['stall']))
-            print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d mean: %0.3f error: %0.3f' % 
-              (self.layer_id, np.sum(self.block_alloc), nbl, nbl * np.sum(self.block_alloc), results['nmac'], results['cycle'], results['stall'], y_mean, y_error))
+            results['array'] = np.sum(self.block_alloc) * self.nbl
+            print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d mean: %0.3f error: %0.3f q: %0.3f' % 
+              (self.layer_id, np.sum(self.block_alloc), self.nbl, self.nbl * np.sum(self.block_alloc), results['nmac'], results['cycle'], results['stall'], y_mean, y_error, self.q))
 
         elif self.params['alloc'] == 'layer': 
-            results['array'] = self.layer_alloc * nwl * nbl
-            # print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d' % (self.layer_id, self.layer_alloc, nwl * nbl, nwl * nbl * self.layer_alloc, results['nmac'], results['cycle'], results['stall']))
-            print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d mean: %0.2f error: %0.2f' % 
-              (self.layer_id, self.layer_alloc, nwl * nbl, nwl * nbl * self.layer_alloc, results['nmac'], results['cycle'], results['stall'], y_mean, y_error))
+            results['array'] = self.layer_alloc * self.nwl * self.nbl
+            print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d mean: %0.2f error: %0.2f q: %0.3f' % 
+              (self.layer_id, self.layer_alloc, self.nwl * nbl, self.nwl * nbl * self.layer_alloc, results['nmac'], results['cycle'], results['stall'], y_mean, y_error, self.q))
 
         ########################
 
@@ -219,15 +226,16 @@ class Linear(Layer):
             assert (False)
         elif self.params['rpr_alloc'] == 'static':
             # think we want to pass a bias table
-            # y, metrics = pim_static(xb, self.wb, (1, self.output_size_pad), self.params['var'], self.params['rpr'], alloc, self.lut_bias, self.params)
-            # y = np.reshape(y, self.output_size_pad)[:self.output_size]
-            assert (False)
+            wb = np.unpackbits(self.wb).reshape(self.w_shape)
+            y, metrics = pim_static(xb, wb, (npatch, self.output_size_pad), self.params['var'], self.params['rpr'], alloc, self.lut_bias, self.params)
+            y = np.reshape(y, (npatch, self.output_size_pad))[:, 0:self.output_size]
         else:
+            assert (False)
             y, metrics = pim_dyn(xb, self.wb, (npatch, self.output_size_pad), self.params['var'], self.params['rpr'], alloc, self.params)
             y = np.reshape(y, (npatch, self.output_size_pad))
         
         # we shud move this into forward, do it after the y - y_ref. 
-        assert(np.all(np.absolute(y) < 2 ** 23))
+        # assert(np.all(np.absolute(y) < 2 ** 23))
         #########################
         # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
         results = {}

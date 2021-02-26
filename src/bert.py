@@ -24,7 +24,7 @@ class Bert:
     def __init__(self, array_params):
         self.array_params = array_params
         np.random.seed(0)
-        weights = np.load('../bert8b.npy', allow_pickle=True).item()
+        weights = np.load('../bert1.npy', allow_pickle=True).item()
 
         # embedding
         self.embed = EmbedLayer(weights['embed'])
@@ -46,10 +46,15 @@ class Bert:
         self.classifier.init(params)
 
     def set_profile_adc(self, counts):
-        pass
+        assert (counts['wl'] == self.array_params['wl'])
+        assert (counts['max_rpr'] == self.array_params['max_rpr'])
+        for l in range(12):
+            h = self.encoder[l].set_profile_adc(counts)
+        self.pooler.set_profile_adc(counts)
+        self.classifier.set_profile_adc(counts)
 
     def profile_adc(self, x):
-        counters = {'adc': {}, 'row': {}, 'ratio': {}}
+        counters = {'adc': {}, 'row': {}, 'ratio': {}, 'sat': {}}
         (ids, tok, mask) = x
         embed = self.embed.forward(ids, tok)
         mask = mask[:, None, None, :]
@@ -57,7 +62,6 @@ class Bert:
         h = embed
         for l in range(12):
             h = self.encoder[l].profile_adc(h, mask, counters)
-
         batch, word, vec = np.shape(h)
         h = h[:, 0, :].reshape(batch, 1, vec)
         p = np.tanh(self.pooler.profile_adc(h, counters))
@@ -68,7 +72,7 @@ class Bert:
 
         keys = list(counters['adc'].keys())
         total = len(keys)
-        nthread = 10
+        nthread = 32
 
         for run in range(0, total, nthread):
 
@@ -87,21 +91,15 @@ class Bert:
 
             for t in threads:
                 t.join()
-
-        counts = {}
+        
         for result in thread_results:
             for key in result.keys():
-                counts[key]['adc'] += result[key]['adc']
+                counters['adc'][key] = result[key]['adc']
+                counters['sat'][key] = result[key]['sat']
 
-        for key in counters['row'].keys():
-            counts[key]['row'] = counters['row']
-        
-        for key in counters['ratio'].keys():
-            counts[key]['ratio'] = counters['ratio']
-
-        counts['wl'] = self.array_params['wl']
-        counts['max_rpr'] = self.array_params['max_rpr']
-        return counts
+        counters['wl'] = self.array_params['wl']
+        counters['max_rpr'] = self.array_params['max_rpr']
+        return counters
 
     def profile(self, x):
         pass
