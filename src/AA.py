@@ -3,7 +3,8 @@ import numpy as np
 import copy
 
 def array_allocation(narray, nmac, factor, mac_per_array, params):
-    if (np.sum(factor) > narray): return np.inf
+    # if (np.sum(factor) > narray): return np.inf
+    if (np.sum(factor) > narray): assert (False)
     
     alloc = copy.copy(factor)    
     cycles = nmac / mac_per_array / alloc

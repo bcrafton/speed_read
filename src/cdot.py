@@ -233,7 +233,7 @@ def pim_static(x, w, y_shape, lut_var, lut_rpr, alloc, lut_bias, params):
         assert (False)
 
     ########
-
+    # '''
     psum = pim_lib.pim(
     ctypes.c_void_p(x.ctypes.data), 
     ctypes.c_void_p(w.ctypes.data), 
@@ -257,6 +257,6 @@ def pim_static(x, w, y_shape, lut_var, lut_rpr, alloc, lut_bias, params):
     ctypes.c_int(bl),
     ctypes.c_int(sync),
     ctypes.c_int(2))
-    
+    # '''
     return y, metrics
     

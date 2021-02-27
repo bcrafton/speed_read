@@ -4937,13 +4937,26 @@ need to make some API if that is the case ...
 yeah trim the API and make things cleaner. 
 but i do think this is the best way for now atleast.
 
+#########################################
 
+1)
+challenge rn is params['alloc'] ... we want to make both allocation array and allocation policy 'alloc'
+changes are solid tho
 
+0: alloc: 2*72=144 nmac 589824 cycle: 69504 stall: 269952 mean: 0.00 error: 0.00 q: 11.412
+1: alloc: 2*72=144 nmac 589824 cycle: 69504 stall: 269952 mean: 0.00 error: 0.00 q: 11.412
+2: alloc: 2*72=144 nmac 589824 cycle: 69504 stall: 269952 mean: 0.00 error: 0.00 q: 11.412
 
+2)
+why are q values all the same ???
+that implies {q,v,k} produce same outputs ? 
 
+3)
+blockwise allocation going to make a big difference
 
+#########################################
 
-
+how to do blockwise allocation ? 
 
 
 

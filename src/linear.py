@@ -140,8 +140,8 @@ class Linear(Layer):
         ########################
         mean = np.mean(y - y_ref)
         error = np.mean(np.absolute(y - y_ref))
-        results['cim_mean'] = mean
-        results['cim_error'] = error
+        results[self.weight_id]['cim_mean'] = mean
+        results[self.weight_id]['cim_error'] = error
         ########################
         y_min = np.min(y_ref)
         y_max = np.max(y_ref)
@@ -158,30 +158,17 @@ class Linear(Layer):
         results[self.weight_id]['error']     = y_error
         results[self.weight_id]['duplicate'] = self.params['duplicate']
         ########################
-        if self.params['alloc'] == 'block':
-            p = '%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d mean: %0.3f error: %0.3f q: %0.3f' % (
-                self.layer_id, 
-                np.sum(self.block_alloc), 
-                self.nbl, 
-                self.nbl * np.sum(self.params['duplicate']), 
-                results[self.weight_id]['nmac'], 
-                results[self.weight_id]['cycle'], 
-                results[self.weight_id]['stall'], 
-                y_mean, 
-                y_error, 
-                self.q)
-        elif self.params['alloc'] == 'layer': 
-            p = '%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d mean: %0.2f error: %0.2f q: %0.3f' % (
-                self.layer_id, 
-                self.params['duplicate'], 
-                self.params['nwl'] * self.params['nbl'], 
-                self.params['nwl'] * self.params['nbl'] * self.params['duplicate'], 
-                results[self.weight_id]['nmac'], 
-                results[self.weight_id]['cycle'], 
-                results[self.weight_id]['stall'], 
-                y_mean, 
-                y_error, 
-                self.q)
+        p = '%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d mean: %0.3f error: %0.3f q: %0.3f' % (
+            self.layer_id, 
+            np.sum(self.params['duplicate']), 
+            self.params['nbl'], 
+            self.params['nbl'] * np.sum(self.params['duplicate']), 
+            results[self.weight_id]['nmac'], 
+            results[self.weight_id]['cycle'], 
+            results[self.weight_id]['stall'], 
+            y_mean, 
+            y_error, 
+            self.q)
         print (p)
         ########################
         return y_ref
@@ -199,6 +186,7 @@ class Linear(Layer):
             wb = np.unpackbits(self.wb).reshape(self.w_shape)
             y, metrics = pim_static(xb, wb, (npatch, self.output_size_pad), self.params['var'], self.params['rpr'], self.params['duplicate'], self.lut_bias, self.params)
             y = np.reshape(y, (npatch, self.output_size_pad))[:, 0:self.output_size]
+            # metrics = np.random.randint(low=1000, high=10000, size=np.shape(metrics))
         else:
             assert (False)
         #########################

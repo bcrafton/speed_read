@@ -18,6 +18,22 @@ from bert_layers import *
 import sys, os, psutil
 from size import get_size
 
+def array2d(array1d, shape):
+    assert (np.sum(shape) == len(array1d))
+    out = []
+    next = 0
+    for size in shape:
+        start = next
+        next = next + size
+        out.append(array1d[start:next])
+    return out
+
+def array1d(array2d):
+    out = []
+    for array in array2d:
+        out.extend(array)
+    return out
+
 #########################
 
 class Bert:
@@ -47,6 +63,30 @@ class Bert:
         self.pooler.init(params, self.table)
         self.classifier.init(params, self.table)
         #############################################
+        perf        = []
+        total_mac   = []
+        total_array = []
+        shape       = []
+        for id in self.table.keys():
+            perf        = perf        + [self.params['bl'] // self.params['bpw']]                      * self.table[id].get('nwl')
+            total_mac   = total_mac   + [self.table[id].get('total_mac') // self.table[id].get('nwl')] * self.table[id].get('nwl')
+            total_array = total_array + [self.table[id].get('nbl')]                                    * self.table[id].get('nwl')
+            shape.append(self.table[id].get('nwl'))
+        perf        = np.array(perf)
+        total_mac   = np.array(total_mac)
+        total_array = np.array(total_array)
+        ##########################################
+        duplicate = array_allocation(self.params['narray'], total_mac, total_array, perf, self.params)
+        duplicate = duplicate / total_array
+        duplicate = duplicate.astype(np.int32)
+        ##########################################
+        duplicate = array2d(duplicate, shape)
+        for id in self.table.keys():
+            self.table[id].set('duplicate', duplicate[id])
+        #############################################
+        #############################################
+        #############################################
+        '''
         N = len(self.table.keys())
         total_mac = np.zeros(shape=N)
         total_array = np.zeros(shape=N)
@@ -61,8 +101,8 @@ class Bert:
         duplicate = duplicate.astype(np.int32)
         for id in self.table.keys():
             self.table[id].set('duplicate', duplicate[id])
+        '''
         #############################################
-        
 
     # make 1 set function
     def set_profile_adc(self, counts):
@@ -142,18 +182,50 @@ class Bert:
         ##########################################
         ##########################################
         ##########################################
-        N = len(results.keys())
-        perf = np.zeros(shape=N)
-        nmac = np.zeros(shape=N)
-        factor = np.zeros(shape=N)
+        perf        = []
+        total_mac   = []
+        total_array = []
+        shape       = []
         for id in results.keys():
-            nmac[id]   = results[id]['nmac']
-            factor[id] = results[id]['nwl'] * results[id]['nbl']
-            perf[id]   = nmac[id] / factor[id] / (results[id]['cycle'] * results[id]['duplicate'])
+            next = results[id]['block_cycle'].tolist()
+            N = len(next)
+            perf        = perf + next
+            total_mac   = total_mac + [results[id]['nmac'] // results[id]['nwl']] * N
+            total_array = total_array + [results[id]['nbl']] * N
+            shape.append(N)
+        perf        = np.array(perf)
+        total_mac   = np.array(total_mac)
+        total_array = np.array(total_array)
         ##########################################
-        self.allocate(nmac, factor, perf)
+        duplicate = array_allocation(self.params['narray'], total_mac, total_array, perf, self.params)
+        duplicate = duplicate / total_array
+        duplicate = duplicate.astype(np.int32)
         ##########################################
-        
+        duplicate = array2d(duplicate, shape)
+        for id in results.keys():
+            self.table[id].set('duplicate', duplicate[id])
+        ##########################################
+        '''
+        N = len(results.keys())
+        total_mac = np.zeros(shape=N)
+        total_array = np.zeros(shape=N)
+        perf = np.zeros(shape=N)
+        for id in results.keys():
+            # total_mac[id] = self.table[id].get('total_mac')
+            # total_array[id] = self.table[id].get('total_array')
+            # perf[id] = self.params['bl'] // self.params['bpw']
+            total_mac[id]   = results[id]['nmac']
+            total_array[id] = results[id]['nwl'] * results[id]['nbl']
+            perf[id]        = total_mac[id] / total_array[id] / (results[id]['cycle'] * results[id]['duplicate'])
+        ##########################################
+        duplicate = array_allocation(self.params['narray'], total_mac, total_array, perf, self.params)
+        duplicate = duplicate / total_array
+        duplicate = duplicate.astype(np.int32)
+        for id in results.keys():
+            self.table[id].set('duplicate', duplicate[id])
+        '''
+        ##########################################
+
     def forward(self, x, y):
         results = {}
         ##########################################
@@ -175,12 +247,12 @@ class Bert:
         ##########################################
         return o, results
 
+    '''
     def allocate(self, nmac, factor, perf=None):
-        if perf == None: perf = np.ones_like(nmac) * (self.params['bl'] // self.params['bpw'])
+        if perf is None: perf = np.ones_like(nmac) * (self.params['bl'] // self.params['bpw'])
         alloc = array_allocation(self.params['narray'], nmac, factor, perf, self.params)
         assert (np.sum(alloc) <= self.params['narray'])
-        print (alloc)
-            
+    '''
 
 #########################
 

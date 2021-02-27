@@ -55,11 +55,12 @@ def run_command(x, y, model, params, return_list):
     if params['profile']:
         model.profile(x=x)
     
+    out, results = model.forward(x=x, y=y)
+    '''
     out, out_ref, result = model.forward(x=x, y=y)
     abs_error = np.mean(np.absolute(out - out_ref))
     abs_mean = np.mean(np.absolute(out_ref))
-
-    # return_dict[(params['skip'], params['cards'], params['alloc'], params['profile'], params['narray'], params['sigma'], params['rpr_alloc'])] = result
+    '''
 
     update = {
     'skip':      params['skip'],
@@ -70,12 +71,12 @@ def run_command(x, y, model, params, return_list):
     'sigma':     params['sigma'],
     'rpr_alloc': params['rpr_alloc'],
     'thresh':    params['thresh'],
-    'abs_error': abs_error
+    'abs_error': 0. # abs_error
     }
     
-    for r in result:
-        r.update(update)
-        return_list.append(r)
+    for layer in results:
+        results[layer].update(update)
+        return_list.append(results[layer])
         
 ####
 
