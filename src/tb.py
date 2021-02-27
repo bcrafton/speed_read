@@ -51,8 +51,6 @@ array_params, arch_params = Simple()
 ############
 
 def run_command(x, y, model, params, return_list):
-    print (params)
-    
     model.init(params)
     if params['profile']:
         model.profile(x=x)
@@ -112,9 +110,9 @@ for _ in range(num_runs):
 
 for run in range(0, num_runs, parallel_runs):
     threads = []
-    
     for parallel_run in range(min(parallel_runs, num_runs - run)):
-        args = (np.copy(x), np.copy(y), copy.copy(model), arch_params[run + parallel_run], thread_results[run + parallel_run])
+        params = copy.copy(array_params); params.update(arch_params[run + parallel_run])
+        args = (np.copy(x), np.copy(y), copy.copy(model), params, thread_results[run + parallel_run])
         t = multiprocessing.Process(target=run_command, args=args)
         threads.append(t)
         t.start()

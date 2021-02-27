@@ -49,13 +49,13 @@ class BertLayer():
         self.output = LinearLayer(params=params, weights=weights['o'])
         self.norm2 = NormLayer(weights['o']['norm'])
 
-    def init(self, params):
-        self.query.init(params)
-        self.key.init(params)
-        self.value.init(params)
-        self.attention.init(params)
-        self.hidden.init(params)
-        self.output.init(params)
+    def init(self, params, table):
+        self.query.init(params, table)
+        self.key.init(params, table)
+        self.value.init(params, table)
+        self.attention.init(params, table)
+        self.hidden.init(params, table)
+        self.output.init(params, table)
 
     def set_profile_adc(self, counts):
         self.query.set_profile_adc(counts)
@@ -91,11 +91,12 @@ class BertLayer():
         
         return o
 
-    def forward(self, x, mask):
+    def forward(self, x, results):
+        (x, mask) = x
         batch = np.shape(x)[0]
-        q = self.query.forward(x).reshape(batch, 128, 12, 64).transpose(0, 2, 1, 3)
-        k = self.key.forward(x).reshape(batch, 128, 12, 64).transpose(0, 2, 1, 3)
-        v = self.value.forward(x).reshape(batch, 128, 12, 64).transpose(0, 2, 1, 3)
+        q = self.query.forward(x, results).reshape(batch, 128, 12, 64).transpose(0, 2, 1, 3)
+        k =   self.key.forward(x, results).reshape(batch, 128, 12, 64).transpose(0, 2, 1, 3)
+        v = self.value.forward(x, results).reshape(batch, 128, 12, 64).transpose(0, 2, 1, 3)
         
         attention_scores = np.matmul(q, k.transpose(0, 1, 3, 2))
         attention_scores = attention_scores / math.sqrt(64)
@@ -106,13 +107,13 @@ class BertLayer():
         context_layer = context_layer.transpose(0, 2, 1, 3)
         context_layer = context_layer.reshape(batch, 128, 768)
 
-        a = self.attention.forward(context_layer)
+        a = self.attention.forward(context_layer, results)
         a = self.norm1.forward(a + x)
         
-        h = self.hidden.forward(a)
+        h = self.hidden.forward(a, results)
         h = gelu(h)
         
-        o = self.output.forward(h)
+        o = self.output.forward(h, results)
         o = self.norm2.forward(o + a)
         
         return o
@@ -123,8 +124,8 @@ class LinearLayer():
         self.weights = weights
         self.linear = Linear((self.input_size, self.output_size), params, weights)
         
-    def init(self, params):
-        self.linear.init(params)
+    def init(self, params, table):
+        self.linear.init(params, table)
 
     def set_profile_adc(self, counts):
         self.linear.set_profile_adc(counts)
@@ -145,7 +146,7 @@ class LinearLayer():
         y = np.reshape(y, (batch, word, self.output_size))
         return y
     
-    def forward(self, x):
+    def forward(self, x, results):
         batch, word, vec = np.shape(x)
         assert (batch == 1)
         x = np.reshape(x, (word, vec))        
@@ -156,12 +157,10 @@ class LinearLayer():
         y = (self.weights['sx'] * self.weights['sw']) * qy + b
 
         qx += 128
-        pim, pim_ref, results = self.linear.forward(qx, qx)
-        pim_ref -= np.sum(self.weights['w'], axis=0) * 128
+        pim = self.linear.forward(qx, results)
+        pim -= np.sum(self.weights['w'], axis=0) * 128
 
-        error = np.mean(np.absolute(qy - pim_ref))
-        # print (qy.flatten()[0:10])
-        # print (pim_ref.flatten()[0:10])
+        error = np.mean(np.absolute(qy - pim))
         assert (error == 0)
 
         y = np.reshape(y, (batch, word, self.output_size))
@@ -172,7 +171,7 @@ class NormLayer():
         self.w = weights['w']
         self.b = weights['b']
         self.eps = weights['eps']
-    def init(self, params):
+    def init(self, params, table):
         pass
     def forward(self, x):
         mean = np.mean(x, axis=(2), keepdims=True)
@@ -187,7 +186,7 @@ class EmbedLayer():
         self.tok = weights['tok']
         self.pos = weights['pos']
         self.norm = NormLayer(weights['norm'])
-    def init(self, params):
+    def init(self, params, table):
         pass
     def forward(self, ids, tok):
         inputs_embeds = self.word[ids]

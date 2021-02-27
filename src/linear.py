@@ -22,76 +22,70 @@ import sys, os, psutil
 
 class Linear(Layer):
     def __init__(self, size, params, weights):
+        self.params = params.copy()
+
         self.layer_id = Layer.layer_id
         Layer.layer_id += 1
         self.weight_id = Layer.weight_id
         Layer.weight_id += 1
 
         self.size = size
-        # TODO: include word size ... [128, 768]
         self.input_size, self.output_size = self.size
-
-        self.params = params.copy()
 
         remainder = self.output_size % (self.params['bl'] // self.params['bpw'])
         self.output_size_pad = self.output_size
-        if remainder:
-            self.output_size_pad += (self.params['bl'] // self.params['bpw']) - remainder
+        if remainder: self.output_size_pad += (self.params['bl'] // self.params['bpw']) - remainder
 
-        # TODO: include word size ... [128, 768]
-        self.nmac = self.input_size * self.output_size
-
-        # self.w, self.b, self.q = weights['w'], weights['b'], weights['q']
-        self.w = weights['w']
+        self.w = weights['w'].astype(np.int8)
         self.q = 1. / weights['sx']
-        # check shape
-        assert(np.shape(self.w) == self.size)
-        # assert(np.shape(self.b) == (self.output_size,))
-        # assert(np.shape(self.q) == ())
-        # cast as int
-        self.w = self.w.astype(np.int8)
-        # self.b = self.b.astype(int)
-        # self.q = self.q.astype(int)
-        # q must be larger than 0
-        # assert(self.q > 0)
 
+        assert(np.shape(self.w) == self.size)
         maxval = pow(2, self.params['bpw'] - 1)
         minval = -1 * maxval
-
         assert (np.all(self.w >= minval))
         assert (np.all(self.w <= maxval))
 
         wb = self.transform_weights().astype(np.int8)
         self.w_shape = np.shape(wb)
         nwl, _, nbl, _ = self.w_shape
-        self.factor = nwl * nbl
-        self.nwl = nwl
-        self.nbl = nbl
         self.wb = np.packbits(wb)
 
-        #########################
+        self.params['nwl'] = nwl
+        self.params['nbl'] = nbl
+        self.params['total_array'] = nwl * nbl
+        self.params['total_mac'] = self.input_size * self.output_size
 
-    def init(self, params):
+    def init(self, params, table):
         self.params.update(params)
-        
         self.params['var'] = lut_var(params['sigma'], self.params['max_rpr'])
+        table[self.weight_id] = self
 
         if self.params['rpr_alloc'] == 'centroids':
             assert (False)
-
         elif self.params['rpr_alloc'] == 'dynamic':
-            self.params['rpr'], _ = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, sat_count=self.sat_count, nrow=self.input_size, q=self.q, ratio=self.ratio)
-
-        elif self.params['rpr_alloc'] == 'static':
-            self.params['rpr'], self.lut_bias = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, sat_count=self.sat_count, nrow=self.input_size, q=self.q, ratio=self.ratio)
-            self.lut_bias = self.lut_bias * 256
-            self.lut_bias = self.lut_bias
-        else:
             assert (False)
+        elif self.params['rpr_alloc'] == 'static':
+            '''
+            self.params['rpr'], self.lut_bias = static_rpr(low=1, 
+                                                           high=self.params['max_rpr'], 
+                                                           params=self.params, 
+                                                           adc_count=self.adc_count, 
+                                                           row_count=self.row_count, 
+                                                           sat_count=self.sat_count, 
+                                                           nrow=self.input_size, 
+                                                           q=self.q, 
+                                                           ratio=self.ratio)
+            '''
             self.params['rpr'] = np.ones(shape=(8, 8)).astype(np.int32) * 8
             self.lut_bias = np.zeros(shape=(8, 8)).astype(np.int32)
+        else:
+            assert (False)
 
-        self.block_alloc = np.ones(shape=self.nwl).astype(np.int32)
+    def get(self, arg):
+        return self.params[arg]
+
+    def set(self, arg, value):
+        self.params[arg] = value
 
     def set_profile_adc(self, counts):
         # it makes no sense to invert [parameter, layer_id]
@@ -129,127 +123,97 @@ class Linear(Layer):
         counters['ratio'].update({self.layer_id: ratio})
         counters['row'].update({self.layer_id: nrow})
         return y_ref
-
-    def set_block_alloc(self, block_alloc):
-        self.block_alloc = block_alloc
-        assert( np.sum(self.block_alloc) == self.nbl )
-
-    def set_layer_alloc(self, layer_alloc):
-        self.layer_alloc = layer_alloc
-        assert( np.sum(self.layer_alloc) == 1 )
         
     def weights(self):
+        assert (False)
         return [self]
 
-    def act(self, y):
-        return y
-
-    def forward(self, x, x_ref, profile=False):
+    def forward(self, x, results):
+        assert (self.weight_id not in results.keys())
+        results[self.weight_id] = {}
+        ########################
         word_size, vector_size = np.shape(x)
         assert (vector_size == np.shape(self.w)[0])
-        # y_ref = dot_ref(x=x_ref, w=self.w, b=self.b, q=self.q)
-        y_ref = dot_ref(x=x_ref, w=self.w, b=None, q=None)
-        y, results = self.conv(x=x)
-
-        # print (y_ref.flatten()[0:10])
-        # print (x.flatten()[0:10])
-        # sparse = np.count_nonzero(self.w) / np.prod(np.shape(self.w))
-        # print (sparse)
-
-        # idx = np.where((y - y_ref) != 0)
-        # print (np.shape(y))
-        # print (np.shape(y[0]))
-        # print (np.shape(y_ref))
-        # print (y_ref[idx])
-        # print (y[idx])
-
+        ########################
+        y = self.conv(x, results)
+        y_ref = dot_ref(x=x, w=self.w, b=None, q=None)
+        ########################
         mean = np.mean(y - y_ref)
         error = np.mean(np.absolute(y - y_ref))
         results['cim_mean'] = mean
         results['cim_error'] = error
-
-        '''
-        y = self.act(y)
-        y_ref = self.act(y_ref)
-        '''
-
+        ########################
         y_min = np.min(y_ref)
         y_max = np.max(y_ref)
         y_mean = np.mean(y - y_ref)
         y_std = np.std(y - y_ref)
         y_error = np.mean(np.absolute(y - y_ref))
-        # assert (self.s == 1)
-        
-        # print ('y_mean', y_mean, 'y_error', y_error, 'y_max', y_max, 'y_min', y_min)
-        
-        # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
-        # results = {}
-        results['id']    = self.weight_id
-        results['nmac']  = self.nmac
-        results['std']   = y_std
-        results['mean']  = y_mean
-        results['error'] = y_error
-        
-        if self.params['alloc'] == 'block':
-            results['array'] = np.sum(self.block_alloc) * self.nbl
-            print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d mean: %0.3f error: %0.3f q: %0.3f' % 
-              (self.layer_id, np.sum(self.block_alloc), self.nbl, self.nbl * np.sum(self.block_alloc), results['nmac'], results['cycle'], results['stall'], y_mean, y_error, self.q))
-
-        elif self.params['alloc'] == 'layer': 
-            results['array'] = self.layer_alloc * self.nwl * self.nbl
-            print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d mean: %0.2f error: %0.2f q: %0.3f' % 
-              (self.layer_id, self.layer_alloc, self.nwl * nbl, self.nwl * nbl * self.layer_alloc, results['nmac'], results['cycle'], results['stall'], y_mean, y_error, self.q))
-
         ########################
-
-        # y = y_ref
-        # y_ref = y
-        return y, y_ref, [results]
+        results[self.weight_id]['id']        = self.weight_id
+        results[self.weight_id]['nmac']      = self.params['total_mac']
+        results[self.weight_id]['nwl']       = self.params['nwl']
+        results[self.weight_id]['nbl']       = self.params['nbl']
+        results[self.weight_id]['std']       = y_std
+        results[self.weight_id]['mean']      = y_mean
+        results[self.weight_id]['error']     = y_error
+        results[self.weight_id]['duplicate'] = self.params['duplicate']
+        ########################
+        if self.params['alloc'] == 'block':
+            p = '%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d mean: %0.3f error: %0.3f q: %0.3f' % (
+                self.layer_id, 
+                np.sum(self.block_alloc), 
+                self.nbl, 
+                self.nbl * np.sum(self.params['duplicate']), 
+                results[self.weight_id]['nmac'], 
+                results[self.weight_id]['cycle'], 
+                results[self.weight_id]['stall'], 
+                y_mean, 
+                y_error, 
+                self.q)
+        elif self.params['alloc'] == 'layer': 
+            p = '%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d mean: %0.2f error: %0.2f q: %0.3f' % (
+                self.layer_id, 
+                self.params['duplicate'], 
+                self.params['nwl'] * self.params['nbl'], 
+                self.params['nwl'] * self.params['nbl'] * self.params['duplicate'], 
+                results[self.weight_id]['nmac'], 
+                results[self.weight_id]['cycle'], 
+                results[self.weight_id]['stall'], 
+                y_mean, 
+                y_error, 
+                self.q)
+        print (p)
+        ########################
+        return y_ref
         
-    def conv(self, x):
-        
+    def conv(self, x, results):
         xb = self.transform_inputs(x)
         npatch, nwl, wl, nbit = np.shape(xb)
         #########################
-        if   self.params['alloc'] == 'block': alloc = self.block_alloc
-        elif self.params['alloc'] == 'layer': alloc = self.layer_alloc
-        
         if self.params['rpr_alloc'] == 'centroids':
-            # y, metrics = pim(xb, self.wb, (1, self.output_size_pad), self.params['var'], self.params['rpr'], alloc, self.adc_state, self.adc_thresh, self.params)
-            # y = np.reshape(y, self.output_size_pad)[:self.output_size]
-            # y = y / 4
             assert (False)
         elif self.params['rpr_alloc'] == 'dynamic':
-            # want to pass some table to C instead of computing stuff inside.
-            # y, metrics = pim_dyn(xb, self.wb, (1, self.output_size_pad), self.params['var'], self.params['rpr'], alloc, self.params)
-            # y = np.reshape(y, self.output_size_pad)[:self.output_size]
             assert (False)
         elif self.params['rpr_alloc'] == 'static':
             # think we want to pass a bias table
             wb = np.unpackbits(self.wb).reshape(self.w_shape)
-            y, metrics = pim_static(xb, wb, (npatch, self.output_size_pad), self.params['var'], self.params['rpr'], alloc, self.lut_bias, self.params)
+            y, metrics = pim_static(xb, wb, (npatch, self.output_size_pad), self.params['var'], self.params['rpr'], self.params['duplicate'], self.lut_bias, self.params)
             y = np.reshape(y, (npatch, self.output_size_pad))[:, 0:self.output_size]
         else:
             assert (False)
-            y, metrics = pim_dyn(xb, self.wb, (npatch, self.output_size_pad), self.params['var'], self.params['rpr'], alloc, self.params)
-            y = np.reshape(y, (npatch, self.output_size_pad))
-        
-        # we shud move this into forward, do it after the y - y_ref. 
-        # assert(np.all(np.absolute(y) < 2 ** 23))
         #########################
         # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
-        results = {}
-        results['adc']   = metrics[0:8]
-        results['cycle'] = metrics[8]
-        results['ron']   = metrics[9]
-        results['roff']  = metrics[10]
-        results['wl']    = metrics[11]
-        results['stall'] = metrics[12]
-        results['block_cycle'] = metrics[13:]
-        results['density'] = np.count_nonzero(xb) / np.prod(np.shape(xb)) * (self.params['wl'] / min(self.input_size, self.params['wl']))
-        results['block_density'] = np.count_nonzero(xb, axis=(0,2,3)) / (npatch * self.params['wl'] * self.params['bpa'])
+        results[self.weight_id]['adc']   = metrics[0:8]
+        results[self.weight_id]['cycle'] = metrics[8]
+        results[self.weight_id]['ron']   = metrics[9]
+        results[self.weight_id]['roff']  = metrics[10]
+        results[self.weight_id]['wl']    = metrics[11]
+        results[self.weight_id]['stall'] = metrics[12]
+        results[self.weight_id]['block_cycle'] = metrics[13:]
+        results[self.weight_id]['density'] = np.count_nonzero(xb) / np.prod(np.shape(xb)) * (self.params['wl'] / min(self.input_size, self.params['wl']))
+        results[self.weight_id]['block_density'] = np.count_nonzero(xb, axis=(0,2,3)) / (npatch * self.params['wl'] * self.params['bpa'])
         #########################
-        return y, results
+        return y
         
     def transform_inputs(self, x):
         #########################

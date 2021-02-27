@@ -217,7 +217,6 @@ def pim_static(x, w, y_shape, lut_var, lut_rpr, alloc, lut_bias, params):
             for j in range(alloc[i]):
                 block_map[block] = i
                 block += 1
-
         block_map = np.ascontiguousarray(block_map.flatten(), np.int32)
         sync = 0
 
@@ -227,9 +226,11 @@ def pim_static(x, w, y_shape, lut_var, lut_rpr, alloc, lut_bias, params):
         for i in range(alloc):
             for j in range(nwl):
                 block_map[i][j] = j
-
         block_map = np.ascontiguousarray(block_map.flatten(), np.int32)
         sync = 1
+
+    else:
+        assert (False)
 
     ########
 

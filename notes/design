@@ -4913,12 +4913,53 @@ these 2 should enable us to run BB and CC.
 
 why does it cost so much memory ? 
 
-
-
-
-
-
 ====================
+
+to get (layer_alloc, block_alloc)
+> assume perf
+> compute perf 
+
+> wud like each layer to be accessible
+> then call (nmac, factor, perf)
+> decouple profile and allocate.
+
+then we can easily set each ones allocate and access necessary variables.
+weird thing wud just be when do we track performance and do we really want to keep that on each layer ? 
+
+during init(), just have everyone return themself ? 
+exactly what we did before with [weight] ... 
+hmm
+
+need to make some API if that is the case ...
+> get()
+> set()
+
+yeah trim the API and make things cleaner. 
+but i do think this is the best way for now atleast.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

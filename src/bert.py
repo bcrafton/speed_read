@@ -21,8 +21,8 @@ from size import get_size
 #########################
 
 class Bert:
-    def __init__(self, array_params):
-        self.array_params = array_params
+    def __init__(self, params):
+        self.params = params
         np.random.seed(0)
         weights = np.load('../bert1.npy', allow_pickle=True).item()
 
@@ -32,22 +32,42 @@ class Bert:
         # encoder
         self.encoder = []
         for l in range(12):
-            self.encoder.append(BertLayer(params=array_params, weights=weights['encoder'][l]))
+            self.encoder.append(BertLayer(params=params, weights=weights['encoder'][l]))
         
         # pooler
-        self.pooler = LinearLayer(params=array_params, weights=weights['pool'])
-        self.classifier = LinearLayer(params=array_params, weights=weights['class'])
+        self.pooler = LinearLayer(params=params, weights=weights['pool'])
+        self.classifier = LinearLayer(params=params, weights=weights['class'])
 
     def init(self, params):
-        self.embed.init(params)
+        self.table = {}
+        self.params.update(params)
+        self.embed.init(params, self.table)
         for layer in self.encoder:
-            layer.init(params)
-        self.pooler.init(params)
-        self.classifier.init(params)
+            layer.init(params, self.table)
+        self.pooler.init(params, self.table)
+        self.classifier.init(params, self.table)
+        #############################################
+        N = len(self.table.keys())
+        total_mac = np.zeros(shape=N)
+        total_array = np.zeros(shape=N)
+        perf = np.zeros(shape=N)
+        for id in self.table.keys():
+            total_mac[id] = self.table[id].get('total_mac')
+            total_array[id] = self.table[id].get('total_array')
+            perf[id] = self.params['bl'] // self.params['bpw']
+        #############################################
+        duplicate = array_allocation(self.params['narray'], total_mac, total_array, perf, self.params)
+        duplicate = duplicate / total_array
+        duplicate = duplicate.astype(np.int32)
+        for id in self.table.keys():
+            self.table[id].set('duplicate', duplicate[id])
+        #############################################
+        
 
+    # make 1 set function
     def set_profile_adc(self, counts):
-        assert (counts['wl'] == self.array_params['wl'])
-        assert (counts['max_rpr'] == self.array_params['max_rpr'])
+        assert (counts['wl'] == self.params['wl'])
+        assert (counts['max_rpr'] == self.params['max_rpr'])
         for l in range(12):
             h = self.encoder[l].set_profile_adc(counts)
         self.pooler.set_profile_adc(counts)
@@ -97,32 +117,70 @@ class Bert:
                 counters['adc'][key] = result[key]['adc']
                 counters['sat'][key] = result[key]['sat']
 
-        counters['wl'] = self.array_params['wl']
-        counters['max_rpr'] = self.array_params['max_rpr']
+        counters['wl'] = self.params['wl']
+        counters['max_rpr'] = self.params['max_rpr']
         return counters
 
     def profile(self, x):
-        pass
-
-    def forward(self, x, y):
+        results = {}
+        ##########################################
         (ids, tok, mask) = x
         embed = self.embed.forward(ids, tok)
+        ##########################################
         mask = mask[:, None, None, :]
         mask = (1.0 - mask) * -10000.0
+        ##########################################
         h = embed
         for l in range(12):
-            h = self.encoder[l].forward(h, mask)
+            h = self.encoder[l].forward((h, mask), results)
+        ##########################################
         batch, word, vec = np.shape(h)
         h = h[:, 0, :].reshape(batch, 1, vec)
-        p = np.tanh(self.pooler.forward(h))
-        o = self.classifier.forward(p)
-        return o, o, {}
+        p = np.tanh(self.pooler.forward(h, results))
+        ##########################################
+        o = self.classifier.forward(p, results)
+        ##########################################
+        ##########################################
+        ##########################################
+        N = len(results.keys())
+        perf = np.zeros(shape=N)
+        nmac = np.zeros(shape=N)
+        factor = np.zeros(shape=N)
+        for id in results.keys():
+            nmac[id]   = results[id]['nmac']
+            factor[id] = results[id]['nwl'] * results[id]['nbl']
+            perf[id]   = nmac[id] / factor[id] / (results[id]['cycle'] * results[id]['duplicate'])
+        ##########################################
+        self.allocate(nmac, factor, perf)
+        ##########################################
+        
+    def forward(self, x, y):
+        results = {}
+        ##########################################
+        (ids, tok, mask) = x
+        embed = self.embed.forward(ids, tok)
+        ##########################################
+        mask = mask[:, None, None, :]
+        mask = (1.0 - mask) * -10000.0
+        ##########################################
+        h = embed
+        for l in range(12):
+            h = self.encoder[l].forward((h, mask), results)
+        ##########################################
+        batch, word, vec = np.shape(h)
+        h = h[:, 0, :].reshape(batch, 1, vec)
+        p = np.tanh(self.pooler.forward(h, results))
+        ##########################################
+        o = self.classifier.forward(p, results)
+        ##########################################
+        return o, results
 
-    def set_layer_alloc(self):
-        pass
-
-    def set_block_alloc(self):
-        pass
+    def allocate(self, nmac, factor, perf=None):
+        if perf == None: perf = np.ones_like(nmac) * (self.params['bl'] // self.params['bpw'])
+        alloc = array_allocation(self.params['narray'], nmac, factor, perf, self.params)
+        assert (np.sum(alloc) <= self.params['narray'])
+        print (alloc)
+            
 
 #########################
 
