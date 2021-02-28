@@ -52,7 +52,7 @@ for profile, alloc in [(0, 'block'), (1, 'block'), (0, 'layer'), (1, 'layer')]:
 
     query = '(profile == %d) & (alloc == "%s")' % (profile, alloc)
     samples = df.query(query)
-    
+
     top_per_sec = 2. * np.sum(samples['nmac']) / np.max(samples['cycle']) * 100e6 / 1e12
 
     adc = np.stack(samples['adc'], axis=0)    
@@ -65,8 +65,11 @@ for profile, alloc in [(0, 'block'), (1, 'block'), (0, 'layer'), (1, 'layer')]:
     print (np.sum(samples['nmac']), np.max(samples['cycle']))
     print (top_per_sec * 128)
     print (top_per_pJ * 128)
-    cycles = np.array(samples['cycle'])
-    nmac = np.array(samples['nmac'])
+
+    cycles        = np.array(samples['cycle'])
+    nmac          = np.array(samples['nmac'])
+    block_density = np.array(samples['block_density'])
+    density       = np.array(samples['density'])
     # print (cycles)
     # print (nmac)
 
