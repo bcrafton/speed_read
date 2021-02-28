@@ -84,25 +84,50 @@ def BB():
     'bpw': 8,
     'adc': 8,
     'adc_mux': 8,
-    'wl': 128,
-    'bl': 128,
+    'wl': 256,
+    'bl': 256,
     'offset': 128,
-    'max_rpr': 64,
+    'max_rpr': 16,
     }
     
-    arch_params = {
-    'skip': [0, 1],
+    # min(narray) @ (wl=128, bl=128) -> 41766
+    arch_params1 = {
+    'skip': [1],
     'alloc': ['layer', 'block'],
-    'narray': [5472, 2 ** 13, 1.5 * 2 ** 13, 2 ** 14, 1.5 * 2 ** 14],
+    'narray': [10443, 1.5 * 2 ** 13, 2 ** 14, 1.5 * 2 ** 14, 2 ** 15],
     'sigma': [0.01],
     'cards': [0],
-    'profile': [0, 1],
-    'rpr_alloc': ['dynamic'],
+    'profile': [1],
+    'rpr_alloc': ['static'],
     'thresh': [1.00]
     }
 
-    arch_params = perms(arch_params)
-    
+    arch_params2 = {
+    'skip': [1],
+    'alloc': ['layer'],
+    'narray': [10443, 1.5 * 2 ** 13, 2 ** 14, 1.5 * 2 ** 14, 2 ** 15],
+    'sigma': [0.01],
+    'cards': [0],
+    'profile': [0],
+    'rpr_alloc': ['static'],
+    'thresh': [1.00]
+    }
+
+    arch_params3 = {
+    'skip': [0],
+    'alloc': ['layer'],
+    'narray': [10443, 1.5 * 2 ** 13, 2 ** 14, 1.5 * 2 ** 14, 2 ** 15],
+    'sigma': [0.01],
+    'cards': [0],
+    'profile': [1],
+    'rpr_alloc': ['static'],
+    'thresh': [1.00]
+    }
+
+    arch_params1 = perms(arch_params1)
+    arch_params2 = perms(arch_params2)
+    arch_params3 = perms(arch_params3)
+    arch_params = arch_params1 + arch_params2 + arch_params3
     return array_params, arch_params
     
 #######################################################

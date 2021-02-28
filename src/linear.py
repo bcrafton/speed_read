@@ -151,7 +151,7 @@ class Linear(Layer):
         ########################
         results[self.weight_id]['id']        = self.weight_id
         # results[self.weight_id]['nmac']      = self.params['total_mac']
-        results[self.weight_id]['nmac']      = (word_size * vector_size) * (self.input_size * self.output_size)
+        results[self.weight_id]['nmac']      = self.input_size * word_size * self.output_size
         results[self.weight_id]['nwl']       = self.params['nwl']
         results[self.weight_id]['nbl']       = self.params['nbl']
         results[self.weight_id]['std']       = y_std

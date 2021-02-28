@@ -14,7 +14,7 @@ def pim(x, w, y_shape, lut_var, lut_rpr, alloc, adc_state, adc_thresh, params):
     nrow, nwl, wl, xb = np.shape(x)
     nwl, wl, nbl, bl = np.shape(w) # nwl, nbl, wl, bl
     nrow, ncol = y_shape
-        
+
     y = np.zeros(shape=y_shape)
 
     # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl, stall, block_cycles[nwl]
@@ -32,6 +32,10 @@ def pim(x, w, y_shape, lut_var, lut_rpr, alloc, adc_state, adc_thresh, params):
 
     lut_bias = np.zeros(shape=64)
     lut_bias = np.ascontiguousarray(lut_bias, np.int32)
+
+    if params['alloc'] == 'block':   assert (np.all(nrow >= alloc))
+    elif params['alloc'] == 'layer': assert (nrow >= alloc)
+    else:                            assert (False)
 
     ########
 
@@ -125,6 +129,10 @@ def pim_dyn(x, w, y_shape, lut_var, lut_rpr, alloc, params):
     adc_state = np.ascontiguousarray(adc_state, np.float32)
     adc_thresh = np.ascontiguousarray(adc_thresh, np.float32)
 
+    if params['alloc'] == 'block':   assert (np.all(nrow >= alloc))
+    elif params['alloc'] == 'layer': assert (nrow >= alloc)
+    else:                            assert (False)
+
     ########
 
     if params['alloc'] == 'block':
@@ -206,6 +214,10 @@ def pim_static(x, w, y_shape, lut_var, lut_rpr, alloc, lut_bias, params):
 
     adc_state = np.ascontiguousarray(adc_state, np.float32)
     adc_thresh = np.ascontiguousarray(adc_thresh, np.float32)
+
+    if params['alloc'] == 'block':   assert (np.all(nrow >= alloc))
+    elif params['alloc'] == 'layer': assert (nrow >= alloc)
+    else:                            assert (False)
 
     ########
 
