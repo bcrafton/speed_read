@@ -467,7 +467,7 @@ compute
     > for memory compute required capacity and bandwidth ... which will compute power and area
     > same for compute, except only area really
   > what about arrays themselves ?
-    > BL/WL charing, cells
+    > BL/WL charging, cells
     > design this model thinking about how 7b SAR can plug into it.
 
 > configure ADC
@@ -484,6 +484,11 @@ compute
 >> check OneNote - Research - Fall 2020
    > lots of good ideas
 > 2b activations to reduce variance
+
+>> use np.choice(y - y_ref, ,) instead of np.random.normal
+> wud give actual distribution and not some jank thing.
+
+-------
 
 > error vs accuracy plot
 > how does error propagate through the network ? 
@@ -511,9 +516,6 @@ compute
   > generate 3 different adc_counts tables in the same dictionary. 
 
 > endurance vs variance
-
->> use np.choice(y - y_ref, ,) instead of np.random.normal
-> wud give actual distribution and not some jank thing.
 
 -------
 
