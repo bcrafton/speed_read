@@ -206,10 +206,10 @@ def Simple():
 
     arch_params = {
     'skip': [1],
-    'alloc': ['block'],
+    'alloc': ['block', 'layer'],
     'narray': [2 ** 14],
     'cards': [1],
-    'profile': [1],
+    'profile': [1, 0],
     'rpr_alloc': ['static'],
     'sigma': [0.01],
     'thresh': [1.00]
