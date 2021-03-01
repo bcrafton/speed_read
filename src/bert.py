@@ -37,7 +37,7 @@ def array1d(array2d):
 #########################
 
 class Bert:
-    def __init__(self, params):
+    def __init__(self, word_size, params):
         self.params = params
         np.random.seed(0)
         weights = np.load('../bert1.npy', allow_pickle=True).item()
@@ -48,11 +48,11 @@ class Bert:
         # encoder
         self.encoder = []
         for l in range(12):
-            self.encoder.append(BertLayer(params=params, weights=weights['encoder'][l]))
+            self.encoder.append(BertLayer(word_size=word_size, params=params, weights=weights['encoder'][l]))
         
         # pooler
-        self.pooler = LinearLayer(params=params, weights=weights['pool'])
-        self.classifier = LinearLayer(params=params, weights=weights['class'])
+        self.pooler = LinearLayer(word_size=1, params=params, weights=weights['pool'])
+        self.classifier = LinearLayer(word_size=1, params=params, weights=weights['class'])
 
     def init(self, params):
         self.table = {}

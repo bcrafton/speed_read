@@ -21,7 +21,8 @@ import sys, os, psutil
 #########################
 
 class Linear(Layer):
-    def __init__(self, size, params, weights):
+    def __init__(self, word_size, params, weights):
+        self.word_size = word_size
         self.params = params.copy()
 
         self.layer_id = Layer.layer_id
@@ -29,17 +30,11 @@ class Linear(Layer):
         self.weight_id = Layer.weight_id
         Layer.weight_id += 1
 
-        self.size = size
-        self.input_size, self.output_size = self.size
-
-        remainder = self.output_size % (self.params['bl'] // self.params['bpw'])
-        self.output_size_pad = self.output_size
-        if remainder: self.output_size_pad += (self.params['bl'] // self.params['bpw']) - remainder
-
         self.w = weights['w'].astype(np.int8)
         self.q = 1. / weights['sx']
 
-        assert(np.shape(self.w) == self.size)
+        self.input_size, self.output_size = np.shape(self.w)
+
         maxval = pow(2, self.params['bpw'] - 1)
         minval = -1 * maxval
         assert (np.all(self.w >= minval))
@@ -53,7 +48,11 @@ class Linear(Layer):
         self.params['nwl'] = nwl
         self.params['nbl'] = nbl
         self.params['total_array'] = nwl * nbl
-        self.params['total_mac'] = self.input_size * self.output_size
+        self.params['total_mac'] = self.input_size * self.word_size * self.output_size
+
+        remainder = self.output_size % (self.params['bl'] // self.params['bpw'])
+        self.output_size_pad = self.output_size
+        if remainder: self.output_size_pad += (self.params['bl'] // self.params['bpw']) - remainder
 
     def init(self, params, table):
         self.params.update(params)
@@ -151,7 +150,8 @@ class Linear(Layer):
         ########################
         results[self.weight_id]['id']        = self.weight_id
         # results[self.weight_id]['nmac']      = self.params['total_mac']
-        results[self.weight_id]['nmac']      = self.input_size * word_size * self.output_size
+        results[self.weight_id]['nmac']      = self.input_size * self.word_size * self.output_size
+        assert (results[self.weight_id]['nmac'] == self.params['total_mac'])
         results[self.weight_id]['nwl']       = self.params['nwl']
         results[self.weight_id]['nbl']       = self.params['nbl']
         results[self.weight_id]['std']       = y_std

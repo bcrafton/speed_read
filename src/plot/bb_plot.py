@@ -31,7 +31,7 @@ df = pd.DataFrame.from_dict(results)
 
 ####################
 
-comp_pJ = 22. * 1e-12 / 32. / 16.
+comp_pJ = 45e-15
 
 # power plot is problem -> [0, 0], [1, 0] produce same result.
 
@@ -40,33 +40,34 @@ comp_pJ = 22. * 1e-12 / 32. / 16.
 # '(rpr_alloc == "%s")' NOT '(rpr_alloc == %s)'
 #####################
 
-fig, (ax1, ax2) = plt.subplots(1, 2)
-
-for skip in [0, 1]:
+for (skip, alloc, profile) in [(1, 'block', 1),  (1, 'layer', 1), (1, 'layer', 0), (0, 'layer', 1)]:
+# for (skip, alloc, profile) in [(0, 'layer', 1)]:
+# for (skip, alloc, profile) in [(1, 'block', 1)]:
 
     ######################################
 
-    narrays = [5472, 2 ** 13, 1.5 * 2 ** 13, 2 ** 14, 1.5 * 2 ** 14]
+    narrays = [10443, 1.5 * 2 ** 13, 2 ** 14, 1.5 * 2 ** 14, 2 ** 15]
     mac_per_cycles = []
     mac_per_pJs = []
     errors = []
     
     for narray in narrays:
-        query = '(skip == %d) & (profile == 1) & (alloc == "block") & (narray == %d)' % (skip, narray)
+        query = '(skip == %d) & (profile == %d) & (alloc == "%s") & (narray == %d)' % (skip, profile, alloc, narray)
         samples = df.query(query)
-        
         mac_per_cycle = np.sum(samples['nmac']) / np.max(samples['cycle'])
         mac_per_cycles.append(mac_per_cycle)
 
+        # cycles = np.array(samples['cycle'])
+        # print (skip, alloc, profile, np.max(cycles), cycles)
+
     ######################################
         
-    ax1.plot(narrays, mac_per_cycles)
+    plt.plot(narrays, mac_per_cycles, marker='.')
     
     ######################################
 
-fig.set_size_inches(9., 4.5)
+plt.gcf().set_size_inches(9., 4.5)
 plt.tight_layout()
-
 plt.legend()
 plt.ylim(bottom=0)
 plt.show()

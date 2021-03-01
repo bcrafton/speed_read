@@ -27,7 +27,7 @@ def load_inputs(num_example):
 ################
 
 def load_mrpc(num_example, array_params):
-    model = Bert(array_params)
+    model = Bert(word_size=128, params=array_params)
     x, y = load_inputs(num_example)
     return model, x, y
 

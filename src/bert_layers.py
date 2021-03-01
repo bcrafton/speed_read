@@ -38,15 +38,15 @@ def quantize_and_dequantize(x):
 #########################################################################
 
 class BertLayer():
-    def __init__(self, params, weights):
-        self.query = LinearLayer(params=params, weights=weights['q'])
-        self.key = LinearLayer(params=params, weights=weights['k'])
-        self.value = LinearLayer(params=params, weights=weights['v'])
-        self.attention = LinearLayer(params=params, weights=weights['a'])
+    def __init__(self, word_size, params, weights):
+        self.query = LinearLayer(word_size=word_size, params=params, weights=weights['q'])
+        self.key = LinearLayer(word_size=word_size, params=params, weights=weights['k'])
+        self.value = LinearLayer(word_size=word_size, params=params, weights=weights['v'])
+        self.attention = LinearLayer(word_size=word_size, params=params, weights=weights['a'])
         self.norm1 = NormLayer(weights['a']['norm'])
 
-        self.hidden = LinearLayer(params=params, weights=weights['h'])
-        self.output = LinearLayer(params=params, weights=weights['o'])
+        self.hidden = LinearLayer(word_size=word_size, params=params, weights=weights['h'])
+        self.output = LinearLayer(word_size=word_size, params=params, weights=weights['o'])
         self.norm2 = NormLayer(weights['o']['norm'])
 
     def init(self, params, table):
@@ -119,10 +119,11 @@ class BertLayer():
         return o
 
 class LinearLayer():
-    def __init__(self, params, weights):
+    def __init__(self, word_size, params, weights):
         self.input_size, self.output_size = np.shape(weights['w'])
+        self.word_size = word_size
         self.weights = weights
-        self.linear = Linear((self.input_size, self.output_size), params, weights)
+        self.linear = Linear(word_size, params, weights)
         
     def init(self, params, table):
         self.linear.init(params, table)
