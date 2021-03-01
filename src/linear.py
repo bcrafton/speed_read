@@ -64,7 +64,7 @@ class Linear(Layer):
         elif self.params['rpr_alloc'] == 'dynamic':
             assert (False)
         elif self.params['rpr_alloc'] == 'static':
-            '''
+            # '''
             self.params['rpr'], self.lut_bias = static_rpr(low=1, 
                                                            high=self.params['max_rpr'], 
                                                            params=self.params, 
@@ -74,9 +74,9 @@ class Linear(Layer):
                                                            nrow=self.input_size, 
                                                            q=self.q, 
                                                            ratio=self.ratio)
-            '''
-            self.params['rpr'] = np.ones(shape=(8, 8)).astype(np.int32) * 8
-            self.lut_bias = np.zeros(shape=(8, 8)).astype(np.int32)
+            # '''
+            # self.params['rpr'] = np.ones(shape=(8, 8)).astype(np.int32) * 8
+            # self.lut_bias = np.zeros(shape=(8, 8)).astype(np.int32)
         else:
             assert (False)
 
@@ -144,9 +144,9 @@ class Linear(Layer):
         ########################
         y_min = np.min(y_ref)
         y_max = np.max(y_ref)
-        y_mean = np.mean(y - y_ref)
-        y_std = np.std(y - y_ref)
-        y_error = np.mean(np.absolute(y - y_ref))
+        y_mean = np.mean(y - y_ref) / self.q
+        y_std = np.std(y - y_ref) / self.q
+        y_error = np.mean(np.absolute(y - y_ref)) / self.q
         ########################
         results[self.weight_id]['id']        = self.weight_id
         # results[self.weight_id]['nmac']      = self.params['total_mac']
@@ -159,6 +159,8 @@ class Linear(Layer):
         results[self.weight_id]['error']     = y_error
         results[self.weight_id]['duplicate'] = self.params['duplicate']
         ########################
+        # print (self.params['sigma'], self.params['thresh'], self.ratio)
+        # print (self.params['rpr'])
         p = '%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d mean: %0.3f error: %0.3f q: %0.3f' % (
             self.layer_id, 
             np.sum(self.params['duplicate']), 
