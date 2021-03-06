@@ -45,6 +45,10 @@ def pim_static(x, w, y_shape, lut_var, lut_rpr, alloc, lut_bias, params):
 
     #############################################################
 
+    adc = np.sum(pim, axis=(0, 1, 2, 3, 4))
+
+    #############################################################
+
     scale = 2 ** np.arange(0, 8)
     bit_weight = scale.reshape(-1, 1) * scale.reshape(1, -1)
     rpr_weight = np.arange(0, params['max_rpr'] + 1)
