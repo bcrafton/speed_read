@@ -29,6 +29,10 @@ cmd = "nvcc -Xcompiler -fPIC -DPYTHON_EXECUTABLE=/usr/bin/python3 -shared -o pro
 ret = os.system(cmd)
 assert (ret == 0)
 
+cmd = "nvcc -Xcompiler -fPIC -DPYTHON_EXECUTABLE=/usr/bin/python3 -shared -o pim.cu.so pim.cu"
+ret = os.system(cmd)
+assert (ret == 0)
+
 ############
 
 from resnet import load_resnet
@@ -52,7 +56,7 @@ array_params, arch_params = Simple()
 
 ############
 
-def run_command(x, y, model, params, return_list):
+def run_command(x, y, model, params):
     print (params)
     
     model.init(params)
@@ -77,9 +81,7 @@ def run_command(x, y, model, params, return_list):
     'abs_error': abs_error
     }
     
-    for r in result:
-        r.update(update)
-        return_list.append(r)
+    return result
         
 ####
 
@@ -90,7 +92,7 @@ model, x, y = load_cifar(num_example=1, array_params=array_params)
 
 start = time.time()
 
-load_profile_adc = False
+load_profile_adc = True
 
 if not load_profile_adc:
     profile = model.profile_adc(x=x)
@@ -102,6 +104,10 @@ model.set_profile_adc(profile)
 
 ##########################
 
+result = run_command(x, y, model, arch_params[0])
+
+##########################
+'''
 num_runs = len(arch_params)
 parallel_runs = 8
 
@@ -128,8 +134,8 @@ for r in thread_results:
 
 np.save('results', results)
 print ('time taken:', time.time() - start)
-
-####
+'''
+##########################
 
 
 
