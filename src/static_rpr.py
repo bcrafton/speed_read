@@ -14,7 +14,7 @@ def round_fraction(x, f):
 
 ##########################################
 
-def expected_error(params, adc_count, row_count, sat_count, rpr, nrow, bias):
+def expected_error(params, adc_count, row_count, rpr, nrow, bias):
 
     #######################
     # error from rpr <= adc
@@ -32,6 +32,13 @@ def expected_error(params, adc_count, row_count, sat_count, rpr, nrow, bias):
 
     pe = norm.cdf(adc_high, s, params['sigma'] * np.sqrt(s) + 1e-9) - norm.cdf(adc_low, s, params['sigma'] * np.sqrt(s) + 1e-9)
     e = adc - s
+    # x=7 has no counts
+    # this problem didnt happen before bc we counted it as "0"
+    # like the whole 128 WLs -> ADC[0]++
+    '''
+    if np.sum(adc_count[rpr]) == 0:
+        adc_count[rpr, 0] = 1
+    '''
     p = adc_count[rpr, 0:rpr + 1] / (np.sum(adc_count[rpr]) + 1e-9)
 
     assert ( np.all(np.sum(pe, axis=0) == 1) )
@@ -51,7 +58,7 @@ def expected_error(params, adc_count, row_count, sat_count, rpr, nrow, bias):
 
 ##########################################
 
-def static_rpr(low, high, params, adc_count, row_count, sat_count, nrow, q, ratio):
+def static_rpr(low, high, params, adc_count, row_count, nrow, q, ratio):
     assert (q > 0)
 
     ############
@@ -88,7 +95,7 @@ def static_rpr(low, high, params, adc_count, row_count, sat_count, nrow, q, rati
                 total_row = max(1, row_count[xb][rpr - 1])
 
                 scale = 2**wb * 2**xb
-                mse, mean = expected_error(params=params, adc_count=adc_count[xb][wb], row_count=row_count[xb], sat_count=sat_count[xb][wb], rpr=rpr, nrow=total_row, bias=bias)
+                mse, mean = expected_error(params=params, adc_count=adc_count[xb][wb], row_count=row_count[xb], rpr=rpr, nrow=total_row, bias=bias)
                 scaled_mse = (scale / q) * mse * ratio
                 scaled_mean = (scale / q) * mean * ratio
 

@@ -1,0 +1,81 @@
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+
+#define DLLEXPORT extern "C"
+
+#define BLOCK_SIZE 16
+
+__global__ void gpu_matrix_mult(int *x, int *w, int *y, int X, int Z, int B, int NWL, int WL, int P, int S)
+{ 
+  // printf("%d %d %d %d %d %d %d\n", X, Z, B, NWL, WL, P, S);
+  int row = blockIdx.y * blockDim.y + threadIdx.y; 
+  int col = blockIdx.x * blockDim.x + threadIdx.x;
+  int x_sum = 0;
+  int addr = 0;
+  for (int xb=0; xb<B; xb++) {
+    for (int wb=0; wb<B; wb++) {
+      for (int nwl=0; nwl<NWL; nwl++) {
+        addr = 0;
+        x_sum = 0;
+        for (int wl=0; wl<WL; wl++) {
+          addr = x_sum >> S;
+          int x_addr = row*NWL*WL*B + nwl*WL*B + wl*B + xb;
+          int w_addr = nwl*WL*Z*B + wl*Z*B+ col*B + wb;
+          int y_addr = row*Z*B*B*NWL*P + col*B*B*NWL*P + xb*B*NWL*P + wb*NWL*P + nwl*P + addr;
+          y[y_addr] += x[x_addr] * w[w_addr];
+          // printf("%d %d %d %d\n", y_addr, y[y_addr], x[x_addr], w[w_addr]);
+          x_sum += x[x_addr];
+        }
+      }
+    }
+  }
+} 
+
+DLLEXPORT int cu_profile(int* x, int* w, int* y, int X, int Z, int B, int NWL, int WL, int P, int S)
+{
+    // allocate memory in host RAM, h_cc is used to store CPU result
+    int *h_x, *h_w, *h_y;
+    cudaMallocHost((void **) &h_x, sizeof(int)*X*NWL*WL*B);
+    cudaMallocHost((void **) &h_w, sizeof(int)*NWL*WL*Z*B);
+    cudaMallocHost((void **) &h_y, sizeof(int)*X*Z*B*B*NWL*P);
+    memcpy(h_x, x, sizeof(int)*X*NWL*WL*B);
+    memcpy(h_w, w, sizeof(int)*NWL*WL*Z*B);
+
+    // allocate memory space on the device 
+    int *d_x, *d_w, *d_y;
+    cudaMalloc((void **) &d_x, sizeof(int)*X*NWL*WL*B);
+    cudaMalloc((void **) &d_w, sizeof(int)*NWL*WL*Z*B);
+    cudaMalloc((void **) &d_y, sizeof(int)*X*Z*B*B*NWL*P);
+    cudaMemcpy(d_x, h_x, sizeof(int)*X*NWL*WL*B, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_w, h_w, sizeof(int)*NWL*WL*Z*B, cudaMemcpyHostToDevice);
+
+    unsigned int grid_rows = (X + BLOCK_SIZE - 1) / BLOCK_SIZE;
+    unsigned int grid_cols = (Z + BLOCK_SIZE - 1) / BLOCK_SIZE;
+    dim3 dimGrid(grid_cols, grid_rows);
+    dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
+
+    gpu_matrix_mult<<<dimGrid, dimBlock>>>(d_x, d_w, d_y, X, Z, B, NWL, WL, P, S);    
+
+    // transfer results from device to host
+    cudaMemcpy(h_y, d_y, sizeof(int)*X*Z*B*B*NWL*P, cudaMemcpyDeviceToHost);
+    memcpy(y, h_y, sizeof(int)*X*Z*B*B*NWL*P);
+
+    cudaThreadSynchronize();
+
+    /////////////////////////////////////////////////////
+
+    // free memory
+    cudaFree(d_x);
+    cudaFree(d_w);
+    cudaFree(d_y);
+    cudaFreeHost(h_x);
+    cudaFreeHost(h_w);
+    cudaFreeHost(h_y);
+    return 0;
+}
+
+
+
+

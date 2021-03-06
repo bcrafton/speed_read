@@ -25,6 +25,10 @@ cmd = "gcc profile.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o profi
 ret = os.system(cmd)
 assert (ret == 0)
 
+cmd = "nvcc -Xcompiler -fPIC -DPYTHON_EXECUTABLE=/usr/bin/python3 -shared -o profile.cu.so profile.cu"
+ret = os.system(cmd)
+assert (ret == 0)
+
 ############
 
 from resnet import load_resnet
@@ -39,11 +43,11 @@ from tests import dac2
 
 ############
 
-array_params, arch_params = CC()
+# array_params, arch_params = CC()
 # array_params, arch_params = BB()
 # array_params, arch_params = Thresh()
 # array_params, arch_params = CE()
-# array_params, arch_params = Simple()
+array_params, arch_params = Simple()
 # array_params, arch_params = dac2()
 
 ############

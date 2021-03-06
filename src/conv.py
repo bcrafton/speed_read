@@ -11,7 +11,7 @@ from dot_ref import *
 from var import *
 
 from layers import *
-from cprofile import profile
+from cu_profile import profile
 from dynamic_rpr import dynamic_rpr
 from static_rpr import static_rpr
 from kmeans_rpr import kmeans_rpr
@@ -111,10 +111,10 @@ class Conv(Layer):
             p = np.max(col_density, axis=0)
             self.params['rpr'] = dynamic_rpr(nrow=nrow, p=p, q=self.q, params=self.params)
             '''
-            self.params['rpr'], _ = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, sat_count=self.sat_count, nrow=self.fh * self.fw * self.fc, q=self.q, ratio=self.ratio)
+            self.params['rpr'], _ = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, nrow=self.fh * self.fw * self.fc, q=self.q, ratio=self.ratio)
 
         elif self.params['rpr_alloc'] == 'static':
-            self.params['rpr'], self.lut_bias = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, sat_count=self.sat_count, nrow=self.fh * self.fw * self.fc, q=self.q, ratio=self.ratio)
+            self.params['rpr'], self.lut_bias = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, nrow=self.fh * self.fw * self.fc, q=self.q, ratio=self.ratio)
             self.lut_bias = self.lut_bias * 256
             self.lut_bias = self.lut_bias.astype(np.int32)
         else:
@@ -126,7 +126,7 @@ class Conv(Layer):
         self.sat_count = counts[self.layer_id]['sat']
         self.ratio = counts[self.layer_id]['ratio']
 
-    def profile_adc(self, x):
+    def profile_adc(self, x, counts):
         rpr_low = 1
         rpr_high = self.params['max_rpr']
         patches = self.transform_inputs(x)
@@ -140,12 +140,19 @@ class Conv(Layer):
         nrow = np.sum(nrow, axis=1)
         nrow = np.mean(nrow, axis=0)
         
-        # _, self.adc_count, self.row_count = profile(patches, self.wb, (self.yh * self.yw, self.fn), rpr_low, rpr_high, self.params)
+        adc_count = profile(patches, self.wb, (self.yh * self.yw, self.fn), rpr_low, rpr_high, self.params)
         
         y_ref = conv_ref(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2, relu_flag=self.relu_flag)
         y_ref = self.act(y_ref, quantize_flag=self.quantize_flag)
         ratio = np.count_nonzero(y_ref) / np.prod(np.shape(y_ref))
-        return y_ref, {self.layer_id: (patches, self.wb, (self.yh * self.yw, self.fn), rpr_low, rpr_high, self.params)}, {self.layer_id: ratio}, {self.layer_id: nrow}
+        
+        counts[self.layer_id] = {}
+        counts[self.layer_id]['adc'] = adc_count
+        counts[self.layer_id]['row'] = nrow
+        counts[self.layer_id]['sat'] = 0.
+        counts[self.layer_id]['ratio'] = ratio
+        
+        return y_ref
 
     def set_block_alloc(self, block_alloc):
         self.block_alloc = block_alloc

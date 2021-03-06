@@ -11,7 +11,6 @@ from var import *
 from conv_utils import *
 from scipy.stats import norm, binom
 from AA import array_allocation
-from cprofile import profile
 
 #########################
 
@@ -56,53 +55,12 @@ class Model:
         num_layers = len(self.layers)
         counts = {}
 
-        args_list = {}
+        counts = {}
         for example in range(num_examples):
             y = x[example]
             for layer in range(num_layers):
-                y, args, ratio, nrow = self.layers[layer].profile_adc(x=y)
-                args_list.update(args)
-
-                for l in ratio.keys():
-                    if l not in counts.keys():
-                        counts[l] = {'adc': 0., 'row': 0., 'sat': 0., 'ratio': 0.}
-                    counts[l]['ratio'] += ratio[l] / num_examples
-
-                for l in nrow.keys():
-                    if l not in counts.keys():
-                        counts[l] = {'adc': 0., 'row': 0., 'sat': 0., 'ratio': 0.}
-                    counts[l]['row'] += nrow[l] / num_examples
-
-        manager = multiprocessing.Manager()
-        thread_results = []
-
-        keys = list(args_list.keys())
-        total = len(keys)
-        nthread = 8
-        for run in range(0, total, nthread):
-
-            threads = []
-            for parallel_run in range(min(nthread, total - run)):
-                thread_result = manager.dict()
-                thread_results.append(thread_result)
-
-                id = keys[run + parallel_run]
-                args = args_list[id]
-                args = args + (id, thread_result)
-
-                t = multiprocessing.Process(target=profile, args=args)
-                threads.append(t)
-                t.start()
-
-            for t in threads:
-                t.join()
-
-        for result in thread_results:
-            for key in result.keys():
-                counts[key]['adc'] += result[key]['adc']
-                # counts[key]['row'] += result[key]['row']
-                counts[key]['sat'] += result[key]['sat']
-
+                y = self.layers[layer].profile_adc(y, counts)
+        
         counts['wl'] = self.array_params['wl']
         counts['max_rpr'] = self.array_params['max_rpr']
         return counts
