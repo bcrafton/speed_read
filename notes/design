@@ -4881,27 +4881,63 @@ would be nice if we cud find where it worked - and then do a diff to see what we
 
 ====================
 
+very obvious wat is happening
+> expected: 0 actual: 1 
+> so hrs is causing error.
 
+this is totally possible
+> wl_sum = 16
+> hrs = 0.50 / 14 = 0.035
+> 3 sigma = 3 * 0.035 * np.sqrt(16)
 
+so this is happening much more frequently then we expect.
 
+WHAT IS THIS SEGFAULT.
+COULD BE CAUSING OTHER ISSUES WE ARE SEEING.
 
+so is it the wordline thats messing things up here ? 
+> when [rpr=16, on=5, off=?]
+> it could be that we didnt read the whole wordline
+> and that is why it gets dragged low
+> so i think we gotta include the wl counts as well ...
+> should solve this problem I think.
 
+====================
 
+size shrinks way more than you think if we only store what u need.
+256 @ 1 - > [1, 1]
 
+not sure exaclty how much but its a lot.
 
+====================
 
+p[wl = 16] > sum(p[wl != 16])
+is this true ? 
+why is our approximation low then ? 
+70% of the way.
 
+====================
 
+(1)
+using models that use the full 8-bits will greatly increase importance of tool.
+hmm perhaps, but not certain bc then errors will matter less.
 
+====================
 
+(2)
+should also be switching to quantizing the inputs, just makes everything better
+only tricky part will be figuring out what q value to use for static rpr.
 
+====================
 
+(3)
+will this increase or decrease the error ? 
+well it seems like it increases despite the q value also increasing.
+or that could also be a bug.
 
+we should compare the result with tensorflow.
 
-
-
-
-
+====================
 
 
 

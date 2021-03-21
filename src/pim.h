@@ -49,18 +49,19 @@ adc.5
 adc.6
 adc.7
 adc.8
+WRONG! ADC can vary in precision !!!
 cycle
 ron
 roff
 wl
 */
 
-#define METRIC_CYCLE  8
-#define METRIC_RON    9
-#define METRIC_ROFF  10
-#define METRIC_WL    11
-#define METRIC_STALL 12
-#define METRIC_BLOCK_CYCLE 13
+#define METRIC_CYCLE        0
+#define METRIC_RON          1
+#define METRIC_ROFF         2
+#define METRIC_WL           3
+#define METRIC_STALL        4
+#define METRIC_BLOCK_CYCLE  5
 
 #define DYNAMIC   0
 #define CENTROIDS 1

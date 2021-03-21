@@ -100,8 +100,6 @@ class Model:
         for result in thread_results:
             for key in result.keys():
                 counts[key]['adc'] += result[key]['adc']
-                # counts[key]['row'] += result[key]['row']
-                counts[key]['sat'] += result[key]['sat']
 
         counts['wl'] = self.array_params['wl']
         counts['max_rpr'] = self.array_params['max_rpr']

@@ -56,9 +56,9 @@ class Conv(Layer):
         assert(np.shape(self.b) == (self.fn,))
         assert(np.shape(self.q) == ())
         # cast as int
-        self.w = self.w.astype(int)
-        self.b = self.b.astype(int)
-        # self.q = self.q.astype(int)
+        self.w = self.w.astype(np.int32)
+        self.b = self.b.astype(np.float32)
+        self.q = self.q.astype(np.float32)
         # q must be larger than 0
         if self.quantize_flag:
             assert(self.q > 0)
@@ -79,8 +79,9 @@ class Conv(Layer):
 
     def init(self, params):
         self.params.update(params)
-        
-        self.params['var'] = lut_var(params['sigma'], self.params['max_rpr'])
+
+        ratio, lrs, hrs = params['sigma']
+        self.params['var'] = lut_var(ratio, lrs, hrs, self.params['max_rpr'])
 
         if self.params['rpr_alloc'] == 'centroids':
             # cfg = KmeansConfig(low=1, high=64, params=self.params, adc_count=self.adc_count, row_count=self.row_count, nrow=self.fh * self.fw * self.fc, q=self.q)
@@ -111,10 +112,10 @@ class Conv(Layer):
             p = np.max(col_density, axis=0)
             self.params['rpr'] = dynamic_rpr(nrow=nrow, p=p, q=self.q, params=self.params)
             '''
-            self.params['rpr'], _ = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, sat_count=self.sat_count, nrow=self.fh * self.fw * self.fc, q=self.q, ratio=self.ratio)
+            self.params['rpr'], _, self.error, self.mean = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, nrow=self.fh * self.fw * self.fc, q=self.q, ratio=self.ratio)
 
         elif self.params['rpr_alloc'] == 'static':
-            self.params['rpr'], self.lut_bias = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, sat_count=self.sat_count, nrow=self.fh * self.fw * self.fc, q=self.q, ratio=self.ratio)
+            self.params['rpr'], self.lut_bias, self.error, self.mean = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, nrow=self.fh * self.fw * self.fc, q=self.q, ratio=self.ratio)
             self.lut_bias = self.lut_bias * 256
             self.lut_bias = self.lut_bias.astype(np.int32)
         else:
@@ -123,7 +124,6 @@ class Conv(Layer):
     def set_profile_adc(self, counts):
         self.adc_count = counts[self.layer_id]['adc']
         self.row_count = counts[self.layer_id]['row']
-        self.sat_count = counts[self.layer_id]['sat']
         self.ratio = counts[self.layer_id]['ratio']
 
     def profile_adc(self, x):
@@ -164,7 +164,7 @@ class Conv(Layer):
         # y = avg_pool(y, self.p)
         if quantize_flag:
             y = y / self.q
-            y = np.round(y)
+            y = np.around(y)
             y = np.clip(y, -128, 127)
         return y
 
@@ -204,8 +204,8 @@ class Conv(Layer):
 
         if self.params['alloc'] == 'block':
             results['array'] = np.sum(self.block_alloc) * nbl
-            print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d mean: %0.3f error: %0.3f' % 
-              (self.layer_id, np.sum(self.block_alloc), nbl, nbl * np.sum(self.block_alloc), results['nmac'], results['cycle'], results['stall'], z_mean, z_error))
+            print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d mean: %0.3f std: %0.3f error: %0.3f' % 
+              (self.layer_id, np.sum(self.block_alloc), nbl, nbl * np.sum(self.block_alloc), results['nmac'], results['cycle'], results['stall'], z_mean, z_std, z_error))
 
         elif self.params['alloc'] == 'layer': 
             results['array'] = self.layer_alloc * nwl * nbl
@@ -223,8 +223,8 @@ class Conv(Layer):
         # perf:     y = y_ref
         # error:    None
 
-        # y = y_ref
-        y_ref = y
+        y = y_ref
+        # y_ref = y
 
         ########################
 
@@ -265,13 +265,13 @@ class Conv(Layer):
         
         # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
         results = {}
-        results['adc']   = metrics[0:8]
-        results['cycle'] = metrics[8]
-        results['ron']   = metrics[9]
-        results['roff']  = metrics[10]
-        results['wl']    = metrics[11]
-        results['stall'] = metrics[12]
-        results['block_cycle'] = metrics[13:]
+        results['adc']         = metrics[0:self.params['adc']]
+        results['cycle']       = metrics[self.params['adc']+0]
+        results['ron']         = metrics[self.params['adc']+1]
+        results['roff']        = metrics[self.params['adc']+2]
+        results['wl']          = metrics[self.params['adc']+3]
+        results['stall']       = metrics[self.params['adc']+4]
+        results['block_cycle'] = metrics[self.params['adc']+5:]
         results['density'] = np.count_nonzero(patches) / np.prod(np.shape(patches)) * (self.params['wl'] / min(self.fh * self.fw * self.fc, self.params['wl']))
         results['block_density'] = np.count_nonzero(patches, axis=(0,2,3)) / (npatch * self.params['wl'] * self.params['bpa'])
         

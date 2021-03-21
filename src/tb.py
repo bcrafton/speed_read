@@ -17,7 +17,7 @@ from multiprocessing import Pool
 # NOTE: This has to come before any module that loads the c code
 # before, this came after 'load_resnet', 'load_cifar' and so it loaded the previous version each time.
 
-cmd = "g++ pim.c array.c block.c layer.c layer_sync.c params.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o pim.so"
+cmd = "g++ pim.c array.c block.c layer.c layer_sync.c params.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -std=c++11 -shared -o pim.so"
 ret = os.system(cmd)
 assert (ret == 0)
 
@@ -39,11 +39,11 @@ from tests import dac2
 
 ############
 
-array_params, arch_params = CC()
+# array_params, arch_params = CC()
 # array_params, arch_params = BB()
 # array_params, arch_params = Thresh()
 # array_params, arch_params = CE()
-# array_params, arch_params = Simple()
+array_params, arch_params = Simple()
 # array_params, arch_params = dac2()
 
 ############
@@ -79,14 +79,14 @@ def run_command(x, y, model, params, return_list):
         
 ####
 
-# model, x, y = load_resnet(num_example=1, array_params=array_params)
-model, x, y = load_cifar(num_example=1, array_params=array_params)
+model, x, y = load_resnet(num_example=1, array_params=array_params)
+# model, x, y = load_cifar(num_example=1, array_params=array_params)
 
 ####
 
 start = time.time()
 
-load_profile_adc = False
+load_profile_adc = True
 
 if not load_profile_adc:
     profile = model.profile_adc(x=x)

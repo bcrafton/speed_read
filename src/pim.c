@@ -131,7 +131,7 @@ DLLEXPORT int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, int* lut
 
   //////////////////////////////
 
-  return metrics[METRIC_CYCLE];
+  return metrics[params->adc + METRIC_CYCLE];
 }
 
 

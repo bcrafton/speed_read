@@ -12,7 +12,7 @@ def avg_pool(x, p):
   return x
 
 def max_pool(x, k, s):
-    p = k // 2
+    p = (k - 1) // 2
 
     xh, xw, xc = np.shape(x)
     yh, yw, yc = (xh // s), (xw // s), xc

@@ -26,7 +26,7 @@ void clear(int* v)
 
 //////////////////////////////////////////////
 
-int profile(int* x, int* w, int* y, long* count_adc, long* count_row, long* count_sat, int max_rpr, int adc, int R, int C, int NWL, int NBL, int WL, int BL)
+int profile(int* x, int* w, int* y, long* count_adc, int max_rpr, int adc, int R, int C, int NWL, int NBL, int WL, int BL)
 {
   int pdot[VECTOR_SIZE];
   int sat[VECTOR_SIZE];
@@ -43,9 +43,7 @@ int profile(int* x, int* w, int* y, long* count_adc, long* count_row, long* coun
         for (int bl=0; bl<NBL; bl++) {
           for (int xb=0; xb<8; xb++) {
             
-            int row = 0;
             int wl_ptr = 0;
-            clear(sat);
 
             while (wl_ptr < WL) {
               clear(pdot);
@@ -63,33 +61,27 @@ int profile(int* x, int* w, int* y, long* count_adc, long* count_row, long* coun
 
               for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
                 int wb = bl_ptr % 8;
-                int val = pdot[bl_ptr];
+                int on = pdot[bl_ptr];
+                int off = wl_sum - on;
 
-                int xb_addr = xb * 8 * (max_rpr + 1) * (max_rpr + 1);
-                int wb_addr = wb * (max_rpr + 1) * (max_rpr + 1);
-                int rpr_addr = rpr * (max_rpr + 1);
-                count_adc[xb_addr + wb_addr + rpr_addr + val] += 1;
+                int xb_addr  = xb * 8 * (max_rpr + 1) * (max_rpr + 1) * (max_rpr + 1);
+                int wb_addr  =     wb * (max_rpr + 1) * (max_rpr + 1) * (max_rpr + 1);
+                int rpr_addr =                  (rpr) * (max_rpr + 1) * (max_rpr + 1);
+                int wl_addr  =                               (wl_sum) * (max_rpr + 1);
+                int val_addr =                                                   (on);
 
-                sat[bl_ptr] += (int) (pdot[bl_ptr] >= adc);
+                count_adc[xb_addr + wb_addr + rpr_addr + wl_addr + val_addr] += 1;
+
+                /*
+                int xb_addr  = xb * 8 * (max_rpr + 1) * (max_rpr + 1) * (max_rpr + 1);
+                int wb_addr  =     wb * (max_rpr + 1) * (max_rpr + 1) * (max_rpr + 1);
+                int rpr_addr =                  (rpr) * (max_rpr + 1) * (max_rpr + 1);
+                int on_addr  =                                   (on) * (max_rpr + 1);
+                int off_addr =                                                  (off);
+                count_adc[xb_addr + wb_addr + rpr_addr + on_addr + off_addr] += 1;
+                */ 
               }
-
-              row += 1;
             } // while (wl_ptr < wl) {
-
-            int xb_addr = xb * (max_rpr+1) * (WL+1);
-            int rpr_addr = rpr * (WL+1);
-            count_row[xb_addr + rpr_addr + row] += 1;
-
-            for (int bl_ptr=0; bl_ptr<BL; bl_ptr++) {
-              int wb = bl_ptr % 8;
-              int val = sat[bl_ptr];
-
-              int xb_addr = xb * 8 * (max_rpr + 1) * (max_rpr + 1);
-              int wb_addr = wb * (max_rpr + 1) * (max_rpr + 1);
-              int rpr_addr = rpr * (max_rpr + 1);
-              count_sat[xb_addr + wb_addr + rpr_addr + val] += 1;
-            }
-
           } // for (int xb=0; xb<8; xb++) {
         } // for (int bl=0; bl<BL; bl++) {
       } // for (int wl=0; wl<WL; wl++) {

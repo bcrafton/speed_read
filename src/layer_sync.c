@@ -29,16 +29,16 @@ void LayerSync::pim() {
   
   int done = 0;
   while (!done) {
-    this->params->metrics[METRIC_CYCLE]++;
+    this->params->metrics[this->params->adc + METRIC_CYCLE]++;
 
     for (int d=0; d<this->params->D; d++) {
       for (int block_row=0; block_row<this->params->NWL; block_row++) {
         int b = d * this->params->NWL + block_row;
         if (block_done[b]) {
-          this->params->metrics[METRIC_STALL] += this->params->NBL;
+          this->params->metrics[this->params->adc + METRIC_STALL] += this->params->NBL;
         }
         else {
-          this->params->metrics[METRIC_BLOCK_CYCLE + block_row] += 1;
+          this->params->metrics[this->params->adc + METRIC_BLOCK_CYCLE + block_row] += 1;
           block_done[b] = this->blocks[b]->pim(this->row_map[d]);
         }
       } 

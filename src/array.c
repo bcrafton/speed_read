@@ -118,7 +118,9 @@ int Array::process(int row, int col, int xb, int rpr) {
     int wb = col;
 
     int key = rand() % 1001;
-    int var_addr = this->pdot[bl_ptr] * 1001 + key;
+    int var_addr = (this->wl_sum * (params->max_rpr + 1) * 1001) + (this->pdot[bl_ptr] * 1001) + key;
+    int var_size = (params->max_rpr + 1) * (params->max_rpr + 1) * 1001;
+    assert (var_addr < var_size);
     float var = this->params->lut_var[var_addr];
 
     float pdot_var = this->pdot[bl_ptr] + var;
@@ -160,8 +162,8 @@ int Array::collect(int row, int col, int xb, int rpr) {
     int c = (bl_ptr + this->array_id * this->params->BL) / 8;
     int wb = col;
 
-    this->params->metrics[METRIC_RON] += this->pdot[bl_ptr];
-    this->params->metrics[METRIC_ROFF] += this->wl_sum - this->pdot[bl_ptr];
+    this->params->metrics[this->params->adc + METRIC_RON] += this->pdot[bl_ptr];
+    this->params->metrics[this->params->adc + METRIC_ROFF] += this->wl_sum - this->pdot[bl_ptr];
   }
 
   if (this->wl_sum > 0) {
@@ -183,7 +185,7 @@ int Array::collect(int row, int col, int xb, int rpr) {
     this->params->metrics[comps] += this->params->BL / 8;
   }
 
-  this->params->metrics[METRIC_WL] += this->wl_sum;
+  this->params->metrics[this->params->adc + METRIC_WL] += this->wl_sum;
 }
 
 int Array::correct(int row, int col, int xb, int rpr) {
