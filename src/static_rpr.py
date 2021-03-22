@@ -19,8 +19,6 @@ inf = 1e10
 
 def expected_error(params, adc_count, row_count, rpr, nrow, bias):
 
-    ratio, lrs, hrs = params['sigma']
-
     s = np.arange(rpr + 1, dtype=np.float32)
     
     adc      = np.arange(params['adc'] + 1, dtype=np.float32)
@@ -48,38 +46,17 @@ def expected_error(params, adc_count, row_count, rpr, nrow, bias):
     e = adc - s
     p = on_counts / np.sum(on_counts)
 
-    '''
-    if rpr == 16:
-        print (np.around(p, 2))
-        print (np.around(np.sum(p, axis=1), 2))
-        print ()
-    '''
-
     mu  = N_lrs
-    var = (lrs ** 2. * N_lrs) + ((hrs / ratio) ** 2. * N_hrs)
+    var = (params['lrs'] ** 2. * N_lrs) + (params['hrs'] ** 2. * N_hrs)
     sd  = np.sqrt(var)
-
-    # before it would be [17x2] ... now its [17x2x2]
-    # pe along [17] should be 1 right ?
-    # 17 different ADC thresholds should sum to 1.
 
     p_h = norm.cdf(adc_high, mu, np.maximum(sd, eps))
     p_l = norm.cdf(adc_low, mu, np.maximum(sd, eps))
-    # pe = np.clip(p_h - p_l - 2 * norm.cdf(-3), 0, 1)
-    # why 3.4 ? 
-    # because we approximate normal cdf in C, and the approximation actually sucks
-    # we should probably do this based off of that distribution to tell us if other errors exist ...
-    # like literally take the lut_var in here.
-    # pe = np.clip(p_h - p_l - 2 * norm.cdf(-3.4), 0, 1)
-    pe = np.clip(p_h - p_l - 1 * norm.cdf(-3), 0, 1)
+    pe = np.clip(p_h - p_l, 0, 1)
     pe = pe / np.sum(pe, axis=0, keepdims=True)
 
     assert (np.allclose(np.sum(pe, axis=0), 1))
     assert (np.allclose(np.sum(pe * p), 1))
-    
-    # print (np.shape(p))  #    8x8
-    # print (np.shape(pe)) # 17x8x8
-    # print (np.shape(e))  # 17x1x8
     
     mse = np.sum(np.absolute(p * pe * e * nrow))
     mean = np.sum(p * pe * e * nrow)
@@ -118,6 +95,8 @@ def static_rpr(low, high, params, adc_count, row_count, nrow, q, ratio):
                 scaled_mse = (scale / q) * mse * ratio
                 scaled_mean = (scale / q) * mean * ratio
 
+                assert (scaled_mse >= np.abs(scaled_mean))
+
                 bias_table[xb][wb][rpr - 1] = bias
                 error_table[xb][wb][rpr - 1] = scaled_mse
                 mean_table[xb][wb][rpr - 1] = scaled_mean
@@ -135,8 +114,11 @@ def static_rpr(low, high, params, adc_count, row_count, nrow, q, ratio):
     # error_table = np.clip(error_table, 1e-6, np.inf) - np.clip(np.absolute(mean_table), 1e-6, np.inf)
     # mean_table = np.sign(mean_table) * np.clip(np.absolute(mean_table), 1e-6, np.inf)
     # 
-    error_table = round_fraction(error_table, 1e-4) - round_fraction(np.absolute(mean_table), 1e-4)
-    mean_table = np.sign(mean_table) * round_fraction(np.absolute(mean_table), 1e-4)
+    # error_table = round_fraction(error_table, 1e-4) - round_fraction(np.absolute(mean_table), 1e-4)
+    # mean_table = np.sign(mean_table) * round_fraction(np.absolute(mean_table), 1e-4)
+    # 
+    error_table = round_fraction(error_table, 1e-4)
+    mean_table = round_fraction(mean_table, 1e-4)
 
     mean = np.zeros(shape=(8, 8))
     error = np.zeros(shape=(8, 8))
@@ -156,6 +138,10 @@ def static_rpr(low, high, params, adc_count, row_count, nrow, q, ratio):
             mean[xb][wb] = mean_table[xb][wb][rpr-1]
             cycle[xb][wb] = delay[xb][wb][rpr-1]
 
+    # print (np.around(error, 2))
+    # print (np.around(mean, 2))
+    assert (np.sum(error) >= np.sum(np.abs(mean)))
+    
     return rpr_lut, bias_lut, np.sum(error), np.sum(mean)
     
     

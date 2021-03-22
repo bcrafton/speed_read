@@ -31,50 +31,17 @@ def lut_var_dyn(var, states):
 
 # https://stackoverflow.com/questions/20626994/how-to-calculate-the-inverse-of-the-normal-cumulative-distribution-function-in-p
 
-def lut_var(ratio, lrs, hrs, max_rpr):
+def lut_var(lrs, hrs, max_rpr):
     lut = np.zeros(shape=(max_rpr + 1, max_rpr + 1, 1001), dtype=np.float32)
-    var1 = lrs
-    var2 = hrs / ratio
     for wl in range(1, max_rpr + 1):
         for on in range(0, wl + 1):
             off = wl - on
-            var = on*var1**2 + off*var2**2
+            var = on*lrs**2 + off*hrs**2
             assert(var > 0)
             std = np.sqrt(var)
-            
-            '''
-            q = norm.cdf(np.linspace(-3, 3, 1001), loc=0, scale=1)
-            A = norm.ppf(q=q, loc=0., scale=std)
-            '''
-
             minval = norm.cdf(-3, loc=0, scale=1)
             maxval = norm.cdf( 3, loc=0, scale=1)
-            B = norm.ppf(q=np.linspace(minval, maxval, 1001), loc=0., scale=std)
-            
-            '''
-            # B yields higher expected value than what we want.
-            print (np.mean(np.absolute(B)))
-            normal = np.absolute(np.random.normal(loc=0., scale=std, size=1000000))
-            normal = normal[np.where(normal <= 3 * std)]
-            print (np.mean(normal))
-            assert (False)
-            '''
-
-            '''
-            # plot to see why B is correct.
-            plt.scatter(np.arange(1001), np.abs(A), label='A')
-            plt.scatter(np.arange(1001), np.abs(B), label='B')
-            plt.legend()
-            plt.show()
-
-            print (A)
-            print (B)
-            print (A - B)
-            assert (np.allclose(A, B))
-            assert (False)
-            '''
-
-            lut[wl, on, :] = B
+            lut[wl, on, :] = norm.ppf(q=np.linspace(minval, maxval, 1001), loc=0., scale=std)
 
     return lut
     

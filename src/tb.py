@@ -39,11 +39,11 @@ from tests import dac2
 
 ############
 
-# array_params, arch_params = CC()
+array_params, arch_params = CC()
 # array_params, arch_params = BB()
 # array_params, arch_params = Thresh()
 # array_params, arch_params = CE()
-array_params, arch_params = Simple()
+# array_params, arch_params = Simple()
 # array_params, arch_params = dac2()
 
 ############
@@ -67,7 +67,8 @@ def run_command(x, y, model, params, return_list):
     'alloc':     params['alloc'],
     'profile':   params['profile'],
     'narray':    params['narray'],
-    'sigma':     params['sigma'],
+    'lrs':       params['lrs'],
+    'hrs':       params['hrs'],
     'rpr_alloc': params['rpr_alloc'],
     'thresh':    params['thresh'],
     'abs_error': abs_error

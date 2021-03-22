@@ -79,9 +79,7 @@ class Conv(Layer):
 
     def init(self, params):
         self.params.update(params)
-
-        ratio, lrs, hrs = params['sigma']
-        self.params['var'] = lut_var(ratio, lrs, hrs, self.params['max_rpr'])
+        self.params['var'] = lut_var(params['lrs'], params['hrs'], self.params['max_rpr'])
 
         if self.params['rpr_alloc'] == 'centroids':
             # cfg = KmeansConfig(low=1, high=64, params=self.params, adc_count=self.adc_count, row_count=self.row_count, nrow=self.fh * self.fw * self.fc, q=self.q)
@@ -192,6 +190,11 @@ class Conv(Layer):
         z_mean = np.mean(z - z_ref)
         z_std = np.std(z - z_ref)
         z_error = np.mean(np.absolute(z - z_ref))
+
+        print (self.error, self.mean)
+        print (error * self.ratio / self.q, mean * self.ratio / self.q)
+        # print (error / self.q * self.ratio)
+        # print (self.params['rpr'])
 
         results['id']       = self.weight_id
         results['layer_id'] = self.layer_id

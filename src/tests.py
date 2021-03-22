@@ -28,51 +28,43 @@ def CC():
     array_params = {
     'bpa': 8,
     'bpw': 8,
-    'adc': 8,
+    'adc': 64,
     'adc_mux': 8,
     'wl': 256,
     'bl': 256,
     'offset': 128,
-    'max_rpr': 16,
+    'max_rpr': 64,
     }
-    
+
+    # 'hrs': [0.50 / 10., 0.48 / 18., 0.35 / 30.],
+
     arch_params1 = {
     'skip': [1],
     'alloc': ['block'],
     'narray': [2 ** 12],
-    'sigma': [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.20],
+    'lrs': [0.035, 0.05, 0.10], 
+    'hrs': [0.05, 0.03, 0.02],
     'cards': [1],
-    'profile': [1],
+    'profile': [0],
     'rpr_alloc': ['static'],
-    'thresh': [0.1, 0.25, 0.5],
+    'thresh': [0.10, 0.25],
     }
 
     arch_params2 = {
-    'alloc': ['block'],
-    'narray': [2 ** 12],
-    'sigma': [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.20],
-    'cards': [0],
-    'profile': [1],
-    'rpr_alloc': ['dynamic'],
-    'thresh': [0.1],
-    'skip': [0],
-    }
-
-    arch_params3 = {
-    'alloc': ['block'],
-    'narray': [2 ** 12],
-    'sigma': [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.20],
-    'cards': [0],
-    'profile': [1],
-    'rpr_alloc': ['dynamic'],
-    'thresh': [0.1],
     'skip': [1],
+    'alloc': ['block'],
+    'narray': [2 ** 12],
+    'lrs': [0.035, 0.05, 0.10], 
+    'hrs': [0.05, 0.03, 0.02],
+    'cards': [0],
+    'profile': [0],
+    'rpr_alloc': ['static'],
+    'thresh': [0.10],
     }
 
     arch_params1 = perms(arch_params1)
     arch_params2 = perms(arch_params2)
-    arch_params3 = perms(arch_params3)
-    arch_params = arch_params1 + arch_params2 + arch_params3
+    arch_params = arch_params1 + arch_params2
     return array_params, arch_params
     
 #######################################################
@@ -196,22 +188,29 @@ def Simple():
     array_params = {
     'bpa': 8,
     'bpw': 8,
-    'adc': 32,
+    'adc': 64,
     'adc_mux': 8,
     'wl': 256,
     'bl': 256,
     'offset': 128,
-    'max_rpr': 40,
+    'max_rpr': 64,
     }
 
     arch_params = {
     'skip': [1],
     'alloc': ['block'],
     'narray': [2 ** 12],
-    'cards': [1],
+    'cards': [0],
     'profile': [0],
     'rpr_alloc': ['static'],
-    'sigma': [(15., 0.035, 0.50)],
+    # 
+    # 'sigma': [(14., 0.035, 0.50)],
+    # 'sigma': [(18., 0.035, 0.48)],
+    # 'sigma': [(30., 0.035, 0.35)],
+    # 
+    'lrs': [0.035, 0.05, 0.10], 
+    'hrs': [(10., 0.50), (18., 0.48), (30., 0.35)],
+    # 
     'thresh': [0.25]
     }
 
