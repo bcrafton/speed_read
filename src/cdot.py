@@ -186,8 +186,8 @@ def pim_static(x, w, y_shape, lut_var, lut_rpr, alloc, lut_bias, params):
 
     y = np.zeros(shape=y_shape)
 
-    # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl, stall, block_cycles[nwl]
-    metrics_len = params['adc'] + 5 + nwl
+    # metrics = cycle, ron, roff, wl, stall, block_cycles[nwl], adc{1,2,3,4,5,6,7,8}
+    metrics_len = 5 + nwl + (8 * 8 * nwl * (params['adc'] + 1))
     metrics = np.zeros(shape=metrics_len)
 
     x = np.ascontiguousarray(x, np.int32)

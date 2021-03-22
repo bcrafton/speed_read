@@ -268,13 +268,15 @@ class Conv(Layer):
         
         # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
         results = {}
-        results['adc']         = metrics[0:self.params['adc']]
-        results['cycle']       = metrics[self.params['adc']+0]
-        results['ron']         = metrics[self.params['adc']+1]
-        results['roff']        = metrics[self.params['adc']+2]
-        results['wl']          = metrics[self.params['adc']+3]
-        results['stall']       = metrics[self.params['adc']+4]
-        results['block_cycle'] = metrics[self.params['adc']+5:]
+        results['cycle']       = metrics[0]
+        results['ron']         = metrics[1]
+        results['roff']        = metrics[2]
+        results['wl']          = metrics[3]
+        results['stall']       = metrics[4]
+        results['block_cycle'] = metrics[5:][:nwl]
+        results['adc']         = metrics[5+nwl:]
+        assert (len(results['adc']) == self.params['adc'])
+
         results['density'] = np.count_nonzero(patches) / np.prod(np.shape(patches)) * (self.params['wl'] / min(self.fh * self.fw * self.fc, self.params['wl']))
         results['block_density'] = np.count_nonzero(patches, axis=(0,2,3)) / (npatch * self.params['wl'] * self.params['bpa'])
         

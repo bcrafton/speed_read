@@ -27,7 +27,7 @@ void Layer::pim() {
   
   int done = 0;
   while (!done) {
-    this->params->metrics[this->params->adc + METRIC_CYCLE]++;
+    this->params->metrics[METRIC_CYCLE]++;
 
     done = 1;
     for (int b=0; b<this->params->B; b++) {
@@ -40,11 +40,11 @@ void Layer::pim() {
       // we add B*NBL incorrect stalls.
       // we add 1 incorrect cycle.
       if (block_done[b]) {
-        this->params->metrics[this->params->adc + METRIC_STALL] += this->params->NBL;
+        this->params->metrics[METRIC_STALL] += this->params->NBL;
         continue;
       }
       else {
-        this->params->metrics[this->params->adc + METRIC_BLOCK_CYCLE + block_row] += 1;
+        this->params->metrics[METRIC_BLOCK_CYCLE + block_row] += 1;
       }
 
       int ret = this->blocks[b]->pim(row);
