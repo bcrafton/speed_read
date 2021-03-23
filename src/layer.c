@@ -44,7 +44,11 @@ void Layer::pim() {
         continue;
       }
       else {
-        this->params->metrics[METRIC_BLOCK_CYCLE + block_row] += 1;
+        int cycle_offset  = METRIC_BLOCK_CYCLE;
+        int row_address   = row * params->NWL;
+        int block_address = block_row;
+        int address = cycle_offset + row_address + block_address;
+        this->params->metrics[address] += 1;
       }
 
       int ret = this->blocks[b]->pim(row);

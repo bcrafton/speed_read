@@ -78,7 +78,7 @@ class Model:
 
         keys = list(args_list.keys())
         total = len(keys)
-        nthread = 8
+        nthread = 24
         for run in range(0, total, nthread):
 
             threads = []

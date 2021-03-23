@@ -47,7 +47,7 @@ def CC():
     'cards': [1],
     'profile': [0],
     'rpr_alloc': ['static'],
-    'thresh': [0.10, 0.25],
+    'thresh': [0.10],
     }
 
     arch_params2 = {

@@ -41,11 +41,32 @@ comp_pJ = 22. * 1e-12 / 32. / 16.
 # '(rpr_alloc == "%s")' NOT '(rpr_alloc == %s)'
 #####################
 
-num_example = 1
+# block  = NWL * [DUPLICATE]
+# vector = [ROW, NWL]
+def cycles(alloc, vector):
+    ROW, NWL = np.shape(vector)
+    assert (np.shape(alloc) == (NWL,))
+    #################################################
+    block_cycles = [np.zeros(COPY) for COPY in alloc]
+    #################################################
+    for row in range(ROW):
+        for block in range(NWL):
+            assert (row < 200)
+            copy = np.argmin(block_cycles[block])
+            # print (copy)
+            # print (block)
+            print (block_cycles[block])
+            print (vector[row][block])
+            block_cycles[block][copy] += vector[row][block]
+    #################################################
+    cycles = np.zeros(shape=NWL)
+    for block in range(NWL):
+        cycles[block] = np.max(block_cycles[block])
+    return cycles
 
-for cards, thresh in [(1, 0.25), (0, 0.10)]:
-    for lrs in [0.035, 0.05, 0.10]:
-        for hrs in [0.05, 0.03, 0.02]:
+for cards, thresh in [(0, 0.10)]:
+    for lrs in [0.035]:
+        for hrs in [0.05]:
 
             query = '(cards == %d) & (thresh == %f) & (lrs == %f) & (hrs == %f)' % (cards, thresh, lrs, hrs)
             samples = df.query(query)
@@ -54,11 +75,32 @@ for cards, thresh in [(1, 0.25), (0, 0.10)]:
             
             e = np.average(samples['error'])
 
-            adc = np.stack(samples['adc'], axis=0)    
-            energy = np.sum(np.arange(1, 64+1) * adc * comp_pJ, axis=1)
-            top_per_pJ = 2. * np.sum(samples['nmac']) / 1e12 / np.sum(energy)
-
-            print (cards, lrs, hrs, e, np.max(samples['cycle']), np.sum(samples['nmac']), top_per_sec, top_per_pJ)
+            '''
+            for block in samples['block_cycle']:
+                print (block)
+            '''
+            '''
+            for adc in samples['adc']:
+                cycle = np.sum(adc, axis=(0, 1, 3))
+                print (cycle)
+            '''
+            '''
+            for adc in samples['adc']:
+                cycle = np.sum(adc)
+                pmf = np.sum(adc, axis=(0,1,2)) / cycle
+                print (pmf)
+            '''
+            '''
+            for layer in range(20):
+                cycles = np.max(samples['block_cycle'][layer] / samples['block_alloc'][layer])
+                print (cycles)
+                print (samples['cycle'][layer])
+            '''
+            for layer in range(1):
+                alloc  = samples['block_alloc'][layer]
+                vector = samples['block_cycle'][layer]
+                c = cycles(alloc, vector)
+                print (samples['cycle'][layer], c)
 
 ######################################
 

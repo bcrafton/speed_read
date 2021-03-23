@@ -100,7 +100,7 @@ model.set_profile_adc(profile)
 ##########################
 
 num_runs = len(arch_params)
-parallel_runs = 8
+parallel_runs = 9
 
 thread_results = []
 manager = multiprocessing.Manager()

@@ -156,41 +156,25 @@ int Array::process(int row, int col, int xb, int rpr) {
 }
 
 int Array::collect(int row, int col, int xb, int rpr) {
-
+  int wb = col;
+    
   for (int adc_ptr=0; adc_ptr<this->params->BL; adc_ptr+=8) {
     int bl_ptr = adc_ptr + col;
     int c = (bl_ptr + this->array_id * this->params->BL) / 8;
-    int wb = col;
 
     this->params->metrics[METRIC_RON] += this->pdot[bl_ptr];
     this->params->metrics[METRIC_ROFF] += this->wl_sum - this->pdot[bl_ptr];
   }
 
-  if (this->wl_sum > 0) {
-    int comps;
-    int wb = col;
+  int comps = min(this->wl_sum, this->params->adc);
 
-    if (params->skip == 0) {
-      if (this->wl_sum > 0) {
-        comps = this->params->adc - 1;
-      }
-      else {
-        comps = 0;
-      }
-    }
-    else if (params->method == CENTROIDS) comps = comps_enabled(this->wl_sum, this->params->adc, rpr, xb, wb, this->params->adc_state, this->params->adc_thresh) - 1;
-    else                                  comps = min(this->wl_sum - 1, this->params->adc - 1);
-    assert((comps >= 0) && (comps < this->params->adc));
-    assert ((this->params->BL % 8) == 0);
-
-    int adc_offset    = METRIC_BLOCK_CYCLE + params->NWL;
-    int xb_address    = xb * 8 * params->NWL    * (params->adc + 1);
-    int wb_address    =     wb * params->NWL    * (params->adc + 1);
-    int block_address =          this->block_id * (params->adc + 1);
-    int comp_address  =                                       comps;
-    int address = adc_offset + xb_address + wb_address + block_address + comp_address;
-    this->params->metrics[address] += this->params->BL / 8;
-  }
+  int adc_offset    = METRIC_BLOCK_CYCLE + params->R * params->NWL;
+  int xb_address    = xb * 8 * params->NWL    * (params->adc + 1);
+  int wb_address    =     wb * params->NWL    * (params->adc + 1);
+  int block_address =          this->block_id * (params->adc + 1);
+  int comp_address  =                                       comps;
+  int address = adc_offset + xb_address + wb_address + block_address + comp_address;
+  this->params->metrics[address] += 1; // this->params->BL / 8;
 
   this->params->metrics[METRIC_WL] += this->wl_sum;
 }
