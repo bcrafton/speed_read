@@ -284,6 +284,8 @@ class Conv(Layer):
         results['block_density'] = np.count_nonzero(patches, axis=(0,2,3)) / (npatch * self.params['wl'] * self.params['bpa'])
 
         results['block_alloc'] = self.block_alloc
+        results['block_size'] = self.nbl
+        results['rpr'] = self.params['rpr']
 
         #########################
         
