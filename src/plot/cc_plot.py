@@ -20,8 +20,8 @@ def ld_to_dl(ld):
 
 ####################
 
-results = np.load('../results16.npy', allow_pickle=True)
-# print (len(results))
+SAR = True
+results = np.load('../results64.npy', allow_pickle=True)
 
 results = ld_to_dl(results)
 df = pd.DataFrame.from_dict(results)
@@ -68,8 +68,6 @@ def close(a, b, tol=1e-9):
 
 ###############################################################
 
-SAR = False
-
 for cards, thresh in [(0, 0.10), (1, 0.10)]:
     for lrs in [0.035, 0.10]:
         for hrs in [0.05, 0.02]:
@@ -99,12 +97,15 @@ for cards, thresh in [(0, 0.10), (1, 0.10)]:
                 adc        = np.array(samples['adc'])[layer] # 8x8xNWLxADC
                 mac        = np.array(samples['nmac'])[layer]
 
-                sar = 1 + np.ceil(np.log2(rpr).reshape(8, 8, 1, 1))
-
+                # sar = 1 + np.ceil(np.log2(rpr).reshape(8, 8, 1, 1))
+                sar = 1 + np.ceil(np.log2(np.arange(1, np.shape(adc)[-1])))
+                sar = np.array([0] + sar.tolist())
                 if SAR: cycle = np.sum(adc * sar)
-                else:   cycle = np.sum(adc * 2)
+                else:   cycle = np.sum(adc)
+
                 mac_per_cycle = mac / cycle
                 perf += mac_per_cycle * (mac / total_mac)
+
                 # print (mac_per_cycle, np.average(rpr[0:4, :]))
                 # print (rpr)
 
