@@ -28,6 +28,8 @@ class Block1(Layer):
         self.s2 = weights[self.layer_id]['s2']
         self.q = weights[self.layer_id]['q']
 
+        self.conv2.q = self.q
+
     def init(self, params):
         self.params = params.copy()
         self.conv1.init(self.params)
@@ -60,7 +62,7 @@ class Block1(Layer):
         out = x
         out = out / self.q
         out = np.round(out)
-        out = np.clip(out, -128, 127)
+        out = np.clip(out, 0, 255)
         return out
 
     def forward(self, x, x_ref, profile=False):
@@ -105,6 +107,8 @@ class Block2(Layer):
         self.s2 = weights[self.layer_id]['s2']
         self.s3 = weights[self.layer_id]['s3']
         self.q = weights[self.layer_id]['q']
+        self.conv2.q = self.q
+        self.conv3.q = self.q
 
     def init(self, params):
         self.params = params.copy()
@@ -144,7 +148,7 @@ class Block2(Layer):
         out = x
         out = out / self.q
         out = np.round(out)
-        out = np.clip(out, -128, 127)
+        out = np.clip(out, 0, 255)
         return out
 
     def forward(self, x, x_ref, profile=False):

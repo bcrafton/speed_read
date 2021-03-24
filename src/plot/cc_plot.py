@@ -20,8 +20,11 @@ def ld_to_dl(ld):
 
 ####################
 
-SAR = True
-results = np.load('../results64.npy', allow_pickle=True)
+SAR = False
+if SAR:
+    results = np.load('../results64.npy', allow_pickle=True)
+else:
+    results = np.load('../results8.npy', allow_pickle=True)
 
 results = ld_to_dl(results)
 df = pd.DataFrame.from_dict(results)
@@ -68,16 +71,20 @@ def close(a, b, tol=1e-9):
 
 ###############################################################
 
-for cards, thresh in [(0, 0.10), (1, 0.10)]:
-    for lrs in [0.035, 0.10]:
-        for hrs in [0.05, 0.02]:
-            print ()
-            print (cards, thresh, lrs, hrs)
+# hrs = np.unique(df['hrs'])
+# lrs = np.unique(df['lrs'])
+# print (hrs, lrs)
+
+for cards, thresh in [(0, 0.25), (1, 0.25)]:
+    for lrs in [0.035, 0.05, 0.10]:
+        for hrs in [0.03, 0.015]:
 
             query = '(cards == %d) & (thresh == %f) & (lrs == %f) & (hrs == %f)' % (cards, thresh, lrs, hrs)
             samples = df.query(query)
+            
+            print ()
+            print (cards, thresh, lrs, hrs)
             # print (len(samples))
-            total_mac = np.sum(samples['nmac'])
 
             '''
             samples = pd.DataFrame.copy(df)
@@ -88,7 +95,10 @@ for cards, thresh in [(0, 0.10), (1, 0.10)]:
             # print (len(samples))
             '''
 
+            total_mac = np.sum(samples['nmac'])
+
             perf = 0.
+            total_cycle = 0.
             for layer in range(20):
 
                 alloc      = np.array(samples['block_alloc'])[layer].reshape(-1, 1)
@@ -105,11 +115,14 @@ for cards, thresh in [(0, 0.10), (1, 0.10)]:
 
                 mac_per_cycle = mac / cycle
                 perf += mac_per_cycle * (mac / total_mac)
+                total_cycle += np.sum(adc, axis=(0,1,2))
 
-                # print (mac_per_cycle, np.average(rpr[0:4, :]))
+                # print (np.average(rpr[0:4, :]))
                 # print (rpr)
 
+
             print (perf)
+            # print (np.around(total_cycle / np.sum(total_cycle), 3))
 
 
 

@@ -31,7 +31,8 @@ def load_inputs(num_example):
 
     # print (np.max(xs), np.min(xs))
     # assert (False)
-    xs = xs // 2
+    # xs = xs // 2
+    # xs = xs.astype(int)
 
     xs = xs[0:num_example]
     ys = ys[0:num_example]
@@ -40,7 +41,7 @@ def load_inputs(num_example):
 ################
 
 def create_model(array_params):
-    weights = np.load('../resnet18_weights.npy', allow_pickle=True).item()
+    weights = np.load('../resnet18_weights1.npy', allow_pickle=True).item()
 
     layers=[
     Conv(input_size=(224, 224, 3), filter_size=(7,7,3,64), pool=1, stride=2, pad1=3, pad2=3, params=array_params, weights=weights),

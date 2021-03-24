@@ -28,7 +28,7 @@ def CC():
     array_params = {
     'bpa': 8,
     'bpw': 8,
-    'adc': 64,
+    'adc': 8,
     'adc_mux': 8,
     'wl': 256,
     'bl': 256,
@@ -43,11 +43,11 @@ def CC():
     'alloc': ['block'],
     'narray': [2 ** 12],
     'lrs': [0.035, 0.05, 0.10], 
-    'hrs': [0.05, 0.03, 0.02],
+    'hrs': [0.05, 0.03, 0.015],
     'cards': [1],
     'profile': [0],
     'rpr_alloc': ['static'],
-    'thresh': [0.10],
+    'thresh': [0.25],
     }
 
     arch_params2 = {
@@ -55,11 +55,11 @@ def CC():
     'alloc': ['block'],
     'narray': [2 ** 12],
     'lrs': [0.035, 0.05, 0.10], 
-    'hrs': [0.05, 0.03, 0.02],
+    'hrs': [0.05, 0.03, 0.015],
     'cards': [0],
     'profile': [0],
     'rpr_alloc': ['static'],
-    'thresh': [0.10],
+    'thresh': [0.25],
     }
 
     arch_params1 = perms(arch_params1)

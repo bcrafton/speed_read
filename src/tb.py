@@ -95,7 +95,7 @@ if not load_profile_adc:
 else:
     # print (list(np.load('profile.npz').keys()))
     profile = np.load('profile.npz', allow_pickle=True)['arr_0'].item()
-    print (profile.keys())
+    # print (profile.keys())
 
 model.set_profile_adc(profile)
 

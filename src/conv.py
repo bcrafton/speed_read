@@ -58,7 +58,7 @@ class Conv(Layer):
         # cast as int
         self.w = self.w.astype(np.int32)
         self.b = self.b.astype(np.float32)
-        self.q = self.q.astype(np.float32)
+        # self.q = self.q.astype(np.float32)
         # q must be larger than 0
         if self.quantize_flag:
             assert(self.q > 0)
@@ -163,7 +163,8 @@ class Conv(Layer):
         if quantize_flag:
             y = y / self.q
             y = np.around(y)
-            y = np.clip(y, -128, 127)
+            if self.relu_flag: y = np.clip(y, 0, 255)
+            else:              y = np.clip(y, -128, 127)
         return y
 
     def forward(self, x, x_ref, profile=False):
