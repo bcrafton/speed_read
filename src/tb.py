@@ -93,7 +93,9 @@ if not load_profile_adc:
     profile = model.profile_adc(x=x)
     np.save('profile_adc', profile)
 else:
-    profile = np.load('profile_adc.npy', allow_pickle=True).item()
+    # print (list(np.load('profile.npz').keys()))
+    profile = np.load('profile.npz', allow_pickle=True)['arr_0'].item()
+    print (profile.keys())
 
 model.set_profile_adc(profile)
 

@@ -20,7 +20,7 @@ def ld_to_dl(ld):
 
 ####################
 
-results = np.load('../results.npy', allow_pickle=True)
+results = np.load('../results16.npy', allow_pickle=True)
 # print (len(results))
 
 results = ld_to_dl(results)
@@ -63,58 +63,52 @@ def compute_cycles(alloc, vector):
 
 ###############################################################
 
-for cards, thresh in [(1, 0.10)]:
-    for lrs in [0.035]:
-        for hrs in [0.05]:
+def close(a, b, tol=1e-9):
+    return pd.DataFrame.abs(a - b) < tol
+
+###############################################################
+
+SAR = False
+
+for cards, thresh in [(0, 0.10), (1, 0.10)]:
+    for lrs in [0.035, 0.10]:
+        for hrs in [0.05, 0.02]:
+            print ()
+            print (cards, thresh, lrs, hrs)
 
             query = '(cards == %d) & (thresh == %f) & (lrs == %f) & (hrs == %f)' % (cards, thresh, lrs, hrs)
             samples = df.query(query)
+            # print (len(samples))
+            total_mac = np.sum(samples['nmac'])
 
-            cycles = []
+            '''
+            samples = pd.DataFrame.copy(df)
+            samples = samples[close(samples['cards'],  cards)]
+            samples = samples[close(samples['thresh'], thresh)]
+            samples = samples[close(samples['lrs'],    lrs)]
+            samples = samples[close(samples['hrs'],    hrs)]
+            # print (len(samples))
+            '''
+
+            perf = 0.
             for layer in range(20):
-                cycle = samples['cycle'][layer]
-                print (cycle)
 
-                alloc  = samples['block_alloc'][layer]
-                block = samples['block_cycle'][layer]
-                block_cycle = compute_cycles(alloc, block)
-                print (block_cycle)
+                alloc      = np.array(samples['block_alloc'])[layer].reshape(-1, 1)
+                rpr        = np.array(samples['rpr'])[layer]
+                block_size = np.array(samples['block_size'])[layer]
+                adc        = np.array(samples['adc'])[layer] # 8x8xNWLxADC
+                mac        = np.array(samples['nmac'])[layer]
 
-                #####################################################
+                sar = 1 + np.ceil(np.log2(rpr).reshape(8, 8, 1, 1))
 
-                adc = samples['adc'][layer] # 8x8xNWLxADC
-                cycle = adc / alloc.reshape(-1, 1)
-                cycle = np.sum(cycle, axis=(0, 1, 3))
-                cycle = np.max(cycle)
-                print (cycle)
+                if SAR: cycle = np.sum(adc * sar)
+                else:   cycle = np.sum(adc * 2)
+                mac_per_cycle = mac / cycle
+                perf += mac_per_cycle * (mac / total_mac)
+                # print (mac_per_cycle, np.average(rpr[0:4, :]))
+                # print (rpr)
 
-                #####################################################
-
-                '''
-                adc = samples['adc'][layer]
-                vector = np.sum(adc, axis=(1,2,4))
-                block_size = samples['block_size'][layer]
-                cycle = compute_cycles(alloc, vector // block_size)
-                print (cycle)
-                '''
-                
-                #####################################################
-
-                '''
-                rpr = samples['rpr'][layer]
-                sar = np.maximum(1, np.ceil(np.log2(rpr)))
-                
-                adc = samples['adc'][layer]
-                vector = np.sum(adc * np.reshape(sar, (8, 8, 1, 1)), axis=(1,2,4))
-                block_size = samples['block_size'][layer]
-                cycle = compute_cycles(alloc, vector // block_size)
-                cycles.append(cycle)
-                '''
-
-                #####################################################
-            
-            print (np.max(cycles))
-
+            print (perf)
 
 
 

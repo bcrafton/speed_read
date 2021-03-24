@@ -33,8 +33,8 @@ def expected_error(params, adc_count, row_count, rpr, nrow, bias):
     adc_low  = adc_low.reshape(-1, 1, 1)
     adc_high = adc_high.reshape(-1, 1, 1)
 
-    on_counts  = adc_count[rpr, 0:(rpr + 1), 0:(rpr + 1)]
-    off_counts = np.flip(on_counts, axis=1)
+    # on_counts  = adc_count[rpr, 0:(rpr + 1), 0:(rpr + 1)]
+    # off_counts = np.flip(on_counts, axis=1)
 
     def row(S, E, N):
         if S < E: return np.append( np.arange(S, E+1,  1), [0] * (N - 1 - E + S) )
@@ -44,7 +44,9 @@ def expected_error(params, adc_count, row_count, rpr, nrow, bias):
     N_hrs = np.stack([row(i, 0, rpr + 1) for i in range(rpr + 1)], axis=0)
     
     e = adc - s
-    p = on_counts / np.sum(on_counts)
+    # p = on_counts / np.sum(on_counts)
+    p = adc_count[rpr].astype(np.float32)
+    p = p / np.sum(p)
 
     mu  = N_lrs
     var = (params['lrs'] ** 2. * N_lrs) + (params['hrs'] ** 2. * N_hrs)
