@@ -20,23 +20,16 @@ def ld_to_dl(ld):
 
 ####################
 
-results = np.load('../results8.npy', allow_pickle=True)
-# print (len(results))
+SAR = False
+if SAR: 
+    results = np.load('../results64a.npy', allow_pickle=True)
+    comp_pJ = 20e-15
+else:
+    results = np.load('../results8a.npy', allow_pickle=True)
+    comp_pJ = 50e-15
 
 results = ld_to_dl(results)
 df = pd.DataFrame.from_dict(results)
-
-# print (df.columns)
-# print (df['rpr_alloc'])
-# print (df['example'])
-
-####################
-
-SAR = False
-if SAR: comp_pJ = 20e-15
-else:   comp_pJ = 50e-15
-
-# power plot is problem -> [0, 0], [1, 0] produce same result.
 
 #####################
 # NOTE: FOR QUERIES WITH STRINGS, DONT FORGET ""
@@ -45,7 +38,7 @@ else:   comp_pJ = 50e-15
 
 num_example = 1
 hrss = [0.015]
-lrss = [0.035, 0.05, 0.10]
+lrss = [0.02, 0.04, 0.06, 0.08]
 perf = {}
 power = {}
 error = {}
@@ -65,8 +58,6 @@ for skip, cards, rpr_alloc, thresh in [(1, 0, 'static', 0.25), (1, 1, 'static', 
                 query = '(rpr_alloc == "%s") & (skip == %d) & (cards == %d) & (lrs == %f) & (hrs == %f) & (example == %d) & (thresh == %f)' % (rpr_alloc, skip, cards, lrs, hrs, example, thresh)
                 samples = df.query(query)
 
-                top_per_sec += 2. * np.sum(samples['nmac']) / np.max(samples['cycle']) * 100e6 / 1e12
-
                 e += np.average(samples['error'])
 
                 adcs = samples['adc']
@@ -80,41 +71,52 @@ for skip, cards, rpr_alloc, thresh in [(1, 0, 'static', 0.25), (1, 1, 'static', 
                 top_per_pJ += 2. * np.sum(samples['nmac']) / 1e12 / np.sum(energy)
 
                 ################################################
-                '''
-                max_cycle = 0
-                adc = samples['adc']
-                rpr = samples['rpr']
-                alloc = samples['block_alloc']
-                block_size = samples['block_size']
-                for l in adc.keys():
-                    #################################################
-                    sar = np.arange(1, np.shape(adc[l])[-1])
-                    sar = np.minimum(sar, np.shape(adc[l])[-1] - 2)
-                    sar = 1 + np.floor(np.log2(sar))
-                    sar = np.array([0] + sar.tolist())
-                    #################################################
-                    cycle = np.sum(adc[l] * sar)
-                    #################################################
-                    cycle = cycle / np.sum(alloc[l]) / block_size[l]
-                    #################################################
-                    max_cycle = max(max_cycle, cycle)
-                    #################################################
-                    # print (rpr[l])
-                    #################################################
-                    # hist = np.sum(adc[l], axis=(0,1,2))
-                    # pmf = hist / np.sum(hist)
-                    # print (np.around(pmf * 100))
-                    #################################################
-                '''
-                # print (cards, hrs, lrs, '|', max_cycle, np.max(samples['cycle']))
-                # top_per_sec += 2. * np.sum(samples['nmac']) / max_cycle * 100e6 / 1e12
-                ################################################
+                if SAR:
+                    max_cycle = 0
+                    adc = samples['adc']
+                    rpr = samples['rpr']
+                    alloc = samples['block_alloc']
+                    block_size = samples['block_size']
+                    tops = []
+                    for l in adc.keys():
+                        #################################################
+                        sar = np.arange(1, np.shape(adc[l])[-1])
+                        sar = np.minimum(sar, np.shape(adc[l])[-1] - 2)
+                        sar = 1 + np.floor(np.log2(sar))
+                        sar = np.array([0] + sar.tolist())
+                        #################################################
+                        cycle = np.sum(adc[l] * sar)
+                        #################################################
+                        cycle = cycle / np.sum(alloc[l]) / block_size[l]
+                        #################################################
+                        max_cycle = max(max_cycle, cycle)
+                        #################################################
+                        # print (rpr[l])
+                        #################################################
+                        # hist = np.sum(adc[l], axis=(0,1,2))
+                        # pmf = hist / np.sum(hist)
+                        # print (np.around(pmf * 100))
+                        #################################################
+                        # top = np.array(samples['nmac'][l]) / cycle
+                        # tops.append(top)
+                    ################################################
+                    top_per_sec += 2. * np.sum(samples['nmac']) / max_cycle * 100e6 / 1e12
+                    ################################################
+                else:
+                    top_per_sec += 2. * np.sum(samples['nmac']) / np.max(samples['cycle']) * 100e6 / 1e12
+                    top = np.array(samples['nmac']) / np.array(samples['cycle'])
+                    # print (np.around(top))
 
             perf[(skip, cards, rpr_alloc, thresh)].append(top_per_sec / num_example)
             error[(skip, cards, rpr_alloc, thresh)].append(e / num_example)
             power[(skip, cards, rpr_alloc, thresh)].append(top_per_pJ / num_example)
 
 ######################################
+
+perf1 = np.array(perf[(1, 1, 'static', 0.10)]) / np.array(perf[(1, 0, 'static', 0.25)])
+perf2 = np.array(perf[(1, 1, 'static', 0.25)]) / np.array(perf[(1, 0, 'static', 0.25)])
+print (perf1)
+print (perf2)
 
 color = {
 (0, 0, 'dynamic', 0.10): 'green',

@@ -109,6 +109,13 @@ def static_rpr(id, params, q):
             error_table[xb][wb] = scale * mse
             mean_table[xb][wb] = scale * mean
             delay[xb][wb] = row[xb]
+            
+            '''
+            sar = np.arange(1, params['max_rpr'] + 1)
+            sar = np.minimum(sar, params['adc'] - 1)
+            sar = 1 + np.floor(np.log2(sar))
+            delay[xb][wb] *= sar
+            '''
 
     assert (np.sum(mean_table[:, :, 0]) >= -params['thresh'])
     assert (np.sum(mean_table[:, :, 0]) <=  params['thresh'])

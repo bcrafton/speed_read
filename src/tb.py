@@ -87,14 +87,14 @@ model, x, y = load_resnet(num_example=1, array_params=array_params)
 
 start = time.time()
 
-load_profile_adc = True
+load_profile_adc = False
 if not load_profile_adc:
     profile = model.profile_adc(x)
 
 ##########################
 
 num_runs = len(arch_params)
-parallel_runs = 9
+parallel_runs = 12
 
 thread_results = []
 manager = multiprocessing.Manager()
