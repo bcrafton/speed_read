@@ -26,13 +26,14 @@ cvxopt.solvers.options['msg_lev'] = 'GLP_MSG_ON'
 
 ##########################################
 
-def optimize_rpr(error, mean, delay, threshold):
+def optimize_rpr(error, mean, delay, valid, threshold):
     xb, wb, step, rpr = np.shape(error)
     assert (np.shape(error) == np.shape(delay))
 
     weight1 = np.reshape(error, -1)
     weight2 = np.reshape(mean, -1)
     value = np.reshape(delay, -1)
+    valid = np.reshape(valid, -1)
 
     ##########################################
 
@@ -49,13 +50,15 @@ def optimize_rpr(error, mean, delay, threshold):
     weight_constraint2 = weight2 @ selection <= threshold
     weight_constraint3 = weight2 @ selection >= -threshold
 
+    valid_constraint = valid @ selection == 64
+
     ##########################################
 
     total_value = value @ selection
 
     ##########################################
 
-    knapsack_problem = cvxpy.Problem(cvxpy.Minimize(total_value), select_constraint + [weight_constraint1, weight_constraint2, weight_constraint3])
+    knapsack_problem = cvxpy.Problem(cvxpy.Minimize(total_value), select_constraint + [weight_constraint1, weight_constraint2, weight_constraint3, valid_constraint])
 
     ##########################################
 

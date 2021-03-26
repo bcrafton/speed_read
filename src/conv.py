@@ -149,7 +149,7 @@ class Conv(Layer):
         z_std = np.std(z - z_ref)
         z_error = np.mean(np.absolute(z - z_ref))
 
-        # print (self.error, self.mean)
+        print (self.error, self.mean)
         # print (error * self.ratio / self.q, mean * self.ratio / self.q)
         # print (error / self.q * self.ratio)
         # print (self.params['rpr'])

@@ -87,7 +87,7 @@ model, x, y = load_resnet(num_example=1, array_params=array_params)
 
 start = time.time()
 
-load_profile_adc = False
+load_profile_adc = True
 if not load_profile_adc:
     profile = model.profile_adc(x)
 

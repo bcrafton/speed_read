@@ -28,12 +28,12 @@ def CC():
     array_params = {
     'bpa': 8,
     'bpw': 8,
-    'adc': 64,
+    'adc': 16,
     'adc_mux': 8,
     'wl': 256,
     'bl': 256,
     'offset': 128,
-    'max_rpr': 64,
+    'max_rpr': 16,
     'sar': True,
     'max_step': 2
     }
@@ -44,12 +44,12 @@ def CC():
     'skip': [1],
     'alloc': ['block'],
     'narray': [2 ** 12],
-    'lrs': [0.08], 
+    'lrs': [0.05], 
     'hrs': [0.03],
     'cards': [1],
     'profile': [1],
     'rpr_alloc': ['static'],
-    'thresh': [0.25],
+    'thresh': [0.5],
     }
 
     arch_params2 = {

@@ -27,9 +27,9 @@ inf = 1e10
 
 def expected_error(params, adc_hist, row, step):
 
-    ########################################################################
-
     row = np.reshape(row, (params['max_rpr'], 1, 1))
+
+    ########################################################################
 
     adc      = np.arange(0, params['adc'] + 1, step).astype(np.float32)
     adc_low  = np.array([-inf, 0.2] + (adc[2:] - step / 2.).tolist())
@@ -70,6 +70,12 @@ def expected_error(params, adc_hist, row, step):
     s = np.arange(0, params['max_rpr']+1, dtype=np.float32)
     e = adc - s
 
+    if step == 2:
+        pass
+        # print (np.shape(pe))
+        # print (np.around(pe[:, 0, 16, 8], 2))
+        # print (np.around((pe * e)[:, 0, 16, 0], 2))
+
     assert np.allclose(np.sum(p,      axis=(1, 2)),    1)
     assert np.allclose(np.sum(pe,     axis=0),         1)
     assert np.allclose(np.sum(pe * p, axis=(0, 2, 3)), 1)
@@ -109,12 +115,11 @@ def static_rpr(id, params, q):
                 error_table[xb][wb][step-1] = scale * mse
                 mean_table[xb][wb][step-1] = scale * mean
                 delay[xb][wb][step-1] = row[xb]
-                
+
                 if params['sar']:
                     sar = np.arange(1, params['max_rpr'] + 1)
-                    sar = np.minimum(sar, params['adc'] - 1)
-                    sar = np.ceil(sar / step)
-                    sar = 1 + np.floor(np.log2(sar))
+                    sar = np.minimum(sar, params['adc'])
+                    sar = 1 + np.floor(np.log2(sar)) // step
                     delay[xb][wb][step-1] *= sar
 
     assert (np.sum(mean_table[:, :, 0, 0]) >= -params['thresh'])
@@ -139,7 +144,11 @@ def static_rpr(id, params, q):
     cycle = np.zeros(shape=(8, 8))
 
     if params['skip'] and params['cards']:
-        rpr_lut = optimize_rpr(error_table, mean_table, delay, params['thresh'])
+        rpr_range  = np.arange(1, params['max_rpr'] + 1).reshape(1, -1)
+        step_range = np.arange(1, params['max_step'] + 1).reshape(-1, 1)
+        step_mask  = np.minimum(params['adc'], rpr_range) >= step_range
+        valid = np.ones_like(error_table) * step_mask
+        rpr_lut = optimize_rpr(error_table, mean_table, delay, valid, params['thresh'])
 
     for wb in range(params['bpw']):
         for xb in range(params['bpa']):
