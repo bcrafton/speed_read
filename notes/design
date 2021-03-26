@@ -4941,7 +4941,10 @@ we should compare the result with tensorflow.
 
 make sure we dont count comparators where 0 WL are enabled
 
+====================
 
+(1) only allow valid step / rpr combos
+(2) pe is definitely broken.
 
 
 

@@ -86,7 +86,7 @@ class Conv(Layer):
         elif self.params['rpr_alloc'] == 'dynamic':
             pass
         elif self.params['rpr_alloc'] == 'static':
-            self.params['rpr'], self.error, self.mean = static_rpr(self.layer_id, self.params, self.q)
+            self.params['rpr'], self.params['step'], self.error, self.mean = static_rpr(self.layer_id, self.params, self.q)
         else:
             assert (False)
 
@@ -205,16 +205,12 @@ class Conv(Layer):
         elif self.params['alloc'] == 'layer': alloc = self.layer_alloc
         
         if self.params['rpr_alloc'] == 'centroids':
-            y, metrics = pim(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], alloc, self.adc_state, self.adc_thresh, self.params)
-            y = np.reshape(y, (yh, yw, self.fn))
-            y = y / 4
+            assert (False)
         elif self.params['rpr_alloc'] == 'dynamic':
-            # want to pass some table to C instead of computing stuff inside.
-            y, metrics = pim_dyn(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], alloc, self.params)
-            y = np.reshape(y, (yh, yw, self.fn))
+            assert (False)
         elif self.params['rpr_alloc'] == 'static':
             # think we want to pass a bias table
-            y, metrics = pim_static(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], alloc, self.params)
+            y, metrics = pim_static(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], self.params['step'], alloc, self.params)
             y = np.reshape(y, (yh, yw, self.fn))
         else:
             assert (False)

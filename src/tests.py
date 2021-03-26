@@ -33,7 +33,9 @@ def CC():
     'wl': 256,
     'bl': 256,
     'offset': 128,
-    'max_rpr': 128,
+    'max_rpr': 64,
+    'sar': True,
+    'max_step': 2
     }
 
     # 'hrs': [0.50 / 10., 0.48 / 18., 0.35 / 30.],
@@ -42,20 +44,20 @@ def CC():
     'skip': [1],
     'alloc': ['block'],
     'narray': [2 ** 12],
-    'lrs': [0.02, 0.04, 0.06, 0.08, 0.10], 
-    'hrs': [0.03, 0.015],
+    'lrs': [0.08], 
+    'hrs': [0.03],
     'cards': [1],
     'profile': [1],
     'rpr_alloc': ['static'],
-    'thresh': [0.10, 0.25],
+    'thresh': [0.25],
     }
 
     arch_params2 = {
     'skip': [1],
     'alloc': ['block'],
     'narray': [2 ** 12],
-    'lrs': [0.02, 0.04, 0.06, 0.08], 
-    'hrs': [0.03, 0.015],
+    'lrs': [0.02], 
+    'hrs': [0.015],
     'cards': [0],
     'profile': [1],
     'rpr_alloc': ['static'],
@@ -64,7 +66,7 @@ def CC():
 
     arch_params1 = perms(arch_params1)
     arch_params2 = perms(arch_params2)
-    arch_params = arch_params1 + arch_params2
+    arch_params = arch_params1 # + arch_params2
     return array_params, arch_params
     
 #######################################################

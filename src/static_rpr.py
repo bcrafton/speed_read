@@ -25,29 +25,27 @@ def cdf(x, mu, sd):
 eps = 1e-10
 inf = 1e10
 
-def expected_error(params, adc_hist, row):
+def expected_error(params, adc_hist, row, step):
 
     ########################################################################
 
     row = np.reshape(row, (params['max_rpr'], 1, 1))
 
-    adc      = np.arange(params['adc'] + 1, dtype=np.float32)
-    adc_low  = np.array([-inf, 0.2] + (adc[2:] - 0.5).tolist())
-    adc_high = np.array([0.2]       + (adc[2:] - 0.5).tolist() + [inf])
+    adc      = np.arange(0, params['adc'] + 1, step).astype(np.float32)
+    adc_low  = np.array([-inf, 0.2] + (adc[2:] - step / 2.).tolist())
+    adc_high = np.array([0.2]       + (adc[2:] - step / 2.).tolist() + [inf])
     
-    adc      =      adc.reshape(params['adc']+1, 1, 1, 1)
-    adc_low  =  adc_low.reshape(params['adc']+1, 1, 1, 1)
-    adc_high = adc_high.reshape(params['adc']+1, 1, 1, 1)
+    adc      =      adc.reshape(params['adc']//step+1, 1, 1, 1)
+    adc_low  =  adc_low.reshape(params['adc']//step+1, 1, 1, 1)
+    adc_high = adc_high.reshape(params['adc']//step+1, 1, 1, 1)
 
     ########################################################################
 
-    RPR = params['max_rpr']
-    
-    N_lrs = np.zeros(shape=(RPR + 1, RPR + 1))
-    N_hrs = np.zeros(shape=(RPR + 1, RPR + 1))
+    N_lrs = np.zeros(shape=(params['max_rpr'] + 1, params['max_rpr'] + 1))
+    N_hrs = np.zeros(shape=(params['max_rpr'] + 1, params['max_rpr'] + 1))
 
-    for j in range(RPR + 1):
-        for k in range(RPR + 1):
+    for j in range(params['max_rpr'] + 1):
+        for k in range(params['max_rpr'] + 1):
             N_lrs[j, k] = (k    ) if (k <= j) else 0
             N_hrs[j, k] = (j - k) if (k <= j) else 0
 
@@ -90,10 +88,11 @@ def static_rpr(id, params, q):
     ############
 
     rpr_lut = np.ones(shape=(8, 8), dtype=np.int32) * params['adc']
+    step_lut = np.ones(shape=(8, 8), dtype=np.int32)
 
-    delay       = np.zeros(shape=(8, 8, params['max_rpr']))
-    error_table = np.zeros(shape=(8, 8, params['max_rpr']))
-    mean_table  = np.zeros(shape=(8, 8, params['max_rpr']))
+    delay       = np.zeros(shape=(8, 8, params['max_step'], params['max_rpr']))
+    error_table = np.zeros(shape=(8, 8, params['max_step'], params['max_rpr']))
+    mean_table  = np.zeros(shape=(8, 8, params['max_step'], params['max_rpr']))
 
     profile = np.load('./profile/%d.npy' % (id), allow_pickle=True).item()
     adc = profile['adc']
@@ -102,24 +101,25 @@ def static_rpr(id, params, q):
 
     for wb in range(params['bpw']):
         for xb in range(params['bpa']):
-            mse, mean = expected_error(params, adc[xb][wb], row[xb])
-            assert np.all(mse >= np.abs(mean))
-            
-            scale = 2**wb * 2**xb / q * ratio
-            error_table[xb][wb] = scale * mse
-            mean_table[xb][wb] = scale * mean
-            delay[xb][wb] = row[xb]
-            
-            '''
-            sar = np.arange(1, params['max_rpr'] + 1)
-            sar = np.minimum(sar, params['adc'] - 1)
-            sar = 1 + np.floor(np.log2(sar))
-            delay[xb][wb] *= sar
-            '''
+            for step in range(1, params['max_step'] + 1):
+                mse, mean = expected_error(params, adc[xb][wb], row[xb], step)
+                assert np.all(mse >= np.abs(mean))
+                
+                scale = 2**wb * 2**xb / q * ratio
+                error_table[xb][wb][step-1] = scale * mse
+                mean_table[xb][wb][step-1] = scale * mean
+                delay[xb][wb][step-1] = row[xb]
+                
+                if params['sar']:
+                    sar = np.arange(1, params['max_rpr'] + 1)
+                    sar = np.minimum(sar, params['adc'] - 1)
+                    sar = np.ceil(sar / step)
+                    sar = 1 + np.floor(np.log2(sar))
+                    delay[xb][wb][step-1] *= sar
 
-    assert (np.sum(mean_table[:, :, 0]) >= -params['thresh'])
-    assert (np.sum(mean_table[:, :, 0]) <=  params['thresh'])
-    assert (np.sum(np.min(error_table, axis=2)) <= params['thresh'])
+    assert (np.sum(mean_table[:, :, 0, 0]) >= -params['thresh'])
+    assert (np.sum(mean_table[:, :, 0, 0]) <=  params['thresh'])
+    assert (np.sum(np.min(error_table, axis=(2, 3))) <= params['thresh'])
 
     # KeyError: 'infeasible problem'
     # https://stackoverflow.com/questions/46246349/infeasible-solution-for-an-lp-even-though-there-exists-feasible-solutionusing-c
@@ -140,19 +140,17 @@ def static_rpr(id, params, q):
 
     if params['skip'] and params['cards']:
         rpr_lut = optimize_rpr(error_table, mean_table, delay, params['thresh'])
-        for wb in range(params['bpw']):
-            for xb in range(params['bpa']):
-                rpr = rpr_lut[xb][wb]
 
     for wb in range(params['bpw']):
         for xb in range(params['bpa']):
             rpr = rpr_lut[xb][wb]
-            error[xb][wb] = error_table[xb][wb][rpr-1]
-            mean[xb][wb] = mean_table[xb][wb][rpr-1]
-            cycle[xb][wb] = delay[xb][wb][rpr-1]
+            step = step_lut[xb][wb] 
+            error[xb][wb] = error_table[xb][wb][step-1][rpr-1]
+            mean[xb][wb]  =  mean_table[xb][wb][step-1][rpr-1]
+            cycle[xb][wb] =       delay[xb][wb][step-1][rpr-1]
 
     assert (np.sum(error) >= np.sum(np.abs(mean)))
-    return rpr_lut, np.sum(error), np.sum(mean)
+    return rpr_lut, step_lut, np.sum(error), np.sum(mean)
     
     
 ##########################################

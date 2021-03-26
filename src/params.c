@@ -1,7 +1,7 @@
 
 #include "pim.h"
 
-Params::Params(int R, int B, int C, int NWL, int NBL, int WL, int BL, int adc, int max_rpr, float* adc_state, float* adc_thresh, float* lut_var, int* lut_rpr, int* lut_bias, long* metrics, int sync, int method, int skip) {
+Params::Params(int R, int B, int C, int NWL, int NBL, int WL, int BL, int adc, int max_rpr, float* adc_state, float* adc_thresh, float* lut_var, int* lut_rpr, int* lut_step, long* metrics, int sync, int method, int skip) {
   this->R = R;
   this->B = B;
   this->C = C;
@@ -19,7 +19,7 @@ Params::Params(int R, int B, int C, int NWL, int NBL, int WL, int BL, int adc, i
   
   this->lut_var = lut_var;
   this->lut_rpr = lut_rpr;
-  this->lut_bias = lut_bias;
+  this->lut_step = lut_step;
 
   this->metrics = metrics;
   

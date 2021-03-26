@@ -27,7 +27,7 @@ cvxopt.solvers.options['msg_lev'] = 'GLP_MSG_ON'
 ##########################################
 
 def optimize_rpr(error, mean, delay, threshold):
-    xb, wb, rpr = np.shape(error)
+    xb, wb, step, rpr = np.shape(error)
     assert (np.shape(error) == np.shape(delay))
 
     weight1 = np.reshape(error, -1)
@@ -36,11 +36,11 @@ def optimize_rpr(error, mean, delay, threshold):
 
     ##########################################
 
-    selection = cvxpy.Variable((xb * wb * rpr), boolean=True)
+    selection = cvxpy.Variable((xb * wb * step * rpr), boolean=True)
     select_constraint = []
-    for i in range(0, xb * wb * rpr, rpr):
+    for i in range(0, xb * wb * step * rpr, step * rpr):
         # print (i, i + rpr)
-        select_constraint.append( cvxpy.sum(selection[i : i + rpr]) == 1 )
+        select_constraint.append( cvxpy.sum(selection[i : i + step * rpr]) == 1 )
 
     ##########################################
 
@@ -74,14 +74,29 @@ def optimize_rpr(error, mean, delay, threshold):
     ##########################################
 
     select = np.array(selection.value, dtype=np.int32)
-    rpr_lut = np.reshape(select, (xb, wb, rpr))
+    select = np.reshape(select, (xb, wb, step, rpr))
 
-    ones = np.sum(rpr_lut, axis=2)
+    # check 1
+    ones = np.sum(select, axis=(2, 3))
     assert (np.all(ones == 1))
+    # check 2
+    ones = np.sum(select)
+    assert (ones == 64)
 
+    ##########################################
+    
     scale = np.arange(1, rpr + 1, dtype=np.int32)
-    rpr_lut = np.sum(rpr_lut * scale, axis=2)
+    rpr_lut = np.sum(select * scale, axis=(2, 3))
     assert (np.all(rpr_lut > 0))
+
+    ##########################################
+
+    scale = np.arange(1, step + 1, dtype=np.int32).reshape(-1, 1)
+    step_lut = np.sum(select * scale, axis=(2, 3))
+    assert (np.all(step_lut > 0))
+
+    print (step_lut)
+    print (rpr_lut)
 
     ##########################################
     

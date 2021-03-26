@@ -179,7 +179,7 @@ def pim_dyn(x, w, y_shape, lut_var, lut_rpr, alloc, params):
 
 ###########################
 
-def pim_static(x, w, y_shape, lut_var, lut_rpr, alloc, params):
+def pim_static(x, w, y_shape, lut_var, lut_rpr, lut_step, alloc, params):
     nrow, nwl, wl, xb = np.shape(x)
     nwl, wl, nbl, bl = np.shape(w) # nwl, nbl, wl, bl
     nrow, ncol = y_shape
@@ -195,10 +195,8 @@ def pim_static(x, w, y_shape, lut_var, lut_rpr, alloc, params):
     y = np.ascontiguousarray(y, np.int32)
     lut_var = np.ascontiguousarray(lut_var, np.float32)
     lut_rpr = np.ascontiguousarray(lut_rpr, np.int32)
+    lut_step = np.ascontiguousarray(lut_step, np.int32)
     metrics = np.ascontiguousarray(metrics, np.int64)
-
-    lut_bias = np.zeros(shape=64)
-    lut_bias = np.ascontiguousarray(lut_bias, np.int32)
 
     # self.adc_state = np.zeros(shape=(rpr_high + 1, self.params['adc'] + 1))
     # self.adc_thresh = np.zeros(shape=(rpr_high + 1, self.params['adc'] + 1))
@@ -240,7 +238,7 @@ def pim_static(x, w, y_shape, lut_var, lut_rpr, alloc, params):
     ctypes.c_void_p(y.ctypes.data), 
     ctypes.c_void_p(lut_var.ctypes.data), 
     ctypes.c_void_p(lut_rpr.ctypes.data), 
-    ctypes.c_void_p(lut_bias.ctypes.data),
+    ctypes.c_void_p(lut_step.ctypes.data),
     ctypes.c_void_p(metrics.ctypes.data), 
     ctypes.c_void_p(block_map.ctypes.data),
     ctypes.c_void_p(adc_state.ctypes.data), 

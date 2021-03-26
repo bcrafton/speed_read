@@ -110,8 +110,16 @@ int Array::pim_base(int row, int col, int xb, int rpr) {
   return 0;
 }
 
+int sar(float v, int adc, int rpr, int step) {
+    int sat = min(adc, rpr);
+    int quant = max(0, round(v / step) * step);
+    int out = min(quant, sat);
+    return out;
+}
+
 int Array::process(int row, int col, int xb, int rpr) {
 
+  int step = params->lut_step[xb * 8 + col];
   for (int adc_ptr=0; adc_ptr<this->params->BL; adc_ptr+=8) {
     int bl_ptr = adc_ptr + col;
     int c = (bl_ptr + this->array_id * this->params->BL) / 8;
@@ -134,7 +142,8 @@ int Array::process(int row, int col, int xb, int rpr) {
         pdot_adc = 1;
       }
       else {
-        pdot_adc = min(max((int) round(pdot_var), 0), min(this->params->adc, rpr));
+        // pdot_adc = min(max((int) round(pdot_var), 0), min(this->params->adc, rpr));
+        pdot_adc = sar(pdot_var, this->params->adc, rpr, step);
       }
     }
 
@@ -181,50 +190,10 @@ int Array::collect(int row, int col, int xb, int rpr) {
 
 int Array::correct(int row, int col, int xb, int rpr) {
   assert (this->wl_ptr == this->params->WL);
-
-  if (this->wl_total) {
-    for (int adc_ptr=0; adc_ptr<this->params->BL; adc_ptr+=8) {
-      int bl_ptr = adc_ptr + col;
-      int c = (bl_ptr + this->array_id * this->params->BL) / 8;
-      int wb = col;
-
-      float p = ((float) this->pdot_sum[bl_ptr]) / ((float) this->wl_total);
-      p = min(max(p, 0.), 1.);
-      int e = sat_error(p, this->params->adc, rpr);
-
-      int yaddr = row * this->params->C + c;
-      int bias = this->sat[bl_ptr] * e;
-      assert (bias <= 0.);
-      this->y[yaddr] -= (bias << (wb + xb));
-
-      this->sat[bl_ptr] = 0;
-      this->pdot_sum[bl_ptr] = 0;
-    }
-  }
-
 }
 
 int Array::correct_static(int row, int col, int xb, int rpr) {
   assert (this->wl_ptr == this->params->WL);
-
-  for (int adc_ptr=0; adc_ptr<this->params->BL; adc_ptr+=8) {
-    int bl_ptr = adc_ptr + col;
-    int c = (bl_ptr + this->array_id * this->params->BL) / 8;
-    int wb = col;
-
-    int yaddr = row * this->params->C + c;
-    // int bias = (this->sat[bl_ptr] * this->params->lut_bias[rpr]) / 256;
-    float bias_float = (this->sat[bl_ptr] * this->params->lut_bias[8 * xb + wb]) / 256.;
-    int bias = (int) round(bias_float);
-    assert (bias >= 0.);
-    this->y[yaddr] += (bias << (wb + xb));
-
-    // if (this->sat[bl_ptr]) {printf("%d %d %d %d\n", xb, wb, rpr, this->params->lut_bias[8 * xb + wb]);}
-    // printf("%d %d\n", this->sat[bl_ptr], this->params->lut_bias[rpr]);
-
-    this->sat[bl_ptr] = 0;
-    this->pdot_sum[bl_ptr] = 0;
-  }
 }
 
 
