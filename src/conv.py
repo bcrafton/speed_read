@@ -82,68 +82,26 @@ class Conv(Layer):
         self.params['var'] = lut_var(params['lrs'], params['hrs'], self.params['max_rpr'])
 
         if self.params['rpr_alloc'] == 'centroids':
-            # cfg = KmeansConfig(low=1, high=64, params=self.params, adc_count=self.adc_count, row_count=self.row_count, nrow=self.fh * self.fw * self.fc, q=self.q)
-            # self.params['rpr'], self.adc_state, self.adc_thresh = cfg.rpr()
-
-            # without a seed, this can produce different rpr tables between runs.
-            # we piped (below) over several iterations
-            # y_mean %f y_error %f y_max %f y_min %f
-            # %d: alloc: %d nmac %d cycle: %d stall: %d
-            # self.params['rpr'] or lut_rpr
-            # and saw the different rpr tables leading to different execution times.
-
-            self.params['rpr'], self.adc_state, self.adc_thresh = kmeans_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, nrow=self.fh * self.fw * self.fc, q=self.q, ratio=self.ratio)
-
+            pass
         elif self.params['rpr_alloc'] == 'dynamic':
-            ## TODO: cant this be "self.wb" and cant we throw it in a different function ??
-            '''
-            w_offset = self.w + self.params['offset']
-            wb = []
-            for bit in range(self.params['bpw']):
-                wb.append(np.bitwise_and(np.right_shift(w_offset, bit), 1))
-            wb = np.stack(wb, axis=-1)
-
-            wb_cols = np.reshape(wb, (self.fh * self.fw * self.fc, self.fn, self.params['bpw']))
-            col_density = np.mean(wb_cols, axis=0)
-
-            nrow = self.fh * self.fw * self.fc
-            p = np.max(col_density, axis=0)
-            self.params['rpr'] = dynamic_rpr(nrow=nrow, p=p, q=self.q, params=self.params)
-            '''
-            self.params['rpr'], _, self.error, self.mean = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, nrow=self.fh * self.fw * self.fc, q=self.q, ratio=self.ratio)
-
+            pass
         elif self.params['rpr_alloc'] == 'static':
-            self.params['rpr'], self.lut_bias, self.error, self.mean = static_rpr(low=1, high=self.params['max_rpr'], params=self.params, adc_count=self.adc_count, row_count=self.row_count, nrow=self.fh * self.fw * self.fc, q=self.q, ratio=self.ratio)
-            self.lut_bias = self.lut_bias * 256
-            self.lut_bias = self.lut_bias.astype(np.int32)
+            self.params['rpr'], self.error, self.mean = static_rpr(self.layer_id, self.params, self.q)
         else:
             assert (False)
 
-    def set_profile_adc(self, counts):
-        self.adc_count = counts[self.layer_id]['adc']
-        self.row_count = counts[self.layer_id]['row']
-        self.ratio = counts[self.layer_id]['ratio']
-
     def profile_adc(self, x):
-        rpr_low = 1
-        rpr_high = self.params['max_rpr']
+        # x
         patches = self.transform_inputs(x)
-        npatch, nwl, wl, xb = np.shape(patches)
-
-        rpr  = np.arange(rpr_low, rpr_high + 1)
-        nrow = np.sum(patches, axis=2)
-        nrow = nrow.reshape(npatch, nwl, xb, 1)
-        nrow = np.ceil(nrow / rpr)
-        nrow = np.clip(nrow, 1, np.inf)
-        nrow = np.sum(nrow, axis=1)
-        nrow = np.mean(nrow, axis=0)
-        
-        # _, self.adc_count, self.row_count = profile(patches, self.wb, (self.yh * self.yw, self.fn), rpr_low, rpr_high, self.params)
-        
+        # w 
+        w = self.wb
+        # y
         y_ref = conv_ref(x=x, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2, relu_flag=self.relu_flag)
         y_ref = self.act(y_ref, quantize_flag=self.quantize_flag)
-        ratio = np.count_nonzero(y_ref) / np.prod(np.shape(y_ref))
-        return y_ref, {self.layer_id: (patches, self.wb, (self.yh * self.yw, self.fn), rpr_low, rpr_high, self.params)}, {self.layer_id: ratio}, {self.layer_id: nrow}
+        # y_shape
+        y_shape = (self.yh * self.yw, self.c)
+
+        return y_ref, [(self.layer_id, patches, self.wb, y_ref, y_shape, self.params)]
 
     def set_block_alloc(self, block_alloc):
         self.block_alloc = block_alloc
@@ -191,8 +149,8 @@ class Conv(Layer):
         z_std = np.std(z - z_ref)
         z_error = np.mean(np.absolute(z - z_ref))
 
-        print (self.error, self.mean)
-        print (error * self.ratio / self.q, mean * self.ratio / self.q)
+        # print (self.error, self.mean)
+        # print (error * self.ratio / self.q, mean * self.ratio / self.q)
         # print (error / self.q * self.ratio)
         # print (self.params['rpr'])
 
@@ -256,7 +214,7 @@ class Conv(Layer):
             y = np.reshape(y, (yh, yw, self.fn))
         elif self.params['rpr_alloc'] == 'static':
             # think we want to pass a bias table
-            y, metrics = pim_static(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], alloc, self.lut_bias, self.params)
+            y, metrics = pim_static(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], alloc, self.params)
             y = np.reshape(y, (yh, yw, self.fn))
         else:
             assert (False)
@@ -274,10 +232,9 @@ class Conv(Layer):
         results['wl']          = metrics[3]
         results['stall']       = metrics[4]
 
-        results['block_cycle'] = metrics[5:][:nwl*yh*yw]
-        results['block_cycle'] = np.reshape(results['block_cycle'], (yh*yw, nwl))
+        results['block_cycle'] = metrics[5:][:nwl]
 
-        results['adc'] = metrics[5+nwl*yh*yw:]
+        results['adc'] = metrics[5+nwl:]
         results['adc'] = np.reshape(results['adc'], (8, 8, nwl, self.params['adc'] + 1))
 
         results['density'] = np.count_nonzero(patches) / np.prod(np.shape(patches)) * (self.params['wl'] / min(self.fh * self.fw * self.fc, self.params['wl']))

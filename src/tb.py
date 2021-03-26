@@ -88,16 +88,8 @@ model, x, y = load_resnet(num_example=1, array_params=array_params)
 start = time.time()
 
 load_profile_adc = True
-
 if not load_profile_adc:
-    profile = model.profile_adc(x=x)
-    np.save('profile_adc', profile)
-else:
-    # print (list(np.load('profile.npz').keys()))
-    profile = np.load('profile.npz', allow_pickle=True)['arr_0'].item()
-    print (profile.keys())
-
-model.set_profile_adc(profile)
+    profile = model.profile_adc(x)
 
 ##########################
 

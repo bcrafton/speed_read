@@ -25,11 +25,11 @@ def cdf(x, mu, sd):
 eps = 1e-10
 inf = 1e10
 
-def expected_error(params, adc_hist, row):
+def expected_error(params, adc_count, nrow):
 
     ########################################################################
 
-    row = np.reshape(row, (params['max_rpr'], 1, 1))
+    nrow = np.reshape(nrow, (params['max_rpr'], 1, 1))
 
     adc      = np.arange(params['adc'] + 1, dtype=np.float32)
     adc_low  = np.array([-inf, 0.2] + (adc[2:] - 0.5).tolist())
@@ -53,7 +53,7 @@ def expected_error(params, adc_hist, row):
 
     ########################################################################
 
-    p = adc_hist[1:].astype(np.float32)
+    p = adc_count[1:].astype(np.float32)
     p = p / np.sum(p, axis=(1, 2), keepdims=True)
 
     ########################################################################
@@ -62,8 +62,8 @@ def expected_error(params, adc_hist, row):
     var = (params['lrs'] ** 2. * N_lrs) + (params['hrs'] ** 2. * N_hrs)
     sd  = np.sqrt(var)
 
-    p_h = norm.cdf(adc_high, mu, np.maximum(sd, eps))
-    p_l = norm.cdf(adc_low, mu, np.maximum(sd, eps))
+    p_h = cdf(adc_high, mu, np.maximum(sd, eps))
+    p_l = cdf(adc_low, mu, np.maximum(sd, eps))
     pe = np.clip(p_h - p_l, 0, 1)
     pe = pe / np.sum(pe, axis=0, keepdims=True)
 
@@ -76,7 +76,7 @@ def expected_error(params, adc_hist, row):
     assert np.allclose(np.sum(pe,     axis=0),         1)
     assert np.allclose(np.sum(pe * p, axis=(0, 2, 3)), 1)
 
-    error = p * pe * e * row
+    error = p * pe * e * nrow
     mse  = np.sum(np.absolute(error), axis=(0, 2, 3))
     mean = np.sum(           (error), axis=(0, 2, 3))
 
@@ -84,31 +84,35 @@ def expected_error(params, adc_hist, row):
 
 ##########################################
 
-def static_rpr(id, params, q):
+def static_rpr(low, high, params, adc_count, row_count, nrow, q, ratio):
     assert (q > 0)
 
     ############
 
     rpr_lut = np.ones(shape=(8, 8), dtype=np.int32) * params['adc']
+    bias_lut = np.zeros(shape=(8, 8), dtype=np.float32)
 
-    delay       = np.zeros(shape=(8, 8, params['max_rpr']))
-    error_table = np.zeros(shape=(8, 8, params['max_rpr']))
-    mean_table  = np.zeros(shape=(8, 8, params['max_rpr']))
-
-    profile = np.load('./profile/%d.npy' % (id), allow_pickle=True).item()
-    adc = profile['adc']
-    row = np.maximum(1, profile['row'])
-    ratio = profile['ratio']
+    delay       = np.zeros(shape=(8, 8, high))
+    error_table = np.zeros(shape=(8, 8, high))
+    mean_table = np.zeros(shape=(8, 8, high))
+    bias_table  = np.zeros(shape=(8, 8, high))
 
     for wb in range(params['bpw']):
         for xb in range(params['bpa']):
-            mse, mean = expected_error(params, adc[xb][wb], row[xb])
+            print (xb, wb)
+            total_row = np.maximum(1, row_count[xb])
+            delay[xb][wb] = row_count[xb]
+
+            start = time.time()
+            mse, mean = expected_error(params=params, adc_count=adc_count[xb][wb], nrow=total_row)
             assert np.all(mse >= np.abs(mean))
+            # print (np.around(mse))
+            # print (mean)
+            print (time.time() - start)
             
             scale = 2**wb * 2**xb / q * ratio
             error_table[xb][wb] = scale * mse
             mean_table[xb][wb] = scale * mean
-            delay[xb][wb] = row[xb]
 
     assert (np.sum(mean_table[:, :, 0]) >= -params['thresh'])
     assert (np.sum(mean_table[:, :, 0]) <=  params['thresh'])
@@ -136,6 +140,7 @@ def static_rpr(id, params, q):
         for wb in range(params['bpw']):
             for xb in range(params['bpa']):
                 rpr = rpr_lut[xb][wb]
+                bias_lut[xb][wb] = bias_table[xb][wb][rpr - 1]
 
     for wb in range(params['bpw']):
         for xb in range(params['bpa']):
@@ -145,7 +150,7 @@ def static_rpr(id, params, q):
             cycle[xb][wb] = delay[xb][wb][rpr-1]
 
     assert (np.sum(error) >= np.sum(np.abs(mean)))
-    return rpr_lut, np.sum(error), np.sum(mean)
+    return rpr_lut, bias_lut, np.sum(error), np.sum(mean)
     
     
 ##########################################

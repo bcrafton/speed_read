@@ -25,12 +25,9 @@ class Layer:
     def init(self, params):
         pass
         
-    def set_profile_adc(self, counts):
-        pass
-        
     def profile_adc(self, x):
         y, _, _ = self.forward(x=x, x_ref=x)
-        return y, {}, {}, {}
+        return y, []
         
     def nblock(self):
         return 0

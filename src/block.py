@@ -38,23 +38,14 @@ class Block1(Layer):
         self.conv2.set_profile_adc(counts)
 
     def profile_adc(self, x):
-        y1, c1, r1, n1 = self.conv1.profile_adc(x)
-        y2, c2, r2, n2 = self.conv2.profile_adc(y1)
+        y1, arg1 = self.conv1.profile_adc(x)
+        y2, arg2 = self.conv2.profile_adc(y1)
         y3 = self.act(relu(self.s * x + self.s2 * y2))
         
-        count = {}
-        count.update(c1)
-        count.update(c2)
-        
-        ratio = {}
-        ratio.update(r1)
-        ratio.update(r2)
-
-        row = {}
-        row.update(n1)
-        row.update(n2)
-
-        return y3, count, ratio, row
+        args = []
+        args.extend(arg1)
+        args.extend(arg2)
+        return y3, args
 
     def act(self, x):
         out = x
@@ -118,27 +109,16 @@ class Block2(Layer):
         self.conv3.set_profile_adc(counts)
 
     def profile_adc(self, x):
-        y1, c1, r1, n1 = self.conv1.profile_adc(x)
-        y2, c2, r2, n2 = self.conv2.profile_adc(y1)
-        y3, c3, r3, n3 = self.conv3.profile_adc(x)
+        y1, arg1 = self.conv1.profile_adc(x)
+        y2, arg2 = self.conv2.profile_adc(y1)
+        y3, arg3 = self.conv3.profile_adc(x)
         y4 = self.act(relu(self.s2 * y2 + self.s3 * y3))
         
-        count = {}
-        count.update(c1)
-        count.update(c2)
-        count.update(c3)
-
-        ratio = {}
-        ratio.update(r1)
-        ratio.update(r2)
-        ratio.update(r3)
-
-        row = {}
-        row.update(n1)
-        row.update(n2)
-        row.update(n3)
-
-        return y4, count, ratio, row
+        args = []
+        args.extend(arg1)
+        args.extend(arg2)
+        args.extend(arg3)
+        return y4, args
 
     def act(self, x):
         out = x

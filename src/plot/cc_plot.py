@@ -20,8 +20,8 @@ def ld_to_dl(ld):
 
 ####################
 
-SAR = True
-results = np.load('../results64.npy', allow_pickle=True)
+results = np.load('../results32.npy', allow_pickle=True)
+# print (len(results))
 
 results = ld_to_dl(results)
 df = pd.DataFrame.from_dict(results)
@@ -32,7 +32,7 @@ df = pd.DataFrame.from_dict(results)
 
 ####################
 
-comp_pJ = 22. * 1e-12 / 32. / 16.
+comp_pJ = 50e-15
 
 # power plot is problem -> [0, 0], [1, 0] produce same result.
 
@@ -41,75 +41,106 @@ comp_pJ = 22. * 1e-12 / 32. / 16.
 # '(rpr_alloc == "%s")' NOT '(rpr_alloc == %s)'
 #####################
 
-###############################################################
+num_example = 1
+hrss = [0.015]
+lrss = [0.035, 0.05, 0.10]
+perf = {}
+power = {}
+error = {}
 
-# block  = NWL * [DUPLICATE]
-# vector = [ROW, NWL]
-def compute_cycles(alloc, vector):
-    ROW, NWL = np.shape(vector)
-    assert (np.shape(alloc) == (NWL,))
-    #################################################
-    block_cycles = [np.zeros(COPY) for COPY in alloc]
-    #################################################
-    for row in range(ROW):
-        for block in range(NWL):
-            copy = np.argmin(block_cycles[block])
-            block_cycles[block][copy] += vector[row][block]
-    #################################################
-    cycles = np.zeros(shape=NWL)
-    for block in range(NWL):
-        cycles[block] = np.max(block_cycles[block])
-    return np.max(cycles)
+for skip, cards, rpr_alloc, thresh in [(1, 0, 'static', 0.25), (1, 1, 'static', 0.10), (1, 1, 'static', 0.25)]:
+    perf[(skip, cards, rpr_alloc, thresh)]  = []
+    power[(skip, cards, rpr_alloc, thresh)] = []
+    error[(skip, cards, rpr_alloc, thresh)] = []
 
-###############################################################
+    for hrs in hrss:
+        for lrs in lrss:
+            e = 0.
+            top_per_sec = 0.
+            top_per_pJ = 0.
 
-def close(a, b, tol=1e-9):
-    return pd.DataFrame.abs(a - b) < tol
+            for example in range(num_example):
+                query = '(rpr_alloc == "%s") & (skip == %d) & (cards == %d) & (lrs == %f) & (hrs == %f) & (example == %d) & (thresh == %f)' % (rpr_alloc, skip, cards, lrs, hrs, example, thresh)
+                samples = df.query(query)
 
-###############################################################
+                top_per_sec += 2. * np.sum(samples['nmac']) / np.max(samples['cycle']) * 100e6 / 1e12
 
-for cards, thresh in [(0, 0.10), (1, 0.10)]:
-    for lrs in [0.035, 0.10]:
-        for hrs in [0.05, 0.02]:
-            print ()
-            print (cards, thresh, lrs, hrs)
+                e += np.average(samples['error'])
 
-            query = '(cards == %d) & (thresh == %f) & (lrs == %f) & (hrs == %f)' % (cards, thresh, lrs, hrs)
-            samples = df.query(query)
-            # print (len(samples))
-            total_mac = np.sum(samples['nmac'])
+                adcs = samples['adc']
+                adc = []
+                for a in adcs:
+                    adc.append(np.sum(a, axis=(0, 1, 2)))
+                adc = np.stack(adc, axis=0)
+                comps = np.arange(np.shape(adc)[-1])
+                energy = np.sum(comps * adc * comp_pJ * (256 / 8), axis=1)
+                # energy += samples['ron'] * 2e-16
+                # energy += samples['roff'] * 2e-16
+                top_per_pJ += 2. * np.sum(samples['nmac']) / 1e12 / np.sum(energy)
 
-            '''
-            samples = pd.DataFrame.copy(df)
-            samples = samples[close(samples['cards'],  cards)]
-            samples = samples[close(samples['thresh'], thresh)]
-            samples = samples[close(samples['lrs'],    lrs)]
-            samples = samples[close(samples['hrs'],    hrs)]
-            # print (len(samples))
-            '''
+            perf[(skip, cards, rpr_alloc, thresh)].append(top_per_sec / num_example)
+            error[(skip, cards, rpr_alloc, thresh)].append(e / num_example)
+            power[(skip, cards, rpr_alloc, thresh)].append(top_per_pJ / num_example)
 
-            perf = 0.
-            for layer in range(20):
+######################################
 
-                alloc      = np.array(samples['block_alloc'])[layer].reshape(-1, 1)
-                rpr        = np.array(samples['rpr'])[layer]
-                block_size = np.array(samples['block_size'])[layer]
-                adc        = np.array(samples['adc'])[layer] # 8x8xNWLxADC
-                mac        = np.array(samples['nmac'])[layer]
+color = {
+(0, 0, 'dynamic', 0.10): 'green',
+(1, 0, 'dynamic', 0.10): 'blue',
+(1, 1, 'static', 0.10):  '#808080',
+(1, 1, 'static', 0.25):  '#404040',
+(1, 1, 'static', 0.50):  '#000000',
+}
 
-                # sar = 1 + np.ceil(np.log2(rpr).reshape(8, 8, 1, 1))
-                sar = 1 + np.ceil(np.log2(np.arange(1, np.shape(adc)[-1])))
-                sar = np.array([0] + sar.tolist())
-                if SAR: cycle = np.sum(adc * sar)
-                else:   cycle = np.sum(adc)
+plt.cla()
+for key in error:
+  plt.plot(lrss, error[key], marker='.')
+###############################
+plt.ylim(bottom=0)
+#plt.yticks([1, 2, 3], ['', '', ''])
+#plt.xticks([0.0, 0.05, 0.10, 0.15, 0.20], ['', '', '', '', ''])
+###############################
+#plt.ylim(bottom=0, top=17.5)
+#plt.yticks([5, 10, 15], ['', '', ''])
+#plt.xticks([0.0, 0.05, 0.10, 0.15, 0.20], ['', '', '', '', ''])
+###############################
+plt.grid(True, linestyle='dotted')
+#plt.gcf().set_size_inches(3.3, 1.)
+#plt.tight_layout(0.)
+plt.savefig('cc_error.png', dpi=500)
 
-                mac_per_cycle = mac / cycle
-                perf += mac_per_cycle * (mac / total_mac)
+####################
 
-                # print (mac_per_cycle, np.average(rpr[0:4, :]))
-                # print (rpr)
+# static = np.array(perf[(1, 1, 'static')])
+# skip = np.array(perf[(1, 0, 'dynamic')])
+# print (static / skip)
 
-            print (perf)
+plt.cla()
+for key in perf:
+  plt.plot(lrss, perf[key], marker='.', markersize=3, linewidth=1)
+plt.ylim(bottom=0)
+#plt.yticks([5, 10, 15, 20], ['', '', '', ''])
+#plt.xticks([0.0, 0.05, 0.10, 0.15, 0.20], ['', '', '', '', ''])
+plt.grid(True, linestyle='dotted')
+#plt.gcf().set_size_inches(3.3, 1.)
+#plt.tight_layout(0.)
+plt.savefig('cc_perf.png', dpi=500)
+
+####################
+
+plt.cla()
+for key in power:
+  plt.plot(lrss, power[key], marker='.', markersize=3, linewidth=1)
+plt.ylim(bottom=0)
+#plt.yticks([2, 4, 6, 8], ['', '', '', ''])
+#plt.xticks([0.0, 0.05, 0.10, 0.15, 0.20], ['', '', '', '', ''])
+plt.grid(True, linestyle='dotted')
+#plt.gcf().set_size_inches(3.3, 1.)
+#plt.tight_layout(0.)
+plt.savefig('cc_power.png', dpi=500)
+
+####################
+
 
 
 

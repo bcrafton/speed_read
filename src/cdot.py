@@ -179,7 +179,7 @@ def pim_dyn(x, w, y_shape, lut_var, lut_rpr, alloc, params):
 
 ###########################
 
-def pim_static(x, w, y_shape, lut_var, lut_rpr, alloc, lut_bias, params):
+def pim_static(x, w, y_shape, lut_var, lut_rpr, alloc, params):
     nrow, nwl, wl, xb = np.shape(x)
     nwl, wl, nbl, bl = np.shape(w) # nwl, nbl, wl, bl
     nrow, ncol = y_shape
@@ -187,7 +187,7 @@ def pim_static(x, w, y_shape, lut_var, lut_rpr, alloc, lut_bias, params):
     y = np.zeros(shape=y_shape)
 
     # metrics = cycle, ron, roff, wl, stall
-    metrics_len = 5 + (nrow * nwl) + (8 * 8 * nwl * (params['adc'] + 1))
+    metrics_len = 5 + nwl + (8 * 8 * nwl * (params['adc'] + 1))
     metrics = np.zeros(shape=metrics_len)
 
     x = np.ascontiguousarray(x, np.int32)
@@ -197,6 +197,7 @@ def pim_static(x, w, y_shape, lut_var, lut_rpr, alloc, lut_bias, params):
     lut_rpr = np.ascontiguousarray(lut_rpr, np.int32)
     metrics = np.ascontiguousarray(metrics, np.int64)
 
+    lut_bias = np.zeros(shape=64)
     lut_bias = np.ascontiguousarray(lut_bias, np.int32)
 
     # self.adc_state = np.zeros(shape=(rpr_high + 1, self.params['adc'] + 1))

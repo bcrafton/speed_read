@@ -15,46 +15,41 @@ def round_fraction(x, f):
 
 ##########################################
 
-from scipy.special import erf
-def cdf(x, mu, sd):
-    a = (x - mu) / (np.sqrt(2) * sd)
-    return 0.5 * (1 + erf(a))
-
-##########################################
-
 eps = 1e-10
 inf = 1e10
 
-def expected_error(params, adc_hist, row):
+def expected_error(params, adc_count, row_count, rpr, nrow, bias):
 
     ########################################################################
-
-    row = np.reshape(row, (params['max_rpr'], 1, 1))
 
     adc      = np.arange(params['adc'] + 1, dtype=np.float32)
     adc_low  = np.array([-inf, 0.2] + (adc[2:] - 0.5).tolist())
     adc_high = np.array([0.2]       + (adc[2:] - 0.5).tolist() + [inf])
-    
-    adc      =      adc.reshape(params['adc']+1, 1, 1, 1)
-    adc_low  =  adc_low.reshape(params['adc']+1, 1, 1, 1)
-    adc_high = adc_high.reshape(params['adc']+1, 1, 1, 1)
+
+    adc_low  = np.tile( adc_low.reshape(-1, 1), reps=[1, params['max_rpr']+1])
+    adc_high = np.tile(adc_high.reshape(-1, 1), reps=[1, params['max_rpr']+1])
+
+    for rpr in range(0, params['adc']):
+        adc_low[rpr + 1:] = inf
+        adc_high[rpr:] = inf
+
+    adc      = adc.reshape(-1, 1, 1, 1)
+    adc_low  = adc_low.reshape(params['adc']+1, params['max_rpr']+1, 1, 1)
+    adc_high = adc_high.reshape(params['adc']+1, params['max_rpr']+1, 1, 1)
 
     ########################################################################
 
-    RPR = params['max_rpr']
-    
-    N_lrs = np.zeros(shape=(RPR + 1, RPR + 1))
-    N_hrs = np.zeros(shape=(RPR + 1, RPR + 1))
+    def row(S, E, N):
+        if S < E: return np.append( np.arange(S, E+1,  1), [0] * (N - 1 - E + S) )
+        else:     return np.append( np.arange(S, E-1, -1), [0] * (N - 1 - S + E) )
 
-    for j in range(RPR + 1):
-        for k in range(RPR + 1):
-            N_lrs[j, k] = (k    ) if (k <= j) else 0
-            N_hrs[j, k] = (j - k) if (k <= j) else 0
+    N_lrs = np.stack([row(0, i, params['max_rpr']+1) for i in range(params['max_rpr']+1)], axis=0)
+    N_hrs = np.stack([row(i, 0, params['max_rpr']+1) for i in range(params['max_rpr']+1)], axis=0)
 
     ########################################################################
 
-    p = adc_hist[1:].astype(np.float32)
-    p = p / np.sum(p, axis=(1, 2), keepdims=True)
+    p = adc_count.astype(np.float32)
+    p[1:] = p[1:] / np.sum(p[1:], axis=(1, 2), keepdims=True)
 
     ########################################################################
 
@@ -69,46 +64,59 @@ def expected_error(params, adc_hist, row):
 
     ########################################################################
 
-    s = np.arange(0, params['max_rpr']+1, dtype=np.float32)
+    s = np.arange(params['max_rpr']+1, dtype=np.float32)    
     e = adc - s
 
-    assert np.allclose(np.sum(p,      axis=(1, 2)),    1)
-    assert np.allclose(np.sum(pe,     axis=0),         1)
-    assert np.allclose(np.sum(pe * p, axis=(0, 2, 3)), 1)
+    assert np.allclose(np.sum(pe, axis=0), 1)
+    assert np.allclose(np.sum(pe[:, 1:] * p[1:], axis=(0, 2, 3)), 1)
 
-    error = p * pe * e * row
-    mse  = np.sum(np.absolute(error), axis=(0, 2, 3))
-    mean = np.sum(           (error), axis=(0, 2, 3))
-
+    mse = np.sum(np.absolute(p * pe * e * nrow))
+    mean = np.sum(p * pe * e * nrow)
     return mse, mean
 
 ##########################################
 
-def static_rpr(id, params, q):
+def static_rpr(low, high, params, adc_count, row_count, nrow, q, ratio):
     assert (q > 0)
 
     ############
 
+    sat_low = params['adc']
+    sat_high = high + 1
+
+    ############
+
     rpr_lut = np.ones(shape=(8, 8), dtype=np.int32) * params['adc']
+    bias_lut = np.zeros(shape=(8, 8), dtype=np.float32)
 
-    delay       = np.zeros(shape=(8, 8, params['max_rpr']))
-    error_table = np.zeros(shape=(8, 8, params['max_rpr']))
-    mean_table  = np.zeros(shape=(8, 8, params['max_rpr']))
+    delay       = np.zeros(shape=(8, 8, high))
+    error_table = np.zeros(shape=(8, 8, high))
+    mean_table = np.zeros(shape=(8, 8, high))
+    bias_table  = np.zeros(shape=(8, 8, high))
 
-    profile = np.load('./profile/%d.npy' % (id), allow_pickle=True).item()
-    adc = profile['adc']
-    row = np.maximum(1, profile['row'])
-    ratio = profile['ratio']
-
+    start = time.time()
     for wb in range(params['bpw']):
         for xb in range(params['bpa']):
-            mse, mean = expected_error(params, adc[xb][wb], row[xb])
-            assert np.all(mse >= np.abs(mean))
-            
-            scale = 2**wb * 2**xb / q * ratio
-            error_table[xb][wb] = scale * mse
-            mean_table[xb][wb] = scale * mean
-            delay[xb][wb] = row[xb]
+
+            total_row = np.maximum(1, row_count[xb][rpr - 1])
+
+            scale = 2**wb * 2**xb
+
+            mse, mean = expected_error(params=params, adc_count=adc_count[xb][wb], row_count=row_count[xb], rpr=rpr, nrow=total_row, bias=None)
+            scaled_mse = (scale / q) * mse * ratio
+            scaled_mean = (scale / q) * mean * ratio
+
+            assert (scaled_mse >= np.abs(scaled_mean))
+
+            error_table[xb][wb][rpr - 1] = scaled_mse
+            mean_table[xb][wb][rpr - 1] = scaled_mean
+
+            delay[xb][wb][rpr - 1] = row_count[xb][rpr - 1]
+            # if params['SAR']: 
+            if True:
+                sar = max(1, np.ceil(np.log2(min(rpr, params['adc']))))
+                delay[xb][wb][rpr - 1] *= sar
+                
 
     assert (np.sum(mean_table[:, :, 0]) >= -params['thresh'])
     assert (np.sum(mean_table[:, :, 0]) <=  params['thresh'])
@@ -131,11 +139,15 @@ def static_rpr(id, params, q):
     error = np.zeros(shape=(8, 8))
     cycle = np.zeros(shape=(8, 8))
 
+    print (time.time() - start)
+    start = time.time()
+
     if params['skip'] and params['cards']:
         rpr_lut = optimize_rpr(error_table, mean_table, delay, params['thresh'])
         for wb in range(params['bpw']):
             for xb in range(params['bpa']):
                 rpr = rpr_lut[xb][wb]
+                bias_lut[xb][wb] = bias_table[xb][wb][rpr - 1]
 
     for wb in range(params['bpw']):
         for xb in range(params['bpa']):
@@ -144,8 +156,13 @@ def static_rpr(id, params, q):
             mean[xb][wb] = mean_table[xb][wb][rpr-1]
             cycle[xb][wb] = delay[xb][wb][rpr-1]
 
+    # print (np.around(error, 2))
+    # print (np.around(mean, 2))
     assert (np.sum(error) >= np.sum(np.abs(mean)))
-    return rpr_lut, np.sum(error), np.sum(mean)
+    print (rpr_lut)
+    print (time.time() - start)
+    
+    return rpr_lut, bias_lut, np.sum(error), np.sum(mean)
     
     
 ##########################################

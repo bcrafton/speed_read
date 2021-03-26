@@ -168,7 +168,7 @@ int Array::collect(int row, int col, int xb, int rpr) {
 
   int comps = min(this->wl_sum, this->params->adc);
 
-  int adc_offset    = METRIC_BLOCK_CYCLE + params->R * params->NWL;
+  int adc_offset    = METRIC_BLOCK_CYCLE + params->NWL;
   int xb_address    = xb * 8 * params->NWL    * (params->adc + 1);
   int wb_address    =     wb * params->NWL    * (params->adc + 1);
   int block_address =          this->block_id * (params->adc + 1);
