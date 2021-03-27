@@ -20,9 +20,9 @@ def ld_to_dl(ld):
 
 ####################
 
-SAR = False
+SAR = True
 if SAR: 
-    results = np.load('../results64a.npy', allow_pickle=True)
+    results = np.load('../results.npy', allow_pickle=True)
     comp_pJ = 20e-15
 else:
     results = np.load('../results8a.npy', allow_pickle=True)
@@ -31,6 +31,8 @@ else:
 results = ld_to_dl(results)
 df = pd.DataFrame.from_dict(results)
 
+# print (df)
+
 #####################
 # NOTE: FOR QUERIES WITH STRINGS, DONT FORGET ""
 # '(rpr_alloc == "%s")' NOT '(rpr_alloc == %s)'
@@ -38,27 +40,34 @@ df = pd.DataFrame.from_dict(results)
 
 num_example = 1
 hrss = [0.015]
-lrss = [0.02, 0.04, 0.06, 0.08]
+lrss = [0.02, 0.06]
 perf = {}
 power = {}
 error = {}
+stds = {}
 
-for skip, cards, rpr_alloc, thresh in [(1, 0, 'static', 0.25), (1, 1, 'static', 0.10), (1, 1, 'static', 0.25)]:
+for skip, cards, rpr_alloc, thresh in [(1, 0, 'static', 0.25), (1, 1, 'static', 0.25)]:
     perf[(skip, cards, rpr_alloc, thresh)]  = []
     power[(skip, cards, rpr_alloc, thresh)] = []
     error[(skip, cards, rpr_alloc, thresh)] = []
+    stds[(skip, cards, rpr_alloc, thresh)] = []
 
     for hrs in hrss:
         for lrs in lrss:
             e = 0.
+            std = 0.
             top_per_sec = 0.
             top_per_pJ = 0.
 
             for example in range(num_example):
-                query = '(rpr_alloc == "%s") & (skip == %d) & (cards == %d) & (lrs == %f) & (hrs == %f) & (example == %d) & (thresh == %f)' % (rpr_alloc, skip, cards, lrs, hrs, example, thresh)
+                query = '(skip == %d) & (cards == %d) & (lrs == %f) & (hrs == %f) & (thresh == %f)' % (skip, cards, lrs, hrs, thresh)
                 samples = df.query(query)
+                # print (query)
+
+                # print (cards, np.array(samples['step']).flatten())
 
                 e += np.average(samples['error'])
+                std += np.average(samples['std'])
 
                 adcs = samples['adc']
                 adc = []
@@ -75,15 +84,21 @@ for skip, cards, rpr_alloc, thresh in [(1, 0, 'static', 0.25), (1, 1, 'static', 
                     max_cycle = 0
                     adc = samples['adc']
                     rpr = samples['rpr']
+                    steps = samples['step']
                     alloc = samples['block_alloc']
                     block_size = samples['block_size']
                     tops = []
                     for l in adc.keys():
                         #################################################
-                        sar = np.arange(1, np.shape(adc[l])[-1])
-                        sar = np.minimum(sar, np.shape(adc[l])[-1] - 2)
+                        XB, WB, NWL, COMPS = np.shape(adc[l])
+                        sar = np.arange(1, COMPS)
+                        sar = np.minimum(sar, COMPS-1)
                         sar = 1 + np.floor(np.log2(sar))
                         sar = np.array([0] + sar.tolist())
+                        #################################################
+                        sar = np.reshape(sar, (1, 1, 1, COMPS))
+                        step = np.reshape(steps[l], (XB, WB, 1, 1))
+                        sar = np.maximum(1, sar / step)
                         #################################################
                         cycle = np.sum(adc[l] * sar)
                         #################################################
@@ -91,7 +106,8 @@ for skip, cards, rpr_alloc, thresh in [(1, 0, 'static', 0.25), (1, 1, 'static', 
                         #################################################
                         max_cycle = max(max_cycle, cycle)
                         #################################################
-                        # print (rpr[l])
+                        # print (rpr[l].flatten())
+                        # print (steps[l].flatten())
                         #################################################
                         # hist = np.sum(adc[l], axis=(0,1,2))
                         # pmf = hist / np.sum(hist)
@@ -110,13 +126,14 @@ for skip, cards, rpr_alloc, thresh in [(1, 0, 'static', 0.25), (1, 1, 'static', 
             perf[(skip, cards, rpr_alloc, thresh)].append(top_per_sec / num_example)
             error[(skip, cards, rpr_alloc, thresh)].append(e / num_example)
             power[(skip, cards, rpr_alloc, thresh)].append(top_per_pJ / num_example)
+            stds[(skip, cards, rpr_alloc, thresh)].append(std / num_example)
 
 ######################################
 
-perf1 = np.array(perf[(1, 1, 'static', 0.10)]) / np.array(perf[(1, 0, 'static', 0.25)])
-perf2 = np.array(perf[(1, 1, 'static', 0.25)]) / np.array(perf[(1, 0, 'static', 0.25)])
-print (perf1)
-print (perf2)
+# perf1 = np.array(perf[(1, 1, 'static', 0.10)]) / np.array(perf[(1, 0, 'static', 0.25)])
+# perf2 = np.array(perf[(1, 1, 'static', 0.25)]) / np.array(perf[(1, 0, 'static', 0.25)])
+# print (perf1)
+# print (perf2)
 
 color = {
 (0, 0, 'dynamic', 0.10): 'green',
@@ -125,6 +142,8 @@ color = {
 (1, 1, 'static', 0.25):  '#404040',
 (1, 1, 'static', 0.50):  '#000000',
 }
+
+######################################
 
 plt.cla()
 for key in error:
@@ -142,6 +161,25 @@ plt.grid(True, linestyle='dotted')
 #plt.gcf().set_size_inches(3.3, 1.)
 #plt.tight_layout(0.)
 plt.savefig('cc_error.png', dpi=500)
+
+####################
+
+plt.cla()
+for key in stds:
+  plt.plot(lrss, stds[key], marker='.')
+###############################
+plt.ylim(bottom=0)
+#plt.yticks([1, 2, 3], ['', '', ''])
+#plt.xticks([0.0, 0.05, 0.10, 0.15, 0.20], ['', '', '', '', ''])
+###############################
+#plt.ylim(bottom=0, top=17.5)
+#plt.yticks([5, 10, 15], ['', '', ''])
+#plt.xticks([0.0, 0.05, 0.10, 0.15, 0.20], ['', '', '', '', ''])
+###############################
+plt.grid(True, linestyle='dotted')
+#plt.gcf().set_size_inches(3.3, 1.)
+#plt.tight_layout(0.)
+plt.savefig('cc_std.png', dpi=500)
 
 ####################
 

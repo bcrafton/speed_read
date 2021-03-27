@@ -4946,6 +4946,17 @@ make sure we dont count comparators where 0 WL are enabled
 (1) only allow valid step / rpr combos
 (2) pe is definitely broken.
 
+====================
+
+issue is either:
+(1) norm.cdf(-3)
+(2) sqrt(nrow) vs nrow
+(3) error - mean
+
+====================
+
+
+
 
 
 

@@ -239,6 +239,7 @@ class Conv(Layer):
         results['block_alloc'] = self.block_alloc
         results['block_size'] = self.nbl
         results['rpr'] = self.params['rpr']
+        results['step'] = self.params['step']
 
         #########################
         

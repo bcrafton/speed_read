@@ -7,12 +7,12 @@ np.set_printoptions(threshold=sys.maxsize)
 import cvxopt
 cvxopt.glpk.options["maxiters"] = 1
 cvxopt.glpk.options['show_progress'] = True
-# cvxopt.glpk.options['tm_lim'] = 30
+cvxopt.glpk.options['tm_lim'] = 30000
 cvxopt.glpk.options['msg_lev'] = 'GLP_MSG_ON'
 
 cvxopt.solvers.options['maxiters'] = 1
 cvxopt.solvers.options['show_progress'] = True
-# cvxopt.solvers.options['tm_lim'] = 30
+cvxopt.solvers.options['tm_lim'] = 30000
 cvxopt.solvers.options['msg_lev'] = 'GLP_MSG_ON'
 
 # /home/brian/env/py3/lib/python3.5/site-packages/cvxpy/reductions/solvers/conic_solvers/glpk_mi_conif.py
@@ -94,16 +94,15 @@ def optimize_rpr(error, mean, delay, valid, threshold):
 
     ##########################################
 
-    scale = np.arange(1, step + 1, dtype=np.int32).reshape(-1, 1)
+    scale = np.arange(step, dtype=np.int32).reshape(-1, 1)
     step_lut = np.sum(select * scale, axis=(2, 3))
-    assert (np.all(step_lut > 0))
 
-    print (step_lut)
-    print (rpr_lut)
+    # print (step_lut)
+    # print (rpr_lut)
 
     ##########################################
     
-    return rpr_lut
+    return rpr_lut, step_lut
     
     
     
