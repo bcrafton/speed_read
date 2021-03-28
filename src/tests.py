@@ -33,7 +33,7 @@ def CC():
     'wl': 256,
     'bl': 256,
     'offset': 128,
-    'max_rpr': 64,
+    'max_rpr': 96,
     'sar': True,
     'max_step': 4
     }
@@ -44,20 +44,20 @@ def CC():
     'skip': [1],
     'alloc': ['block'],
     'narray': [2 ** 12],
-    'lrs': [0.02, 0.06], 
-    'hrs': [0.03, 0.015],
+    'lrs': [0.02, 0.035], 
+    'hrs': [0.015],
     'cards': [1],
     'profile': [1],
     'rpr_alloc': ['static'],
-    'thresh': [0.25],
+    'thresh': [0.10, 0.25],
     }
 
     arch_params2 = {
     'skip': [1],
     'alloc': ['block'],
     'narray': [2 ** 12],
-    'lrs': [0.02, 0.06], 
-    'hrs': [0.03, 0.015],
+    'lrs': [0.02, 0.035], 
+    'hrs': [0.015],
     'cards': [0],
     'profile': [1],
     'rpr_alloc': ['static'],

@@ -161,7 +161,7 @@ def static_rpr(id, params, q):
         step_range = 2 ** np.arange(params['max_step']).reshape(-1, 1)
         step_mask  = np.minimum(params['adc'], rpr_range) >= step_range
         valid = np.ones_like(error_table) * step_mask
-        rpr_lut, step_lut = optimize_rpr(error_table, mean_table, delay, valid, params['thresh'])
+        rpr_lut, step_lut = optimize_rpr(error_table, np.abs(mean_table), delay, valid, params['thresh'])
 
     for wb in range(params['bpw']):
         for xb in range(params['bpa']):

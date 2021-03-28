@@ -39,10 +39,19 @@ def optimize_rpr(error, mean, delay, valid, threshold):
 
     selection = cvxpy.Variable((xb * wb * step * rpr), boolean=True)
     select_constraint = []
-    for i in range(0, xb * wb * step * rpr, step * rpr):
-        # print (i, i + rpr)
-        select_constraint.append( cvxpy.sum(selection[i : i + step * rpr]) == 1 )
+    for i in range(xb * wb):
+        start = (i + 0) * (step * rpr)
+        end   = (i + 1) * (step * rpr)
+        # print (i, start, end, xb * wb * step * rpr)
+        select_constraint.append( cvxpy.sum(selection[start:end]) == 1 )
 
+    ##########################################
+    '''
+    init = np.zeros(shape=(xb, wb, step, rpr))
+    init[:, :, 0, 0] = 1
+    init = init.flatten().astype(int)
+    selection.value = init
+    '''
     ##########################################
 
     # cvxpy.atoms.elementwise.abs.abs(weight2 @ selection) <= threshold
@@ -50,9 +59,17 @@ def optimize_rpr(error, mean, delay, valid, threshold):
     weight_constraint2 = weight2 @ selection <= threshold
     weight_constraint3 = weight2 @ selection >= -threshold
 
-    valid_constraint = valid @ selection == 64
+    valid_constraint = (valid @ selection) == 64
 
     ##########################################
+
+    '''
+    norm = np.zeros(shape=(xb, wb, step, rpr))
+    scale = np.arange(rpr) * 1e-10
+    norm[..., :] = scale
+    norm = norm.flatten()
+    total_value = value @ selection + norm @ selection
+    '''
 
     total_value = value @ selection
 
@@ -65,14 +82,17 @@ def optimize_rpr(error, mean, delay, valid, threshold):
     # knapsack_problem.solve(solver=cvxpy.GLPK_MI)
     # print(cvxpy.installed_solvers())
     # ['CVXOPT', 'ECOS', 'GLPK', 'GLPK_MI', 'OSQP', 'SCS']
-    
-    # knapsack_problem.solve(solver='GLPK_MI', options=cvxopt.glpk.options, glpk={'msg_lev': 'GLP_MSG_ON'}, verbose=True)
-    knapsack_problem.solve(solver='GLPK_MI', options=cvxopt.glpk.options, glpk={'msg_lev': 'GLP_MSG_ON'}, verbose=True)
+
+    # knapsack_problem.solve(solver='GLPK_MI', options=cvxopt.glpk.options, glpk={'msg_lev': 'GLP_MSG_ON'}, verbose=True, warm_start=True)
+    try:
+        knapsack_problem.solve(solver='GLPK_MI', options=cvxopt.glpk.options, glpk={'msg_lev': 'GLP_MSG_ON'}, verbose=True)
+    except:
+        save = {'error': error, 'mean': mean, 'delay': delay, 'valid': valid, 'threshold': threshold, 'params': params}
+        np.save('save', save)
+        assert (False)
 
     if knapsack_problem.status != "optimal":
         print("status:", knapsack_problem.status)
-        # print (selection.value)
-        # assert (knapsack_problem.status == "optimal")
 
     ##########################################
 
