@@ -22,16 +22,17 @@ def ld_to_dl(ld):
 
 SAR = True
 if SAR: 
-    results = np.load('../results.npy', allow_pickle=True)
+    results = np.load('../results50.npy', allow_pickle=True)
     comp_pJ = 20e-15
 else:
-    results = np.load('../results8a.npy', allow_pickle=True)
+    results = np.load('../results.npy', allow_pickle=True)
     comp_pJ = 50e-15
 
 results = ld_to_dl(results)
 df = pd.DataFrame.from_dict(results)
 
-# print (df)
+print (len(df) / 20)
+print (df)
 
 #####################
 # NOTE: FOR QUERIES WITH STRINGS, DONT FORGET ""
@@ -39,14 +40,14 @@ df = pd.DataFrame.from_dict(results)
 #####################
 
 num_example = 1
-hrss = [0.015]
-lrss = [0.02, 0.06]
+hrss = [0.03]
+lrss = [0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.11, 0.12]
 perf = {}
 power = {}
 error = {}
 stds = {}
 
-for skip, cards, rpr_alloc, thresh in [(1, 0, 'static', 0.25), (1, 1, 'static', 0.25)]:
+for skip, cards, rpr_alloc, thresh in [(1, 1, 'static', 0.5)]:
     perf[(skip, cards, rpr_alloc, thresh)]  = []
     power[(skip, cards, rpr_alloc, thresh)] = []
     error[(skip, cards, rpr_alloc, thresh)] = []
@@ -60,11 +61,10 @@ for skip, cards, rpr_alloc, thresh in [(1, 0, 'static', 0.25), (1, 1, 'static', 
             top_per_pJ = 0.
 
             for example in range(num_example):
-                query = '(skip == %d) & (cards == %d) & (lrs == %f) & (hrs == %f) & (thresh == %f)' % (skip, cards, lrs, hrs, thresh)
+                # query = '(skip == %d) & (cards == %d) & (lrs == %f) & (hrs == %f) & (thresh == %f)' % (skip, cards, lrs, hrs, thresh)
+                query = '(cards == %d) & (lrs == %f) & (hrs == %f) & (thresh == %f)' % (cards, lrs, hrs, thresh)
                 samples = df.query(query)
-                # print (query)
-
-                # print (cards, np.array(samples['step']).flatten())
+                print (query)
 
                 e += np.average(samples['error'])
                 std += np.average(samples['std'])
@@ -119,10 +119,24 @@ for skip, cards, rpr_alloc, thresh in [(1, 0, 'static', 0.25), (1, 1, 'static', 
                     top_per_sec += 2. * np.sum(samples['nmac']) / max_cycle * 100e6 / 1e12
                     ################################################
                 else:
-                    top_per_sec += 2. * np.sum(samples['nmac']) / np.max(samples['cycle']) * 100e6 / 1e12
-                    top = np.array(samples['nmac']) / np.array(samples['cycle'])
-                    # print (np.around(top))
-
+                    max_cycle = 0
+                    adc = samples['adc']
+                    rpr = samples['rpr']
+                    steps = samples['step']
+                    alloc = samples['block_alloc']
+                    block_size = samples['block_size']
+                    tops = []
+                    for l in adc.keys():
+                        #################################################
+                        cycle = np.sum(adc[l][..., 1:])
+                        #################################################
+                        cycle = cycle / np.sum(alloc[l]) / block_size[l]
+                        #################################################
+                        max_cycle = max(max_cycle, cycle)
+                    ################################################
+                    top_per_sec += 2. * np.sum(samples['nmac']) / max_cycle * 100e6 / 1e12
+                    ################################################
+                    
             perf[(skip, cards, rpr_alloc, thresh)].append(top_per_sec / num_example)
             error[(skip, cards, rpr_alloc, thresh)].append(e / num_example)
             power[(skip, cards, rpr_alloc, thresh)].append(top_per_pJ / num_example)
@@ -130,10 +144,10 @@ for skip, cards, rpr_alloc, thresh in [(1, 0, 'static', 0.25), (1, 1, 'static', 
 
 ######################################
 
-# perf1 = np.array(perf[(1, 1, 'static', 0.10)]) / np.array(perf[(1, 0, 'static', 0.25)])
-# perf2 = np.array(perf[(1, 1, 'static', 0.25)]) / np.array(perf[(1, 0, 'static', 0.25)])
+# perf1 = np.array(perf[(1, 1, 'static', 0.25)]) / np.array(perf[(1, 0, 'static', 0.25)])
 # print (perf1)
-# print (perf2)
+# perf1 = np.array(perf[(1, 1, 'static', 0.10)]) / np.array(perf[(1, 0, 'static', 0.25)])
+# print (perf1)
 
 color = {
 (0, 0, 'dynamic', 0.10): 'green',
