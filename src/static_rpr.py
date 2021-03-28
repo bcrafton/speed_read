@@ -99,6 +99,14 @@ def static_rpr(id, params, q):
     rpr_lut = np.ones(shape=(8, 8), dtype=np.int32) * params['adc']
     step_lut = np.zeros(shape=(8, 8), dtype=np.int32)
 
+    ############
+
+    if not (params['skip'] and params['cards']):
+        step_lut = 2 ** step_lut
+        return rpr_lut, step_lut, 0, 0
+
+    ############
+
     delay       = np.zeros(shape=(8, 8, params['max_step'], params['max_rpr']))
     error_table = np.zeros(shape=(8, 8, params['max_step'], params['max_rpr']))
     mean_table  = np.zeros(shape=(8, 8, params['max_step'], params['max_rpr']))
@@ -154,7 +162,6 @@ def static_rpr(id, params, q):
 
     mean = np.zeros(shape=(8, 8))
     error = np.zeros(shape=(8, 8))
-    cycle = np.zeros(shape=(8, 8))
 
     if params['skip'] and params['cards']:
         rpr_range  = np.arange(1, params['max_rpr'] + 1).reshape(1, -1)
@@ -169,7 +176,6 @@ def static_rpr(id, params, q):
             step = step_lut[xb][wb] 
             error[xb][wb] = error_table[xb][wb][step][rpr-1]
             mean[xb][wb]  =  mean_table[xb][wb][step][rpr-1]
-            cycle[xb][wb] =       delay[xb][wb][step][rpr-1]
 
     step_lut = 2 ** step_lut
     # assert (np.sum(error) >= np.sum(np.abs(mean)))
