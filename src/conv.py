@@ -79,14 +79,14 @@ class Conv(Layer):
 
     def init(self, params):
         self.params.update(params)
-        self.params['var'] = lut_var(params['lrs'], params['hrs'], self.params['max_rpr'])
+        self.params['var'] = lut_var(params['lrs'], params['hrs'], params['ratio'], self.params['max_rpr'])
 
         if self.params['rpr_alloc'] == 'centroids':
             pass
         elif self.params['rpr_alloc'] == 'dynamic':
             pass
         elif self.params['rpr_alloc'] == 'static':
-            self.params['rpr'], self.params['step'], self.error, self.mean = static_rpr(self.layer_id, self.params, self.q)
+            self.params['rpr'], self.params['step'], self.error, self.mean = static_rpr(self.weight_id, self.params, self.q)
         else:
             assert (False)
 

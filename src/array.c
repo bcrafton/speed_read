@@ -82,7 +82,8 @@ int Array::pim_base(int row, int col, int xb, int rpr) {
   
   // while ((this->wl_ptr < this->params->WL) && ((this->wl_sum + this->x[xaddr]) <= rpr)) {
   int start = this->wl_ptr;
-  while ((this->wl_ptr < this->params->WL) && (this->wl_ptr < (start + this->params->adc))) {
+  // while ((this->wl_ptr < this->params->WL) && (this->wl_ptr < (start + this->params->adc))) {
+  while ((this->wl_ptr < this->params->WL) && (this->wl_ptr < (start + rpr))) {
     assert((this->x[xaddr] == 0) || (this->x[xaddr] == 1));
     
     if (this->x[xaddr]) {

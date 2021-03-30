@@ -31,12 +31,12 @@ def lut_var_dyn(var, states):
 
 # https://stackoverflow.com/questions/20626994/how-to-calculate-the-inverse-of-the-normal-cumulative-distribution-function-in-p
 
-def lut_var(lrs, hrs, max_rpr):
+def lut_var(lrs, hrs, ratio, max_rpr):
     lut = np.zeros(shape=(max_rpr + 1, max_rpr + 1, 1001), dtype=np.float32)
     for wl in range(1, max_rpr + 1):
         for on in range(0, wl + 1):
             off = wl - on
-            var = on*lrs**2 + off*hrs**2
+            var = on*lrs**2 + off*(hrs / ratio)**2
             assert(var > 0)
             std = np.sqrt(var)
             minval = norm.cdf(-3, loc=0, scale=1)

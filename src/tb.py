@@ -69,6 +69,7 @@ def run_command(x, y, model, params, return_list):
     'narray':    params['narray'],
     'lrs':       params['lrs'],
     'hrs':       params['hrs'],
+    'ratio':     params['ratio'],
     'rpr_alloc': params['rpr_alloc'],
     'thresh':    params['thresh'],
     'abs_error': abs_error
@@ -94,7 +95,7 @@ if not load_profile_adc:
 ##########################
 
 num_runs = len(arch_params)
-parallel_runs = 12
+parallel_runs = 24
 
 thread_results = []
 manager = multiprocessing.Manager()

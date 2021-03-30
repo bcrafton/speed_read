@@ -57,7 +57,7 @@ def expected_error(params, adc_hist, row, step):
     ########################################################################
 
     mu  = N_lrs
-    var = (params['lrs'] ** 2. * N_lrs) + (params['hrs'] ** 2. * N_hrs)
+    var = (params['lrs'] ** 2. * N_lrs) + ((params['hrs'] / params['ratio']) ** 2. * N_hrs)
     sd  = np.sqrt(var)
 
     p_h = norm.cdf(adc_high, mu, np.maximum(sd, eps))
@@ -101,7 +101,12 @@ def static_rpr(id, params, q):
 
     ############
 
-    if not (params['skip'] and params['cards']):
+    if not (params['skip']):
+        rpr_lut = np.ones(shape=(8, 8), dtype=np.int32) * params['adc_layer'][id]
+        step_lut = 2 ** step_lut
+        return rpr_lut, step_lut, 0, 0
+
+    if not (params['cards']):
         step_lut = 2 ** step_lut
         return rpr_lut, step_lut, 0, 0
 
