@@ -56,8 +56,9 @@ class Conv(Layer):
         assert(np.shape(self.b) == (self.fn,))
         assert(np.shape(self.q) == ())
         # cast as int
-        self.w = self.w.astype(int)
-        self.b = self.b.astype(int)
+        assert(np.max(self.w) < 128 and np.min(self.w) >= -128)
+        self.w = self.w.astype(np.int8)
+        self.b = self.b.astype(float)
         # self.q = self.q.astype(int)
         # q must be larger than 0
         if self.quantize_flag:
@@ -334,8 +335,7 @@ class Conv(Layer):
 
         ########################
 
-        w_offset = np.copy(self.w) + self.params['offset']
-        w_matrix = np.reshape(w_offset, (self.fh * self.fw * self.fc, self.fn))
+        w_matrix = np.reshape(self.w, (self.fh * self.fw * self.fc, self.fn))
         wb = []
         for bit in range(self.params['bpw']):
             wb.append(np.bitwise_and(np.right_shift(w_matrix, bit), 1))

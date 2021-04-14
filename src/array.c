@@ -107,12 +107,8 @@ int Array::process(int row, int col, int xb, int rpr) {
       int c = (bl_ptr + this->array_id * 256) / 8;
       int yaddr = row * this->params->C + c;
       int shift = wb + xb;
-      this->y[yaddr] += pdot_adc << shift;
-
-      if (wb == 0) {
-        if (params->method == CENTROIDS) this->y[yaddr] -= 4 * ((this->wl_sum * 128) << xb);
-        else                             this->y[yaddr] -= ((this->wl_sum * 128) << xb);
-      }
+      int sign = (wb == 7) ? -1 : 1;
+      this->y[yaddr] += sign * (pdot_adc << shift);
     }
     else {
       // printf("%d %d\n", checksum % 2, pdot_adc % 2);
