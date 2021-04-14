@@ -4957,9 +4957,30 @@ TSMC was already doing it with those weird dimensions we saw.
 
 ====================
 
+params.c:
+if (this->ABFT == 1) { this->BL_data = this->BL - ; }
+else                 { this->BL_data = this->BL; }
 
+// should we be doing this in C code ? 
+// what assumptions can we make ? 
+// we read every 1/8 columns.
+// if we say where data is, we can infer which are checksum bits
+// BL - BL_data / 8 = checksum bits
+// it has less to do with 8xb, 8wb, and more to do with just adc_per_bl
+// we can infer the rest pretty easily.
+// 
+// I suppose same probably goes for input.
+// 
+// so now I am thinking if we just know the # of data bits
+// we can figure out the rest
+// like all the additional bits are checksum.
+//
+// so what do we explicitly tell the C code ? 
+// 1) ABFT_weight bits
+// 2) ABFT_input bits
+// 3) ABFT {NULL, re-read, re-write, correct} 
 
-
+====================
 
 
 
