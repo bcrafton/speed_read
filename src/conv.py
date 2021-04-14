@@ -69,12 +69,19 @@ class Conv(Layer):
         assert (np.all(self.w >= minval))
         assert (np.all(self.w <= maxval))
 
+        #########################
         self.wb = self.transform_weights()
+        #########################
+        '''
+        if self.params['ABFT']:
+            self.ABFT()
+        '''
+        self.ABFT()
+        #########################
         nwl, _, nbl, _ = np.shape(self.wb) 
         self.factor = nwl * nbl
         self.nwl = nwl
         self.nbl = nbl
-
         #########################
 
     def init(self, params):
@@ -361,7 +368,11 @@ class Conv(Layer):
 
         return wb
 
-
+    def ABFT(self):
+        nwl, wl, nbl, bl = np.shape(self.wb)
+        checksum = np.reshape(self.wb, (nwl, wl, nbl, bl // 8, 8))
+        checksum = np.sum(checksum, axis=3) % 2
+        self.wb = np.concatenate((self.wb, checksum), axis=3)
 
         
         

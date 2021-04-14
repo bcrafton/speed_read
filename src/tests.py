@@ -202,6 +202,7 @@ def Simple():
     'bl': 256,
     'offset': 128,
     'max_rpr': 16,
+    'ABFT': 1
     }
 
     arch_params = {
@@ -212,8 +213,7 @@ def Simple():
     'profile': [0],
     'rpr_alloc': ['static'],
     'sigma': [0.05],
-    'thresh': [1.00],
-    'ABFT': [1]
+    'thresh': [1.00]
     }
 
     arch_params = perms(arch_params)

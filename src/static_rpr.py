@@ -64,6 +64,9 @@ def static_rpr(low, high, params, adc_count, row_count, sat_count, nrow, q, rati
     rpr_lut = np.ones(shape=(8, 8), dtype=np.int32) * params['adc']
     bias_lut = np.zeros(shape=(8, 8), dtype=np.float32)
 
+    if not params['skip'] or not params['cards']:
+        return rpr_lut, bias_lut
+
     delay       = np.zeros(shape=(8, 8, high))
     error_table = np.zeros(shape=(8, 8, high))
     mean_table = np.zeros(shape=(8, 8, high))
@@ -112,23 +115,8 @@ def static_rpr(low, high, params, adc_count, row_count, sat_count, nrow, q, rati
     error_table = round_fraction(error_table, 1e-4) - round_fraction(np.absolute(mean_table), 1e-4)
     mean_table = np.sign(mean_table) * round_fraction(np.absolute(mean_table), 1e-4)
 
-    mean = np.zeros(shape=(8, 8))
-    error = np.zeros(shape=(8, 8))
-    cycle = np.zeros(shape=(8, 8))
-
     if params['skip'] and params['cards']:
         rpr_lut = optimize_rpr(error_table, mean_table, delay, params['thresh'])
-        for wb in range(params['bpw']):
-            for xb in range(params['bpa']):
-                rpr = rpr_lut[xb][wb]
-                bias_lut[xb][wb] = bias_table[xb][wb][rpr - 1]
-
-    for wb in range(params['bpw']):
-        for xb in range(params['bpa']):
-            rpr = rpr_lut[xb][wb]
-            error[xb][wb] = error_table[xb][wb][rpr-1]
-            mean[xb][wb] = mean_table[xb][wb][rpr-1]
-            cycle[xb][wb] = delay[xb][wb][rpr-1]
 
     return rpr_lut, bias_lut
     

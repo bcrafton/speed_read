@@ -77,7 +77,6 @@ int Array::pim_base(int row, int col, int xb, int rpr) {
 
 int Array::process(int row, int col, int xb, int rpr) {
 
-  int checksum = 0;
   for (int adc_ptr=0; adc_ptr<this->params->BL; adc_ptr+=8) {
     int bl_ptr = adc_ptr + col;
     int wb = col;
@@ -102,23 +101,16 @@ int Array::process(int row, int col, int xb, int rpr) {
     }
 
     if (adc_ptr < 256) {
-      checksum += pdot_adc;
+    int c = (bl_ptr + this->array_id * 256) / 8;
+    int yaddr = row * this->params->C + c;
+    int shift = wb + xb;
+    this->y[yaddr] += pdot_adc << shift;
 
-      int c = (bl_ptr + this->array_id * 256) / 8;
-      int yaddr = row * this->params->C + c;
-      int shift = wb + xb;
-      this->y[yaddr] += pdot_adc << shift;
-
-      if (wb == 0) {
-        if (params->method == CENTROIDS) this->y[yaddr] -= 4 * ((this->wl_sum * 128) << xb);
-        else                             this->y[yaddr] -= ((this->wl_sum * 128) << xb);
-      }
+    if (wb == 0) {
+      if (params->method == CENTROIDS) this->y[yaddr] -= 4 * ((this->wl_sum * 128) << xb);
+      else                             this->y[yaddr] -= ((this->wl_sum * 128) << xb);
     }
-    else {
-      // printf("%d %d\n", checksum % 2, pdot_adc % 2);
-      assert ((checksum % 2) == (pdot_adc % 2));
-    }
-
+    } // if (adc_ptr < 256) {
   } // for (int adc_ptr=0; adc_ptr<this->params->BL; adc_ptr+=8) {
 }
 
