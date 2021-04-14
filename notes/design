@@ -4881,6 +4881,93 @@ would be nice if we cud find where it worked - and then do a diff to see what we
 
 ====================
 
+what do we need here ? 
+> ABFT 
+> twos complement
+  > guess this isnt necessary ... 
+
+pad checksum in conv() ? 
+> or do it to the model in .npy ?
+
+should be pretty simple in weights.
+absolute pain in the ass if we want to stick with 8-bits weights.
+very costly actually.
+
+C code should pretty easily be able to just check last bit and re-run of call for write.
+we shud assume some read-to-read variance AND some cell-to-cell variance I think.
+
+do we do 1 weight bit at a time ? 
+that part dosnt really matter actually.
+you can pad for all 32 weight bits ... or 8 bits ... or w.e.
+it dosnt matter.
+
+its difficult to know how many cycles are required
+for transient error its obvious 
+but what about a write ? 
+
+1) finish the matmul with error, mark it for re-write ? 
+2) re-try for tranisient error ... ez
+ 
+====================
+
+so challenges:
+1) various ABFT configurtions
+2) padding weights and inputs 
+3) transient errors = cake
+4) needing to re-write = PITA
+
+> (4) really not sure how this can be modeled
+1) at the end of matmul ? 
+2) in the middle of matmul ? 
+3) in parallel with read operation ? 
+
+have to account for write-delay which is gonna suck for sure
+
+====================
+
+I guess the key will just be getting easy stuff done first,
+then giving it more thought
+
+> start with:
+  > assume transient error ... re-run on error
+  > 1 weight bit
+  > figure out padding weights
+  > figure out where to pad ... because we dont want to waste tons of array columns. 
+    > which will likely happen because everything is a power of 2 ...
+
+====================
+
+can we assume the dimensions of arrays are changed to add these codes ? 
+thats not a bad idea actually ...
+not hard to do from fab perspective
+TSMC was already doing it with those weird dimensions we saw.
+
+> this solves pretty much all our questions above really ...
+  > 1 extra ADC, 8 extra RRAM cells.
+  > keeps everything super clean.
+
+> only gives 1 error per 32 though.
+> could increase by powers of 2 -> still super clean.
+> but recall -> still cannot localize and correct when we have a bunch of (+1)
+
+====================
+
+> definitely assume the ABFT bits are on the end of the array
+  > can add them on top of wb, not w.
+
+====================
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
