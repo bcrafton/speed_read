@@ -371,7 +371,7 @@ class Conv(Layer):
     def ABFT(self):
         nwl, wl, nbl, bl = np.shape(self.wb)
         checksum = np.reshape(self.wb, (nwl, wl, nbl, bl // 8, 8))
-        checksum = np.sum(checksum, axis=3) % 2
+        checksum = np.sum(checksum, axis=3) % (2 ** self.params['ABFT_BL'])
         self.wb = np.concatenate((self.wb, checksum), axis=3)
 
         

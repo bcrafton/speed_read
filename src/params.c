@@ -1,7 +1,7 @@
 
 #include "pim.h"
 
-Params::Params(int R, int B, int C, int NWL, int NBL, int WL, int BL, int adc, int max_rpr, float* adc_state, float* adc_thresh, float* lut_var, int* lut_rpr, int* lut_bias, long* metrics, int sync, int method, int skip) {
+Params::Params(int R, int B, int C, int NWL, int NBL, int WL, int BL, int adc, int max_rpr, float* adc_state, float* adc_thresh, float* lut_var, int* lut_rpr, int* lut_bias, long* metrics, int sync, int method, int skip, int ABFT, int ABFT_WL, int ABFT_BL) {
   this->R = R;
   this->B = B;
   this->C = C;
@@ -26,6 +26,11 @@ Params::Params(int R, int B, int C, int NWL, int NBL, int WL, int BL, int adc, i
   this->sync = sync;
   this->method = method;
   this->skip = skip;
+  
+  this->ABFT    = ABFT;
+  this->ABFT_WL = ABFT_WL;
+  this->ABFT_BL = ABFT_BL;
+  this->BL_data = this->BL - this->ABFT_BL * 8; // 8 = COL / ADC.
 }
 
 

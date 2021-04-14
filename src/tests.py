@@ -202,7 +202,9 @@ def Simple():
     'bl': 256,
     'offset': 128,
     'max_rpr': 16,
-    'ABFT': 1
+    'ABFT'  :  1,  # [NULL, Re-Run, Re-Write, Correct]
+    'ABFT_WL': 0, 
+    'ABFT_BL': 1  # number of bits for each group of parallel bitlines.
     }
 
     arch_params = {
