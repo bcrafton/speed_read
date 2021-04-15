@@ -249,7 +249,7 @@ def pim_static(x, w, y_shape, lut_var, lut_rpr, alloc, lut_bias, params):
     ctypes.c_int(params['skip']),
     ctypes.c_int(params['ABFT']),
     ctypes.c_int(params['ABFT_XB']),
-    ctypes.c_int(params['ABFT_BL']),
+    ctypes.c_int(params['ABFT_ADC']),
     ctypes.c_int(nrow),
     ctypes.c_int(nblock),
     ctypes.c_int(ncol),

@@ -369,10 +369,10 @@ class Conv(Layer):
 
         ########################
 
-        if self.params['ABFT_BL']:
+        if self.params['ABFT_ADC']:
             nwl, wl, nbl, bl = np.shape(wb)
             checksum = np.reshape(wb, (nwl, wl, nbl, bl // 8, 8))
-            checksum = np.sum(checksum, axis=3) % (2 ** self.params['ABFT_BL'])
+            checksum = np.sum(checksum, axis=3) % (2 ** self.params['ABFT_ADC'])
             # MOD is fine ... but then need to actually use the bits
             # like if 2 bits ... turn into 2'b10 or w.e. not 2. 
             wb = np.concatenate((wb, checksum), axis=3)

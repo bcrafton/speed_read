@@ -182,16 +182,17 @@ class Params {
 
   int ABFT;
   int ABFT_XB;
-  int ABFT_BL;
+  int ABFT_ADC;
   
   int XB;
   int COL_PER_ADC;
   int TOTAL_ADC;
 
   int XB_data;
+  int ADC_data;
   int BL_data;
   
-  Params(int R, int B, int C, int NWL, int NBL, int WL, int BL, int adc, int max_rpr, float* adc_state, float* adc_thresh, float* lut_var, int* lut_rpr, int* lut_bias, long* metrics, int sync, int method, int skip, int ABFT, int ABFT_XB, int ABFT_BL);
+  Params(int R, int B, int C, int NWL, int NBL, int WL, int BL, int adc, int max_rpr, float* adc_state, float* adc_thresh, float* lut_var, int* lut_rpr, int* lut_bias, long* metrics, int sync, int method, int skip, int ABFT, int ABFT_XB, int ABFT_ADC);
 };
 
 /////////////////////////////////////////////////////

@@ -100,7 +100,7 @@ int comps_enabled(int wl, int adc, int rpr, int xb, int wb, float* adc_state, fl
 
 //////////////////////////////////////////////
 
-DLLEXPORT int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, int* lut_bias, long* metrics, int* block_map, float* adc_state, float* adc_thresh, int adc, int max_rpr, int skip, int ABFT, int ABFT_XB, int ABFT_BL, int R, int B, int C, int NWL, int NBL, int WL, int BL, int sync, int method)
+DLLEXPORT int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, int* lut_bias, long* metrics, int* block_map, float* adc_state, float* adc_thresh, int adc, int max_rpr, int skip, int ABFT, int ABFT_XB, int ABFT_ADC, int R, int B, int C, int NWL, int NBL, int WL, int BL, int sync, int method)
 {
   // x = nrow, nwl, wl, xb
   // f = nwl, wl, nbl, bl
@@ -118,7 +118,7 @@ DLLEXPORT int pim(int* x, int* w, int* y, float* lut_var, int* lut_rpr, int* lut
   
   //////////////////////////////
 
-  Params* params = new Params(R, B, C, NWL, NBL, WL, BL, adc, max_rpr, adc_state, adc_thresh, lut_var, lut_rpr, lut_bias, metrics, sync, method, skip, ABFT, ABFT_XB, ABFT_BL);
+  Params* params = new Params(R, B, C, NWL, NBL, WL, BL, adc, max_rpr, adc_state, adc_thresh, lut_var, lut_rpr, lut_bias, metrics, sync, method, skip, ABFT, ABFT_XB, ABFT_ADC);
 
   if (sync) {
     LayerSync* layer = new LayerSync(x, w, y, params, block_map);

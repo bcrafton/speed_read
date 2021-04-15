@@ -101,10 +101,10 @@ int Array::process(int row) {
     }
 
     int xb_flag = xb      < this->params->XB_data;
-    int bl_flag = adc_ptr < this->params->BL_data;
+    int bl_flag = adc_ptr < this->params->ADC_data;
 
     if (bl_flag & xb_flag) {
-      int c = (bl_ptr + this->array_id * 256) / 8; // 8 = COL / ADC ... I think.
+      int c = (bl_ptr + this->array_id * this->params->BL_data) / 8; // 8 = COL / ADC ... I think.
       int yaddr = row * this->params->C + c;
       int shift = wb + xb;
       int sign = (wb == 7) ? (-1) : 1;
