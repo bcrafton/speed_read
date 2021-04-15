@@ -4982,11 +4982,23 @@ else                 { this->BL_data = this->BL; }
 
 ====================
 
+still need to do ABFT for input.
+> probably just want to make a function called ABFT
+> which pads following some scheme.
 
+> [PATCH, NWL, WL, XBIT]
+> XBFT = sum XBIT
+  > so simple ...
 
+C code will be the shit part for this.
 
+====================
 
+> what is API for ABFT ? 
+> separate ABFT functions ? 
 
+OI!
+transform inputs / transform outputs .
 
 
 

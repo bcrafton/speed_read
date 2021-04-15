@@ -73,12 +73,6 @@ class Conv(Layer):
         #########################
         self.wb = self.transform_weights()
         #########################
-        '''
-        if self.params['ABFT']:
-            self.ABFT()
-        '''
-        self.ABFT()
-        #########################
         nwl, _, nbl, _ = np.shape(self.wb) 
         self.factor = nwl * nbl
         self.nwl = nwl
@@ -322,9 +316,9 @@ class Conv(Layer):
             patches = np.concatenate((patches, zeros), axis=1)
             
         patches = np.reshape(patches, (npatch, -1, self.params['wl'], self.params['bpa']))
-        
+
         #########################
-        
+
         return patches
         
     def transform_weights(self):
@@ -366,13 +360,17 @@ class Conv(Layer):
 
         ########################
 
-        return wb
+        if self.params['ABFT_BL']:
+            nwl, wl, nbl, bl = np.shape(wb)
+            checksum = np.reshape(wb, (nwl, wl, nbl, bl // 8, 8))
+            checksum = np.sum(checksum, axis=3) % (2 ** self.params['ABFT_BL'])
+            # MOD is fine ... but then need to actually use the bits
+            # like if 2 bits ... turn into 2'b10 or w.e. not 2. 
+            wb = np.concatenate((wb, checksum), axis=3)
 
-    def ABFT(self):
-        nwl, wl, nbl, bl = np.shape(self.wb)
-        checksum = np.reshape(self.wb, (nwl, wl, nbl, bl // 8, 8))
-        checksum = np.sum(checksum, axis=3) % (2 ** self.params['ABFT_BL'])
-        self.wb = np.concatenate((self.wb, checksum), axis=3)
+        ########################
+
+        return wb
 
         
         
