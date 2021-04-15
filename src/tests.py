@@ -214,7 +214,7 @@ def Simple():
     'cards': [0],
     'profile': [0],
     'rpr_alloc': ['static'],
-    'sigma': [0.06],
+    'sigma': [0.07],
     'thresh': [1.00]
     }
 

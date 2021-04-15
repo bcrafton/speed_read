@@ -186,9 +186,17 @@ int Array::ABFT(int row) {
         int xb_sum2 = this->checksum_XB[bit2] % MOD_XB;
         int xb_error = compute_error(xb_sum2, xb_sum1, MOD_XB);
         
-        if (adc_error != 0 && xb_error != 0) {
+        int flag1 = (adc_error != 0) && (xb_error != 0);
+        int flag2 = (bit1 < this->params->XB_data) && (bit2 < this->params->ADC_data);
+        int flag3 = (adc_error == xb_error);
+        if (flag1 && flag2 && flag3) {
           flag = 1;
-          printf ("(%d %d) XB~(%d %d) ADC~(%d %d) (%d %d) ", bit1, bit2, xb_sum1, xb_sum2, adc_sum1, adc_sum2, xb_error, adc_error);
+          // printf ("%d %d %d %d\n", bit1, bit2, adc_error, xb_error);
+          int ycol = bit2 + this->array_id * this->params->ADC_data;
+          int yaddr = row * this->params->C + ycol;
+          int shift = this->col + bit1;
+          int sign = (this->col == 7) ? (-1) : 1;
+          this->y[yaddr] += sign * (adc_error << shift);
         }
       }
     }
@@ -196,7 +204,7 @@ int Array::ABFT(int row) {
     memset(this->checksum_ADC, 0, sizeof(int) * VECTOR_SIZE);
     memset(this->sum_XB,       0, sizeof(int) * VECTOR_SIZE);
     memset(this->checksum_XB,  0, sizeof(int) * VECTOR_SIZE);
-    if (flag) printf("\n");
+    // if (flag) printf("\n");
   }
 }
 
