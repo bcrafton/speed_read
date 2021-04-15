@@ -184,6 +184,7 @@ class Params {
   int ABFT_WL;
   int ABFT_BL;
   int BL_data;
+  int WL_data;
 
   Params(int R, int B, int C, int NWL, int NBL, int WL, int BL, int adc, int max_rpr, float* adc_state, float* adc_thresh, float* lut_var, int* lut_rpr, int* lut_bias, long* metrics, int sync, int method, int skip, int ABFT, int ABFT_WL, int ABFT_BL);
 };
@@ -194,32 +195,35 @@ class Array {
   public:
   int block_id;
   int array_id;
-  
+
   int* x;
   int* w;
   int* y;
 
   Params* params;
-  
+
+  int xb;
+  int col;
   int wl_ptr;
   int wl_sum;
-  int wl_total;
   
   int* pdot;
-  int* pdot_sum;
-  int* sat;
-  
+
+  int* checksum_WL;
+  int* checksum_BL;
+
   Array(int block_id, int array_id, int* x, int* w, int* y, Params* params);
   
-  int pim(int row, int col, int xb, int rpr);
-  int pim_skip(int row, int col, int xb, int rpr);
-  int pim_base(int row, int col, int xb, int rpr);
+  int pim(int row);
+  int pim_skip(int row);
+  int pim_base(int row);
   
-  int process(int row, int col, int xb, int rpr);
-  int collect(int row, int col, int xb, int rpr);
-  int correct(int row, int col, int xb, int rpr);
+  int process(int row);
+  int collect(int row);
+  int correct(int row);
+  int update(int row);
   
-  int correct_static(int row, int col, int xb, int rpr);
+  int correct_static(int row);
 
   int clear();
 };
@@ -230,13 +234,9 @@ class Block {
   public:
   int block_id;
   Params* params;
-  
   Array** arrays;
-
   int row;
-  int col;
-  int xb;
-  
+
   Block(int block_id, int* x, int* w, int* y, Params* params);
   int pim(int row);
 };

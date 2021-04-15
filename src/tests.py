@@ -203,14 +203,14 @@ def Simple():
     'offset': 128,
     'max_rpr': 16,
     'ABFT'  :  1,  # [NULL, Re-Run, Re-Write, Correct]
-    'ABFT_WL': 0, 
+    'ABFT_WL': 0,
     'ABFT_BL': 1  # number of bits for each group of parallel bitlines.
     }
 
     arch_params = {
     'skip': [1],
     'alloc': ['block'],
-    'narray': [2 ** 12],
+    'narray': [296],
     'cards': [0],
     'profile': [0],
     'rpr_alloc': ['static'],

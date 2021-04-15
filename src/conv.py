@@ -210,7 +210,7 @@ class Conv(Layer):
         if self.params['alloc'] == 'block':
             results['array'] = np.sum(self.block_alloc) * nbl
             print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d mean: %0.3f error: %0.3f' % 
-              (self.layer_id, np.sum(self.block_alloc), nbl, nbl * np.sum(self.block_alloc), results['nmac'], results['cycle'], results['stall'], z_mean, z_error))
+              (self.layer_id, np.sum(self.block_alloc) / nwl, nwl * nbl, nbl * np.sum(self.block_alloc), results['nmac'], results['cycle'], results['stall'], z_mean, z_error))
 
         elif self.params['alloc'] == 'layer': 
             results['array'] = self.layer_alloc * nwl * nbl
@@ -317,6 +317,16 @@ class Conv(Layer):
             
         patches = np.reshape(patches, (npatch, -1, self.params['wl'], self.params['bpa']))
 
+        #########################
+        
+        if self.params['ABFT_WL']:
+            # npatch, nwl, wl, xbit = np.shape(patches)
+            checksum = np.sum(patches, axis=3, keepdims=True) % (2 ** self.params['ABFT_WL'])
+            # MOD is fine ... but then need to actually use the bits
+            # like if 2 bits ... turn into 2'b10 or w.e. not 2. 
+            patches = np.concatenate((patches, checksum), axis=3)
+            print (np.shape(patches))
+        
         #########################
 
         return patches

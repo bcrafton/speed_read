@@ -31,6 +31,7 @@ Params::Params(int R, int B, int C, int NWL, int NBL, int WL, int BL, int adc, i
   this->ABFT_WL = ABFT_WL;
   this->ABFT_BL = ABFT_BL;
   this->BL_data = this->BL - this->ABFT_BL * 8; // 8 = COL / ADC.
+  this->WL_data = 8; // this->XBIT - this->ABFT_WL; // 8 = XBIT
 }
 
 

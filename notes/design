@@ -4998,22 +4998,67 @@ C code will be the shit part for this.
 > separate ABFT functions ? 
 
 OI!
-transform inputs / transform outputs .
+transform inputs / transform weights
 
+====================
 
+okay so challenge is how do we do inputs ? 
+> input vs WL.
+  > what comes first ? 
 
+ideally, do all 8 inputs.
+that way we maximize ABFT.
+does it impact performance in any way ? 
 
+not really idt
+> same # of cycles.
+> same amount of registers required.
+  > we will run the ABFT more times ... which means more power ... but this is okay
+> are we sure there is no additional cost ? 
 
+> well from our tapeout, we would say its tricky to get the xbit data there
+  > you would have plenty of the same xbit data, but switching to 2nd bit would be hard.
+> BUT, at the same time - you would be able to pipeline things and process them easily.
 
+> but I would guess its easier to do all xbits at the same time.
+> but lets assume we have freedom to get those extra ABFTs.
 
+====================
 
+dont like how xbit is managed by block
+especially since we want to transpose the order now.
+and change number of xbits we do.
 
+> [WL, WB, XB] -> [XB, WL, WB]
 
+hmm it does make sense to do XB last for energy purposes.
+BUT then you are basically doing 256x32 ABFT ... which is what we want to avoid.
 
+> (1) we can continue to assume any order is acceptable
+> (2) move xb,wb,wl into array ... just have them all say done and assert that they finish at the same time.
 
+====================
 
+def know that order should be:
+> [WL, WB, XB] or [WB, WL, XB]
+> and have XB last to minimize bandwidth
 
+it actually wont work ...
+because if you do zero skipping, 
+all the XBs have to do the same number of 1s.
 
+so even if you do store individual ptrs for each one,
+you could only check if they did the same # of 1s.
+
+====================
+
+so its either baseline or 1s = min(XB) for zero skipping
+... which a preprocessor could definitely do
+
+yeah dont think thats better actually.
+I guess we could try it, but better to just move xb up.
+
+====================
 
 
 
