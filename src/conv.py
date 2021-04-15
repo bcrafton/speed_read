@@ -320,11 +320,15 @@ class Conv(Layer):
         #########################
         
         if self.params['ABFT_XB']:
-            # npatch, nwl, wl, xbit = np.shape(patches)
             checksum = np.sum(patches, axis=3, keepdims=True) % (2 ** self.params['ABFT_XB'])
-            # MOD is fine ... but then need to actually use the bits
-            # like if 2 bits ... turn into 2'b10 or w.e. not 2. 
-            patches = np.concatenate((patches, checksum), axis=3)
+            checksum = checksum.astype(int)
+            
+            pad = []
+            for b in range(self.params['ABFT_XB']):
+                pad.append( np.bitwise_and(np.right_shift(checksum, b), 1) )
+            pad = np.concatenate(pad, axis=3)
+            
+            patches = np.concatenate((patches, pad), axis=3)
         
         #########################
 
@@ -373,9 +377,14 @@ class Conv(Layer):
             nwl, wl, nbl, bl = np.shape(wb)
             checksum = np.reshape(wb, (nwl, wl, nbl, bl // 8, 8))
             checksum = np.sum(checksum, axis=3) % (2 ** self.params['ABFT_ADC'])
-            # MOD is fine ... but then need to actually use the bits
-            # like if 2 bits ... turn into 2'b10 or w.e. not 2. 
-            wb = np.concatenate((wb, checksum), axis=3)
+            checksum = checksum.astype(int)
+
+            pad = []
+            for b in range(self.params['ABFT_ADC']):
+                pad.append( np.bitwise_and(np.right_shift(checksum, b), 1) )
+            pad = np.concatenate(pad, axis=3)
+
+            wb = np.concatenate((wb, pad), axis=3)
 
         ########################
 

@@ -202,9 +202,9 @@ def Simple():
     'bl': 256,
     'offset': 128,
     'max_rpr': 16,
-    'ABFT':     1,  # [NULL, Re-Run, Re-Write, Correct]
-    'ABFT_XB':  1,
-    'ABFT_ADC': 1  # number of bits for each group of parallel bitlines.
+    'ABFT':     1, # [NULL, Re-Run, Re-Write, Correct]
+    'ABFT_XB':  2,
+    'ABFT_ADC': 2  # number of bits for each group of parallel bitlines.
     }
 
     arch_params = {
@@ -214,7 +214,7 @@ def Simple():
     'cards': [0],
     'profile': [0],
     'rpr_alloc': ['static'],
-    'sigma': [0.05],
+    'sigma': [0.06],
     'thresh': [1.00]
     }
 

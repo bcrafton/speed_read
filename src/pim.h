@@ -217,8 +217,8 @@ class Array {
 
   int* sum_XB;
   int* checksum_XB;
-  int* sum_BL;
-  int* checksum_BL;
+  int* sum_ADC;
+  int* checksum_ADC;
 
   Array(int block_id, int array_id, int* x, int* w, int* y, Params* params);
   

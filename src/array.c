@@ -17,10 +17,10 @@ Array::Array(int block_id, int array_id, int* x, int* w, int* y, Params* params)
   this->wl_sum = 0;
   this->pdot = new int[VECTOR_SIZE]();
 
-  this->sum_XB      = new int[VECTOR_SIZE]();
-  this->checksum_XB = new int[VECTOR_SIZE]();
-  this->sum_BL      = new int[VECTOR_SIZE]();
-  this->checksum_BL = new int[VECTOR_SIZE]();
+  this->sum_XB       = new int[VECTOR_SIZE]();
+  this->checksum_XB  = new int[VECTOR_SIZE]();
+  this->sum_ADC      = new int[VECTOR_SIZE]();
+  this->checksum_ADC = new int[VECTOR_SIZE]();
 }
 
 int Array::clear() {
@@ -111,12 +111,21 @@ int Array::process(int row) {
       this->y[yaddr] += sign * (pdot_adc << shift);
     }
 
-    if (bl_flag) {      this->sum_BL[this->xb] += pdot_adc; }
-    // need to scale here if more than 1 ABFT bit.
-    else         { this->checksum_BL[this->xb] += pdot_adc; }
+    if (bl_flag) {
+      this->sum_ADC[this->xb] += pdot_adc;
+    }
+    else {
+      int scale = pow(2, adc_ptr - this->params->ADC_data);
+      this->checksum_ADC[this->xb] += pdot_adc * scale; 
+    }
 
-    if (xb_flag) {      this->sum_XB[adc_ptr] += pdot_adc; }
-    else         { this->checksum_XB[adc_ptr] += pdot_adc; }
+    if (xb_flag) { 
+      this->sum_XB[adc_ptr] += pdot_adc;
+    }
+    else { 
+      int scale = pow(2, xb - this->params->XB_data);
+      this->checksum_XB[adc_ptr] += pdot_adc * scale; 
+    }
 
   } // for (int adc_ptr=0; adc_ptr<this->params->BL; adc_ptr+=8) {
 }
@@ -130,18 +139,64 @@ int Array::correct(int row) {
 int Array::correct_static(int row) {
 }
 
+/*
 int Array::ABFT(int row) {
   if (this->wl_ptr == this->params->WL && this->xb == (this->params->XB - 1)) {
     for (int bit=0; bit<this->params->XB; bit++) {
-      assert (this->sum_BL[bit] % 2 == this->checksum_BL[bit] % 2);
-      this->sum_BL[bit] = 0;
-      this->checksum_BL[bit] = 0;
+      int MOD = pow(2, this->params->ABFT_ADC);
+      int checksum1 = this->sum_ADC[bit]      % MOD;
+      int checksum2 = this->checksum_ADC[bit] % MOD;
+      assert (checksum1 == checksum2);
     }
     for (int bit=0; bit<this->params->TOTAL_ADC; bit++) {
-      assert (this->sum_XB[bit] % 2 == this->checksum_XB[bit] % 2);
-      this->sum_XB[bit] = 0;
-      this->checksum_XB[bit] = 0;
+      int MOD = pow(2, this->params->ABFT_XB);
+      int checksum1 = this->sum_XB[bit]      % MOD;
+      int checksum2 = this->checksum_XB[bit] % MOD;
+      assert (checksum1 == checksum2);
     }
+    memset(this->sum_ADC,      0, sizeof(int) * VECTOR_SIZE);
+    memset(this->checksum_ADC, 0, sizeof(int) * VECTOR_SIZE);
+    memset(this->sum_XB,       0, sizeof(int) * VECTOR_SIZE);
+    memset(this->checksum_XB,  0, sizeof(int) * VECTOR_SIZE);
+  }
+}
+*/
+
+int compute_error(int A, int B, int MOD) {
+  int error;
+  if      (A == (MOD - 1) && B == 0) { error = -1;    }
+  else if (B == (MOD - 1) && A == 0) { error = 1;     }
+  else                               { error = A - B; }
+  return error;
+}
+
+int Array::ABFT(int row) {
+  if (this->wl_ptr == this->params->WL && this->xb == (this->params->XB - 1)) {
+    int flag = 0;
+    for (int bit1=0; bit1<this->params->XB; bit1++) {
+      for (int bit2=0; bit2<this->params->TOTAL_ADC; bit2++) {
+
+        int MOD_ADC = pow(2, this->params->ABFT_ADC);
+        int adc_sum1 = this->sum_ADC[bit1] % MOD_ADC;
+        int adc_sum2 = this->checksum_ADC[bit1] % MOD_ADC;
+        int adc_error = compute_error(adc_sum2, adc_sum1, MOD_ADC);
+
+        int MOD_XB = pow(2, this->params->ABFT_XB);
+        int xb_sum1 = this->sum_XB[bit2] % MOD_XB;
+        int xb_sum2 = this->checksum_XB[bit2] % MOD_XB;
+        int xb_error = compute_error(xb_sum2, xb_sum1, MOD_XB);
+        
+        if (adc_error != 0 && xb_error != 0) {
+          flag = 1;
+          printf ("(%d %d) XB~(%d %d) ADC~(%d %d) (%d %d) ", bit1, bit2, xb_sum1, xb_sum2, adc_sum1, adc_sum2, xb_error, adc_error);
+        }
+      }
+    }
+    memset(this->sum_ADC,      0, sizeof(int) * VECTOR_SIZE);
+    memset(this->checksum_ADC, 0, sizeof(int) * VECTOR_SIZE);
+    memset(this->sum_XB,       0, sizeof(int) * VECTOR_SIZE);
+    memset(this->checksum_XB,  0, sizeof(int) * VECTOR_SIZE);
+    if (flag) printf("\n");
   }
 }
 
