@@ -1,7 +1,7 @@
 
 #include "pim.h"
 
-Params::Params(int R, int B, int C, int NWL, int NBL, int WL, int BL, int adc, int max_rpr, float* adc_state, float* adc_thresh, float* lut_var, int* lut_rpr, int* lut_bias, long* metrics, int sync, int method, int skip, int ABFT, int ABFT_WL, int ABFT_BL) {
+Params::Params(int R, int B, int C, int NWL, int NBL, int WL, int BL, int adc, int max_rpr, float* adc_state, float* adc_thresh, float* lut_var, int* lut_rpr, int* lut_bias, long* metrics, int sync, int method, int skip, int ABFT, int ABFT_XB, int ABFT_BL) {
   this->R = R;
   this->B = B;
   this->C = C;
@@ -28,10 +28,15 @@ Params::Params(int R, int B, int C, int NWL, int NBL, int WL, int BL, int adc, i
   this->skip = skip;
   
   this->ABFT    = ABFT;
-  this->ABFT_WL = ABFT_WL;
+  this->ABFT_XB = ABFT_XB;
   this->ABFT_BL = ABFT_BL;
-  this->BL_data = this->BL - this->ABFT_BL * 8; // 8 = COL / ADC.
-  this->WL_data = 8; // this->XBIT - this->ABFT_WL; // 8 = XBIT
+
+  this->XB            = 8 + ABFT_XB;
+  this->COL_PER_ADC   = 8;
+  this->TOTAL_ADC     = 32 + ABFT_BL;
+
+  this->XB_data = this->XB - this->ABFT_XB;
+  this->BL_data = this->TOTAL_ADC - this->ABFT_BL;
 }
 
 

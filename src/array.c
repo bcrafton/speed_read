@@ -17,7 +17,9 @@ Array::Array(int block_id, int array_id, int* x, int* w, int* y, Params* params)
   this->wl_sum = 0;
   this->pdot = new int[VECTOR_SIZE]();
 
-  this->checksum_WL = new int[VECTOR_SIZE]();
+  this->sum_XB      = new int[VECTOR_SIZE]();
+  this->checksum_XB = new int[VECTOR_SIZE]();
+  this->sum_BL      = new int[VECTOR_SIZE]();
   this->checksum_BL = new int[VECTOR_SIZE]();
 }
 
@@ -37,11 +39,12 @@ int Array::pim(int row) {
 
 int Array::pim_skip(int row) {
   memset(this->pdot, 0, sizeof(int) * VECTOR_SIZE);
-  int rpr = this->params->lut_rpr[this->xb * 8 + this->col];
+  // int rpr = this->params->lut_rpr[this->xb * 8 + this->col];
+  int rpr = this->params->adc;
 
-  int xaddr_ROW = (row * this->params->NWL * this->params->WL * 8);
-  int xaddr_NWL = (this->block_id * this->params->WL * 8);
-  int xaddr_WL  = (this->wl_ptr * 8);
+  int xaddr_ROW = (row * this->params->NWL * this->params->WL * this->params->XB);
+  int xaddr_NWL = (this->block_id * this->params->WL * this->params->XB);
+  int xaddr_WL  = (this->wl_ptr * this->params->XB);
   int xaddr_XB  = xb;
   int xaddr     = xaddr_ROW + xaddr_NWL + xaddr_WL + xaddr_XB;
   assert((this->x[xaddr] == 0) || (this->x[xaddr] == 1));
@@ -52,8 +55,8 @@ int Array::pim_skip(int row) {
     if (this->x[xaddr]) {
       this->wl_sum += 1;
       
-      for (int adc_ptr=0; adc_ptr<this->params->BL; adc_ptr+=8) {
-        int bl_ptr = adc_ptr + col;
+      for (int adc_ptr=0; adc_ptr<this->params->TOTAL_ADC; adc_ptr++) {
+        int bl_ptr = adc_ptr * this->params->COL_PER_ADC + col;
         int waddr_NWL = (this->block_id * this->params->WL * this->params->NBL * this->params->BL);
         int waddr_WL  = (this->wl_ptr * this->params->NBL * this->params->BL);
         int waddr_NBL = (this->array_id * this->params->BL);
@@ -65,9 +68,9 @@ int Array::pim_skip(int row) {
     
     this->wl_ptr += 1;
     // careful with placement of this, has to come after wl_ptr update.
-    xaddr_ROW = (row * this->params->NWL * this->params->WL * 8);
-    xaddr_NWL = (this->block_id * this->params->WL * 8);
-    xaddr_WL  = (this->wl_ptr * 8);
+    xaddr_ROW = (row * this->params->NWL * this->params->WL * this->params->XB);
+    xaddr_NWL = (this->block_id * this->params->WL * this->params->XB);
+    xaddr_WL  = (this->wl_ptr * this->params->XB);
     xaddr_XB  = xb;
     xaddr     = xaddr_ROW + xaddr_NWL + xaddr_WL + xaddr_XB;
   }
@@ -77,11 +80,11 @@ int Array::pim_base(int row) {
 }
 
 int Array::process(int row) {
-  int rpr = this->params->lut_rpr[this->xb * 8 + this->col];
+  // int rpr = this->params->lut_rpr[this->xb * 8 + this->col];
+  int rpr = this->params->adc;
 
-  int checksum = 0;
-  for (int adc_ptr=0; adc_ptr<this->params->BL; adc_ptr+=8) {
-    int bl_ptr = adc_ptr + col;
+  for (int adc_ptr=0; adc_ptr<this->params->TOTAL_ADC; adc_ptr++) {
+    int bl_ptr = adc_ptr * this->params->COL_PER_ADC + col;
     int wb = col;
 
     int key = rand() % 1001;
@@ -97,18 +100,23 @@ int Array::process(int row) {
       pdot_adc = min(max((int) round(pdot_var), 0), min(this->params->adc, rpr));
     }
 
-    if (adc_ptr < this->params->BL_data) {
-      checksum += pdot_adc;
+    int xb_flag = xb      < this->params->XB_data;
+    int bl_flag = adc_ptr < this->params->BL_data;
 
-      int c = (bl_ptr + this->array_id * this->params->BL_data) / 8; // 8 = COL / ADC ... I think.
+    if (bl_flag & xb_flag) {
+      int c = (bl_ptr + this->array_id * 256) / 8; // 8 = COL / ADC ... I think.
       int yaddr = row * this->params->C + c;
       int shift = wb + xb;
       int sign = (wb == 7) ? (-1) : 1;
       this->y[yaddr] += sign * (pdot_adc << shift);
     }
-    else {
-      assert ((checksum % 2) == (pdot_adc % 2));
-    }
+
+    if (bl_flag) {      this->sum_BL[this->xb] += pdot_adc; }
+    // need to scale here if more than 1 ABFT bit.
+    else         { this->checksum_BL[this->xb] += pdot_adc; }
+
+    if (xb_flag) {      this->sum_XB[adc_ptr] += pdot_adc; }
+    else         { this->checksum_XB[adc_ptr] += pdot_adc; }
 
   } // for (int adc_ptr=0; adc_ptr<this->params->BL; adc_ptr+=8) {
 }
@@ -122,11 +130,26 @@ int Array::correct(int row) {
 int Array::correct_static(int row) {
 }
 
+int Array::ABFT(int row) {
+  if (this->wl_ptr == this->params->WL && this->xb == (this->params->XB - 1)) {
+    for (int bit=0; bit<this->params->XB; bit++) {
+      assert (this->sum_BL[bit] % 2 == this->checksum_BL[bit] % 2);
+      this->sum_BL[bit] = 0;
+      this->checksum_BL[bit] = 0;
+    }
+    for (int bit=0; bit<this->params->TOTAL_ADC; bit++) {
+      assert (this->sum_XB[bit] % 2 == this->checksum_XB[bit] % 2);
+      this->sum_XB[bit] = 0;
+      this->checksum_XB[bit] = 0;
+    }
+  }
+}
+
 int Array::update(int row) {
   this->wl_sum = 0;
   if (this->wl_ptr == this->params->WL) {
     this->wl_ptr = 0;
-    this->xb = (this->xb + 1) % 8;
+    this->xb = (this->xb + 1) % this->params->XB;
     if (this->xb == 0) {
       this->col = (this->col + 1) % 8;
       if (this->col == 0) {

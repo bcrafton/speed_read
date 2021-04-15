@@ -319,13 +319,12 @@ class Conv(Layer):
 
         #########################
         
-        if self.params['ABFT_WL']:
+        if self.params['ABFT_XB']:
             # npatch, nwl, wl, xbit = np.shape(patches)
-            checksum = np.sum(patches, axis=3, keepdims=True) % (2 ** self.params['ABFT_WL'])
+            checksum = np.sum(patches, axis=3, keepdims=True) % (2 ** self.params['ABFT_XB'])
             # MOD is fine ... but then need to actually use the bits
             # like if 2 bits ... turn into 2'b10 or w.e. not 2. 
             patches = np.concatenate((patches, checksum), axis=3)
-            print (np.shape(patches))
         
         #########################
 

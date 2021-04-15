@@ -181,12 +181,17 @@ class Params {
   int skip;
 
   int ABFT;
-  int ABFT_WL;
+  int ABFT_XB;
   int ABFT_BL;
-  int BL_data;
-  int WL_data;
+  
+  int XB;
+  int COL_PER_ADC;
+  int TOTAL_ADC;
 
-  Params(int R, int B, int C, int NWL, int NBL, int WL, int BL, int adc, int max_rpr, float* adc_state, float* adc_thresh, float* lut_var, int* lut_rpr, int* lut_bias, long* metrics, int sync, int method, int skip, int ABFT, int ABFT_WL, int ABFT_BL);
+  int XB_data;
+  int BL_data;
+  
+  Params(int R, int B, int C, int NWL, int NBL, int WL, int BL, int adc, int max_rpr, float* adc_state, float* adc_thresh, float* lut_var, int* lut_rpr, int* lut_bias, long* metrics, int sync, int method, int skip, int ABFT, int ABFT_XB, int ABFT_BL);
 };
 
 /////////////////////////////////////////////////////
@@ -209,7 +214,9 @@ class Array {
   
   int* pdot;
 
-  int* checksum_WL;
+  int* sum_XB;
+  int* checksum_XB;
+  int* sum_BL;
   int* checksum_BL;
 
   Array(int block_id, int array_id, int* x, int* w, int* y, Params* params);
@@ -222,7 +229,8 @@ class Array {
   int collect(int row);
   int correct(int row);
   int update(int row);
-  
+  int ABFT(int row);
+
   int correct_static(int row);
 
   int clear();
