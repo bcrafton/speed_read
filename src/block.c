@@ -17,7 +17,7 @@ int Block::pim(int row) {
     this->arrays[i]->pim(row);
     this->arrays[i]->process(row);
     this->arrays[i]->collect(row);
-    this->arrays[i]->ABFT(row);
+    // this->arrays[i]->ABFT(row);
     int ret = this->arrays[i]->update(row);
     if (i == 0) done = ret;
     else        assert(ret == done);

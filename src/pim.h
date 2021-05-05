@@ -214,6 +214,7 @@ class Array {
   int wl_sum;
   
   int* pdot;
+  int* pdot_adc;
 
   int* sum_XB;
   int* checksum_XB;

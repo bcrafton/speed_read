@@ -16,6 +16,7 @@ Array::Array(int block_id, int array_id, int* x, int* w, int* y, Params* params)
   this->wl_ptr = 0;
   this->wl_sum = 0;
   this->pdot = new int[VECTOR_SIZE]();
+  this->pdot_adc = new int[VECTOR_SIZE]();
 
   this->sum_XB       = new int[VECTOR_SIZE]();
   this->checksum_XB  = new int[VECTOR_SIZE]();
@@ -63,6 +64,7 @@ int Array::pim_skip(int row) {
         int waddr_BL  = bl_ptr;
         int waddr     = waddr_NWL + waddr_WL + waddr_NBL + waddr_BL;
         this->pdot[bl_ptr] += this->w[waddr];
+        assert(this->pdot[bl_ptr] <= rpr);
       }
     }
     
@@ -80,6 +82,8 @@ int Array::pim_base(int row) {
 }
 
 int Array::process(int row) {
+  memset(this->pdot_adc, 0, sizeof(int) * VECTOR_SIZE);
+  
   // int rpr = this->params->lut_rpr[this->xb * 8 + this->col];
   int rpr = this->params->adc;
 
@@ -92,12 +96,11 @@ int Array::process(int row) {
     float var = this->params->lut_var[var_addr];
     float pdot_var = this->pdot[bl_ptr] + var;
     
-    int pdot_adc;
     if ((pdot_var > 0.20) && (pdot_var < 1.00)) {
-      pdot_adc = 1;
+      this->pdot_adc[bl_ptr] = 1;
     }
     else {
-      pdot_adc = min(max((int) round(pdot_var), 0), min(this->params->adc, rpr));
+      this->pdot_adc[bl_ptr] = min(max((int) round(pdot_var), 0), min(this->params->adc, rpr));
     }
 
     int xb_flag = xb      < this->params->XB_data;
@@ -108,29 +111,79 @@ int Array::process(int row) {
       int yaddr = row * this->params->C + c;
       int shift = wb + xb;
       int sign = (wb == 7) ? (-1) : 1;
-      this->y[yaddr] += sign * (pdot_adc << shift);
+      this->y[yaddr] += sign * (this->pdot_adc[bl_ptr] << shift);
     }
 
     if (bl_flag) {
-      this->sum_ADC[this->xb] += pdot_adc;
+      this->sum_ADC[this->xb] += this->pdot_adc[bl_ptr];
     }
     else {
       int scale = pow(2, adc_ptr - this->params->ADC_data);
-      this->checksum_ADC[this->xb] += pdot_adc * scale; 
+      this->checksum_ADC[this->xb] += this->pdot_adc[bl_ptr] * scale; 
     }
 
     if (xb_flag) { 
-      this->sum_XB[adc_ptr] += pdot_adc;
+      this->sum_XB[adc_ptr] += this->pdot_adc[bl_ptr];
     }
     else { 
       int scale = pow(2, xb - this->params->XB_data);
-      this->checksum_XB[adc_ptr] += pdot_adc * scale; 
+      this->checksum_XB[adc_ptr] += this->pdot_adc[bl_ptr] * scale; 
     }
 
   } // for (int adc_ptr=0; adc_ptr<this->params->BL; adc_ptr+=8) {
 }
 
+/*
+int Array::collect(int row, int col, int xb, int rpr) {
+
+  for (int adc_ptr=0; adc_ptr<this->params->BL; adc_ptr+=8) {
+    int bl_ptr = adc_ptr + col;
+    int c = (bl_ptr + this->array_id * this->params->BL) / 8;
+    int wb = col;
+
+    this->params->metrics[METRIC_RON] += this->pdot[bl_ptr];
+    this->params->metrics[METRIC_ROFF] += this->wl_sum - this->pdot[bl_ptr];
+  }
+
+  if (this->wl_sum > 0) {
+    int comps;
+    int wb = col;
+
+    if (params->skip == 0) {
+      if (this->wl_sum > 0) {
+        comps = this->params->adc - 1;
+      }
+      else {
+        comps = 0;
+      }
+    }
+    else if (params->method == CENTROIDS) comps = comps_enabled(this->wl_sum, this->params->adc, rpr, xb, wb, this->params->adc_state, this->params->adc_thresh) - 1;
+    else                                  comps = min(this->wl_sum - 1, this->params->adc - 1);
+    assert((comps >= 0) && (comps < this->params->adc));
+    assert ((this->params->BL % 8) == 0);
+    this->params->metrics[comps] += this->params->BL / 8;
+  }
+
+  this->params->metrics[METRIC_WL] += this->wl_sum;
+}
+*/
+
 int Array::collect(int row) {
+  int rpr = this->params->adc;
+  for (int adc_ptr=0; adc_ptr<this->params->TOTAL_ADC; adc_ptr++) {
+    int bl_ptr = adc_ptr * this->params->COL_PER_ADC + col;
+    assert(this->pdot[bl_ptr] <= rpr);
+    int error = this->pdot[bl_ptr] - this->pdot_adc[bl_ptr];
+    if (error != 0) {
+      int offset = METRIC_BLOCK_CYCLE + this->params->NWL;
+      int addr = this->block_id * this->params->NBL + this->array_id;
+      assert(addr >= 0);
+      assert(addr < this->params->NWL * this->params->NBL);
+      this->params->metrics[offset + addr] += 1;
+      // printf("%d\n", error);
+      // printf("%d %d\n", this->pdot[bl_ptr], this->pdot_adc[bl_ptr]);
+    }
+  }
 }
 
 int Array::correct(int row) {

@@ -276,9 +276,11 @@ class Conv(Layer):
         results['roff']  = metrics[10]
         results['wl']    = metrics[11]
         results['stall'] = metrics[12]
-        results['block_cycle'] = metrics[13:]
+        results['block_cycle'] = metrics[13:13+nwl]
         results['density'] = np.count_nonzero(patches) / np.prod(np.shape(patches)) * (self.params['wl'] / min(self.fh * self.fw * self.fc, self.params['wl']))
         results['block_density'] = np.count_nonzero(patches, axis=(0,2,3)) / (npatch * self.params['wl'] * self.params['bpa'])
+        
+        print (metrics[13+nwl:])
         
         #########################
         
