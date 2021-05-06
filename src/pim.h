@@ -220,6 +220,7 @@ class Array {
   int* checksum_XB;
   int* sum_ADC;
   int* checksum_ADC;
+
   int* error_matrix;
 
   Array(int block_id, int array_id, int* x, int* w, int* y, Params* params);
@@ -233,6 +234,7 @@ class Array {
   int correct(int row);
   int update(int row);
   int ABFT(int row);
+  int is_valid(int xb, int adc);
 
   int correct_static(int row);
 
