@@ -22,6 +22,7 @@ Array::Array(int block_id, int array_id, int* x, int* w, int* y, Params* params)
   this->checksum_XB  = new int[VECTOR_SIZE]();
   this->sum_ADC      = new int[VECTOR_SIZE]();
   this->checksum_ADC = new int[VECTOR_SIZE]();
+  this->error_matrix = new int[this->params->XB * this->params->TOTAL_ADC]();
 }
 
 int Array::clear() {
@@ -228,7 +229,6 @@ int compute_error(int A, int B, int MOD) {
 
 int Array::ABFT(int row) {
   if (this->wl_ptr == this->params->WL && this->xb == (this->params->XB - 1)) {
-    int flag = 0;
     for (int bit1=0; bit1<this->params->XB; bit1++) {
       for (int bit2=0; bit2<this->params->TOTAL_ADC; bit2++) {
 
@@ -241,29 +241,42 @@ int Array::ABFT(int row) {
         int xb_sum1 = this->sum_XB[bit2] % MOD_XB;
         int xb_sum2 = this->checksum_XB[bit2] % MOD_XB;
         int xb_error = compute_error(xb_sum2, xb_sum1, MOD_XB);
-        
+
         // dont apply errors that are not unique ...
         // this causes more issues then it solves.
         // how to test their uniqueness ?
         // generate "error matrix"
         // then apply it afterwards.
 
-        int flag1 = (adc_error != 0) && (xb_error != 0);
-        int flag2 = (bit1 < this->params->XB_data) && (bit2 < this->params->ADC_data);
-        int flag3 = (adc_error == xb_error);
-        if (flag1 && flag2 && flag3) {
+        // so other problem is that we cannot correct more than 1 error when they are all 1s.
+        // i guess we can correct 2 errors ... but still not that useful.
+        // can we add a parity bit to the inner product such that we can figure out where the error occurs ?
+
+        if (adc_error == xb_error) {
+          this->error_matrix[bit1 * this->params->TOTAL_ADC + bit2] = adc_error;
+        }
+      }
+    }
+
+    for (int bit1=0; bit1<this->params->XB_data; bit1++) {
+      for (int bit2=0; bit2<this->params->ADC_data; bit2++) {
+        int addr = bit1 * this->params->TOTAL_ADC + bit2;
+        int error = this->error_matrix[addr];
+        if (error != 0) {
           int ycol = bit2 + this->array_id * this->params->ADC_data;
           int yaddr = row * this->params->C + ycol;
           int shift = this->col + bit1;
           int sign = (this->col == 7) ? (-1) : 1;
-          this->y[yaddr] += sign * (adc_error << shift);
+          this->y[yaddr] += sign * (error * pow(2, shift));
         }
       }
     }
+
     memset(this->sum_ADC,      0, sizeof(int) * VECTOR_SIZE);
     memset(this->checksum_ADC, 0, sizeof(int) * VECTOR_SIZE);
     memset(this->sum_XB,       0, sizeof(int) * VECTOR_SIZE);
     memset(this->checksum_XB,  0, sizeof(int) * VECTOR_SIZE);
+    memset(this->error_matrix, 0, sizeof(int) * this->params->XB * this->params->TOTAL_ADC);
   }
 }
 
