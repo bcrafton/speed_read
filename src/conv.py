@@ -15,6 +15,7 @@ from cprofile import profile
 from dynamic_rpr import dynamic_rpr
 from static_rpr import static_rpr
 from kmeans_rpr import kmeans_rpr
+from cim import cim
 
 #########################
 
@@ -239,7 +240,7 @@ class Conv(Layer):
         npatch, nwl, wl, nbit = np.shape(patches)
         
         #########################
-        
+
         if   self.params['alloc'] == 'block': alloc = self.block_alloc
         elif self.params['alloc'] == 'layer': alloc = self.layer_alloc
         
@@ -262,7 +263,7 @@ class Conv(Layer):
         assert(np.all(np.absolute(y) < 2 ** 23))
 
         #########################
-        
+
         # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
         results = {}
         results['adc']   = metrics[0:8]
@@ -276,7 +277,10 @@ class Conv(Layer):
         results['block_density'] = np.count_nonzero(patches, axis=(0,2,3)) / (npatch * self.params['wl'] * self.params['bpa'])
         
         #########################
-        
+
+        y = cim(patches, self.wb, self.params['rpr'])
+        y = np.reshape(y, (yh, yw, self.fn))
+
         return y, results
         
     def transform_inputs(self, x):
@@ -324,8 +328,7 @@ class Conv(Layer):
 
         ########################
 
-        w_offset = np.copy(self.w) + self.params['offset']
-        w_matrix = np.reshape(w_offset, (self.fh * self.fw * self.fc, self.fn))
+        w_matrix = np.reshape(np.copy(self.w), (self.fh * self.fw * self.fc, self.fn))
         wb = []
         for bit in range(self.params['bpw']):
             wb.append(np.bitwise_and(np.right_shift(w_matrix, bit), 1))
