@@ -4881,7 +4881,10 @@ would be nice if we cud find where it worked - and then do a diff to see what we
 
 ====================
 
-
+so new problem:
+> we cannot just return error
+> well i suppose we could ... return expected error.
+> then we cant take the difference of the two though.
 
 
 

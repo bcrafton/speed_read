@@ -57,8 +57,9 @@ class Conv(Layer):
         assert(np.shape(self.b) == (self.fn,))
         assert(np.shape(self.q) == ())
         # cast as int
-        self.w = self.w.astype(int)
-        self.b = self.b.astype(int)
+        assert(np.max(self.w) < 128 and np.min(self.w) >= -128)
+        self.w = self.w.astype(np.int8)
+        self.b = self.b.astype(float)
         # self.q = self.q.astype(int)
         # q must be larger than 0
         if self.quantize_flag:
@@ -205,8 +206,8 @@ class Conv(Layer):
 
         if self.params['alloc'] == 'block':
             results['array'] = np.sum(self.block_alloc) * nbl
-            print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d mean: %0.3f error: %0.3f' % 
-              (self.layer_id, np.sum(self.block_alloc), nbl, nbl * np.sum(self.block_alloc), results['nmac'], results['cycle'], results['stall'], z_mean, z_error))
+            print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d mean: %0.3f error: %0.3f std: %0.3f' % 
+              (self.layer_id, np.sum(self.block_alloc), nbl, nbl * np.sum(self.block_alloc), results['nmac'], results['cycle'], results['stall'], mean, error, std))
 
         elif self.params['alloc'] == 'layer': 
             results['array'] = self.layer_alloc * nwl * nbl
@@ -224,8 +225,8 @@ class Conv(Layer):
         # perf:     y = y_ref
         # error:    None
 
-        # y = y_ref
-        y_ref = y
+        y = y_ref
+        # y_ref = y
 
         ########################
 
