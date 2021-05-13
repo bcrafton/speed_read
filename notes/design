@@ -4900,9 +4900,15 @@ what are advantages of this over keeping what we currently have ?
 > cleaner
   > unnecessary BB stuff.
 
-
-
 ====================
+
+1) let 64 --> max(row) ... can compute row by summing patches ... divide by rpr
+2) pad wb with parity
+   > not sure where to do this
+   > strictly in cim ? or in transform_weights() ??
+3) need to return error ... so we can track how many happen
+4) get new ecc code working for cim
+
 
 
 
