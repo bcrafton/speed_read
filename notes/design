@@ -4970,6 +4970,31 @@ where to pad wb ?
 
 #################################################################################################
 
+so essential questions:
+-----------------------
+
+1) only drift in HRS state
+   > so we need to change simulator to vary inversely as a function of state ...
+
+2) still have variation without drift
+   > assume HRS variation = drift
+   > what about LRS ?
+
+3) would it make sense for 1=HRS, 0=LRS ? 
+   > I guess we can try it out
+
+
+perhaps some of these could be answered with real data ?
+
+#################################################################################################
+
+
+
+
+
+
+
+
 
 
 
