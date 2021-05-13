@@ -17,11 +17,14 @@ def cim(xb, wb, rpr, var):
     wb = np.reshape(wb, (NWL, WL, NBL * BL))
     BL = NBL * BL
 
-    yb = np.zeros(shape=(N, NWL, XB, BL, 64), dtype=np.uint8)
+    cim_ref = np.zeros(shape=(N, NWL, XB, BL, 64), dtype=np.uint8)
+    cim_var = np.zeros(shape=(N, NWL, XB, BL, 64), dtype=np.uint8)
 
     ################################################################
 
-    yb = np.ascontiguousarray(yb.flatten(), np.uint8)
+    cim_ref = np.ascontiguousarray(cim_ref.flatten(), np.uint8)
+    cim_var = np.ascontiguousarray(cim_var.flatten(), np.uint8)
+
     xb = np.ascontiguousarray(xb.flatten(), np.int8)
     wb = np.ascontiguousarray(wb.flatten(), np.int8)
     rpr_table = np.ascontiguousarray(rpr.flatten(), np.uint8)
@@ -32,7 +35,8 @@ def cim(xb, wb, rpr, var):
     _ = cim_lib.cim(
     ctypes.c_void_p(xb.ctypes.data), 
     ctypes.c_void_p(wb.ctypes.data), 
-    ctypes.c_void_p(yb.ctypes.data), 
+    ctypes.c_void_p(cim_ref.ctypes.data), 
+    ctypes.c_void_p(cim_var.ctypes.data), 
     ctypes.c_void_p(rpr_table.ctypes.data), 
     ctypes.c_void_p(var_table.ctypes.data), 
     ctypes.c_int(N),
@@ -40,15 +44,21 @@ def cim(xb, wb, rpr, var):
     ctypes.c_int(WL),
     ctypes.c_int(BL))
 
-    yb = np.reshape(yb, (N, NWL, XB, BL, 64))
-    yb = np.reshape(yb, (N, NWL, XB, BL // 8, 8, 64))
+    cim_ref = np.reshape(cim_ref, (N, NWL, XB, BL // 8, 8, 64))
+    cim_var = np.reshape(cim_var, (N, NWL, XB, BL // 8, 8, 64))
+
+    total_error = np.count_nonzero(cim_ref - cim_var)
+    total = np.count_nonzero(cim_ref)
+    # print (total_error / total)
+
+    cim_var = np.maximum(cim_var.astype(int) - 1, 0)
 
     ################################################################
 
     scale = np.array([1,2,4,8,16,32,64,-128])
     scale = scale.reshape(-1, 1) * scale.reshape(1, -1)
     scale = np.reshape(scale, (8, 1, 8, 1))
-    y = np.sum(yb * scale, axis=(1,2,4,5))
+    y = np.sum(cim_var * scale, axis=(1,2,4,5))
 
     return y
 
