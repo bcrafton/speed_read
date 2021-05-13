@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 # from sklearn.cluster import KMeans
 from kmeans import kmeans
+import time
 
 from conv_utils import *
 from cdot import *
@@ -279,7 +280,7 @@ class Conv(Layer):
         
         #########################
 
-        y = cim(patches, self.wb, self.params['rpr'])
+        y = cim(patches, self.wb, self.params['rpr'], self.params['var'])
         y = np.reshape(y, (yh, yw, self.fn))
 
         return y, results

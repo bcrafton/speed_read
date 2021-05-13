@@ -19,11 +19,10 @@
 // typedef char int8_t; // already defined ? 
 typedef unsigned char uint8_t;
 
-//////////////////////////////////////////////
+#define VECTOR_SIZE 65536
+#define WORD_SIZE 64
 
-// make sure (bl <= 1024), malloc would be too slow.
-// if we just pick a size large enough we will be okay
-#define VECTOR_SIZE 1024
+//////////////////////////////////////////////
 
 void clear(int* v)
 {
@@ -32,44 +31,54 @@ void clear(int* v)
 
 //////////////////////////////////////////////
 
-int cim(int8_t* x, int8_t* w, uint8_t* y, uint8_t* rpr_table, int R, int NWL, int WL, int BL) {
+int cim(int8_t* x, int8_t* w, uint8_t* y, uint8_t* rpr_table, float* var_table, int R, int NWL, int WL, int BL) {
+  int pdot[VECTOR_SIZE];
+
   for (int r=0; r<R; r++) {
     for (int wl=0; wl<NWL; wl++) {
       for (int xb=0; xb<8; xb++) {
-        for (int bl=0; bl<BL; bl++) {
+        for (int wb=0; wb<8; wb++) {
 
           int wl_ptr = 0;
           int wl_itr = 0;
           while (wl_ptr < WL) {
             int wl_sum = 0;
-            int pdot = 0;
+            clear(pdot);
 
-            int rpr = rpr_table[xb * 8 + (bl % 8)];
-            // assert(rpr >= 1);
+            int rpr = rpr_table[xb * 8 + wb];
+            assert (rpr >= 1);
             while ((wl_ptr < WL) && (wl_sum + x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr * 8) + xb] <= rpr)) {
               if (x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr * 8) + xb]) {
                 wl_sum += 1;
-                pdot += w[(wl * WL * BL) + (wl_ptr * BL) + bl];
+                for (int bl_ptr=0; bl_ptr<BL; bl_ptr+=8) {
+                  int bl = bl_ptr + wb;
+                  pdot[bl] += w[(wl * WL * BL) + (wl_ptr * BL) + bl];
+                }
               }
               wl_ptr += 1;
             }
 
-            int row_addr = r * NWL * 8 * BL * 17;
-            int wl_addr =       wl * 8 * BL * 17;
-            int xb_addr =           xb * BL * 17;
-            int bl_addr =                bl * 17;
+            for (int bl_ptr=0; bl_ptr<BL; bl_ptr+=8) {
+              int bl = bl_ptr + wb;
 
-            if (rpr <= 16) {
-              int y_addr = row_addr + wl_addr + xb_addr + bl_addr + pdot;
-              y[y_addr] += 1;
-            }
-            else {
+              int row_addr = r * NWL * 8 * BL * WORD_SIZE;
+              int wl_addr =       wl * 8 * BL * WORD_SIZE;
+              int xb_addr =           xb * BL * WORD_SIZE;
+              int bl_addr =                bl * WORD_SIZE;
+
               int y_addr = row_addr + wl_addr + xb_addr + bl_addr + wl_itr;
-              y[y_addr] = pdot;
+
+              int key = rand() % 1001;
+              int var_addr = pdot[bl] * 1001 + key;
+              float var = var_table[var_addr];
+              float pdot_var = pdot[bl] + var;
+
+              if ((pdot_var > 0.20) && (pdot_var < 1.00)) y[y_addr] = 1;
+              else                                        y[y_addr] = min(max((int) round(pdot_var), 0), min(8, rpr));
             }
 
+            assert (wl_itr < WORD_SIZE);
             wl_itr += 1;
-
           } // while (wl_ptr < wl) {
         } // for (int bl=0; bl<BL; bl++) {
       } // for (int xb=0; xb<8; xb++) {

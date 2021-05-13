@@ -4886,11 +4886,23 @@ so new problem:
 > well i suppose we could ... return expected error.
 > then we cant take the difference of the two though.
 
+====================
+
+thinking we have to do variance inside of the c code
+cant really think of a better way.
+
+think we should return number of cycles for each VMM
+> breaking barriers solved 
+
+====================
+
+what are advantages of this over keeping what we currently have ? 
+> cleaner
+  > unnecessary BB stuff.
 
 
 
-
-
+====================
 
 
 
