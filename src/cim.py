@@ -47,11 +47,23 @@ def cim(xb, wb, rpr, var):
     cim_ref = np.reshape(cim_ref, (N, NWL, XB, BL // 8, 8, 64))
     cim_var = np.reshape(cim_var, (N, NWL, XB, BL // 8, 8, 64))
 
+    ################################################################
+
+    '''
     total_error = np.count_nonzero(cim_ref - cim_var)
     total = np.count_nonzero(cim_ref)
-    # print (total_error / total)
+    print (total_error / total)
+    '''
 
+    '''
+    val, count = np.unique(np.count_nonzero(cim_ref - cim_var, axis=3), return_counts=True)
+    print (val, count)
+    '''
+
+    '''
+    # set (+1) in cim.c
     cim_var = np.maximum(cim_var.astype(int) - 1, 0)
+    '''
 
     ################################################################
 

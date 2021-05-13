@@ -4909,7 +4909,9 @@ what are advantages of this over keeping what we currently have ?
 3) need to return error ... so we can track how many happen
 4) get new ecc code working for cim
 
-
+SEC-DED would definitely work well:
+[0 1 2 3 4]
+[4183514    9945     807      36       2]
 
 
 

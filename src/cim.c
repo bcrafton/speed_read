@@ -77,8 +77,8 @@ int cim(int8_t* x, int8_t* w, uint8_t* cim_ref, uint8_t* cim_var, uint8_t* rpr_t
               if ((pdot_var > 0.20) && (pdot_var < 1.00)) cim_var[y_addr] = 1;
               else                                        cim_var[y_addr] = min(max((int) round(pdot_var), 0), min(8, rpr));
 
-              cim_ref[y_addr] += 1;
-              cim_var[y_addr] += 1;
+              // cim_ref[y_addr] += 1;
+              // cim_var[y_addr] += 1;
             }
 
             assert (wl_itr < WORD_SIZE);
