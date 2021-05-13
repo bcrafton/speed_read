@@ -9,13 +9,85 @@ cim_lib.cim.restype = ctypes.c_int
 
 ################################################################
 
+def ecc_encode(x, d, p):
+    assert (2 ** p >= d + p + 1)
+    #######################################
+    bit = []
+    for i in range(1, d + 1):
+        b = i
+        for j in range(d):
+            b += b >= (2 ** j)
+        bit.append(b)
+    bit = np.array(bit)
+    #######################################
+    ps = [None] * p
+    for i in range(p):    
+        sel = 1 * (np.bitwise_and(bit, 2**i) == 2**i)
+        ps[i] = np.sum(sel * x, axis=-1) % 2
+    ps = np.stack(ps, axis=-1)
+    #######################################
+    return ps 
+
+################################################################
+
+def ecc(data, data_ref, parity, parity_ref):
+    #########################
+    d = np.shape(data)[-1]
+    p = np.shape(parity)[-1]
+    
+    bit = []
+    for i in range(1, d + 1):
+        b = i
+        for j in range(d):
+            b += b >= (2 ** j)
+        bit.append(b)
+    bit = np.array(bit)
+    #########################
+    cs = []
+    for i in range(p):
+        sel = 1 * (np.bitwise_and(bit, 2**i) == 2**i)
+        c = (np.sum(sel * data, axis=-1) + parity[..., i]) % 2
+        cs.append(c)
+    cs = np.stack(cs, axis=-1)
+    #########################
+    scale = 2 ** np.arange(0, p)
+    addr = np.sum(cs * scale, axis=-1, keepdims=True)
+    #########################
+    d_addr = (addr - bit) == 0
+    p_addr = (addr - scale) == 0
+    #########################
+    data   = np.where(d_addr, data_ref,   data)
+    parity = np.where(p_addr, parity_ref, parity)
+    #########################
+    return data, parity
+
+################################################################
+
 def cim(xb, wb, rpr, var):
 
     N, NWL, WL, XB = np.shape(xb)
     NWL, WL, NBL, BL = np.shape(wb)
 
+    # wb = np.reshape(wb, (NWL, WL, NBL * BL))
+    # BL = NBL * BL
+
+    wb = np.reshape(wb, (NWL, WL, NBL * BL // 32, 32))
+    pb = ecc_encode(wb, 32, 6)
+
+    # print (np.shape(wb))
+    # print (np.shape(pb))
+    
     wb = np.reshape(wb, (NWL, WL, NBL * BL))
-    BL = NBL * BL
+    pb = np.reshape(pb, (NWL, WL, NBL * BL // 32 * 6))
+    _, _, BL_W = np.shape(wb)
+    _, _, BL_P = np.shape(pb)
+
+    wb = np.concatenate((wb, pb), axis=2)
+    _, _, BL = np.shape(wb)
+
+    # print (BL, BL_W, BL_P)
+
+    ################################################################
 
     cim_ref = np.zeros(shape=(N, NWL, XB, BL, 64), dtype=np.uint8)
     cim_var = np.zeros(shape=(N, NWL, XB, BL, 64), dtype=np.uint8)
@@ -44,8 +116,24 @@ def cim(xb, wb, rpr, var):
     ctypes.c_int(WL),
     ctypes.c_int(BL))
 
-    cim_ref = np.reshape(cim_ref, (N, NWL, XB, BL // 8, 8, 64))
-    cim_var = np.reshape(cim_var, (N, NWL, XB, BL // 8, 8, 64))
+    ################################################################
+
+    cim_ref = np.reshape(cim_ref, (N, NWL, XB, BL, 64))
+    cim_var = np.reshape(cim_var, (N, NWL, XB, BL, 64))
+
+    ################################################################
+
+    ecc_var = np.reshape(cim_var[:, :, :, BL_W:BL, :], (N, NWL, XB, BL_P //  6,  6, 64)).transpose(0,1,2,3,5,4)
+    cim_var = np.reshape(cim_var[:, :, :,  0:BL_W, :], (N, NWL, XB, BL_W // 32, 32, 64)).transpose(0,1,2,3,5,4)
+
+    ecc_ref = np.reshape(cim_ref[:, :, :, BL_W:BL, :], (N, NWL, XB, BL_P //  6,  6, 64)).transpose(0,1,2,3,5,4)
+    cim_ref = np.reshape(cim_ref[:, :, :,  0:BL_W, :], (N, NWL, XB, BL_W // 32, 32, 64)).transpose(0,1,2,3,5,4)
+
+    cim_var, ecc_var = ecc(cim_var, cim_ref, ecc_var, ecc_ref)
+
+    ################################################################
+
+    cim_var = cim_var.transpose(0,1,2,3,5,4).reshape(N, NWL, XB, BL_W // 8, 8, 64)
 
     ################################################################
 
