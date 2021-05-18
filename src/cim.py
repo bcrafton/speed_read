@@ -63,6 +63,15 @@ def ecc(data, data_ref, parity, parity_ref):
 
 ################################################################
 
+def BB(count):
+    # print (np.shape(count)) # (1024, 1, 8, 64)
+    cycle = np.sum(count > 0, axis=(2, 3))
+    # cant just do BB here
+    # need to save [npatch, nwl] counts to the end
+    assert (False)
+
+################################################################
+
 def cim(xb, wb, rpr, var):
 
     N, NWL, WL, XB = np.shape(xb)
@@ -91,11 +100,13 @@ def cim(xb, wb, rpr, var):
 
     cim_ref = np.zeros(shape=(N, NWL, XB, BL, 64), dtype=np.uint8)
     cim_var = np.zeros(shape=(N, NWL, XB, BL, 64), dtype=np.uint8)
+    count   = np.zeros(shape=(N, NWL, XB, 64), dtype=np.uint8)
 
     ################################################################
 
     cim_ref = np.ascontiguousarray(cim_ref.flatten(), np.uint8)
     cim_var = np.ascontiguousarray(cim_var.flatten(), np.uint8)
+    count   = np.ascontiguousarray(count.flatten(), np.uint8)
 
     xb = np.ascontiguousarray(xb.flatten(), np.int8)
     wb = np.ascontiguousarray(wb.flatten(), np.int8)
@@ -109,6 +120,7 @@ def cim(xb, wb, rpr, var):
     ctypes.c_void_p(wb.ctypes.data), 
     ctypes.c_void_p(cim_ref.ctypes.data), 
     ctypes.c_void_p(cim_var.ctypes.data), 
+    ctypes.c_void_p(count.ctypes.data), 
     ctypes.c_void_p(rpr_table.ctypes.data), 
     ctypes.c_void_p(var_table.ctypes.data), 
     ctypes.c_int(N),
@@ -120,6 +132,9 @@ def cim(xb, wb, rpr, var):
 
     cim_ref = np.reshape(cim_ref, (N, NWL, XB, BL, 64))
     cim_var = np.reshape(cim_var, (N, NWL, XB, BL, 64))
+    count   = np.reshape(count,   (N, NWL, XB, 64))
+
+    # BB(count)
 
     ################################################################
 

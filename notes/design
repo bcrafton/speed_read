@@ -4988,6 +4988,9 @@ perhaps some of these could be answered with real data ?
 
 #################################################################################################
 
+1) re-create CC/BB results with new cim.c
+2) try running it on resnet18.
+
 
 
 

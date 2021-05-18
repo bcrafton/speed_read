@@ -31,7 +31,7 @@ void clear(int* v)
 
 //////////////////////////////////////////////
 
-int cim(int8_t* x, int8_t* w, uint8_t* cim_ref, uint8_t* cim_var, uint8_t* rpr_table, float* var_table, int R, int NWL, int WL, int BL) {
+int cim(int8_t* x, int8_t* w, uint8_t* cim_ref, uint8_t* cim_var, uint8_t* count, uint8_t* rpr_table, float* var_table, int R, int NWL, int WL, int BL) {
   int pdot[VECTOR_SIZE];
 
   for (int r=0; r<R; r++) {
@@ -80,6 +80,12 @@ int cim(int8_t* x, int8_t* w, uint8_t* cim_ref, uint8_t* cim_var, uint8_t* rpr_t
               // cim_ref[y_addr] += 1;
               // cim_var[y_addr] += 1;
             }
+
+            int row_addr = r * NWL * 8 * WORD_SIZE;
+            int wl_addr =       wl * 8 * WORD_SIZE;
+            int xb_addr =           xb * WORD_SIZE;
+            int count_addr = row_addr + wl_addr + xb_addr + wl_itr;
+            count[count_addr] = wl_sum;
 
             assert (wl_itr < WORD_SIZE);
             wl_itr += 1;
