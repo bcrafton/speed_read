@@ -63,15 +63,6 @@ def ecc(data, data_ref, parity, parity_ref):
 
 ################################################################
 
-def BB(count):
-    # print (np.shape(count)) # (1024, 1, 8, 64)
-    cycle = np.sum(count > 0, axis=(2, 3))
-    # cant just do BB here
-    # need to save [npatch, nwl] counts to the end
-    assert (False)
-
-################################################################
-
 def cim(xb, wb, rpr, var):
 
     N, NWL, WL, XB = np.shape(xb)
@@ -146,27 +137,7 @@ def cim(xb, wb, rpr, var):
 
     cim_var, ecc_var = ecc(cim_var, cim_ref, ecc_var, ecc_ref)
 
-    ################################################################
-
     cim_var = cim_var.transpose(0,1,2,3,5,4).reshape(N, NWL, XB, BL_W // 8, 8, 64)
-
-    ################################################################
-
-    '''
-    total_error = np.count_nonzero(cim_ref - cim_var)
-    total = np.count_nonzero(cim_ref)
-    print (total_error / total)
-    '''
-
-    '''
-    val, count = np.unique(np.count_nonzero(cim_ref - cim_var, axis=3), return_counts=True)
-    print (val, count)
-    '''
-
-    '''
-    # set (+1) in cim.c
-    cim_var = np.maximum(cim_var.astype(int) - 1, 0)
-    '''
 
     ################################################################
 
@@ -175,7 +146,23 @@ def cim(xb, wb, rpr, var):
     scale = np.reshape(scale, (8, 1, 8, 1))
     y = np.sum(cim_var * scale, axis=(1,2,4,5))
 
-    return y
+    ################################################################
+
+    metrics = {}
+    metrics['cycle'] = np.sum(count > 0)
+    metrics['ron'] = 0
+    metrics['roff'] = 0
+    metrics['wl'] = np.sum(count)
+    metrics['stall'] = 0
+    metrics['block_cycle'] = np.sum(count, axis=(0, 2, 3))
+    metrics['bb'] = count
+
+    val, count = np.unique(count, return_counts=True)
+    metrics['adc'] = np.zeros(shape=8+1)
+    for (v, c) in zip(val, count):
+        metrics['adc'][v] = c
+
+    return y, metrics
 
 
 

@@ -4991,8 +4991,15 @@ perhaps some of these could be answered with real data ?
 1) re-create CC/BB results with new cim.c
 2) try running it on resnet18.
 
+atleast 2 more papers from this framework ... so its worth cleaning.
 
+#################################################################################################
 
+wasted 2 hours figuring out why removing pim_static caused: .184 -> .399 error
+was basically bc sigma was low, quantization not applied
+so random chance that sigma was high for a certain value.
+
+#################################################################################################
 
 
 

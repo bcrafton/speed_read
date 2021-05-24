@@ -25,7 +25,7 @@ cmd = "gcc profile.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o profi
 ret = os.system(cmd)
 assert (ret == 0)
 
-cmd = "gcc cim.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o c.cim.so"
+cmd = "g++ cim.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -std=c++11 -o c.cim.so"
 ret = os.system(cmd)
 assert (ret == 0)
 

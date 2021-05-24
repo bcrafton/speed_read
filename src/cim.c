@@ -5,6 +5,8 @@
 #include <string.h>
 #include <math.h>
 #include <assert.h>
+#include <random>
+#define DLLEXPORT extern "C"
 
 #ifndef max
 #define max(a,b)            (((a) > (b)) ? (a) : (b))
@@ -12,6 +14,10 @@
 
 #ifndef min
 #define min(a,b)            (((a) < (b)) ? (a) : (b))
+#endif
+
+#ifndef clip
+#define clip(a,b,c)         ((a > b) ? b : (a < c) ? c : a)
 #endif
 
 //////////////////////////////////////////////
@@ -31,9 +37,8 @@ void clear(int* v)
 
 //////////////////////////////////////////////
 
-int cim(int8_t* x, int8_t* w, uint8_t* cim_ref, uint8_t* cim_var, uint8_t* count, uint8_t* rpr_table, float* var_table, int R, int NWL, int WL, int BL) {
+DLLEXPORT int cim(int8_t* x, int8_t* w, uint8_t* cim_ref, uint8_t* cim_var, uint8_t* count, uint8_t* rpr_table, float* var_table, int R, int NWL, int WL, int BL) {
   int pdot[VECTOR_SIZE];
-
   for (int r=0; r<R; r++) {
     for (int wl=0; wl<NWL; wl++) {
       for (int xb=0; xb<8; xb++) {

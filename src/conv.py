@@ -242,7 +242,13 @@ class Conv(Layer):
         npatch, nwl, wl, nbit = np.shape(patches)
         
         #########################
-
+        '''
+        wasted 2 hours figuring out why removing pim_static caused: .184 -> .399 error
+        was basically bc sigma was low, quantization not applied
+        so random chance that sigma was high for a certain value.
+        '''
+        
+        '''
         if   self.params['alloc'] == 'block': alloc = self.block_alloc
         elif self.params['alloc'] == 'layer': alloc = self.layer_alloc
         
@@ -263,9 +269,9 @@ class Conv(Layer):
         
         # we shud move this into forward, do it after the y - y_ref. 
         assert(np.all(np.absolute(y) < 2 ** 23))
-
+        '''
         #########################
-
+        '''
         # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
         results = {}
         results['adc']   = metrics[0:8]
@@ -277,13 +283,13 @@ class Conv(Layer):
         results['block_cycle'] = metrics[13:]
         results['density'] = np.count_nonzero(patches) / np.prod(np.shape(patches)) * (self.params['wl'] / min(self.fh * self.fw * self.fc, self.params['wl']))
         results['block_density'] = np.count_nonzero(patches, axis=(0,2,3)) / (npatch * self.params['wl'] * self.params['bpa'])
-        
+        '''
         #########################
 
-        y = cim(patches, self.wb, self.params['rpr'], self.params['var'])
+        y, metrics = cim(patches, self.wb, self.params['rpr'], self.params['var'])
         y = np.reshape(y, (yh, yw, self.fn))
 
-        return y, results
+        return y, metrics
         
     def transform_inputs(self, x):
     
