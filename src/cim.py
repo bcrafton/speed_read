@@ -89,9 +89,15 @@ def cim(xb, wb, rpr, var):
 
     ################################################################
 
-    cim_ref = np.zeros(shape=(N, NWL, XB, BL, 64), dtype=np.uint8)
-    cim_var = np.zeros(shape=(N, NWL, XB, BL, 64), dtype=np.uint8)
-    count   = np.zeros(shape=(N, NWL, XB, 64), dtype=np.uint8)
+    WLs = np.sum(xb, axis=(2))
+    rows = WLs / np.min(rpr, axis=1)
+    max_cycle = int(np.ceil(np.max(rows)))
+
+    ################################################################
+
+    cim_ref = np.zeros(shape=(N, NWL, XB, BL, max_cycle), dtype=np.uint8)
+    cim_var = np.zeros(shape=(N, NWL, XB, BL, max_cycle), dtype=np.uint8)
+    count   = np.zeros(shape=(N, NWL, XB, max_cycle), dtype=np.uint8)
 
     ################################################################
 
@@ -114,6 +120,7 @@ def cim(xb, wb, rpr, var):
     ctypes.c_void_p(count.ctypes.data), 
     ctypes.c_void_p(rpr_table.ctypes.data), 
     ctypes.c_void_p(var_table.ctypes.data), 
+    ctypes.c_int(max_cycle),
     ctypes.c_int(N),
     ctypes.c_int(NWL),
     ctypes.c_int(WL),
@@ -121,23 +128,23 @@ def cim(xb, wb, rpr, var):
 
     ################################################################
 
-    cim_ref = np.reshape(cim_ref, (N, NWL, XB, BL, 64))
-    cim_var = np.reshape(cim_var, (N, NWL, XB, BL, 64))
-    count   = np.reshape(count,   (N, NWL, XB, 64))
+    cim_ref = np.reshape(cim_ref, (N, NWL, XB, BL, max_cycle))
+    cim_var = np.reshape(cim_var, (N, NWL, XB, BL, max_cycle))
+    count   = np.reshape(count,   (N, NWL, XB, max_cycle))
 
     # BB(count)
 
     ################################################################
 
-    ecc_var = np.reshape(cim_var[:, :, :, BL_W:BL, :], (N, NWL, XB, BL_P //  6,  6, 64)).transpose(0,1,2,3,5,4)
-    cim_var = np.reshape(cim_var[:, :, :,  0:BL_W, :], (N, NWL, XB, BL_W // 32, 32, 64)).transpose(0,1,2,3,5,4)
+    ecc_var = np.reshape(cim_var[:, :, :, BL_W:BL, :], (N, NWL, XB, BL_P //  6,  6, max_cycle)).transpose(0,1,2,3,5,4)
+    cim_var = np.reshape(cim_var[:, :, :,  0:BL_W, :], (N, NWL, XB, BL_W // 32, 32, max_cycle)).transpose(0,1,2,3,5,4)
 
-    ecc_ref = np.reshape(cim_ref[:, :, :, BL_W:BL, :], (N, NWL, XB, BL_P //  6,  6, 64)).transpose(0,1,2,3,5,4)
-    cim_ref = np.reshape(cim_ref[:, :, :,  0:BL_W, :], (N, NWL, XB, BL_W // 32, 32, 64)).transpose(0,1,2,3,5,4)
+    ecc_ref = np.reshape(cim_ref[:, :, :, BL_W:BL, :], (N, NWL, XB, BL_P //  6,  6, max_cycle)).transpose(0,1,2,3,5,4)
+    cim_ref = np.reshape(cim_ref[:, :, :,  0:BL_W, :], (N, NWL, XB, BL_W // 32, 32, max_cycle)).transpose(0,1,2,3,5,4)
 
     cim_var, ecc_var = ecc(cim_var, cim_ref, ecc_var, ecc_ref)
 
-    cim_var = cim_var.transpose(0,1,2,3,5,4).reshape(N, NWL, XB, BL_W // 8, 8, 64)
+    cim_var = cim_var.transpose(0,1,2,3,5,4).reshape(N, NWL, XB, BL_W // 8, 8, max_cycle)
 
     ################################################################
 

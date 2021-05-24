@@ -30,15 +30,15 @@ typedef unsigned char uint8_t;
 
 //////////////////////////////////////////////
 
-void clear(int* v)
+void clear(int* v, int size)
 {
-  memset(v, 0, sizeof(int) * VECTOR_SIZE);
+  memset(v, 0, sizeof(int) * size);
 }
 
 //////////////////////////////////////////////
 
-DLLEXPORT int cim(int8_t* x, int8_t* w, uint8_t* cim_ref, uint8_t* cim_var, uint8_t* count, uint8_t* rpr_table, float* var_table, int R, int NWL, int WL, int BL) {
-  int pdot[VECTOR_SIZE];
+DLLEXPORT int cim(int8_t* x, int8_t* w, uint8_t* cim_ref, uint8_t* cim_var, uint8_t* count, uint8_t* rpr_table, float* var_table, int size, int R, int NWL, int WL, int BL) {
+  int* pdot = new int[BL];
   for (int r=0; r<R; r++) {
     for (int wl=0; wl<NWL; wl++) {
       for (int xb=0; xb<8; xb++) {
@@ -48,7 +48,7 @@ DLLEXPORT int cim(int8_t* x, int8_t* w, uint8_t* cim_ref, uint8_t* cim_var, uint
           int wl_itr = 0;
           while (wl_ptr < WL) {
             int wl_sum = 0;
-            clear(pdot);
+            clear(pdot, BL);
 
             int rpr = rpr_table[xb * 8 + wb];
             assert (rpr >= 1);
@@ -66,10 +66,10 @@ DLLEXPORT int cim(int8_t* x, int8_t* w, uint8_t* cim_ref, uint8_t* cim_var, uint
             for (int bl_ptr=0; bl_ptr<BL; bl_ptr+=8) {
               int bl = bl_ptr + wb;
 
-              int row_addr = r * NWL * 8 * BL * WORD_SIZE;
-              int wl_addr =       wl * 8 * BL * WORD_SIZE;
-              int xb_addr =           xb * BL * WORD_SIZE;
-              int bl_addr =                bl * WORD_SIZE;
+              int row_addr = r * NWL * 8 * BL * size;
+              int wl_addr =       wl * 8 * BL * size;
+              int xb_addr =           xb * BL * size;
+              int bl_addr =                bl * size;
 
               int y_addr = row_addr + wl_addr + xb_addr + bl_addr + wl_itr;
 
@@ -86,13 +86,13 @@ DLLEXPORT int cim(int8_t* x, int8_t* w, uint8_t* cim_ref, uint8_t* cim_var, uint
               // cim_var[y_addr] += 1;
             }
 
-            int row_addr = r * NWL * 8 * WORD_SIZE;
-            int wl_addr =       wl * 8 * WORD_SIZE;
-            int xb_addr =           xb * WORD_SIZE;
+            int row_addr = r * NWL * 8 * size;
+            int wl_addr =       wl * 8 * size;
+            int xb_addr =           xb * size;
             int count_addr = row_addr + wl_addr + xb_addr + wl_itr;
             count[count_addr] = wl_sum;
 
-            assert (wl_itr < WORD_SIZE);
+            assert (wl_itr < size);
             wl_itr += 1;
           } // while (wl_ptr < wl) {
         } // for (int bl=0; bl<BL; bl++) {
