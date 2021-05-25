@@ -190,34 +190,29 @@ def Simple():
     array_params = {
     'bpa': 8,
     'bpw': 8,
-    'adc': 64,
+    'adc': 8,
     'adc_mux': 8,
     'wl': 256,
     'bl': 256,
     'offset': 128,
-    'max_rpr': 64,
+    'max_rpr': 16,
+    'sar': False,
+    'max_step': 1
     }
 
     arch_params = {
     'skip': [1],
     'alloc': ['block'],
     'narray': [2 ** 12],
-    'cards': [0],
-    'profile': [0],
+    'lrs': [0.02], 
+    'hrs': [0.015],
+    'cards': [1],
+    'profile': [1],
     'rpr_alloc': ['static'],
-    # 
-    # 'sigma': [(14., 0.035, 0.50)],
-    # 'sigma': [(18., 0.035, 0.48)],
-    # 'sigma': [(30., 0.035, 0.35)],
-    # 
-    'lrs': [0.035, 0.05, 0.10], 
-    'hrs': [(10., 0.50), (18., 0.48), (30., 0.35)],
-    # 
-    'thresh': [0.25]
+    'thresh': [0.10],
     }
 
     arch_params = perms(arch_params)
-
     return array_params, arch_params
 
 #######################################################

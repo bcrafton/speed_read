@@ -25,6 +25,10 @@ cmd = "gcc profile.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o profi
 ret = os.system(cmd)
 assert (ret == 0)
 
+cmd = "g++ cim.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -std=c++11 -o c.cim.so"
+ret = os.system(cmd)
+assert (ret == 0)
+
 ############
 
 from resnet import load_resnet
@@ -39,11 +43,11 @@ from tests import dac2
 
 ############
 
-array_params, arch_params = CC()
+# array_params, arch_params = CC()
 # array_params, arch_params = BB()
 # array_params, arch_params = Thresh()
 # array_params, arch_params = CE()
-# array_params, arch_params = Simple()
+array_params, arch_params = Simple()
 # array_params, arch_params = dac2()
 
 ############
@@ -80,14 +84,14 @@ def run_command(x, y, model, params, return_list):
         
 ####
 
-model, x, y = load_resnet(num_example=1, array_params=array_params)
-# model, x, y = load_cifar(num_example=1, array_params=array_params)
+# model, x, y = load_resnet(num_example=1, array_params=array_params)
+model, x, y = load_cifar(num_example=1, array_params=array_params)
 
 ####
 
 start = time.time()
 
-load_profile_adc = True
+load_profile_adc = False
 if not load_profile_adc:
     profile = model.profile_adc(x)
 
