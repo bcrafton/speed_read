@@ -282,6 +282,39 @@ int Array::ABFT(int row) {
           int shift = this->col + bit1;
           int sign = (this->col == 7) ? (-1) : 1;
           this->y[yaddr] += sign * (error * pow(2, shift));
+          
+          // okay so here is the new struggle for collecting data
+          // we need to keep ALL the {pdot, pdot_adc} data
+          // or somehow know what the error for everything is on the fly
+          // so we can say whether a correction was valid or not.
+          
+          // we dont necessarily need to use speed_read. 
+          // what is the easiest way to crunch #s ? 
+          // probably with speed_read lol.
+          // just a pain to use C to do this stuff.
+          
+          // yeah need zero skipping
+          // need to add variance
+          // really just about making more data available. 
+          
+          // but using pdot here wont help
+          // need to track for multiple WL iterations or w.e.
+          // what do we need to know ? 
+          
+          // pdot @ {xb, wb, adc, wl}
+          // 1) does it matter if we sum down wl ? 
+          // 2) i think if we have already shifted its too late, we need to know which error we are correcting for.
+          
+          // def think its fine to sum pdot together for this
+          // BUT - in the future, will we wish we hadnt summed it together ? 
+          
+          // so ABFT works well for magnitude weights, where u can actually localize.
+          // is there a way we can modify residue ABFT so we can localize stuff at finer granularity ? 
+          // 1) what about the magnitude weights thing in RRAM-ABFT paper ? 
+          // 2) 
+          
+          int bl_ptr = 
+          printf("%d %d %d\n", this->pdot[bl_ptr]);
 
         } // if (error != 0) {
       } // for (int bit2=0; bit2<this->params->ADC_data; bit2++) {

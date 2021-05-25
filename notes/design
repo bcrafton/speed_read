@@ -5063,16 +5063,67 @@ I guess we could try it, but better to just move xb up.
 now we need to figure out correction/detection algorithm
 and come up with metrics.
 
+====================
 
+(1)
+so new challenge is that we can have errors from detection / correction
+and we wud want to know about these ... have statistics
+really we want everything to add up.
 
+====================
 
+(2)
+>> if errors can only occur in 1 direction
+and that somehow hurts us because now we cant distinguish between -1, +1
+this feels like there must be a better way to do ABFT.
 
+what can we do then ? 
+well it hurts and helps right ... because we can correct errors with 1 bit now.
 
+with 2 bits we can split the array into 2 chunks
+still not that helpful... 50% of the time both errors will occur in same chunk
 
+2 bits on input:
+> weighted residue
+> can detect up to 3 errors off ? 
+> BUT if 3 different errors, we cannot do shit.
+  > looks like 9 errors.
 
+is it even possible to correct 2/3 errors like that tho ? 
+like im wondering if we are trying to solve a lost cause.
 
+with ABFT, 
+our checksum can we weighted and non-weighted
+which only makes sense for multi-bit weights
 
+we are looking for a more ECC thing
+ECC is like how can we maximize redundancy for 8-bit word
 
+so we really cant do ECC for RRAM ?
+well how can you sum and still do ECC.
 
+===
+
+so we can probably say 3 errors is too much
+but i think we shud be able to correct 2 errors.
+
+===
+
+if we understood how ecc worked ...
+wud we be able to figure out a scheme that could save us ?
+
+====================
+
+so how do we augment speed read ? 
+> GPU style basically
+
+save each pdot
+pdot[xb][wb][wl/rpr]
+
+with gpu we wanted to do:
+patch, nwl, nbl, xb, wb, ...
+and figure out the BB part afterwards.
+
+====================
 
 
