@@ -15,6 +15,7 @@ from cprofile import profile
 from dynamic_rpr import dynamic_rpr
 from static_rpr import static_rpr
 from kmeans_rpr import kmeans_rpr
+from cim import cim
 
 #########################
 
@@ -56,7 +57,8 @@ class Conv(Layer):
         assert(np.shape(self.b) == (self.fn,))
         assert(np.shape(self.q) == ())
         # cast as int
-        self.w = self.w.astype(np.int32)
+        assert(np.max(self.w) < 128 and np.min(self.w) >= -128)
+        self.w = self.w.astype(np.int8)
         self.b = self.b.astype(np.float32)
         self.q = self.q.astype(np.float32)
         # q must be larger than 0
@@ -243,6 +245,11 @@ class Conv(Layer):
 
         #########################
         
+        # y, metrics = cim(patches, self.wb, self.params)
+        # y = np.reshape(y, (yh, yw, self.fn))
+
+        #########################
+
         return y, results
         
     def transform_inputs(self, x):
@@ -290,8 +297,7 @@ class Conv(Layer):
 
         ########################
 
-        w_offset = np.copy(self.w) + self.params['offset']
-        w_matrix = np.reshape(w_offset, (self.fh * self.fw * self.fc, self.fn))
+        w_matrix = np.reshape(np.copy(self.w), (self.fh * self.fw * self.fc, self.fn))
         wb = []
         for bit in range(self.params['bpw']):
             wb.append(np.bitwise_and(np.right_shift(w_matrix, bit), 1))

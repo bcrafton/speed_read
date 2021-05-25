@@ -63,7 +63,10 @@ def ecc(data, data_ref, parity, parity_ref):
 
 ################################################################
 
-def cim(xb, wb, rpr, var):
+def cim(xb, wb, params):
+
+    # TODO: WB, 256/WB=32, 6=ECC, scale
+    # pass adc into cim.c
 
     N, NWL, WL, XB = np.shape(xb)
     NWL, WL, NBL, BL = np.shape(wb)
@@ -91,7 +94,7 @@ def cim(xb, wb, rpr, var):
     ################################################################
 
     WLs = np.sum(xb, axis=(2))
-    rows = WLs / np.min(rpr, axis=1)
+    rows = WLs / np.min(params['rpr'], axis=1)
     max_cycle = int(np.ceil(np.max(rows)))
 
     ################################################################
@@ -108,8 +111,8 @@ def cim(xb, wb, rpr, var):
 
     xb = np.ascontiguousarray(xb.flatten(), np.int8)
     wb = np.ascontiguousarray(wb.flatten(), np.int8)
-    rpr_table = np.ascontiguousarray(rpr.flatten(), np.uint8)
-    var_table = np.ascontiguousarray(var.flatten(), np.float32)
+    rpr_table = np.ascontiguousarray(params['rpr'].flatten(), np.uint8)
+    var_table = np.ascontiguousarray(params['var'].flatten(), np.float32)
 
     ################################################################
 
@@ -166,7 +169,7 @@ def cim(xb, wb, rpr, var):
     metrics['bb'] = (count > 0) * 1
 
     val, count = np.unique(count, return_counts=True)
-    metrics['adc'] = np.zeros(shape=8+1)
+    metrics['adc'] = np.zeros(shape=params['max_rpr']+1)
     for (v, c) in zip(val, count):
         metrics['adc'][v] = c
 

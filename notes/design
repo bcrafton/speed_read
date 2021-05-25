@@ -4975,9 +4975,12 @@ branches:
 
 > post-dac to cuda1 -> 4 commit, should be some nice cleans we can take.
 
+====================
 
+2s complement:
+https://github.com/bcrafton/speed_read/commit/69e0e7067a5de12edd8b264a21fbc9b76378ee3e#diff-25a6634263c1b1f6fc4697a04e2b9904ea4b042a89af59dc93ec1f5d44848a26
 
-
+====================
 
 
 
