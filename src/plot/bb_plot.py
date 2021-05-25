@@ -1,5 +1,6 @@
 
 import numpy as np
+import copy
 import matplotlib.pyplot as plt
 import pandas as pd
 
@@ -27,72 +28,72 @@ results = ld_to_dl(results)
 df = pd.DataFrame.from_dict(results)
 
 # print (df.columns)
-# print (df['rpr_alloc'])
 
 ####################
+'''
+query = '(id == 0)'
+samples = df.query(query)
+bb = samples['bb'][0]
 
-comp_pJ = 22. * 1e-12 / 32. / 16.
+print (np.shape(bb))
+'''
+######################################
 
-# power plot is problem -> [0, 0], [1, 0] produce same result.
+narray = df['narray'][0]
+cycles = []
+cost = []
 
-#####################
-# NOTE: FOR QUERIES WITH STRINGS, DONT FORGET ""
-# '(rpr_alloc == "%s")' NOT '(rpr_alloc == %s)'
-#####################
+for layer in range(8):
+    cycle = np.sum(df['bb'][layer], axis=(0, 2, 3, 4))
+    cycles.extend(cycle.tolist())
 
-fig, (ax1, ax2) = plt.subplots(1, 2)
+    WL, _, BL, _ = df['shape'][layer]
+    cost.extend([BL] * WL)
 
-for skip in [0, 1]:
+cycles = np.array(cycles)
+cost = np.array(cost)
 
-    ######################################
+######################################
 
-    narrays = [5472, 2 ** 13, 1.5 * 2 ** 13, 2 ** 14, 1.5 * 2 ** 14]
-    mac_per_cycles = []
-    mac_per_pJs = []
-    errors = []
-    
-    for narray in narrays:
-        query = '(skip == %d) & (profile == 1) & (alloc == "block") & (narray == %d)' % (skip, narray)
-        samples = df.query(query)
-        
-        mac_per_cycle = np.sum(samples['nmac']) / np.max(samples['cycle'])
-        mac_per_cycles.append(mac_per_cycle)
+def array_allocation(narray, cycle_list, cost_list):
+    if (np.sum(cost_list) > narray): return np.inf
+    alloc = np.ones_like(cost_list)
+    cycles = cycle_list / alloc
+    argmax = np.argmax(cycles)
+    while (np.sum(alloc * cost_list) + cost_list[argmax]) <= narray:
+        alloc[argmax] += 1
+        cycles = cycle_list / alloc
+        argmax = np.argmax(cycles)
+    return alloc
 
-    ######################################
-        
-    ax1.plot(narrays, mac_per_cycles)
-    
-    ######################################
+######################################
 
-fig.set_size_inches(9., 4.5)
-plt.tight_layout()
+allocation = array_allocation(narray=narray, cycle_list=cycles, cost_list=cost)
+# print (allocation)
+# print (cycles)
+# print (cost)
 
-plt.legend()
-plt.ylim(bottom=0)
-plt.show()
-            
-####################
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
+######################################
+
+print (cycles)
+print (allocation)
+print (np.sum(allocation * cost))
+
+def simulate(cycles, allocation):
+    t = 0
+    while not np.all(cycles == 0):
+        cycles = np.maximum(cycles - allocation, 0)
+        t += 1
+    return t
+
+t = simulate(cycles, allocation)
+print (t)
+
+######################################
+
+
+
+
+
+
+

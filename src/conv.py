@@ -150,12 +150,14 @@ class Conv(Layer):
         ratio = np.count_nonzero(y_ref) / np.prod(np.shape(y_ref))
         return y_ref, {self.layer_id: (patches, self.wb, (self.yh * self.yw, self.fn), rpr_low, rpr_high, self.params)}, {self.layer_id: ratio}, {self.layer_id: nrow}
 
+    '''
     def set_block_alloc(self, block_alloc):
         self.block_alloc = block_alloc
 
     def set_layer_alloc(self, layer_alloc):
         self.layer_alloc = layer_alloc
-        
+    '''
+
     def weights(self):
         return [self]
 
@@ -202,18 +204,11 @@ class Conv(Layer):
         results['std']      = z_std
         results['mean']     = z_mean
         results['error']    = z_error
+        results['shape']    = np.shape(self.wb)
 
         nwl, _, nbl, _ = np.shape(self.wb)
-
-        if self.params['alloc'] == 'block':
-            results['array'] = np.sum(self.block_alloc) * nbl
-            print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d mean: %0.3f error: %0.3f' % 
-              (self.layer_id, np.sum(self.block_alloc), nbl, nbl * np.sum(self.block_alloc), results['nmac'], results['cycle'], results['stall'], mean, error))
-
-        elif self.params['alloc'] == 'layer': 
-            results['array'] = self.layer_alloc * nwl * nbl
-            print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d mean: %0.2f error: %0.2f' % 
-              (self.layer_id, self.layer_alloc, nwl * nbl, nwl * nbl * self.layer_alloc, results['nmac'], results['cycle'], results['stall'], z_mean, z_error))
+        print ('%d: nmac %d cycle: %d stall: %d mean: %0.3f error: %0.3f' % 
+          (self.layer_id, results['nmac'], results['cycle'], results['stall'], mean, error))
 
         ########################
 

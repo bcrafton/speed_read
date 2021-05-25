@@ -86,11 +86,12 @@ DLLEXPORT int cim(int8_t* x, int8_t* w, uint8_t* cim_ref, uint8_t* cim_var, uint
               // cim_var[y_addr] += 1;
             }
 
-            int row_addr = r * NWL * 8 * size;
-            int wl_addr =       wl * 8 * size;
-            int xb_addr =           xb * size;
-            int count_addr = row_addr + wl_addr + xb_addr + wl_itr;
-            count[count_addr] = wl_sum;
+            int row_addr = r * NWL * 8 * 8 * size;
+            int wl_addr =       wl * 8 * 8 * size;
+            int xb_addr =           xb * 8 * size;
+            int wb_addr =               wb * size;
+            int count_addr = row_addr + wl_addr + xb_addr + wb_addr + wl_itr;
+            count[count_addr] = max(1, wl_sum);
 
             assert (wl_itr < size);
             wl_itr += 1;

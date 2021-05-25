@@ -67,6 +67,7 @@ def cim(xb, wb, rpr, var):
 
     N, NWL, WL, XB = np.shape(xb)
     NWL, WL, NBL, BL = np.shape(wb)
+    WB = 8
 
     # wb = np.reshape(wb, (NWL, WL, NBL * BL))
     # BL = NBL * BL
@@ -97,7 +98,7 @@ def cim(xb, wb, rpr, var):
 
     cim_ref = np.zeros(shape=(N, NWL, XB, BL, max_cycle), dtype=np.uint8)
     cim_var = np.zeros(shape=(N, NWL, XB, BL, max_cycle), dtype=np.uint8)
-    count   = np.zeros(shape=(N, NWL, XB, max_cycle), dtype=np.uint8)
+    count   = np.zeros(shape=(N, NWL, XB, WB, max_cycle), dtype=np.uint8)
 
     ################################################################
 
@@ -130,7 +131,7 @@ def cim(xb, wb, rpr, var):
 
     cim_ref = np.reshape(cim_ref, (N, NWL, XB, BL, max_cycle))
     cim_var = np.reshape(cim_var, (N, NWL, XB, BL, max_cycle))
-    count   = np.reshape(count,   (N, NWL, XB, max_cycle))
+    count   = np.reshape(count,   (N, NWL, XB, WB, max_cycle))
 
     # BB(count)
 
@@ -161,8 +162,8 @@ def cim(xb, wb, rpr, var):
     metrics['roff'] = 0
     metrics['wl'] = np.sum(count)
     metrics['stall'] = 0
-    metrics['block_cycle'] = np.sum(count, axis=(0, 2, 3))
-    metrics['bb'] = count
+    metrics['block_cycle'] = np.sum(count > 0, axis=(0, 2, 3, 4))
+    metrics['bb'] = (count > 0) * 1
 
     val, count = np.unique(count, return_counts=True)
     metrics['adc'] = np.zeros(shape=8+1)
