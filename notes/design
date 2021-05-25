@@ -4955,6 +4955,42 @@ issue is either:
 
 ====================
 
+Speed Read Updates:
+> metrics -> (npatch, nwl) for block cycles
+  > BB in post processing
+> ECC in C
+
+> purge jank code
+> redo rpr_alloc if statements, can just remove honestly and add kmeans back later
+
+branches:
+> sar_step1
+> transformer
+> vlsi-soc-book1
+> cuda ... this had some really nice simplfications ... wonder if we can go back and look.
+
+>> we can add kmeans stuff after all this stuff above is done.
+
+====================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
