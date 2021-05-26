@@ -206,7 +206,7 @@ def Simple():
     'narray': [2 ** 12],
     'lrs': [0.02], 
     'hrs': [0.015],
-    'cards': [1],
+    'cards': [0],
     'profile': [1],
     'rpr_alloc': ['static'],
     'thresh': [0.10],

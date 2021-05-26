@@ -245,8 +245,8 @@ class Conv(Layer):
 
         #########################
         
-        # y, metrics = cim(patches, self.wb, self.params)
-        # y = np.reshape(y, (yh, yw, self.fn))
+        y, metrics = cim(patches, self.wb, self.params)
+        y = np.reshape(y, (yh, yw, self.fn))
 
         #########################
 

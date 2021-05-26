@@ -37,7 +37,7 @@ void clear(int* v, int size)
 
 //////////////////////////////////////////////
 
-DLLEXPORT int cim(int8_t* x, int8_t* w, uint8_t* cim_ref, uint8_t* cim_var, uint8_t* count, uint8_t* rpr_table, float* var_table, int size, int R, int NWL, int WL, int BL) {
+DLLEXPORT int cim(int8_t* x, int8_t* w, int* y, uint8_t* cim_ref, uint8_t* cim_var, uint8_t* count, uint8_t* rpr_table, float* var_table, int size, int R, int C, int NWL, int WL, int BL) {
   int* pdot = new int[BL];
   for (int r=0; r<R; r++) {
     for (int wl=0; wl<NWL; wl++) {
@@ -84,6 +84,18 @@ DLLEXPORT int cim(int8_t* x, int8_t* w, uint8_t* cim_ref, uint8_t* cim_var, uint
 
               // cim_ref[y_addr] += 1;
               // cim_var[y_addr] += 1;
+
+              int pdot_adc;
+              if ((pdot_var > 0.20) && (pdot_var < 1.00)) pdot_adc = 1;
+              else                                        pdot_adc = min(max((int) round(pdot_var), 0), min(8, rpr));
+
+              if (bl_ptr < C * 8) {
+                int yaddr = r * C + (bl_ptr / 8);
+                int shift = wb + xb;
+                int sign = (wb == 7) ? -1 : 1;
+                assert(yaddr < R * C);
+                y[yaddr] += sign * (pdot_adc << shift);
+              }
             }
 
             int row_addr = r * NWL * 8 * 8 * size;

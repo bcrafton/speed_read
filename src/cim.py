@@ -71,6 +71,7 @@ def cim(xb, wb, params):
     N, NWL, WL, XB = np.shape(xb)
     NWL, WL, NBL, BL = np.shape(wb)
     WB = 8
+    C = NBL * BL // WB
 
     # wb = np.reshape(wb, (NWL, WL, NBL * BL))
     # BL = NBL * BL
@@ -90,6 +91,8 @@ def cim(xb, wb, params):
     _, _, BL = np.shape(wb)
 
     # print (BL, BL_W, BL_P)
+
+    yb = np.zeros(shape=(N, C), dtype=np.int32)
 
     ################################################################
 
@@ -111,6 +114,7 @@ def cim(xb, wb, params):
 
     xb = np.ascontiguousarray(xb.flatten(), np.int8)
     wb = np.ascontiguousarray(wb.flatten(), np.int8)
+    yb = np.ascontiguousarray(yb.flatten(), np.int32)
     rpr_table = np.ascontiguousarray(params['rpr'].flatten(), np.uint8)
     var_table = np.ascontiguousarray(params['var'].flatten(), np.float32)
 
@@ -119,6 +123,7 @@ def cim(xb, wb, params):
     _ = cim_lib.cim(
     ctypes.c_void_p(xb.ctypes.data), 
     ctypes.c_void_p(wb.ctypes.data), 
+    ctypes.c_void_p(yb.ctypes.data), 
     ctypes.c_void_p(cim_ref.ctypes.data), 
     ctypes.c_void_p(cim_var.ctypes.data), 
     ctypes.c_void_p(count.ctypes.data), 
@@ -126,12 +131,14 @@ def cim(xb, wb, params):
     ctypes.c_void_p(var_table.ctypes.data), 
     ctypes.c_int(max_cycle),
     ctypes.c_int(N),
+    ctypes.c_int(C),
     ctypes.c_int(NWL),
     ctypes.c_int(WL),
     ctypes.c_int(BL))
 
     ################################################################
 
+    yb      = np.reshape(yb,      (N, C))
     cim_ref = np.reshape(cim_ref, (N, NWL, XB, BL, max_cycle))
     cim_var = np.reshape(cim_var, (N, NWL, XB, BL, max_cycle))
     count   = np.reshape(count,   (N, NWL, XB, WB, max_cycle))
@@ -173,7 +180,7 @@ def cim(xb, wb, params):
     for (v, c) in zip(val, count):
         metrics['adc'][v] = c
 
-    return y, metrics
+    return yb, metrics
 
 
 
