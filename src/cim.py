@@ -35,6 +35,7 @@ def ecc(data, data_ref, parity, parity_ref):
     d = np.shape(data)[-1]
     p = np.shape(parity)[-1]
     
+    # generate data mask for [d] data bits
     bit = []
     for i in range(1, d + 1):
         b = i
@@ -45,7 +46,9 @@ def ecc(data, data_ref, parity, parity_ref):
     #########################
     cs = []
     for i in range(p):
+        # sel is the equation mapped to a parity bit.
         sel = 1 * (np.bitwise_and(bit, 2**i) == 2**i)
+        # c evaluates that equation
         c = (np.sum(sel * data, axis=-1) + parity[..., i]) % 2
         cs.append(c)
     cs = np.stack(cs, axis=-1)
@@ -65,7 +68,7 @@ def ecc(data, data_ref, parity, parity_ref):
 
 def cim(xb, wb, params):
 
-    # TODO: WB, 256/WB=32, 6=ECC, scale
+    # TODO: WB, 256/WB=32, 6=ECC, scale, C
     # pass adc into cim.c
 
     N, NWL, WL, XB = np.shape(xb)

@@ -4982,6 +4982,27 @@ https://github.com/bcrafton/speed_read/commit/69e0e7067a5de12edd8b264a21fbc9b763
 
 ====================
 
+we want python code that:
+1) encodes parity (as separate data ... not interleaved)
+2) performs ecc correction
+3) no need for decoding since not interleaved.
+
+BUT for ECC correction.
+we want to generate a C file
+that contains a table with all the equations for various # bits 
+so this will require a separate test bench
+but if its robust, it will be fantastic.
+
+====================
+
+
+
+
+
+
+
+
+
 
 
 
