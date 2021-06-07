@@ -173,7 +173,7 @@ def cim(id, xb, wb, rpr, var):
     plt.clf()
     '''
     ################################################################
-    '''
+    # '''
     a = cim_var.astype(np.int16)
     b = cim_ref.astype(np.int16)
     error = a - b
@@ -182,13 +182,14 @@ def cim(id, xb, wb, rpr, var):
     val, num = np.unique(n_error, return_counts=True)
     # print (val, num)
     
-    plt.bar(x=val, height=np.log(num))
+    plt.bar(x=val, height=num)
     plt.xticks(val)
+    plt.yscale('log')
     plt.savefig('hist_%d.png' % (id))
 
     plt.cla()
     plt.clf()
-    '''
+    # '''
     ################################################################
 
     cim_var, ecc_var = ecc(cim_var, cim_ref, ecc_var, ecc_ref)
