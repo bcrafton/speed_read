@@ -281,7 +281,7 @@ class Conv(Layer):
         '''
         #########################
 
-        y, metrics = cim(patches, self.wb, self.params['rpr'], self.params['var'])
+        y, metrics = cim(self.layer_id, patches, self.wb, self.params['rpr'], self.params['var'])
         y = np.reshape(y, (yh, yw, self.fn))
 
         return y, metrics

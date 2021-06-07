@@ -63,7 +63,7 @@ def ecc(data, data_ref, parity, parity_ref):
 
 ################################################################
 
-def cim(xb, wb, rpr, var):
+def cim(id, xb, wb, rpr, var):
 
     N, NWL, WL, XB = np.shape(xb)
     NWL, WL, NBL, BL = np.shape(wb)
@@ -135,6 +135,13 @@ def cim(xb, wb, rpr, var):
 
     # BB(count)
 
+    '''
+    a = cim_var.astype(np.int16)
+    b = cim_ref.astype(np.int16)
+    val, num = np.unique(a - b, return_counts=True)
+    print (val, num)
+    '''
+
     ################################################################
 
     ecc_var = np.reshape(cim_var[:, :, :, BL_W:BL, :], (N, NWL, XB, BL_P //  6,  6, max_cycle)).transpose(0,1,2,3,5,4)
@@ -142,6 +149,47 @@ def cim(xb, wb, rpr, var):
 
     ecc_ref = np.reshape(cim_ref[:, :, :, BL_W:BL, :], (N, NWL, XB, BL_P //  6,  6, max_cycle)).transpose(0,1,2,3,5,4)
     cim_ref = np.reshape(cim_ref[:, :, :,  0:BL_W, :], (N, NWL, XB, BL_W // 32, 32, max_cycle)).transpose(0,1,2,3,5,4)
+
+    ################################################################
+    '''
+    a = cim_var.flatten().astype(np.int16)
+    b = cim_ref.flatten().astype(np.int16)
+    error = a - b
+    val, num = np.unique(error, return_counts=True)
+    # print (val, num)    
+    '''
+    ################################################################
+    '''
+    # https://github.com/bcrafton/speed_read/commit/f84c8d63ad7ebb3039d8a17dd29d6ca0976de908
+    error_table = np.ones(shape=(8+1, 8+1))
+    for (x, y) in zip(a, b):
+        error_table[x, y] += 1
+    error_table = np.log(error_table)
+
+    plt.imshow(error_table, cmap='gray')
+    plt.savefig('%d.png' % (id))
+    
+    plt.cla()
+    plt.clf()
+    '''
+    ################################################################
+    '''
+    a = cim_var.astype(np.int16)
+    b = cim_ref.astype(np.int16)
+    error = a - b
+
+    n_error = np.sum(error > 0, axis=-1)
+    val, num = np.unique(n_error, return_counts=True)
+    # print (val, num)
+    
+    plt.bar(x=val, height=np.log(num))
+    plt.xticks(val)
+    plt.savefig('hist_%d.png' % (id))
+
+    plt.cla()
+    plt.clf()
+    '''
+    ################################################################
 
     cim_var, ecc_var = ecc(cim_var, cim_ref, ecc_var, ecc_ref)
 
