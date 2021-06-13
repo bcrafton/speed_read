@@ -173,7 +173,7 @@ def cim(id, xb, wb, rpr, var):
     plt.clf()
     '''
     ################################################################
-    # '''
+
     a = cim_var.astype(np.int16)
     b = cim_ref.astype(np.int16)
     error = a - b
@@ -182,6 +182,7 @@ def cim(id, xb, wb, rpr, var):
     val, num = np.unique(n_error, return_counts=True)
     # print (val, num)
     
+    '''
     plt.bar(x=val, height=num)
     plt.xticks(val)
     plt.yscale('log')
@@ -189,11 +190,10 @@ def cim(id, xb, wb, rpr, var):
 
     plt.cla()
     plt.clf()
-    # '''
+    '''
     ################################################################
 
     cim_var, ecc_var = ecc(cim_var, cim_ref, ecc_var, ecc_ref)
-
     cim_var = cim_var.transpose(0,1,2,3,5,4).reshape(N, NWL, XB, BL_W // 8, 8, max_cycle)
 
     ################################################################
@@ -213,6 +213,7 @@ def cim(id, xb, wb, rpr, var):
     metrics['stall'] = 0
     metrics['block_cycle'] = np.sum(count > 0, axis=(0, 2, 3, 4))
     metrics['bb'] = (count > 0) * 1
+    metrics['error_count'] = num
 
     val, count = np.unique(count, return_counts=True)
     metrics['adc'] = np.zeros(shape=8+1)
