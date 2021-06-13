@@ -44,7 +44,7 @@ void ecc(int* vec, int size)
 
 //////////////////////////////////////////////
 
-DLLEXPORT int cim(int8_t* x, int8_t* w, int* y, uint8_t* cim_ref, uint8_t* cim_var, uint8_t* count, uint8_t* rpr_table, float* var_table, int size, int R, int C, int NWL, int WL, int BL) {
+DLLEXPORT int cim(int8_t* x, int8_t* w, int* y, uint8_t* count, uint8_t* rpr_table, float* var_table, int size, int R, int C, int NWL, int WL, int BL) {
   int* pdot = new int[BL];
   for (int r=0; r<R; r++) {
     for (int wl=0; wl<NWL; wl++) {
@@ -72,25 +72,11 @@ DLLEXPORT int cim(int8_t* x, int8_t* w, int* y, uint8_t* cim_ref, uint8_t* cim_v
 
             for (int bl_ptr=0; bl_ptr<BL; bl_ptr+=8) {
               int bl = bl_ptr + wb;
-
-              int row_addr = r * NWL * 8 * BL * size;
-              int wl_addr =       wl * 8 * BL * size;
-              int xb_addr =           xb * BL * size;
-              int bl_addr =                bl * size;
-
-              int y_addr = row_addr + wl_addr + xb_addr + bl_addr + wl_itr;
-
               int key = rand() % 1001;
-              int var_addr = pdot[bl] * 1001 + key;
+              // int var_addr = (this->wl_sum * (params->max_rpr + 1) * 1001) + (this->pdot[bl_ptr] * 1001) + key;
+              int var_addr = (wl_sum * (8 + 1) * 1001) + (pdot[bl] * 1001) + key;
               float var = var_table[var_addr];
               float pdot_var = pdot[bl] + var;
-
-              cim_ref[y_addr] = pdot[bl];
-              if ((pdot_var > 0.20) && (pdot_var < 1.00)) cim_var[y_addr] = 1;
-              else                                        cim_var[y_addr] = min(max((int) round(pdot_var), 0), min(8, rpr));
-
-              // cim_ref[y_addr] += 1;
-              // cim_var[y_addr] += 1;
 
               int pdot_adc;
               if ((pdot_var > 0.20) && (pdot_var < 1.00)) pdot_adc = 1;

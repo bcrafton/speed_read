@@ -105,14 +105,7 @@ def cim(xb, wb, params):
 
     ################################################################
 
-    cim_ref = np.zeros(shape=(N, NWL, XB, BL, max_cycle), dtype=np.uint8)
-    cim_var = np.zeros(shape=(N, NWL, XB, BL, max_cycle), dtype=np.uint8)
     count   = np.zeros(shape=(N, NWL, XB, WB, max_cycle), dtype=np.uint8)
-
-    ################################################################
-
-    cim_ref = np.ascontiguousarray(cim_ref.flatten(), np.uint8)
-    cim_var = np.ascontiguousarray(cim_var.flatten(), np.uint8)
     count   = np.ascontiguousarray(count.flatten(), np.uint8)
 
     xb = np.ascontiguousarray(xb.flatten(), np.int8)
@@ -127,8 +120,6 @@ def cim(xb, wb, params):
     ctypes.c_void_p(xb.ctypes.data), 
     ctypes.c_void_p(wb.ctypes.data), 
     ctypes.c_void_p(yb.ctypes.data), 
-    ctypes.c_void_p(cim_ref.ctypes.data), 
-    ctypes.c_void_p(cim_var.ctypes.data), 
     ctypes.c_void_p(count.ctypes.data), 
     ctypes.c_void_p(rpr_table.ctypes.data), 
     ctypes.c_void_p(var_table.ctypes.data), 
@@ -142,30 +133,7 @@ def cim(xb, wb, params):
     ################################################################
 
     yb      = np.reshape(yb,      (N, C))
-    cim_ref = np.reshape(cim_ref, (N, NWL, XB, BL, max_cycle))
-    cim_var = np.reshape(cim_var, (N, NWL, XB, BL, max_cycle))
     count   = np.reshape(count,   (N, NWL, XB, WB, max_cycle))
-
-    # BB(count)
-
-    ################################################################
-
-    ecc_var = np.reshape(cim_var[:, :, :, BL_W:BL, :], (N, NWL, XB, BL_P //  6,  6, max_cycle)).transpose(0,1,2,3,5,4)
-    cim_var = np.reshape(cim_var[:, :, :,  0:BL_W, :], (N, NWL, XB, BL_W // 32, 32, max_cycle)).transpose(0,1,2,3,5,4)
-
-    ecc_ref = np.reshape(cim_ref[:, :, :, BL_W:BL, :], (N, NWL, XB, BL_P //  6,  6, max_cycle)).transpose(0,1,2,3,5,4)
-    cim_ref = np.reshape(cim_ref[:, :, :,  0:BL_W, :], (N, NWL, XB, BL_W // 32, 32, max_cycle)).transpose(0,1,2,3,5,4)
-
-    cim_var, ecc_var = ecc(cim_var, cim_ref, ecc_var, ecc_ref)
-
-    cim_var = cim_var.transpose(0,1,2,3,5,4).reshape(N, NWL, XB, BL_W // 8, 8, max_cycle)
-
-    ################################################################
-
-    scale = np.array([1,2,4,8,16,32,64,-128])
-    scale = scale.reshape(-1, 1) * scale.reshape(1, -1)
-    scale = np.reshape(scale, (8, 1, 8, 1))
-    y = np.sum(cim_var * scale, axis=(1,2,4,5))
 
     ################################################################
 

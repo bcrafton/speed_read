@@ -4995,9 +4995,15 @@ but if its robust, it will be fantastic.
 
 ====================
 
+> hard code "size" in cim.c
+> pass max_rpr to cim.c for var
+> remove all {cim_ref, cim_var ...}
+> its currently broken based on {wb, pb} ... addressing is all wrong.
+  > is it tho ? if we remove variance it gives 0 error ?
+ 
+> var lut makes 0 sense ... use the ADC error pmf.
 
-
-
+====================
 
 
 
