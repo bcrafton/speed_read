@@ -74,6 +74,7 @@ def run_command(x, y, model, params, return_list):
     'sigma':     params['sigma'],
     'rpr_alloc': params['rpr_alloc'],
     'thresh':    params['thresh'],
+    'ecc':       params['ecc'],
     'abs_error': abs_error
     }
     

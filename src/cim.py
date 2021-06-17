@@ -63,7 +63,7 @@ def ecc(data, data_ref, parity, parity_ref):
 
 ################################################################
 
-def cim(id, xb, wb, rpr, var):
+def cim(id, xb, wb, rpr, var, params):
 
     N, NWL, WL, XB = np.shape(xb)
     NWL, WL, NBL, BL = np.shape(wb)
@@ -193,7 +193,9 @@ def cim(id, xb, wb, rpr, var):
     '''
     ################################################################
 
-    cim_var, ecc_var = ecc(cim_var, cim_ref, ecc_var, ecc_ref)
+    if params['ecc']:
+        cim_var, ecc_var = ecc(cim_var, cim_ref, ecc_var, ecc_ref)
+
     cim_var = cim_var.transpose(0,1,2,3,5,4).reshape(N, NWL, XB, BL_W // 8, 8, max_cycle)
 
     ################################################################
