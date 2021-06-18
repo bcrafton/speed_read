@@ -221,8 +221,8 @@ class Conv(Layer):
         # perf:     y = y_ref
         # error:    None
 
-        y = y_ref
-        # y_ref = y
+        # y = y_ref
+        y_ref = y
 
         ########################
 

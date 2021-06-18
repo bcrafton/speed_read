@@ -43,16 +43,24 @@ def ecc(data, data_ref, parity, parity_ref):
         bit.append(b)
     bit = np.array(bit)
     #########################
+    scale = 2 ** np.arange(0, p)
+    #########################
+    assert (np.max(bit) < 255)
+    assert (np.max(scale) < 255)
+    bit = bit.astype(np.uint8)
+    scale = scale.astype(np.uint8)
+    #########################
     cs = []
     for i in range(p):
-        sel = 1 * (np.bitwise_and(bit, 2**i) == 2**i)
+        sel = np.bitwise_and(bit, 2**i) == 2**i
         c = (np.sum(sel * data, axis=-1) + parity[..., i]) % 2
         cs.append(c)
     cs = np.stack(cs, axis=-1)
     #########################
-    scale = 2 ** np.arange(0, p)
     addr = np.sum(cs * scale, axis=-1, keepdims=True)
-    #########################
+    assert (np.max(addr) < 255)
+    addr = addr.astype(np.uint8)
+    #########################    
     d_addr = (addr - bit) == 0
     p_addr = (addr - scale) == 0
     #########################
@@ -203,7 +211,13 @@ def cim(id, xb, wb, rpr, var, params):
     scale = np.array([1,2,4,8,16,32,64,-128])
     scale = scale.reshape(-1, 1) * scale.reshape(1, -1)
     scale = np.reshape(scale, (8, 1, 8, 1))
-    y = np.sum(cim_var * scale, axis=(1,2,4,5))
+
+    C = BL_W // 8
+    y = np.zeros(shape=(N, C))
+    for row in range(N):
+        y[row] = np.sum(cim_var[row] * scale, axis=(0,1,3,4))
+    
+    # y = np.sum(cim_var * scale, axis=(1,2,4,5))
 
     ################################################################
 
@@ -214,7 +228,7 @@ def cim(id, xb, wb, rpr, var, params):
     metrics['wl'] = np.sum(count)
     metrics['stall'] = 0
     metrics['block_cycle'] = np.sum(count > 0, axis=(0, 2, 3, 4))
-    metrics['bb'] = (count > 0) * 1
+    # metrics['bb'] = (count > 0) * 1
     metrics['error_count'] = num
 
     val, count = np.unique(count, return_counts=True)
