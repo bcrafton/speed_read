@@ -67,26 +67,33 @@ plt.savefig('error_rate.png', dpi=500)
 '''
 ######################################
 
-colors = ['royalblue', 'gray', 'black']
+colors = ['#228B22', '#96F078', '#ffae42', '#ff849c', '#ff0000']
+layers = np.arange(8, dtype=int)
 
-for sigma in [0.07]:
-    for layer in range(6):
-        query = '(sigma == %f) & (id == %d)' % (sigma, layer)
-        samples = df.query(query)
-        ys = samples['error_count'].to_numpy()[0]
-        for i, y in enumerate(ys):
-            plt.bar(x=layer+1+i*0.25-0.25, height=y, width=0.25, color=colors[i])
+sigma = 0.07
+N = 3
+    
+for layer in layers:
+    query = '(sigma == %f) & (id == %d)' % (sigma, layer)
+    samples = df.query(query)
+    ys = samples['error_count'].to_numpy()[0]
+    
+    # N = len(ys)
+    width = 0.75 / N
+    for i, y in enumerate(ys):
+        x = layer + (i+0.5)*width - (N/2)*width 
+        plt.bar(x=x, height=y, width=width, color=colors[i])
 
 plt.yscale('log')
-plt.ylim(top=0.5*10**8)
+plt.ylim(bottom=0.25, top=10**9)
 plt.yticks(10**np.array([1,3,5,7]), 4 * [''])
 
-plt.xticks([1,2,3,4,5,6], 6 * [''])
+plt.xticks(layers, len(layers) * [''])
 
-plt.gcf().set_size_inches(3.3, 1.)
-plt.grid(True, axis='y', linestyle='dotted') # , color='black'
+plt.gcf().set_size_inches(3.5, 0.8)
+plt.grid(True, axis='y', linestyle='dotted', color='black')
 plt.tight_layout(pad=0., w_pad=0., h_pad=0.)
-plt.savefig('error_rate.png', dpi=300)
+plt.savefig('error_rate_%f.png' % (sigma), dpi=500)
 
 ######################################
 
