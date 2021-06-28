@@ -204,10 +204,10 @@ def Simple():
     'skip': [1],
     'alloc': ['block'],
     'narray': [2 ** 12],
-    'lrs': [0.02], 
-    'hrs': [0.015],
+    'lrs': [0.05], 
+    'hrs': [0.03],
     'cards': [0],
-    'profile': [1],
+    'profile': [0],
     'rpr_alloc': ['static'],
     'thresh': [0.10],
     }
