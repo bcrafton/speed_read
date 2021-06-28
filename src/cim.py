@@ -122,6 +122,7 @@ def cim(id, xb, wb, rpr, var, params):
     ctypes.c_void_p(rpr_table.ctypes.data), 
     ctypes.c_void_p(var_table.ctypes.data), 
     ctypes.c_int(max_cycle),
+    ctypes.c_int(params['adc']),
     ctypes.c_int(N),
     ctypes.c_int(NWL),
     ctypes.c_int(WL),
@@ -133,15 +134,6 @@ def cim(id, xb, wb, rpr, var, params):
     cim_var = np.reshape(cim_var, (N, NWL, XB, BL, max_cycle))
     count   = np.reshape(count,   (N, NWL, XB, WB, max_cycle))
 
-    # BB(count)
-
-    '''
-    a = cim_var.astype(np.int16)
-    b = cim_ref.astype(np.int16)
-    val, num = np.unique(a - b, return_counts=True)
-    print (val, num)
-    '''
-
     ################################################################
 
     ecc_var = np.reshape(cim_var[:, :, :, BL_W:BL, :], (N, NWL, XB, BL_P //  6,  6, max_cycle)).transpose(0,1,2,3,5,4)
@@ -152,8 +144,8 @@ def cim(id, xb, wb, rpr, var, params):
 
     ################################################################
     '''
-    a = cim_var.flatten().astype(np.int16)
-    b = cim_ref.flatten().astype(np.int16)
+    a = cim_ref.flatten().astype(np.int16)
+    b = cim_var.flatten().astype(np.int16)
     error = a - b
     val, num = np.unique(error, return_counts=True)
     # print (val, num)    
@@ -196,6 +188,16 @@ def cim(id, xb, wb, rpr, var, params):
     if params['ecc']:
         cim_var, ecc_var = ecc(cim_var, cim_ref, ecc_var, ecc_ref)
 
+    ################################################################
+
+    a = cim_ref.flatten().astype(np.int16)
+    b = cim_var.flatten().astype(np.int16)
+    error = a - b
+    val, num = np.unique(error, return_counts=True)
+    BER = np.sum((val > 0) * num) / np.sum(num)
+
+    ################################################################
+
     cim_var = cim_var.transpose(0,1,2,3,5,4).reshape(N, NWL, XB, BL_W // 8, 8, max_cycle)
 
     ################################################################
@@ -216,9 +218,10 @@ def cim(id, xb, wb, rpr, var, params):
     metrics['block_cycle'] = np.sum(count > 0, axis=(0, 2, 3, 4))
     metrics['bb'] = (count > 0) * 1
     metrics['error_count'] = num
+    metrics['BER'] = BER
 
     val, count = np.unique(count, return_counts=True)
-    metrics['adc'] = np.zeros(shape=8+1)
+    metrics['adc'] = np.zeros(shape=params['adc']+1)
     for (v, c) in zip(val, count):
         metrics['adc'][v] = c
 

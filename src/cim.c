@@ -37,7 +37,7 @@ void clear(int* v, int size)
 
 //////////////////////////////////////////////
 
-DLLEXPORT int cim(int8_t* x, int8_t* w, uint8_t* cim_ref, uint8_t* cim_var, uint8_t* count, uint8_t* rpr_table, float* var_table, int size, int R, int NWL, int WL, int BL) {
+DLLEXPORT int cim(int8_t* x, int8_t* w, uint8_t* cim_ref, uint8_t* cim_var, uint8_t* count, uint8_t* rpr_table, float* var_table, int size, int adc, int R, int NWL, int WL, int BL) {
   int* pdot = new int[BL];
   for (int r=0; r<R; r++) {
     for (int wl=0; wl<NWL; wl++) {
@@ -80,7 +80,7 @@ DLLEXPORT int cim(int8_t* x, int8_t* w, uint8_t* cim_ref, uint8_t* cim_var, uint
 
               cim_ref[y_addr] = pdot[bl];
               if ((pdot_var > 0.20) && (pdot_var < 1.00)) cim_var[y_addr] = 1;
-              else                                        cim_var[y_addr] = min(max((int) round(pdot_var), 0), min(8, rpr));
+              else                                        cim_var[y_addr] = min(max((int) round(pdot_var), 0), min(adc, rpr));
 
               // cim_ref[y_addr] += 1;
               // cim_var[y_addr] += 1;
