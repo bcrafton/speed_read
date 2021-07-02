@@ -17,6 +17,7 @@ from static_rpr import static_rpr
 from kmeans_rpr import kmeans_rpr
 from cim import cim
 from ecc import ecc_encode
+from adc import confusion
 
 #########################
 
@@ -84,6 +85,7 @@ class Conv(Layer):
     def init(self, params):
         self.params.update(params)
         self.params['var'] = lut_var(params['lrs'], params['hrs'], self.params['max_rpr'])
+        self.params['conf'] = confusion(self.params)
 
         if self.params['rpr_alloc'] == 'centroids':
             pass

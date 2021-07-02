@@ -6,6 +6,9 @@
 #include <math.h>
 #include <assert.h>
 #include <random>
+#include <vector>
+using namespace std;
+
 #define DLLEXPORT extern "C"
 
 #ifndef max
@@ -136,7 +139,18 @@ void ecc(int* data, int* parity)
 
 //////////////////////////////////////////////
 
-DLLEXPORT int cim(int8_t* x, int8_t* w, int8_t* p, int* y, uint8_t* count, uint8_t* rpr_table, float* var_table, int size, int adc, int R, int C, int NWL, int WL, int NBL, int BL) {
+DLLEXPORT int cim(int8_t* x, int8_t* w, int8_t* p, int* y, uint8_t* count, uint8_t* rpr_table, int* conf, int size, int max_rpr, int adc, int R, int C, int NWL, int WL, int NBL, int BL) {
+
+  default_random_engine generator;
+  discrete_distribution<int>* distribution = new discrete_distribution<int>[(max_rpr+1) * (max_rpr+1)];
+  for (int wl=0; wl<max_rpr+1; wl++) {
+    for (int on=0; on<max_rpr+1; on++) {
+      int offset = wl * (max_rpr + 1) * (max_rpr + 1) + on * (max_rpr + 1);
+      vector<int> prob(conf + offset, conf + offset + max_rpr + 1);
+      distribution[ wl * (max_rpr+1) + on ] = discrete_distribution<int>(prob.begin(), prob.end());
+    }
+  }
+
   int* pdot     = new int[NBL*BL];
   int* pdot_ecc = new int[NBL*BL/4];
 
@@ -167,20 +181,10 @@ DLLEXPORT int cim(int8_t* x, int8_t* w, int8_t* p, int* y, uint8_t* count, uint8
               wl_ptr += 1;
             }
 
-            ///*
             for (int bl=0; bl<NBL*BL/8; bl++) {
-              int key = rand() % 1001;
-              int var_addr = (wl_sum * (8 + 1) * 1001) + (pdot[bl] * 1001) + key;
-              float var = var_table[var_addr];
-              float pdot_var = pdot[bl] + var;
-
-              int pdot_adc;
-              if ((pdot_var > 0.20) && (pdot_var < 1.00)) pdot_adc = 1;
-              else                                        pdot_adc = min(max((int) round(pdot_var), 0), min(adc, rpr));
-            
-              pdot[bl] = pdot_adc;
+              pdot[bl] = distribution[wl_sum * (max_rpr + 1) + pdot[bl]](generator);
             }
-            //*/
+
             for (int bl=0; bl<NBL; bl++) {
               ecc(&(pdot[bl*32]), &(pdot_ecc[bl*8]));
             }

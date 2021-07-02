@@ -38,8 +38,9 @@ def cim(xb, wb, pb, params):
     wb = np.ascontiguousarray(wb.flatten(), np.int8)
     pb = np.ascontiguousarray(pb.flatten(), np.int8)
     yb = np.ascontiguousarray(yb.flatten(), np.int32)
-    rpr_table = np.ascontiguousarray(params['rpr'].flatten(), np.uint8)
-    var_table = np.ascontiguousarray(params['var'].flatten(), np.float32)
+    rpr = np.ascontiguousarray(params['rpr'].flatten(), np.uint8)
+    var = np.ascontiguousarray(params['var'].flatten(), np.float32)
+    conf = np.ascontiguousarray(params['conf'].flatten(), np.int32)
 
     ################################################################
 
@@ -49,9 +50,10 @@ def cim(xb, wb, pb, params):
     ctypes.c_void_p(pb.ctypes.data), 
     ctypes.c_void_p(yb.ctypes.data), 
     ctypes.c_void_p(count.ctypes.data), 
-    ctypes.c_void_p(rpr_table.ctypes.data), 
-    ctypes.c_void_p(var_table.ctypes.data), 
+    ctypes.c_void_p(rpr.ctypes.data), 
+    ctypes.c_void_p(conf.ctypes.data), 
     ctypes.c_int(max_cycle),
+    ctypes.c_int(params['max_rpr']),
     ctypes.c_int(params['adc']),
     ctypes.c_int(N),
     ctypes.c_int(C),
