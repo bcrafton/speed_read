@@ -5011,6 +5011,9 @@ but if its robust, it will be fantastic.
 // which means ECC doesnt work here
 // need it to be in the proper shape
 
+> need to move ecc_encode into transform_weights
+  > because of the 8-stride thing.
+
 ====================
 
 

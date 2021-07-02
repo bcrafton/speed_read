@@ -100,45 +100,46 @@ int sign_table[4][4] = {
 
 //////////////////////////////////////////////
 
-void ecc(int* vec)
+// TODO: we need a test bench for this.
+void ecc(int* data, int* parity)
 {
-  // for (int i=0; i<40; i++) assert(vec[i] >= 0);
-  
   // localize
   int addr = 0;
   for (int i=0; i<6; i++) { 
     int p = 0;
     for (int j=0; j<32; j++) { 
-      p += mask32[i][j] * vec[j];
+      p += mask32[i][j] * data[j];
     }
-    p += vec[32 + i];
+    p += parity[i];
     addr += pow(2, i) * (p % 2);
   }
-  
+  if (addr >= 38) return;
+
   // dsum / psum
   int dsum = 0;
-  for (int i=0; i<32; i++) dsum += vec[i];
+  for (int i=0; i<32; i++) dsum += data[i];
   int psum = 0;
-  for (int i=32; i<38; i++) psum += vec[i];
+  for (int i=0; i<6; i++) psum += parity[i];
   // ded
-  int ded = (dsum + psum + vec[39]) % 2;
+  int ded = (dsum + psum + parity[7]) % 2;
   if ((ded == 0) && (addr > 0)) return;
   // sign
   int exp = (dsum + psum) % 4;
-  int act = (2*vec[38] + 1*vec[39]) % 4;
+  int act = (2*parity[6] + 1*parity[7]) % 4;
   int sign = sign_table[exp][act];
   // correct
-  assert (addr < 38);
   int is_data = decode32[addr - 1][0];
   int bit     = decode32[addr - 1][1];
-  if (is_data) vec[ 0 + bit] += sign;
-  else         vec[32 + bit] += sign;
+  if (is_data)   data[bit] += sign;
+  else         parity[bit] += sign;
 }
 
 //////////////////////////////////////////////
 
-DLLEXPORT int cim(int8_t* x, int8_t* w, int* y, uint8_t* count, uint8_t* rpr_table, float* var_table, int size, int R, int C, int NWL, int WL, int BL) {
-  int* pdot = new int[BL];
+DLLEXPORT int cim(int8_t* x, int8_t* w, int8_t* p, int* y, uint8_t* count, uint8_t* rpr_table, float* var_table, int size, int adc, int R, int C, int NWL, int WL, int NBL, int BL) {
+  int* pdot     = new int[NBL*BL];
+  int* pdot_ecc = new int[NBL*BL/4];
+
   for (int r=0; r<R; r++) {
     for (int wl=0; wl<NWL; wl++) {
       for (int xb=0; xb<8; xb++) {
@@ -148,21 +149,26 @@ DLLEXPORT int cim(int8_t* x, int8_t* w, int* y, uint8_t* count, uint8_t* rpr_tab
           int wl_itr = 0;
           while (wl_ptr < WL) {
             int wl_sum = 0;
-            clear(pdot, BL);
+            clear(pdot, NBL*BL);
+            clear(pdot_ecc, NBL*BL/4);
 
             int rpr = rpr_table[xb * 8 + wb];
             assert (rpr >= 1);
             while ((wl_ptr < WL) && (wl_sum + x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr * 8) + xb] <= rpr)) {
               if (x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr * 8) + xb]) {
                 wl_sum += 1;
-                for (int bl=0; bl<BL/8; bl++) {
-                  pdot[bl] += w[(wl * WL * BL) + (wl_ptr * BL) + 8*bl + wb];
+                for (int bl=0; bl<NBL*BL/8; bl++) {
+                  pdot[bl] += w[(wl * WL * NBL*BL) + (wl_ptr * NBL*BL) + 8*bl + wb];
+                }
+                for (int bl=0; bl<NBL*BL/4/8; bl++) {
+                  pdot_ecc[bl] += p[(wl * WL * (NBL*BL/4)) + (wl_ptr * (NBL*BL/4)) + 8*bl + wb];
                 }
               }
               wl_ptr += 1;
             }
 
-            for (int bl=0; bl<BL/8; bl++) {
+            ///*
+            for (int bl=0; bl<NBL*BL/8; bl++) {
               int key = rand() % 1001;
               int var_addr = (wl_sum * (8 + 1) * 1001) + (pdot[bl] * 1001) + key;
               float var = var_table[var_addr];
@@ -170,17 +176,16 @@ DLLEXPORT int cim(int8_t* x, int8_t* w, int* y, uint8_t* count, uint8_t* rpr_tab
 
               int pdot_adc;
               if ((pdot_var > 0.20) && (pdot_var < 1.00)) pdot_adc = 1;
-              else                                        pdot_adc = min(max((int) round(pdot_var), 0), min(8, rpr));
+              else                                        pdot_adc = min(max((int) round(pdot_var), 0), min(adc, rpr));
             
               pdot[bl] = pdot_adc;
             }
+            //*/
+            for (int bl=0; bl<NBL; bl++) {
+              ecc(&(pdot[bl*32]), &(pdot_ecc[bl*8]));
+            }
 
-            // BL / 8 = 72
-            // which means ECC doesnt work here
-            // need it to be in the proper shape
-            ecc(pdot);
-
-            for (int bl=0; bl<32; bl++) {
+            for (int bl=0; bl<NBL*BL/8; bl++) {
               int yaddr = r * C + bl;
               assert(yaddr < R * C);
               int shift = wb + xb;
