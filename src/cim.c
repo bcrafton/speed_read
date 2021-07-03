@@ -49,6 +49,7 @@ int decode32[38][2] = {
 { 1,  2},
 { 1,  3},
 { 0,  3},
+
 { 1,  4},
 { 1,  5},
 { 1,  6},
@@ -57,6 +58,7 @@ int decode32[38][2] = {
 { 1,  9},
 { 1, 10},
 { 0,  4},
+
 { 1, 11},
 { 1, 12},
 { 1, 13},
@@ -65,6 +67,7 @@ int decode32[38][2] = {
 { 1, 16},
 { 1, 17},
 { 1, 18},
+
 { 1, 19},
 { 1, 20},
 { 1, 21},
@@ -73,6 +76,7 @@ int decode32[38][2] = {
 { 1, 24},
 { 1, 25},
 { 0,  5},
+
 { 1, 26},
 { 1, 27},
 { 1, 28},
@@ -104,7 +108,7 @@ int sign_table[4][4] = {
 //////////////////////////////////////////////
 
 // TODO: we need a test bench for this.
-void ecc(int* data, int* parity)
+int ecc(int* data, int* parity)
 {
   // localize
   int addr = 0;
@@ -116,7 +120,8 @@ void ecc(int* data, int* parity)
     p += parity[i];
     addr += pow(2, i) * (p % 2);
   }
-  if (addr >= 38) return;
+  if (addr > 38) return 0;
+  if (addr == 0) return 0;
 
   // dsum / psum
   int dsum = 0;
@@ -125,7 +130,7 @@ void ecc(int* data, int* parity)
   for (int i=0; i<6; i++) psum += parity[i];
   // ded
   int ded = (dsum + psum + parity[7]) % 2;
-  if ((ded == 0) && (addr > 0)) return;
+  if ((ded == 0) && (addr > 0)) return 0;
   // sign
   int exp = (dsum + psum) % 4;
   int act = (2*parity[6] + 1*parity[7]) % 4;
@@ -133,13 +138,14 @@ void ecc(int* data, int* parity)
   // correct
   int is_data = decode32[addr - 1][0];
   int bit     = decode32[addr - 1][1];
-  if (is_data)   data[bit] += sign;
+  if (is_data) data[bit]   += sign;
   else         parity[bit] += sign;
+  return (addr > 0);
 }
 
 //////////////////////////////////////////////
 
-DLLEXPORT int cim(int8_t* x, int8_t* w, int8_t* p, int* y, uint8_t* count, uint8_t* rpr_table, int* conf, int size, int max_rpr, int adc, int R, int C, int NWL, int WL, int NBL, int BL) {
+DLLEXPORT int cim(int8_t* x, int8_t* w, int8_t* p, int* y, uint8_t* count, uint32_t* error, uint8_t* rpr_table, int* conf, int size, int max_rpr, int adc, int R, int C, int NWL, int WL, int NBL, int BL, int BL_P) {
 
   default_random_engine generator;
   discrete_distribution<int>* distribution = new discrete_distribution<int>[(max_rpr+1) * (max_rpr+1)];
@@ -152,7 +158,9 @@ DLLEXPORT int cim(int8_t* x, int8_t* w, int8_t* p, int* y, uint8_t* count, uint8
   }
 
   int* pdot     = new int[NBL*BL];
-  int* pdot_ecc = new int[NBL*BL/4];
+  int* pdot_ecc = new int[NBL*BL_P];
+
+  int correct = 0;
 
   for (int r=0; r<R; r++) {
     for (int wl=0; wl<NWL; wl++) {
@@ -164,7 +172,7 @@ DLLEXPORT int cim(int8_t* x, int8_t* w, int8_t* p, int* y, uint8_t* count, uint8
           while (wl_ptr < WL) {
             int wl_sum = 0;
             clear(pdot, NBL*BL);
-            clear(pdot_ecc, NBL*BL/4);
+            clear(pdot_ecc, NBL*BL_P);
 
             int rpr = rpr_table[xb * 8 + wb];
             assert (rpr >= 1);
@@ -174,21 +182,29 @@ DLLEXPORT int cim(int8_t* x, int8_t* w, int8_t* p, int* y, uint8_t* count, uint8
                 for (int bl=0; bl<NBL*BL/8; bl++) {
                   pdot[bl] += w[(wl * WL * NBL*BL) + (wl_ptr * NBL*BL) + 8*bl + wb];
                 }
-                for (int bl=0; bl<NBL*BL/4/8; bl++) {
-                  pdot_ecc[bl] += p[(wl * WL * (NBL*BL/4)) + (wl_ptr * (NBL*BL/4)) + 8*bl + wb];
+                for (int bl=0; bl<NBL*BL_P/8; bl++) {
+                  pdot_ecc[bl] += p[(wl * WL * (NBL*BL_P)) + (wl_ptr * (NBL*BL_P)) + 8*bl + wb];
                 }
               }
               wl_ptr += 1;
             }
 
-            for (int bl=0; bl<NBL*BL/8; bl++) {
-              pdot[bl] = distribution[wl_sum * (max_rpr + 1) + pdot[bl]](generator);
+            for (int nbl=0; nbl<NBL; nbl++) {
+              int e = 0;
+              for (int bl=0; bl<BL/8; bl++) {
+                int expected = pdot[BL/8 * nbl + bl];
+                int actual = distribution[wl_sum * (max_rpr + 1) + expected](generator);
+                pdot[BL/8 * nbl + bl] = actual;
+                assert (abs(expected - actual) <= 1);
+                e += (expected != actual);
+              }
+              error[e] += 1;
             }
 
             for (int bl=0; bl<NBL; bl++) {
-              ecc(&(pdot[bl*32]), &(pdot_ecc[bl*8]));
+              correct += ecc(&(pdot[bl*32]), &(pdot_ecc[bl*8]));
             }
-
+            
             for (int bl=0; bl<NBL*BL/8; bl++) {
               int yaddr = r * C + bl;
               assert(yaddr < R * C);
@@ -211,6 +227,7 @@ DLLEXPORT int cim(int8_t* x, int8_t* w, int8_t* p, int* y, uint8_t* count, uint8
       } // for (int xb=0; xb<8; xb++) {
     } // for (int wl=0; wl<WL; wl++) {
   } // for (int r=0; r<R; r++) {
+  printf("%d\n", correct);
   return 1;  
 }
 

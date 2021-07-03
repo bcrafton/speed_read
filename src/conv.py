@@ -338,7 +338,7 @@ class Conv(Layer):
         wb = np.transpose(wb, (0,1,2,4,3))
         pb = ecc_encode(wb)
         pb = np.transpose(pb, (0,1,2,4,3))
-        pb = np.reshape(pb, (nwl, wl, nbl * 8, 8))
+        pb = np.reshape(pb, (nwl, wl, nbl, 8 * 8))
         return pb
         
         

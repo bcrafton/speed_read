@@ -16,11 +16,12 @@ def cim(xb, wb, pb, params):
 
     N, NWL, WL, XB = np.shape(xb)
     NWL, WL, NBL, BL = np.shape(wb)
+    _, _, _, BL_P = np.shape(pb)
     WB = 8
     C = NBL * BL // WB
 
     wb = np.reshape(wb, (NWL, WL, NBL * BL))
-    pb = np.reshape(pb, (NWL, WL, NBL * 64))
+    pb = np.reshape(pb, (NWL, WL, NBL * BL_P))
     yb = np.zeros(shape=(N, C), dtype=np.int32)
 
     ################################################################
@@ -33,6 +34,9 @@ def cim(xb, wb, pb, params):
 
     count   = np.zeros(shape=(N, NWL, XB, WB, max_cycle), dtype=np.uint8)
     count   = np.ascontiguousarray(count.flatten(), np.uint8)
+
+    error   = np.zeros(shape=(params['max_rpr']), dtype=np.uint32)
+    error   = np.ascontiguousarray(error.flatten(), np.uint32)
 
     xb = np.ascontiguousarray(xb.flatten(), np.int8)
     wb = np.ascontiguousarray(wb.flatten(), np.int8)
@@ -50,6 +54,7 @@ def cim(xb, wb, pb, params):
     ctypes.c_void_p(pb.ctypes.data), 
     ctypes.c_void_p(yb.ctypes.data), 
     ctypes.c_void_p(count.ctypes.data), 
+    ctypes.c_void_p(error.ctypes.data), 
     ctypes.c_void_p(rpr.ctypes.data), 
     ctypes.c_void_p(conf.ctypes.data), 
     ctypes.c_int(max_cycle),
@@ -60,12 +65,15 @@ def cim(xb, wb, pb, params):
     ctypes.c_int(NWL),
     ctypes.c_int(WL),
     ctypes.c_int(NBL),
-    ctypes.c_int(BL))
+    ctypes.c_int(BL),
+    ctypes.c_int(BL_P))
 
     ################################################################
 
     yb      = np.reshape(yb,      (N, C))
     count   = np.reshape(count,   (N, NWL, XB, WB, max_cycle))
+    error   = np.reshape(error,   (params['max_rpr']))
+    print (error)
 
     ################################################################
 
