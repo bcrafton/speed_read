@@ -509,13 +509,6 @@ compute
 >> use np.choice(y - y_ref, ,) instead of np.random.normal
 > wud give actual distribution and not some jank thing.
 
--------
-
-NEED ECC COUNTERS
-CAN WE COMPARE VAR VS CONF
-
--------
-
 
 
 
