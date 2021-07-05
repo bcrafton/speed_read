@@ -49,17 +49,17 @@ def kmeans(values, counts, n_clusters=8, max_iter=10, n_init=50, err_func=mean_s
         # Turn this into a weighted selector matrix:
         # If a value is equal distance between N means,
         # each mean is adjusted by 1/N * frequency of value.
-        s = 1.0 * np.equal(0,d - np.min(d, axis=1).reshape((-1,1)))
+        s = 1.0 * np.equal(0, d - np.min(d, axis=1).reshape((-1,1)))
         s = s * np.sum(s, axis=1).reshape((-1,1)) * probs.reshape((-1,1))
         # Brian: added this to prevent divide by zero.
-        s = s / np.clip( np.sum(s, axis=0).reshape((1,-1)), 1e-6, np.inf)
+        s = s / np.clip(np.sum(s, axis=0).reshape((1,-1)), 1e-6, np.inf)
         
         # Now recompute cluster centers:
         cl = np.sum(s * values.reshape((-1,1)), axis=0)
-        cl = np.round(cl * 4) / 4
-        cl[0] = 0
+        # cl = np.round(cl * 4) / 4
+        # cl[0] = 0
         
-        return(cl)                    
+        return (cl)
     
     min_err = 1e6
     min_cntrs = None

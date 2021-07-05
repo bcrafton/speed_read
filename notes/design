@@ -5021,10 +5021,44 @@ CAN WE COMPARE VAR VS CONF
 
 ====================
 
+remove profile (BB)
+
+====================
+
 confusion matrix for
 (1) step
 (2) kmeans
 
+> static_rpr / kmeans_rpr 
+  > generate confusion matrix
+
+so rpr allocation has to become more modular.
+adc confusion matrix makes this possible.
+have to first understand what is going on in static_rpr.
+
+pe = confusion matrix
+> SAME EXACT THING
+
+confusion(rpr, thresh, hrs, lrs):
+def confusion(THRESH, RPR, HRS, LRS):
+> this can be used for both rpr_alloc AND cim.c
+
+just need different methods to generate the thresholds with.
+> so modular.
+
+2 questions
+(1) thresholds or center points ? 
+(2) how to do cdf with (1)
+
+do we always pick 0 ? 
+what happens if percentile gives us 14.2, 14.6
+can we just proceed with infrastructure without figuring this part out ??
+
+====================
+
+super interesting -> kmeans will never give you [14.2, 14.6] problem.
+
+why not just use kmeans ?
 
 
 
@@ -5033,6 +5067,27 @@ confusion matrix for
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
 
 
 
