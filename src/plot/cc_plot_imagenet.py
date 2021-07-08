@@ -44,7 +44,7 @@ perf = {}
 power = {}
 error = {}
 
-for skip, cards, rpr_alloc, thresh in [(0, 0, 'dynamic', 0.10), (1, 0, 'dynamic', 0.10), (1, 1, 'static', 0.10), (1, 1, 'static', 0.25), (1, 1, 'static', 0.50)]:
+for skip, cards, rpr_alloc, thresh in [(1, 0, 'dynamic', 0.10), (1, 1, 'static', 0.10), (1, 1, 'static', 0.25)]:
     perf[(skip, cards, rpr_alloc, thresh)]  = []
     power[(skip, cards, rpr_alloc, thresh)] = []
     error[(skip, cards, rpr_alloc, thresh)] = []
@@ -99,14 +99,14 @@ plt.savefig('cc_error.png', dpi=500)
 
 # MAKE SURE PY3 IS ENABLED ...
 
-static1 = np.array(perf[(1, 1, 'static', 0.10)])
-static2 = np.array(perf[(1, 1, 'static', 0.25)])
-static3 = np.array(perf[(1, 1, 'static', 0.50)])
+# static1 = np.array(perf[(1, 1, 'static', 0.10)])
+# static2 = np.array(perf[(1, 1, 'static', 0.25)])
+# static3 = np.array(perf[(1, 1, 'static', 0.50)])
 # skip = np.array(perf[(1, 0, 'dynamic', 0.10)])
 
-print (static3)
-print (static2)
-print (static1)
+# print (static3)
+# print (static2)
+# print (static1)
 
 # plt.cla()
 for key in perf:
