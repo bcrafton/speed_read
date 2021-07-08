@@ -81,7 +81,7 @@ color = {
 (1, 1, 'static', 0.25):  '#404040',
 (1, 1, 'static', 0.50):  '#000000',
 }
-
+'''
 plt.cla()
 for key in error:
   plt.plot(sigmas, error[key], color=color[key], marker='.')
@@ -90,17 +90,11 @@ plt.ylim(bottom=0, top=3.5)
 plt.yticks([1, 2, 3], ['', '', ''])
 plt.xticks([0.0, 0.05, 0.10, 0.15, 0.20], ['', '', '', '', ''])
 ###############################
-'''
-plt.ylim(bottom=0, top=17.5)
-plt.yticks([5, 10, 15], ['', '', ''])
-plt.xticks([0.0, 0.05, 0.10, 0.15, 0.20], ['', '', '', '', ''])
-'''
-###############################
 plt.grid(True, linestyle='dotted')
 plt.gcf().set_size_inches(3.3, 1.)
 plt.tight_layout(0.)
 plt.savefig('cc_error.png', dpi=500)
-
+'''
 ####################
 
 # MAKE SURE PY3 IS ENABLED ...
@@ -114,7 +108,7 @@ print (static3)
 print (static2)
 print (static1)
 
-plt.cla()
+# plt.cla()
 for key in perf:
   plt.plot(sigmas, perf[key], color=color[key], marker='.', markersize=3, linewidth=1)
 plt.ylim(bottom=0, top=22.5)
@@ -126,7 +120,7 @@ plt.tight_layout(0.)
 plt.savefig('cc_perf.png', dpi=500)
 
 ####################
-
+'''
 static1 = np.array(power[(1, 1, 'static', 0.10)])
 static2 = np.array(power[(1, 1, 'static', 0.25)])
 static3 = np.array(power[(1, 1, 'static', 0.50)])
@@ -146,7 +140,7 @@ plt.grid(True, linestyle='dotted')
 plt.gcf().set_size_inches(3.3, 1.)
 plt.tight_layout(0.)
 plt.savefig('cc_power.png', dpi=500)
-
+'''
 ####################
 
 
