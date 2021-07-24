@@ -145,15 +145,24 @@ int ecc(int* data, int* parity)
 
 //////////////////////////////////////////////
 
-DLLEXPORT int cim(int8_t* x, int8_t* w, int8_t* p, int* y, uint8_t* count, uint32_t* error, uint8_t* rpr_table, int* conf, int size, int max_rpr, int adc, int R, int C, int NWL, int WL, int NBL, int BL, int BL_P) {
+DLLEXPORT int cim(int8_t* x, int8_t* w, int8_t* p, int* y, uint8_t* count, uint32_t* error, uint8_t* rpr_table, int* conf, int* value, int size, int max_rpr, int adc, int R, int C, int NWL, int WL, int NBL, int BL, int BL_P) {
 
   default_random_engine generator;
-  discrete_distribution<int>* distribution = new discrete_distribution<int>[(max_rpr+1) * (max_rpr+1)];
-  for (int wl=0; wl<max_rpr+1; wl++) {
-    for (int on=0; on<max_rpr+1; on++) {
-      int offset = wl * (max_rpr + 1) * (max_rpr + 1) + on * (max_rpr + 1);
-      vector<int> prob(conf + offset, conf + offset + max_rpr + 1);
-      distribution[ wl * (max_rpr+1) + on ] = discrete_distribution<int>(prob.begin(), prob.end());
+  discrete_distribution<int>* distribution = new discrete_distribution<int>[8 * 8 * max_rpr * max_rpr];
+  for (int xb=0; xb<8; xb++) {
+    for (int wb=0; wb<8; wb++) {
+      for (int wl=0; wl<max_rpr; wl++) {
+        for (int on=0; on<max_rpr; on++) {
+          int xb_addr = xb * 8 * max_rpr * max_rpr;
+          int wb_addr =     wb * max_rpr * max_rpr;
+          int wl_addr =               wl * max_rpr;
+          int on_addr =                         on;
+          int addr = xb_addr + wb_addr + wl_addr + on_addr;
+          int offset = addr * adc;
+          vector<int> prob(conf + offset, conf + offset + adc);
+          distribution[addr] = discrete_distribution<int>(prob.begin(), prob.end());
+        }
+      }
     }
   }
 
@@ -193,8 +202,16 @@ DLLEXPORT int cim(int8_t* x, int8_t* w, int8_t* p, int* y, uint8_t* count, uint3
               int e = 0;
               for (int bl=0; bl<BL/8; bl++) {
                 int expected = pdot[BL/8 * nbl + bl];
-                int actual = distribution[wl_sum * (max_rpr + 1) + expected](generator);
+
+                int xb_addr = xb * 8 * max_rpr * max_rpr;
+                int wb_addr =     wb * max_rpr * max_rpr;
+                int wl_addr =           wl_sum * max_rpr;
+                int on_addr =                   expected;
+                int addr = xb_addr + wb_addr + wl_addr + on_addr;
+
+                int actual = distribution[addr](generator);
                 pdot[BL/8 * nbl + bl] = actual;
+                // printf("%d %d\n", expected, actual);
                 assert (abs(expected - actual) <= 1);
                 e += (expected != actual);
               }

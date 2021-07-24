@@ -5060,9 +5060,19 @@ super interesting -> kmeans will never give you [14.2, 14.6] problem.
 
 why not just use kmeans ?
 
+====================
 
+problem right now is (+1)
+> adc ... 0-8
+> wl ... 0-16+1
+> make sure you use (+1) correctly.
 
+figure out where its needed in:
+adc.py
+static_rpr.py
+cim.c
 
+====================
 
 
 

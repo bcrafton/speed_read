@@ -3,6 +3,7 @@ import numpy as np
 from scipy.stats import norm, binom
 
 from optimize_rpr import optimize_rpr
+from adc import *
 
 import time
 import sys
@@ -27,9 +28,7 @@ inf = 1e10
 
 def expected_error(params, adc_hist, row, step):
 
-    row = np.reshape(row, (params['max_rpr'], 1, 1))
-
-    ########################################################################
+    # pe
 
     adc      = np.arange(0, params['adc'] + 1, step).astype(np.float32)
     adc_low  = np.array([-inf, 0.2] + (adc[2:] - step / 2.).tolist())
@@ -51,11 +50,6 @@ def expected_error(params, adc_hist, row, step):
 
     ########################################################################
 
-    p = adc_hist[1:].astype(np.float32)
-    p = p / np.sum(p, axis=(1, 2), keepdims=True)
-
-    ########################################################################
-
     mu  = N_lrs
     var = (params['lrs'] ** 2. * N_lrs) + (params['hrs'] ** 2. * N_hrs)
     sd  = np.sqrt(var)
@@ -67,21 +61,36 @@ def expected_error(params, adc_hist, row, step):
 
     ########################################################################
 
+    # row
+    row = np.reshape(row, (params['max_rpr'], 1, 1))
+
+    ########################################################################
+
+    # p
+    p = adc_hist[1:].astype(np.float32)
+    p = p / np.sum(p, axis=(1, 2), keepdims=True)
+
+    ########################################################################
+
+    # e
     s = np.arange(0, params['max_rpr']+1, dtype=np.float32)
     e = adc - s
-
-    '''
-    if step == 2:
-        # print (np.around(pe[:, 0, 16, 8], 2))
-        print (np.around((pe * e)[:, 0, 16, 7], 2))
-    if step == 4:
-        # print (np.around(pe[:, 0, 16, 8], 2))
-        print (np.around((pe * e)[:, 0, 16, 7], 2))
-    '''
+    
+    ########################################################################
 
     assert np.allclose(np.sum(p,      axis=(1, 2)),    1)
     assert np.allclose(np.sum(pe,     axis=0),         1)
     assert np.allclose(np.sum(pe * p, axis=(0, 2, 3)), 1)
+
+    # [xb, wb], [adc, rpr, hrs, lrs]
+
+    '''
+    print (np.shape(p))
+    print (np.shape(pe))
+    print (np.shape(e))
+    print (np.shape(row))
+    assert (False)
+    '''
 
     error = p * pe * e * row
     mse  = np.sum(np.absolute(error), axis=(0, 2, 3))
@@ -100,25 +109,37 @@ def static_rpr(id, params, q):
     step_lut = np.zeros(shape=(8, 8), dtype=np.int32)
 
     ############
-
+    '''
     if not (params['skip'] and params['cards']):
         step_lut = 2 ** step_lut
         return rpr_lut, step_lut, 0, 0
-
+    '''
     ############
 
     delay       = np.zeros(shape=(8, 8, params['max_step'], params['max_rpr']))
     error_table = np.zeros(shape=(8, 8, params['max_step'], params['max_rpr']))
     mean_table  = np.zeros(shape=(8, 8, params['max_step'], params['max_rpr']))
 
+    # [xb, wb] [step, rpr] [wl] [on, adc]
+    conf_table  = np.zeros(shape=(8, 8, params['max_step'], params['max_rpr'], params['max_rpr'], params['max_rpr'], params['adc']))
+    # [xb, wb] [step, rpr] [adc]
+    value_table = np.zeros(shape=(8, 8, params['max_step'], params['max_rpr'], params['adc']))
+
     profile = np.load('./profile/%d.npy' % (id), allow_pickle=True).item()
     adc = profile['adc']
     row = np.maximum(1, profile['row'])
     ratio = profile['ratio']
 
+    # print (adc[:, :, :, 0])
+    # this should all be 0.
     for wb in range(params['bpw']):
         for xb in range(params['bpa']):
             for step in range(params['max_step']):
+
+                thresh, values = thresholds(adc[xb, wb, 1:], params['adc'] - step, method='kmeans')
+                conf_table[xb, wb, step] = confusion(thresh, params['max_rpr'], params['adc'], params['hrs'], params['lrs'])
+                value_table[xb, wb, step] = values
+
                 mse, mean = expected_error(params, adc[xb][wb], row[xb], 2**step)
                 assert np.all(mse >= np.abs(mean))
                 
@@ -162,6 +183,8 @@ def static_rpr(id, params, q):
 
     mean = np.zeros(shape=(8, 8))
     error = np.zeros(shape=(8, 8))
+    conf = np.zeros(shape=(8, 8, params['max_rpr'], params['max_rpr'], params['adc']))
+    value = np.zeros(shape=(8, 8, params['adc']))
 
     if params['skip'] and params['cards']:
         rpr_range  = np.arange(1, params['max_rpr'] + 1).reshape(1, -1)
@@ -175,11 +198,13 @@ def static_rpr(id, params, q):
             rpr = rpr_lut[xb][wb]
             step = step_lut[xb][wb] 
             error[xb][wb] = error_table[xb][wb][step][rpr-1]
-            mean[xb][wb]  =  mean_table[xb][wb][step][rpr-1]
+            mean[xb][wb]  = mean_table[xb][wb][step][rpr-1]
+            conf[xb][wb]  = conf_table[xb][wb][step][rpr-1]  # [WL, ON, ADC]
+            value[xb][wb] = value_table[xb][wb][step][rpr-1] # [ADC]
 
     step_lut = 2 ** step_lut
     # assert (np.sum(error) >= np.sum(np.abs(mean)))
-    return rpr_lut, step_lut, np.sum(error), np.sum(mean)
+    return rpr_lut, step_lut, conf, value
     
     
 ##########################################
