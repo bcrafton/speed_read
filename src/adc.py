@@ -43,6 +43,7 @@ np.savetxt('tmp', conf.reshape(81, 9), fmt='%d')
 '''
 ####################################################
 
+'''
 def confusion(THRESH, RPR, ADC, HRS, LRS):
     eps = 1e-12
     conf = np.zeros(shape=(RPR, RPR, RPR, ADC))
@@ -53,6 +54,7 @@ def confusion(THRESH, RPR, ADC, HRS, LRS):
                     off = wl - on
                     var = on*LRS**2 + off*HRS**2
                     std = max(eps, np.sqrt(var))
+                    # is this indexing correct ? (rpr, adc + 1)
                     p = norm.cdf(THRESH[rpr, adc + 1], on, std) - norm.cdf(THRESH[rpr, adc], on, std)
                     conf[rpr, wl, on, adc] = p if (p > eps) else 0.
 
@@ -62,6 +64,38 @@ def confusion(THRESH, RPR, ADC, HRS, LRS):
     assert (np.all(np.isnan(scale) == False))
     conf = (conf / scale).astype(int)
     assert (np.all(conf >= 0))
+    return conf
+'''
+
+####################################################
+
+def confusion(THRESH, RPR, ADC, HRS, LRS):
+    eps = 1e-12
+
+    rpr = np.arange(0, RPR).reshape(RPR,   1,   1,   1)
+    wl  = np.arange(0, RPR).reshape(  1, RPR,   1,   1)
+    on  = np.arange(0, RPR).reshape(  1,   1, RPR,   1)
+    adc = np.arange(0, ADC).reshape(  1,   1,   1, ADC)
+
+    off = wl - on
+    var = on * (LRS ** 2) + off * (HRS ** 2)
+    std = np.maximum(eps, np.sqrt(var))
+
+    conf = norm.cdf(THRESH[rpr, adc + 1], on, std) - norm.cdf(THRESH[rpr, adc], on, std)
+    assert (np.all(conf >= 0.))
+    assert (np.all(np.isinf(conf) == False))
+    assert (np.all(np.isnan(conf) == False))
+
+    scale = np.min(np.where(conf > eps, conf, np.inf), axis=-1, keepdims=True)
+    assert (np.all(scale > 0.))
+    assert (np.all(np.isinf(scale) == False))
+    assert (np.all(np.isnan(scale) == False))
+
+    conf = (conf / scale).astype(int)
+    assert (np.all(conf >= 0.))
+    assert (np.all(np.isinf(conf) == False))
+    assert (np.all(np.isnan(conf) == False))
+
     return conf
 
 ####################################################

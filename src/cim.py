@@ -35,7 +35,7 @@ def cim(xb, wb, pb, params):
     count   = np.zeros(shape=(N, NWL, XB, WB, max_cycle), dtype=np.uint8)
     count   = np.ascontiguousarray(count.flatten(), np.uint8)
 
-    error   = np.zeros(shape=(params['max_rpr']), dtype=np.uint32)
+    error   = np.zeros(shape=(params['max_rpr']), dtype=np.uint32) # why is this [max_rpr]
     error   = np.ascontiguousarray(error.flatten(), np.uint32)
 
     xb = np.ascontiguousarray(xb.flatten(), np.int8)

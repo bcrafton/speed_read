@@ -195,7 +195,7 @@ def Simple():
     'wl': 256,
     'bl': 256,
     'offset': 128,
-    'max_rpr': 12,
+    'max_rpr': 16,
     'sar': False,
     'max_step': 1
     }
