@@ -33,9 +33,9 @@ typedef unsigned char uint8_t;
 
 //////////////////////////////////////////////
 
-void clear(int* v, int size)
+void clear(void* v, int size)
 {
-  memset(v, 0, sizeof(int) * size);
+  memset(v, 0, size);
 }
 
 //////////////////////////////////////////////
@@ -145,7 +145,7 @@ int ecc(int* data, int* parity)
 
 //////////////////////////////////////////////
 
-DLLEXPORT int cim(int8_t* x, int8_t* w, int8_t* p, int* y, uint8_t* count, uint32_t* error, uint8_t* rpr_table, int* conf, int* value, int size, int max_rpr, int adc, int R, int C, int NWL, int WL, int NBL, int BL, int BL_P) {
+DLLEXPORT int cim(int8_t* x, int8_t* w, int8_t* p, int* y, uint8_t* count, uint32_t* error, uint8_t* rpr_table, int* conf, float* value, int size, int max_rpr, int adc, int R, int C, int NWL, int WL, int NBL, int BL, int BL_P) {
 
   default_random_engine generator;
   discrete_distribution<int>* distribution = new discrete_distribution<int>[8 * 8 * max_rpr * max_rpr];
@@ -168,6 +168,9 @@ DLLEXPORT int cim(int8_t* x, int8_t* w, int8_t* p, int* y, uint8_t* count, uint3
 
   int* pdot     = new int[NBL*BL];
   int* pdot_ecc = new int[NBL*BL_P];
+  
+  float* adc_code     = new float[NBL*BL];
+  float* adc_code_ecc = new float[NBL*BL_P];
 
   int correct = 0;
 
@@ -180,8 +183,10 @@ DLLEXPORT int cim(int8_t* x, int8_t* w, int8_t* p, int* y, uint8_t* count, uint3
           int wl_itr = 0;
           while (wl_ptr < WL) {
             int wl_sum = 0;
-            clear(pdot, NBL*BL);
-            clear(pdot_ecc, NBL*BL_P);
+            clear(pdot,         sizeof(int)   * NBL*BL);
+            clear(pdot_ecc,     sizeof(int)   * NBL*BL_P);
+            clear(adc_code,     sizeof(float) * NBL*BL);
+            clear(adc_code_ecc, sizeof(float) * NBL*BL_P);
 
             int rpr = rpr_table[xb * 8 + wb];
             assert (rpr >= 1);
@@ -208,18 +213,23 @@ DLLEXPORT int cim(int8_t* x, int8_t* w, int8_t* p, int* y, uint8_t* count, uint3
                 int wl_addr =           wl_sum * max_rpr;
                 int on_addr =                   expected;
                 int addr = xb_addr + wb_addr + wl_addr + on_addr;
+                int code = distribution[addr](generator);
 
-                int actual = distribution[addr](generator);
-                pdot[BL/8 * nbl + bl] = actual;
-                // printf("%d %d\n", expected, actual);
-                assert (abs(expected - actual) <= 1);
-                e += (expected != actual);
+                xb_addr    = xb * 8 * adc;
+                wb_addr    =     wb * adc;
+                float actual = value[xb_addr + wb_addr + code];
+                adc_code[BL/8 * nbl + bl] = actual;
+                // printf("%d %f\n", expected, actual);
+
+                // pdot[BL/8 * nbl + bl] = actual;
+                // assert (abs(expected - actual) <= 1);
+                // e += (expected != actual);
               }
-              error[e] += 1;
+              // error[e] += 1;
             }
 
             for (int bl=0; bl<NBL; bl++) {
-              correct += ecc(&(pdot[bl*32]), &(pdot_ecc[bl*8]));
+              // correct += ecc(&(pdot[bl*32]), &(pdot_ecc[bl*8]));
             }
             
             for (int bl=0; bl<NBL*BL/8; bl++) {
@@ -227,7 +237,8 @@ DLLEXPORT int cim(int8_t* x, int8_t* w, int8_t* p, int* y, uint8_t* count, uint3
               assert(yaddr < R * C);
               int shift = wb + xb;
               int sign = (wb == 7) ? -1 : 1;
-              y[yaddr] += sign * (pdot[bl] << shift);
+              // y[yaddr] += sign * (pdot[bl] << shift);
+              y[yaddr] += sign * adc_code[bl] * pow(2, shift);
             }
 
             int row_addr = r * NWL * 8 * 8 * size;
@@ -244,7 +255,7 @@ DLLEXPORT int cim(int8_t* x, int8_t* w, int8_t* p, int* y, uint8_t* count, uint3
       } // for (int xb=0; xb<8; xb++) {
     } // for (int wl=0; wl<WL; wl++) {
   } // for (int r=0; r<R; r++) {
-  printf("%d\n", correct);
+  // printf("%d\n", correct);
   return 1;  
 }
 

@@ -45,7 +45,7 @@ def cim(xb, wb, pb, params):
     rpr = np.ascontiguousarray(params['rpr'].flatten(), np.uint8)
     var = np.ascontiguousarray(params['var'].flatten(), np.float32)
     conf = np.ascontiguousarray(params['conf'].flatten(), np.int32)
-    value = np.ascontiguousarray(params['value'].flatten(), np.int32)
+    value = np.ascontiguousarray(params['value'].flatten(), np.float32)
 
     ################################################################
 
@@ -75,7 +75,7 @@ def cim(xb, wb, pb, params):
     yb      = np.reshape(yb,      (N, C))
     count   = np.reshape(count,   (N, NWL, XB, WB, max_cycle))
     error   = np.reshape(error,   (params['max_rpr']))
-    print (error)
+    # print (error)
 
     ################################################################
 

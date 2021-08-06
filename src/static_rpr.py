@@ -26,10 +26,10 @@ def cdf(x, mu, sd):
 eps = 1e-10
 inf = 1e10
 
-def expected_error(params, adc_hist, row, step):
+def expected_error(params, adc_hist, row, step, adc_thresh, adc_value):
 
     # pe
-
+    '''
     adc      = np.arange(0, params['adc'] + 1, step).astype(np.float32)
     adc_low  = np.array([-inf, 0.2] + (adc[2:] - step / 2.).tolist())
     adc_high = np.array([0.2]       + (adc[2:] - step / 2.).tolist() + [inf])
@@ -37,6 +37,16 @@ def expected_error(params, adc_hist, row, step):
     adc      =      adc.reshape(params['adc']//step+1, 1, 1, 1)
     adc_low  =  adc_low.reshape(params['adc']//step+1, 1, 1, 1)
     adc_high = adc_high.reshape(params['adc']//step+1, 1, 1, 1)
+    '''
+
+    ########################################################################
+
+    # print (np.shape(adc_value))
+    # print (np.shape(adc_thresh))
+
+    adc      =          adc_value.T.reshape(params['adc'], params['max_rpr'], 1, 1)
+    adc_low  = adc_thresh[:, :-1].T.reshape(params['adc'], params['max_rpr'], 1, 1)
+    adc_high = adc_thresh[:,  1:].T.reshape(params['adc'], params['max_rpr'], 1, 1)
 
     ########################################################################
 
@@ -56,7 +66,8 @@ def expected_error(params, adc_hist, row, step):
 
     p_h = norm.cdf(adc_high, mu, np.maximum(sd, eps))
     p_l = norm.cdf(adc_low, mu, np.maximum(sd, eps))
-    pe = np.clip(p_h - p_l - norm.cdf(-3), 0, 1)
+    # pe = np.clip(p_h - p_l - norm.cdf(-3), 0, 1)
+    pe = np.clip(p_h - p_l, 0, 1)
     pe = pe / np.sum(pe, axis=0, keepdims=True)
 
     ########################################################################
@@ -67,7 +78,7 @@ def expected_error(params, adc_hist, row, step):
     ########################################################################
 
     # p
-    p = adc_hist[1:].astype(np.float32)
+    p = adc_hist.astype(np.float32)
     p = p / np.sum(p, axis=(1, 2), keepdims=True)
 
     ########################################################################
@@ -110,6 +121,7 @@ def static_rpr(id, params, q):
 
     ############
     '''
+    # cannot return early -- need {conf, value}
     if not (params['skip'] and params['cards']):
         step_lut = 2 ** step_lut
         return rpr_lut, step_lut, 0, 0
@@ -135,13 +147,20 @@ def static_rpr(id, params, q):
     for wb in range(params['bpw']):
         for xb in range(params['bpa']):
             for step in range(params['max_step']):
+                # print (id, wb, xb, step)
 
+                # start = time.time()
                 thresh, values = thresholds(adc[xb, wb, 1:], params['adc'] - step, method='kmeans')
+                # print (time.time() - start)
                 conf_table[xb, wb, step] = confusion(thresh, params['max_rpr'], params['adc'], params['hrs'], params['lrs'])
                 value_table[xb, wb, step] = values
+                # print (time.time() - start)
 
-                mse, mean = expected_error(params, adc[xb][wb], row[xb], 2**step)
+                # assert (False)
+                # problem here is we arnt considering the kmeans thresholds
+                mse, mean = expected_error(params, adc[xb, wb, 1:], row[xb], 2**step, thresh, values)
                 assert np.all(mse >= np.abs(mean))
+                # print (time.time() - start)
                 
                 scale = 2**wb * 2**xb / q * ratio
                 error_table[xb][wb][step] = scale * mse
@@ -175,7 +194,7 @@ def static_rpr(id, params, q):
     # answer should be scaling by: [np.sqrt(nrow), nrow]
     # error should scale by sqrt(nrow)
     # mean should scale by nrow
-    error_table = round_fraction(error_table, 1e-4) - round_fraction(np.absolute(mean_table), 1e-4)
+    error_table = round_fraction(error_table, 1e-4) # - round_fraction(np.absolute(mean_table), 1e-4)
     mean_table = np.sign(mean_table) * round_fraction(np.absolute(mean_table), 1e-4)
     # 
     # error_table = round_fraction(error_table, 1e-4)
@@ -204,6 +223,9 @@ def static_rpr(id, params, q):
 
     step_lut = 2 ** step_lut
     # assert (np.sum(error) >= np.sum(np.abs(mean)))
+    # print (rpr_lut)
+    # print (step_lut)
+    print (np.sum(error), np.sum(mean))
     return rpr_lut, step_lut, conf, value
     
     

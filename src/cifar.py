@@ -37,9 +37,9 @@ def create_model(array_params):
     Conv(input_size=(32,32,64), filter_size=(3,3,64,64), pool=1, stride=1, pad1=1, pad2=1, params=array_params, weights=weights),
     AvgPool(input_size=(32, 32, 64), kernel_size=2, stride=2, params=array_params, weights=weights),
 
-    Conv(input_size=(16,16,64),  filter_size=(3,3, 64,128), pool=1, stride=1, pad1=1, pad2=1, params=array_params, weights=weights),
-    Conv(input_size=(16,16,128), filter_size=(3,3,128,128), pool=1, stride=1, pad1=1, pad2=1, params=array_params, weights=weights),
-    AvgPool(input_size=(16, 16, 128), kernel_size=2, stride=2, params=array_params, weights=weights),
+    #Conv(input_size=(16,16,64),  filter_size=(3,3, 64,128), pool=1, stride=1, pad1=1, pad2=1, params=array_params, weights=weights),
+    #Conv(input_size=(16,16,128), filter_size=(3,3,128,128), pool=1, stride=1, pad1=1, pad2=1, params=array_params, weights=weights),
+    #AvgPool(input_size=(16, 16, 128), kernel_size=2, stride=2, params=array_params, weights=weights),
 
     #Conv(input_size=(8,8,128), filter_size=(3,3,128,256), pool=1, stride=1, pad1=1, pad2=1, params=array_params, weights=weights),
     #Conv(input_size=(8,8,256), filter_size=(3,3,256,256), pool=1, stride=1, pad1=1, pad2=1, params=array_params, weights=weights),
