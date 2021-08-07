@@ -26,27 +26,13 @@ def cdf(x, mu, sd):
 eps = 1e-10
 inf = 1e10
 
-def expected_error(params, adc_hist, row, step, adc_thresh, adc_value):
+def expected_error(params, step, adc_hist, row, adc_thresh, adc_value):
 
     # pe
-    '''
-    adc      = np.arange(0, params['adc'] + 1, step).astype(np.float32)
-    adc_low  = np.array([-inf, 0.2] + (adc[2:] - step / 2.).tolist())
-    adc_high = np.array([0.2]       + (adc[2:] - step / 2.).tolist() + [inf])
-    
-    adc      =      adc.reshape(params['adc']//step+1, 1, 1, 1)
-    adc_low  =  adc_low.reshape(params['adc']//step+1, 1, 1, 1)
-    adc_high = adc_high.reshape(params['adc']//step+1, 1, 1, 1)
-    '''
 
-    ########################################################################
-
-    # print (np.shape(adc_value))
-    # print (np.shape(adc_thresh))
-
-    adc      =          adc_value.T.reshape(params['adc'], params['max_rpr'], 1, 1)
-    adc_low  = adc_thresh[:, :-1].T.reshape(params['adc'], params['max_rpr'], 1, 1)
-    adc_high = adc_thresh[:,  1:].T.reshape(params['adc'], params['max_rpr'], 1, 1)
+    adc      =          adc_value.T.reshape(params['adc'] // 2 ** step, params['max_rpr'], 1, 1)
+    adc_low  = adc_thresh[:, :-1].T.reshape(params['adc'] // 2 ** step, params['max_rpr'], 1, 1)
+    adc_high = adc_thresh[:,  1:].T.reshape(params['adc'] // 2 ** step, params['max_rpr'], 1, 1)
 
     ########################################################################
 
@@ -147,21 +133,35 @@ def static_rpr(id, params, q):
     for wb in range(params['bpw']):
         for xb in range(params['bpa']):
             for step in range(params['max_step']):
-                # print (id, wb, xb, step)
 
-                # start = time.time()
-                thresh, values = thresholds(adc[xb, wb, 1:], params['adc'] - step, method='kmeans')
-                # print (time.time() - start)
-                conf_table[xb, wb, step] = confusion(thresh, params['max_rpr'], params['adc'], params['hrs'], params['lrs'])
-                value_table[xb, wb, step] = values
-                # print (time.time() - start)
+                # {step, sar}
+                # sar -> dosnt matter just performance related
+                # step -> need to pad {conf, value}
+
+                # thresholds:
+                # tell it to pick (adc // 2 ** step) thresholds. 
+                # dont pad here -> cdf will get fucked in confusion
+
+                # conf:
+                # need to pad {conf, value} after cdf
+
+                thresh, values = thresholds(adc[xb, wb, 1:], params['adc'] // 2 ** step, method='kmeans')
+                conf = confusion(thresh, params['max_rpr'], params['adc'] // 2 ** step, params['hrs'], params['lrs'])
+
+                mse, mean = expected_error(params, step, adc[xb, wb, 1:], row[xb], thresh, values)
+                assert np.all(mse >= np.abs(mean))
+
+                values_pad = -1 * np.ones(shape=(params['max_rpr'],                                       params['adc'] - params['adc'] // 2 ** step))
+                conf_pad =       np.zeros(shape=(params['max_rpr'], params['max_rpr'], params['max_rpr'], params['adc'] - params['adc'] // 2 ** step))
+
+                conf_table[xb, wb, step]  = np.concatenate((conf, conf_pad), axis=-1)
+                value_table[xb, wb, step] = np.concatenate((values, values_pad), axis=-1)
 
                 # assert (False)
-                # problem here is we arnt considering the kmeans thresholds
-                mse, mean = expected_error(params, adc[xb, wb, 1:], row[xb], 2**step, thresh, values)
-                assert np.all(mse >= np.abs(mean))
-                # print (time.time() - start)
-                
+                # so we just padded.
+                # no we need to send it through expected error
+                # really its just figuring out how to make step work here and we are good.
+
                 scale = 2**wb * 2**xb / q * ratio
                 error_table[xb][wb][step] = scale * mse
                 mean_table[xb][wb][step] = scale * mean

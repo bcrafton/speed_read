@@ -195,9 +195,9 @@ def Simple():
     'wl': 256,
     'bl': 256,
     'offset': 128,
-    'max_rpr': 16,
-    'sar': False,
-    'max_step': 1
+    'max_rpr': 32,
+    'sar': True,
+    'max_step': 2
     }
 
     arch_params = {
@@ -206,10 +206,10 @@ def Simple():
     'narray': [128],
     'lrs': [0.07], 
     'hrs': [0.0001],
-    'cards': [1],
+    'cards': [0, 1],
     'profile': [0],
     'rpr_alloc': ['static'],
-    'thresh': [0.10],
+    'thresh': [0.25],
     }
 
     arch_params = perms(arch_params)
