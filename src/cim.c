@@ -145,22 +145,41 @@ int ecc(int* data, int* parity)
 
 //////////////////////////////////////////////
 
-DLLEXPORT int cim(int8_t* x, int8_t* w, int8_t* p, int* y, uint8_t* count, uint32_t* error, uint8_t* rpr_table, int* conf, float* value, int size, int max_rpr, int adc, int R, int C, int NWL, int WL, int NBL, int BL, int BL_P) {
+DLLEXPORT int cim(int8_t* x, int8_t* w, int8_t* p, int* y, uint8_t* count, uint32_t* error, uint8_t* rpr_table, uint8_t* step_table, uint32_t* conf, float* value, int size, int max_rpr, int adc, int R, int C, int NWL, int WL, int NBL, int BL, int BL_P) {
 
   default_random_engine generator;
-  discrete_distribution<int>* distribution = new discrete_distribution<int>[8 * 8 * max_rpr * max_rpr];
+  discrete_distribution<uint32_t>* distribution = new discrete_distribution<uint32_t>[8 * 8 * (max_rpr + 1) * (max_rpr + 1)];
   for (int xb=0; xb<8; xb++) {
     for (int wb=0; wb<8; wb++) {
-      for (int wl=0; wl<max_rpr; wl++) {
-        for (int on=0; on<max_rpr; on++) {
-          int xb_addr = xb * 8 * max_rpr * max_rpr;
-          int wb_addr =     wb * max_rpr * max_rpr;
-          int wl_addr =               wl * max_rpr;
-          int on_addr =                         on;
+      for (int wl=0; wl<max_rpr+1; wl++) {
+        for (int on=0; on<max_rpr+1; on++) {        
+          int xb_addr = xb * 8 * (max_rpr + 1) * (max_rpr + 1);
+          int wb_addr =     wb * (max_rpr + 1) * (max_rpr + 1);
+          int wl_addr =                     wl * (max_rpr + 1);
+          int on_addr =                                     on;
           int addr = xb_addr + wb_addr + wl_addr + on_addr;
-          int offset = addr * adc;
-          vector<int> prob(conf + offset, conf + offset + adc);
-          distribution[addr] = discrete_distribution<int>(prob.begin(), prob.end());
+          int offset = addr * (adc + 1);
+          vector<uint32_t> prob(conf + offset, conf + offset + (adc + 1));
+          distribution[addr] = discrete_distribution<uint32_t>(prob.begin(), prob.end());
+          
+          /*
+          int rpr = rpr_table[xb * 8 + wb];
+          int step = step_table[xb * 8 + wb];
+          
+          if ((xb == 0) && (wb == 4)) {
+            for (int i=0; i<adc+1; i++) {
+              printf("%u ", conf[offset + i]);
+            }
+            printf("\n");
+          }
+
+          if (step == 2) {
+            for (int i=5; i<adc+1; i++) {
+              assert(conf[offset + i] == 0);
+            }
+          }
+          */
+
         }
       }
     }
@@ -189,6 +208,7 @@ DLLEXPORT int cim(int8_t* x, int8_t* w, int8_t* p, int* y, uint8_t* count, uint3
             clear(adc_code_ecc, sizeof(float) * NBL*BL_P);
 
             int rpr = rpr_table[xb * 8 + wb];
+            int step = step_table[xb * 8 + wb];
             assert (rpr >= 1);
             while ((wl_ptr < WL) && (wl_sum + x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr * 8) + xb] <= rpr)) {
               if (x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr * 8) + xb]) {
@@ -204,32 +224,34 @@ DLLEXPORT int cim(int8_t* x, int8_t* w, int8_t* p, int* y, uint8_t* count, uint3
             }
 
             for (int nbl=0; nbl<NBL; nbl++) {
-              int e = 0;
               for (int bl=0; bl<BL/8; bl++) {
                 int expected = pdot[BL/8 * nbl + bl];
 
-                int xb_addr = xb * 8 * max_rpr * max_rpr;
-                int wb_addr =     wb * max_rpr * max_rpr;
-                int wl_addr =           wl_sum * max_rpr;
-                int on_addr =                   expected;
+                int xb_addr = xb * 8 * (max_rpr + 1) * (max_rpr + 1);
+                int wb_addr =     wb * (max_rpr + 1) * (max_rpr + 1);
+                int wl_addr =                 wl_sum * (max_rpr + 1);
+                int on_addr =                               expected;
                 int addr = xb_addr + wb_addr + wl_addr + on_addr;
                 int code = distribution[addr](generator);
 
-                xb_addr    = xb * 8 * adc;
-                wb_addr    =     wb * adc;
+                /*
+                int offset = addr * (adc + 1);
+                if (code > (adc / step)) { 
+                  printf("%d %d %d %d | %d %d %d | %d | ", xb, wb, wl_sum, expected, rpr, step, adc, code);
+                  for (int i=0; i<adc+1; i++) {
+                    printf("%u ", conf[offset + i]);
+                  }
+                  printf("\n");
+                }
+                */
+                assert (code <= (adc / step));
+
+                xb_addr = xb * 8 * (adc + 1);
+                wb_addr =     wb * (adc + 1);
                 float actual = value[xb_addr + wb_addr + code];
+                assert (actual >= 0.);
                 adc_code[BL/8 * nbl + bl] = actual;
-                // printf("%d %f\n", expected, actual);
-
-                // pdot[BL/8 * nbl + bl] = actual;
-                // assert (abs(expected - actual) <= 1);
-                // e += (expected != actual);
               }
-              // error[e] += 1;
-            }
-
-            for (int bl=0; bl<NBL; bl++) {
-              // correct += ecc(&(pdot[bl*32]), &(pdot_ecc[bl*8]));
             }
             
             for (int bl=0; bl<NBL*BL/8; bl++) {
@@ -237,7 +259,6 @@ DLLEXPORT int cim(int8_t* x, int8_t* w, int8_t* p, int* y, uint8_t* count, uint3
               assert(yaddr < R * C);
               int shift = wb + xb;
               int sign = (wb == 7) ? -1 : 1;
-              // y[yaddr] += sign * (pdot[bl] << shift);
               y[yaddr] += sign * adc_code[bl] * pow(2, shift);
             }
 

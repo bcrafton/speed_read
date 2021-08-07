@@ -30,9 +30,9 @@ def expected_error(params, step, adc_hist, row, adc_thresh, adc_value):
 
     # pe
 
-    adc      =          adc_value.T.reshape(params['adc'] // 2 ** step, params['max_rpr'], 1, 1)
-    adc_low  = adc_thresh[:, :-1].T.reshape(params['adc'] // 2 ** step, params['max_rpr'], 1, 1)
-    adc_high = adc_thresh[:,  1:].T.reshape(params['adc'] // 2 ** step, params['max_rpr'], 1, 1)
+    adc      =          adc_value.T.reshape(1 + params['adc'] // 2 ** step, params['max_rpr'], 1, 1)
+    adc_low  = adc_thresh[:, :-1].T.reshape(1 + params['adc'] // 2 ** step, params['max_rpr'], 1, 1)
+    adc_high = adc_thresh[:,  1:].T.reshape(1 + params['adc'] // 2 ** step, params['max_rpr'], 1, 1)
 
     ########################################################################
 
@@ -52,7 +52,6 @@ def expected_error(params, step, adc_hist, row, adc_thresh, adc_value):
 
     p_h = norm.cdf(adc_high, mu, np.maximum(sd, eps))
     p_l = norm.cdf(adc_low, mu, np.maximum(sd, eps))
-    # pe = np.clip(p_h - p_l - norm.cdf(-3), 0, 1)
     pe = np.clip(p_h - p_l, 0, 1)
     pe = pe / np.sum(pe, axis=0, keepdims=True)
 
@@ -119,9 +118,9 @@ def static_rpr(id, params, q):
     mean_table  = np.zeros(shape=(8, 8, params['max_step'], params['max_rpr']))
 
     # [xb, wb] [step, rpr] [wl] [on, adc]
-    conf_table  = np.zeros(shape=(8, 8, params['max_step'], params['max_rpr'], params['max_rpr'], params['max_rpr'], params['adc']))
+    conf_table  = np.zeros(shape=(8, 8, params['max_step'], params['max_rpr'], 1 + params['max_rpr'], 1 + params['max_rpr'], 1 + params['adc']))
     # [xb, wb] [step, rpr] [adc]
-    value_table = np.zeros(shape=(8, 8, params['max_step'], params['max_rpr'], params['adc']))
+    value_table = np.zeros(shape=(8, 8, params['max_step'], params['max_rpr'],                                               1 + params['adc']))
 
     profile = np.load('./profile/%d.npy' % (id), allow_pickle=True).item()
     adc = profile['adc']
@@ -151,10 +150,10 @@ def static_rpr(id, params, q):
                 mse, mean = expected_error(params, step, adc[xb, wb, 1:], row[xb], thresh, values)
                 assert np.all(mse >= np.abs(mean))
 
-                values_pad = -1 * np.ones(shape=(params['max_rpr'],                                       params['adc'] - params['adc'] // 2 ** step))
-                conf_pad =       np.zeros(shape=(params['max_rpr'], params['max_rpr'], params['max_rpr'], params['adc'] - params['adc'] // 2 ** step))
-
+                conf_pad =       np.zeros(shape=(params['max_rpr'], 1 + params['max_rpr'], 1 + params['max_rpr'], params['adc'] - params['adc'] // 2 ** step), dtype=np.uint32)
                 conf_table[xb, wb, step]  = np.concatenate((conf, conf_pad), axis=-1)
+
+                values_pad = -1 * np.ones(shape=(params['max_rpr'],                                               params['adc'] - params['adc'] // 2 ** step), dtype=np.float32)
                 value_table[xb, wb, step] = np.concatenate((values, values_pad), axis=-1)
 
                 # assert (False)
@@ -167,11 +166,13 @@ def static_rpr(id, params, q):
                 mean_table[xb][wb][step] = scale * mean
                 delay[xb][wb][step] = row[xb]
 
+                '''
                 if params['sar']:
                     sar = np.arange(1, params['max_rpr'] + 1)
                     sar = np.minimum(sar, params['adc'])
-                    sar = 1 + np.floor(np.log2(sar)) // 2**step
+                    sar = 1 + np.ceil(np.log2(sar)) - step
                     delay[xb][wb][step] *= sar
+                '''
 
     '''
     print (delay[0, 0, 0, :])
@@ -194,7 +195,7 @@ def static_rpr(id, params, q):
     # answer should be scaling by: [np.sqrt(nrow), nrow]
     # error should scale by sqrt(nrow)
     # mean should scale by nrow
-    error_table = round_fraction(error_table, 1e-4) # - round_fraction(np.absolute(mean_table), 1e-4)
+    error_table = round_fraction(error_table, 1e-4) - round_fraction(np.absolute(mean_table), 1e-4)
     mean_table = np.sign(mean_table) * round_fraction(np.absolute(mean_table), 1e-4)
     # 
     # error_table = round_fraction(error_table, 1e-4)
@@ -202,8 +203,8 @@ def static_rpr(id, params, q):
 
     mean = np.zeros(shape=(8, 8))
     error = np.zeros(shape=(8, 8))
-    conf = np.zeros(shape=(8, 8, params['max_rpr'], params['max_rpr'], params['adc']))
-    value = np.zeros(shape=(8, 8, params['adc']))
+    conf = np.zeros(shape=(8, 8, 1 + params['max_rpr'], 1 + params['max_rpr'], 1 + params['adc']), dtype=np.uint32)
+    value = np.zeros(shape=(8, 8, 1 + params['adc']), dtype=np.float32)
 
     if params['skip'] and params['cards']:
         rpr_range  = np.arange(1, params['max_rpr'] + 1).reshape(1, -1)
@@ -219,13 +220,13 @@ def static_rpr(id, params, q):
             error[xb][wb] = error_table[xb][wb][step][rpr-1]
             mean[xb][wb]  = mean_table[xb][wb][step][rpr-1]
             conf[xb][wb]  = conf_table[xb][wb][step][rpr-1]  # [WL, ON, ADC]
+            if step == 1: assert ( np.all(conf[xb, wb, :, :, 5:] == 0) )
             value[xb][wb] = value_table[xb][wb][step][rpr-1] # [ADC]
 
     step_lut = 2 ** step_lut
     # assert (np.sum(error) >= np.sum(np.abs(mean)))
     # print (rpr_lut)
     # print (step_lut)
-    print (np.sum(error), np.sum(mean))
     return rpr_lut, step_lut, conf, value
     
     

@@ -43,9 +43,21 @@ def cim(xb, wb, pb, params):
     pb = np.ascontiguousarray(pb.flatten(), np.int8)
     yb = np.ascontiguousarray(yb.flatten(), np.int32)
     rpr = np.ascontiguousarray(params['rpr'].flatten(), np.uint8)
+    step = np.ascontiguousarray(params['step'].flatten(), np.uint8)
     var = np.ascontiguousarray(params['var'].flatten(), np.float32)
-    conf = np.ascontiguousarray(params['conf'].flatten(), np.int32)
+    conf = np.ascontiguousarray(params['conf'].flatten(), np.uint32)
     value = np.ascontiguousarray(params['value'].flatten(), np.float32)
+
+    '''
+    assert (np.all(conf >= 0))
+    print (np.shape(params['conf']))
+    print (np.shape(params['value']))
+    for i in range(8):
+        for j in range(8):
+            if params['step'][i][j] == 2:
+                print (np.shape(params['conf'][i, j]))
+                assert (np.all(params['conf'][i, j, :, :, 5:] == 0))
+    '''
 
     ################################################################
 
@@ -57,6 +69,7 @@ def cim(xb, wb, pb, params):
     ctypes.c_void_p(count.ctypes.data), 
     ctypes.c_void_p(error.ctypes.data), 
     ctypes.c_void_p(rpr.ctypes.data), 
+    ctypes.c_void_p(step.ctypes.data), 
     ctypes.c_void_p(conf.ctypes.data), 
     ctypes.c_void_p(value.ctypes.data), 
     ctypes.c_int(max_cycle),

@@ -70,28 +70,33 @@ def confusion(THRESH, RPR, ADC, HRS, LRS):
 ####################################################
 
 def confusion(THRESH, RPR, ADC, HRS, LRS):
-    eps = 1e-12
+    eps1 = 1e-12
+    eps2 = 1e-6
 
-    rpr = np.arange(0, RPR).reshape(RPR,   1,   1,   1)
-    wl  = np.arange(0, RPR).reshape(  1, RPR,   1,   1)
-    on  = np.arange(0, RPR).reshape(  1,   1, RPR,   1)
-    adc = np.arange(0, ADC).reshape(  1,   1,   1, ADC)
+    rpr = np.arange(0,   RPR).reshape(RPR,     1,     1,     1)
+    wl  = np.arange(0, RPR+1).reshape(  1, RPR+1,     1,     1)
+    on  = np.arange(0, RPR+1).reshape(  1,     1, RPR+1,     1)
+    adc = np.arange(0, ADC+1).reshape(  1,     1,     1, ADC+1)
 
     off = wl - on
-    var = on * (LRS ** 2) + off * (HRS ** 2)
-    std = np.maximum(eps, np.sqrt(var))
+    var = on*(LRS ** 2) + off*(HRS ** 2)
+    std = np.maximum(eps1, np.sqrt(var))
 
     conf = norm.cdf(THRESH[rpr, adc + 1], on, std) - norm.cdf(THRESH[rpr, adc], on, std)
     assert (np.all(conf >= 0.))
     assert (np.all(np.isinf(conf) == False))
     assert (np.all(np.isnan(conf) == False))
 
-    scale = np.min(np.where(conf > eps, conf, np.inf), axis=-1, keepdims=True)
+    scale = np.min(np.where(conf > eps2, conf, np.inf), axis=-1, keepdims=True)
     assert (np.all(scale > 0.))
     assert (np.all(np.isinf(scale) == False))
     assert (np.all(np.isnan(scale) == False))
 
-    conf = (conf / scale).astype(int)
+    # will overflow here if > 2 ** 32
+    # conf = (conf / scale).astype(np.uint32)
+    conf = (conf / scale)
+    assert (np.all(conf < 0xFFFFFFFF))
+    conf = conf.astype(np.uint32)
     assert (np.all(conf >= 0.))
     assert (np.all(np.isinf(conf) == False))
     assert (np.all(np.isnan(conf) == False))
@@ -102,8 +107,8 @@ def confusion(THRESH, RPR, ADC, HRS, LRS):
 
 def thresholds(counts, adc, method='normal'):
     RPR, WL, ON = np.shape(counts)
-    thresh = np.zeros(shape=(RPR, adc + 1))
-    value = np.zeros(shape=(RPR, adc))
+    thresh = np.zeros(shape=(RPR, adc + 2))
+    value = np.zeros(shape=(RPR, adc + 1))
     for rpr in range(0, RPR):
         thresh[rpr], value[rpr] = thresholds_help(np.sum(counts[rpr], axis=0), adc, method)
     return thresh, value
@@ -124,20 +129,17 @@ def thresholds_help(counts, adc, method='normal'):
 ####################################################
 
 def thresholds_kmeans(counts, adc):
+    if (adc + 1) >= np.count_nonzero(counts): return np.arange(0, adc + 1)
     values = np.arange(0, len(counts))
-    if adc >= len(counts):              return np.arange(0, adc)
-    if adc >= np.count_nonzero(counts): return np.arange(0, adc)
-    centroids = kmeans(values=values, counts=counts, n_clusters=adc)
+    centroids = kmeans(values=values, counts=counts, n_clusters=adc + 1)
     centroids.sort()
     return centroids
 
 def thresholds_step(counts, adc):
     assert (False)
-    return centroids
 
 def thresholds_normal(counts, adc):
-    centroids = np.arange(0, len(adc))
-    return centroids
+    assert (False)
 
 ####################################################
 
