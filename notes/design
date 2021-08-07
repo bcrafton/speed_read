@@ -5074,13 +5074,27 @@ cim.c
 
 ====================
 
+> so many loose ends right now - could be a (+1, -1) error or someting that we arnt seeing.
+  > look up there ^^^ (+1) issue lol.
 
+> remove profile (BB)
+> remove step from expected_error
 
+> RPR = 64 -> memory challenges ? 
+  > 13.6 % 
 
+> full sim
+  > need to compare [cards=0, cards=1] to see performance
+  > BB
 
+> SAR ADC 
+> steps
 
+allow non-zero no ADC threshold
+allow skipping a binary VMM
+> auto-skip if no 1s
 
-
+====================
 
 
 
