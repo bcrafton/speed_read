@@ -69,6 +69,11 @@ def confusion(THRESH, RPR, ADC, HRS, LRS):
 
 ####################################################
 
+def check(x):
+    assert (np.all(np.isinf(x) == False))
+    assert (np.all(np.isnan(x) == False))
+    assert (np.all(x >= 0.))
+
 def confusion(THRESH, RPR, ADC, HRS, LRS):
     eps1 = 1e-12
     eps2 = 1e-6
@@ -77,29 +82,28 @@ def confusion(THRESH, RPR, ADC, HRS, LRS):
     wl  = np.arange(0, RPR+1).reshape(  1, RPR+1,     1,     1)
     on  = np.arange(0, RPR+1).reshape(  1,     1, RPR+1,     1)
     adc = np.arange(0, ADC+1).reshape(  1,     1,     1, ADC+1)
+    off = np.maximum(0, wl - on)
 
-    off = wl - on
+    assert (np.all(THRESH[rpr, adc + 1] > THRESH[rpr, adc]))
+
     var = on*(LRS ** 2) + off*(HRS ** 2)
+    check(var)
+
     std = np.maximum(eps1, np.sqrt(var))
+    check(std)
 
     conf = norm.cdf(THRESH[rpr, adc + 1], on, std) - norm.cdf(THRESH[rpr, adc], on, std)
-    assert (np.all(conf >= 0.))
-    assert (np.all(np.isinf(conf) == False))
-    assert (np.all(np.isnan(conf) == False))
+    check(conf)
 
     scale = np.min(np.where(conf > eps2, conf, np.inf), axis=-1, keepdims=True)
-    assert (np.all(scale > 0.))
-    assert (np.all(np.isinf(scale) == False))
-    assert (np.all(np.isnan(scale) == False))
+    check(scale)
 
     # will overflow here if > 2 ** 32
     # conf = (conf / scale).astype(np.uint32)
     conf = (conf / scale)
     assert (np.all(conf < 0xFFFFFFFF))
     conf = conf.astype(np.uint32)
-    assert (np.all(conf >= 0.))
-    assert (np.all(np.isinf(conf) == False))
-    assert (np.all(np.isnan(conf) == False))
+    check(conf)
 
     return conf
 

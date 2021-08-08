@@ -48,17 +48,6 @@ def cim(xb, wb, pb, params):
     conf = np.ascontiguousarray(params['conf'].flatten(), np.uint32)
     value = np.ascontiguousarray(params['value'].flatten(), np.float32)
 
-    '''
-    assert (np.all(conf >= 0))
-    print (np.shape(params['conf']))
-    print (np.shape(params['value']))
-    for i in range(8):
-        for j in range(8):
-            if params['step'][i][j] == 2:
-                print (np.shape(params['conf'][i, j]))
-                assert (np.all(params['conf'][i, j, :, :, 5:] == 0))
-    '''
-
     ################################################################
 
     _ = cim_lib.cim(
@@ -99,7 +88,8 @@ def cim(xb, wb, pb, params):
     metrics['wl'] = np.sum(count)
     metrics['stall'] = 0
     metrics['block_cycle'] = np.sum(count > 0, axis=(0, 2, 3, 4))
-    metrics['bb'] = (count > 0) * 1
+    # metrics['bb'] = (count > 0) * 1
+    metrics['count'] = count
 
     val, count = np.unique(count, return_counts=True)
     metrics['adc'] = np.zeros(shape=params['max_rpr']+1)

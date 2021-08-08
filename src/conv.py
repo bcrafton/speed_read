@@ -216,16 +216,21 @@ class Conv(Layer):
             assert (False)
         elif self.params['rpr_alloc'] == 'static':
             # think we want to pass a bias table
-            y, metrics = pim_static(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], self.params['step'], alloc, self.params)
-            y = np.reshape(y, (yh, yw, self.fn))
+            _, metrics = pim_static(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], self.params['step'], alloc, self.params)
+            # y = np.reshape(y, (yh, yw, self.fn))
         else:
             assert (False)
         
         # we shud move this into forward, do it after the y - y_ref. 
-        assert(np.all(np.absolute(y) < 2 ** 23))
+        # assert(np.all(np.absolute(y) < 2 ** 23))
 
         #########################
-        
+
+        y, metrics = cim(patches, self.wb, self.pb, self.params)
+        y = np.reshape(y, (yh, yw, self.fn))
+
+        #########################
+        '''
         # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
         results = {}
         results['cycle']       = metrics[0]
@@ -238,6 +243,9 @@ class Conv(Layer):
 
         results['adc'] = metrics[5+nwl:]
         results['adc'] = np.reshape(results['adc'], (8, 8, nwl, self.params['adc'] + 1))
+        '''
+
+        results = metrics
 
         results['density'] = np.count_nonzero(patches) / np.prod(np.shape(patches)) * (self.params['wl'] / min(self.fh * self.fw * self.fc, self.params['wl']))
         results['block_density'] = np.count_nonzero(patches, axis=(0,2,3)) / (npatch * self.params['wl'] * self.params['bpa'])
@@ -246,11 +254,6 @@ class Conv(Layer):
         results['block_size'] = self.nbl
         results['rpr'] = self.params['rpr']
         results['step'] = self.params['step']
-
-        #########################
-        
-        y, metrics = cim(patches, self.wb, self.pb, self.params)
-        y = np.reshape(y, (yh, yw, self.fn))
 
         #########################
 

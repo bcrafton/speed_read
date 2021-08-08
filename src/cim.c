@@ -161,25 +161,6 @@ DLLEXPORT int cim(int8_t* x, int8_t* w, int8_t* p, int* y, uint8_t* count, uint3
           int offset = addr * (adc + 1);
           vector<uint32_t> prob(conf + offset, conf + offset + (adc + 1));
           distribution[addr] = discrete_distribution<uint32_t>(prob.begin(), prob.end());
-          
-          /*
-          int rpr = rpr_table[xb * 8 + wb];
-          int step = step_table[xb * 8 + wb];
-          
-          if ((xb == 0) && (wb == 4)) {
-            for (int i=0; i<adc+1; i++) {
-              printf("%u ", conf[offset + i]);
-            }
-            printf("\n");
-          }
-
-          if (step == 2) {
-            for (int i=5; i<adc+1; i++) {
-              assert(conf[offset + i] == 0);
-            }
-          }
-          */
-
         }
       }
     }
@@ -233,18 +214,7 @@ DLLEXPORT int cim(int8_t* x, int8_t* w, int8_t* p, int* y, uint8_t* count, uint3
                 int on_addr =                               expected;
                 int addr = xb_addr + wb_addr + wl_addr + on_addr;
                 int code = distribution[addr](generator);
-
-                /*
-                int offset = addr * (adc + 1);
-                if (code > (adc / step)) { 
-                  printf("%d %d %d %d | %d %d %d | %d | ", xb, wb, wl_sum, expected, rpr, step, adc, code);
-                  for (int i=0; i<adc+1; i++) {
-                    printf("%u ", conf[offset + i]);
-                  }
-                  printf("\n");
-                }
-                */
-                assert (code <= (adc / step));
+                assert (code <= (adc / pow(2, step)));
 
                 xb_addr = xb * 8 * (adc + 1);
                 wb_addr =     wb * (adc + 1);

@@ -166,13 +166,12 @@ def static_rpr(id, params, q):
                 mean_table[xb][wb][step] = scale * mean
                 delay[xb][wb][step] = row[xb]
 
-                '''
                 if params['sar']:
                     sar = np.arange(1, params['max_rpr'] + 1)
                     sar = np.minimum(sar, params['adc'])
                     sar = 1 + np.ceil(np.log2(sar)) - step
                     delay[xb][wb][step] *= sar
-                '''
+
 
     '''
     print (delay[0, 0, 0, :])
@@ -206,6 +205,7 @@ def static_rpr(id, params, q):
     conf = np.zeros(shape=(8, 8, 1 + params['max_rpr'], 1 + params['max_rpr'], 1 + params['adc']), dtype=np.uint32)
     value = np.zeros(shape=(8, 8, 1 + params['adc']), dtype=np.float32)
 
+    # TODO: need to verify this. no idea whats going on.
     if params['skip'] and params['cards']:
         rpr_range  = np.arange(1, params['max_rpr'] + 1).reshape(1, -1)
         step_range = 2 ** np.arange(params['max_step']).reshape(-1, 1)
@@ -220,10 +220,9 @@ def static_rpr(id, params, q):
             error[xb][wb] = error_table[xb][wb][step][rpr-1]
             mean[xb][wb]  = mean_table[xb][wb][step][rpr-1]
             conf[xb][wb]  = conf_table[xb][wb][step][rpr-1]  # [WL, ON, ADC]
-            if step == 1: assert ( np.all(conf[xb, wb, :, :, 5:] == 0) )
             value[xb][wb] = value_table[xb][wb][step][rpr-1] # [ADC]
 
-    step_lut = 2 ** step_lut
+    # step_lut = 2 ** step_lut
     # assert (np.sum(error) >= np.sum(np.abs(mean)))
     # print (rpr_lut)
     # print (step_lut)

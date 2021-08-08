@@ -28,14 +28,14 @@ def CC():
     array_params = {
     'bpa': 8,
     'bpw': 8,
-    'adc': 64,
+    'adc': 16,
     'adc_mux': 8,
     'wl': 256,
     'bl': 256,
     'offset': 128,
-    'max_rpr': 96,
+    'max_rpr': 32,
     'sar': True,
-    'max_step': 4
+    'max_step': 3
     }
 
     # 'hrs': [0.50 / 10., 0.48 / 18., 0.35 / 30.],
@@ -43,25 +43,25 @@ def CC():
     arch_params1 = {
     'skip': [1],
     'alloc': ['block'],
-    'narray': [2 ** 12],
-    'lrs': [0.02, 0.035], 
-    'hrs': [0.015],
+    'narray': [2 ** 9],
+    'lrs': [0.02, 0.04, 0.06, 0.08], 
+    'hrs': [0.03],
     'cards': [1],
     'profile': [1],
     'rpr_alloc': ['static'],
-    'thresh': [0.10, 0.25],
+    'thresh': [0.10],
     }
 
     arch_params2 = {
     'skip': [1],
     'alloc': ['block'],
-    'narray': [2 ** 12],
-    'lrs': [0.02, 0.035], 
-    'hrs': [0.015],
+    'narray': [2 ** 9],
+    'lrs': [0.02, 0.04, 0.06, 0.08], 
+    'hrs': [0.03],
     'cards': [0],
     'profile': [1],
     'rpr_alloc': ['static'],
-    'thresh': [0.25],
+    'thresh': [0.10],
     }
 
     arch_params1 = perms(arch_params1)
@@ -195,7 +195,7 @@ def Simple():
     'wl': 256,
     'bl': 256,
     'offset': 128,
-    'max_rpr': 32,
+    'max_rpr': 16,
     'sar': True,
     'max_step': 2
     }
@@ -205,11 +205,11 @@ def Simple():
     'alloc': ['block'],
     'narray': [128],
     'lrs': [0.07], 
-    'hrs': [0.0001],
+    'hrs': [0.03],
     'cards': [0, 1],
     'profile': [0],
     'rpr_alloc': ['static'],
-    'thresh': [0.25],
+    'thresh': [0.1],
     }
 
     arch_params = perms(arch_params)
