@@ -5077,18 +5077,19 @@ cim.c
 > so many loose ends right now - could be a (+1, -1) error or someting that we arnt seeing.
   > look up there ^^^ (+1) issue lol.
 
-> remove profile (BB)
-> remove step from expected_error
-
-> RPR = 64 -> memory challenges ? 
-  > 13.6 % 
+> will need full flow verification
+  > like running with random.normal basically to verify confusion matrix is valid.
 
 > full sim
   > need to compare [cards=0, cards=1] to see performance
-  > BB
+
+> why not allow tool to choose "adc" ? 
+  > subject to area constraint ? 
+  > one step at a time ... finish stuff below.
+  > 6b SAR will never choose 128 ... and 6b SAR is where it overtakes the flash.
 
 > SAR ADC 
-> steps
+  > SAR should follow [3,7,15] ... not [4, 8, 16]
 
 allow non-zero no ADC threshold
 allow skipping a binary VMM
@@ -5096,7 +5097,20 @@ allow skipping a binary VMM
 
 ====================
 
+> remove step from expected_error
 
+conf -> long
+> min -> 10..100 -> allow more precision 
+
+> RPR = 64 -> memory challenges ? 
+  > 13.6 % 
+
+>> sum of total cycles is better than BB right now.
+> remove profile (BB)
+> BB with SAR ADC ? 
+>> sum of total cycles is better than BB right now.
+
+====================
 
 
 

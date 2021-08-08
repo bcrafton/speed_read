@@ -78,13 +78,12 @@ def confusion(THRESH, RPR, ADC, HRS, LRS):
     eps1 = 1e-12
     eps2 = 1e-6
 
-    rpr = np.arange(0,   RPR).reshape(RPR,     1,     1,     1)
-    wl  = np.arange(0, RPR+1).reshape(  1, RPR+1,     1,     1)
-    on  = np.arange(0, RPR+1).reshape(  1,     1, RPR+1,     1)
-    adc = np.arange(0, ADC+1).reshape(  1,     1,     1, ADC+1)
+    wl  = np.arange(0, RPR+1).reshape(RPR+1,     1,     1).astype(int)
+    on  = np.arange(0, RPR+1).reshape(    1, RPR+1,     1).astype(int)
+    adc = np.arange(0, ADC+1).reshape(    1,     1, ADC+1).astype(int)
     off = np.maximum(0, wl - on)
 
-    assert (np.all(THRESH[rpr, adc + 1] > THRESH[rpr, adc]))
+    assert (np.all(THRESH[adc + 1] > THRESH[adc]))
 
     var = on*(LRS ** 2) + off*(HRS ** 2)
     check(var)
@@ -92,7 +91,7 @@ def confusion(THRESH, RPR, ADC, HRS, LRS):
     std = np.maximum(eps1, np.sqrt(var))
     check(std)
 
-    conf = norm.cdf(THRESH[rpr, adc + 1], on, std) - norm.cdf(THRESH[rpr, adc], on, std)
+    conf = norm.cdf(THRESH[adc + 1], on, std) - norm.cdf(THRESH[adc], on, std)
     check(conf)
 
     scale = np.min(np.where(conf > eps2, conf, np.inf), axis=-1, keepdims=True)
@@ -110,12 +109,9 @@ def confusion(THRESH, RPR, ADC, HRS, LRS):
 ####################################################
 
 def thresholds(counts, adc, method='normal'):
-    RPR, WL, ON = np.shape(counts)
-    thresh = np.zeros(shape=(RPR, adc + 2))
-    value = np.zeros(shape=(RPR, adc + 1))
-    for rpr in range(0, RPR):
-        thresh[rpr], value[rpr] = thresholds_help(np.sum(counts[rpr], axis=0), adc, method)
-    return thresh, value
+    WL, ON = np.shape(counts)
+    thresh, value = thresholds_help(np.sum(counts, axis=0), adc, method)
+    return np.array(thresh), np.array(value)
 
 ####################################################
 
