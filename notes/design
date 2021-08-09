@@ -5074,6 +5074,12 @@ cim.c
 
 ====================
 
+before and after dont match:
+> https://github.com/bcrafton/speed_read/commit/0226e635c1de8998d689cfb4eb47f24e78675848
+rpr_lut and step_lut diff
+wud try re-running to see if it would match itself ...
+might be some randomness in optimize_rpr
+
 > so many loose ends right now - could be a (+1, -1) error or someting that we arnt seeing.
   > look up there ^^^ (+1) issue lol.
 

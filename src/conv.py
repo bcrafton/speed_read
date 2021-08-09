@@ -215,8 +215,9 @@ class Conv(Layer):
         elif self.params['rpr_alloc'] == 'dynamic':
             assert (False)
         elif self.params['rpr_alloc'] == 'static':
+            pass
             # think we want to pass a bias table
-            _, metrics = pim_static(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], self.params['step'], alloc, self.params)
+            # _, metrics = pim_static(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], self.params['step'], alloc, self.params)
             # y = np.reshape(y, (yh, yw, self.fn))
         else:
             assert (False)

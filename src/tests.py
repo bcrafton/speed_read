@@ -47,7 +47,7 @@ def CC():
     'lrs': [0.02, 0.04, 0.06, 0.08], 
     'hrs': [0.03],
     'cards': [1],
-    'profile': [1],
+    'profile': [0],
     'rpr_alloc': ['static'],
     'thresh': [0.10],
     }
@@ -59,7 +59,7 @@ def CC():
     'lrs': [0.02, 0.04, 0.06, 0.08], 
     'hrs': [0.03],
     'cards': [0],
-    'profile': [1],
+    'profile': [0],
     'rpr_alloc': ['static'],
     'thresh': [0.10],
     }

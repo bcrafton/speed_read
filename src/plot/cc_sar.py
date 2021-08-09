@@ -76,7 +76,7 @@ for cards, thresh in [(0, 0.10), (1, 0.10)]:
                         sar = np.where(sar    > 0, np.maximum(1, sar - steps[l][i][j]), 0)
                         total_cycle += np.sum(sar * counts)
                         #################################################
-            top_per_sec = 2. * np.sum(samples['nmac']) / total_cycle * 100e6 / 1e12
+            top_per_sec = total_cycle
             ##################################################################
             e = np.max(samples['error'])
             ##################################################################
@@ -97,6 +97,11 @@ for cards, thresh in [(0, 0.10), (1, 0.10)]:
             perf[(cards, thresh)].append(top_per_sec)
             error[(cards, thresh)].append(e)
             # power[(cards, thresh)].append(top_per_pJ)
+
+######################################
+
+print (perf)
+print (error)
 
 ######################################
 

@@ -59,7 +59,7 @@ def expected_error(params, step, adc_hist, row, adc_thresh, adc_value):
 
     # p
     p = adc_hist.astype(np.float32)
-    p = p / np.sum(p, axis=(0, 1), keepdims=True)
+    p = p / np.sum(p)
 
     ########################################################################
 
@@ -70,7 +70,7 @@ def expected_error(params, step, adc_hist, row, adc_thresh, adc_value):
     ########################################################################
 
     assert np.allclose(np.sum(p             ), 1)
-    assert np.allclose(np.sum(pe,    axis=0), 1)
+    assert np.allclose(np.sum(pe,     axis=0), 1)
     assert np.allclose(np.sum(pe * p        ), 1)
 
     error = p * pe * e * row
