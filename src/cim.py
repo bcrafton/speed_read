@@ -44,7 +44,6 @@ def cim(xb, wb, pb, params):
     yb = np.ascontiguousarray(yb.flatten(), np.int32)
     rpr = np.ascontiguousarray(params['rpr'].flatten(), np.uint8)
     step = np.ascontiguousarray(params['step'].flatten(), np.uint8)
-    var = np.ascontiguousarray(params['var'].flatten(), np.float32)
     conf = np.ascontiguousarray(params['conf'].flatten(), np.uint32)
     value = np.ascontiguousarray(params['value'].flatten(), np.float32)
 

@@ -52,8 +52,6 @@ for cards, thresh in [(0, 0.10), (1, 0.10)]:
             count = samples['count']
             rpr = samples['rpr']
             steps = samples['step']
-            alloc = samples['block_alloc']
-            block_size = samples['block_size']
             tops = []
             for l in count.keys():
                 #################################################

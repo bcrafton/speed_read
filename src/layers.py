@@ -19,28 +19,16 @@ class Layer:
     def __init__(self):
         assert(False)
         
-    def forward(self, x, x_ref, profile=False):
+    def forward(self, x, x_ref):
         assert(False)
         
     def init(self, params):
         pass
         
-    def profile_adc(self, x):
+    def profile(self, x):
         y, _, _ = self.forward(x=x, x_ref=x)
         return y, []
-        
-    def nblock(self):
-        return 0
 
-    def set_block_alloc(self, block_alloc):
-        pass
-
-    def set_layer_alloc(self, layer_alloc):
-        pass
-        
-    def weights(self):
-        return []
-        
 #########################
 
 class AvgPool(Layer):
@@ -55,7 +43,7 @@ class AvgPool(Layer):
         assert (self.k == self.s)
 
     # max pool and avg pool mess things up a bit because they dont do the right padding in tensorflow.
-    def forward(self, x, x_ref, profile=False):
+    def forward(self, x, x_ref):
         # cim
         y = avg_pool(x, self.k)
         y = np.clip(np.floor(y), -128, 127)
@@ -87,7 +75,7 @@ class MaxPool(Layer):
         self.yh, self.yw, self.yc = self.output_size
 
     # max pool and avg pool mess things up a bit because they dont do the right padding in tensorflow.
-    def forward(self, x, x_ref, profile=False):
+    def forward(self, x, x_ref):
         '''
         x = np.pad(array=x, pad_width=[[self.pad,self.pad], [self.pad,self.pad], [0,0]], mode='constant')
         y = np.zeros(shape=self.output_size)

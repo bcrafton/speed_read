@@ -5076,6 +5076,7 @@ cim.c
 
 > remove profile (BB)
 > method = {step, normal}
+> remove rpr_alloc
 > test flash ADC
 > valid (static_rpr)
 

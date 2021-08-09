@@ -84,19 +84,9 @@ class Conv(Layer):
 
     def init(self, params):
         self.params.update(params)
-        self.params['var'] = lut_var(params['lrs'], params['hrs'], self.params['max_rpr'])
-        # self.params['conf'] = confusion(self.params)
+        self.params['rpr'], self.params['step'], self.params['conf'], self.params['value'] = static_rpr(self.layer_id, self.params, self.q)
 
-        if self.params['rpr_alloc'] == 'centroids':
-            pass
-        elif self.params['rpr_alloc'] == 'dynamic':
-            pass
-        elif self.params['rpr_alloc'] == 'static':
-            self.params['rpr'], self.params['step'], self.params['conf'], self.params['value'] = static_rpr(self.layer_id, self.params, self.q)
-        else:
-            assert (False)
-
-    def profile_adc(self, x):
+    def profile(self, x):
         # x
         patches = self.transform_inputs(x)
         # w 
@@ -108,15 +98,6 @@ class Conv(Layer):
         y_shape = (self.yh * self.yw, self.c)
 
         return y_ref, [(self.layer_id, patches, self.wb, y_ref, y_shape, self.params)]
-
-    def set_block_alloc(self, block_alloc):
-        self.block_alloc = block_alloc
-
-    def set_layer_alloc(self, layer_alloc):
-        self.layer_alloc = layer_alloc
-        
-    def weights(self):
-        return [self]
 
     def act(self, y, quantize_flag):
         y = y + self.b
@@ -130,7 +111,7 @@ class Conv(Layer):
             y = np.clip(y, -128, 127)
         return y
 
-    def forward(self, x, x_ref, profile=False):
+    def forward(self, x, x_ref):
         # 1) tensorflow to compute y_ref
         # 2) save {x,y1,y2,...} as tb from tensorflow 
         y_ref = conv_ref(x=x_ref, f=self.w, b=self.b, q=self.q, pool=self.p, stride=self.s, pad1=self.p1, pad2=self.p2, relu_flag=self.relu_flag)
@@ -169,15 +150,8 @@ class Conv(Layer):
 
         nwl, _, nbl, _ = np.shape(self.wb)
 
-        if self.params['alloc'] == 'block':
-            results['array'] = np.sum(self.block_alloc) * nbl
-            print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d mean: %0.3f std: %0.3f error: %0.3f' % 
-              (self.layer_id, np.sum(self.block_alloc), nbl, nbl * np.sum(self.block_alloc), results['nmac'], results['cycle'], results['stall'], z_mean, z_std, z_error))
-
-        elif self.params['alloc'] == 'layer': 
-            results['array'] = self.layer_alloc * nwl * nbl
-            print ('%d: alloc: %d*%d=%d nmac %d cycle: %d stall: %d mean: %0.2f error: %0.2f' % 
-              (self.layer_id, self.layer_alloc, nwl * nbl, nwl * nbl * self.layer_alloc, results['nmac'], results['cycle'], results['stall'], z_mean, z_error))
+        print ('cycle: %d stall: %d mean: %0.3f std: %0.3f error: %0.3f' % 
+              (results['cycle'], results['stall'], z_mean, z_std, z_error))
 
         ########################
 
@@ -206,53 +180,13 @@ class Conv(Layer):
         npatch, nwl, wl, nbit = np.shape(patches)
         
         #########################
-        
-        if   self.params['alloc'] == 'block': alloc = self.block_alloc
-        elif self.params['alloc'] == 'layer': alloc = self.layer_alloc
-        
-        if self.params['rpr_alloc'] == 'centroids':
-            assert (False)
-        elif self.params['rpr_alloc'] == 'dynamic':
-            assert (False)
-        elif self.params['rpr_alloc'] == 'static':
-            pass
-            # think we want to pass a bias table
-            # _, metrics = pim_static(patches, self.wb, (yh * yw, self.fn), self.params['var'], self.params['rpr'], self.params['step'], alloc, self.params)
-            # y = np.reshape(y, (yh, yw, self.fn))
-        else:
-            assert (False)
-        
-        # we shud move this into forward, do it after the y - y_ref. 
-        # assert(np.all(np.absolute(y) < 2 ** 23))
-
-        #########################
 
         y, metrics = cim(patches, self.wb, self.pb, self.params)
         y = np.reshape(y, (yh, yw, self.fn))
 
         #########################
-        '''
-        # metrics = adc {1,2,3,4,5,6,7,8}, cycle, ron, roff, wl
-        results = {}
-        results['cycle']       = metrics[0]
-        results['ron']         = metrics[1]
-        results['roff']        = metrics[2]
-        results['wl']          = metrics[3]
-        results['stall']       = metrics[4]
-
-        results['block_cycle'] = metrics[5:][:nwl]
-
-        results['adc'] = metrics[5+nwl:]
-        results['adc'] = np.reshape(results['adc'], (8, 8, nwl, self.params['adc'] + 1))
-        '''
 
         results = metrics
-
-        results['density'] = np.count_nonzero(patches) / np.prod(np.shape(patches)) * (self.params['wl'] / min(self.fh * self.fw * self.fc, self.params['wl']))
-        results['block_density'] = np.count_nonzero(patches, axis=(0,2,3)) / (npatch * self.params['wl'] * self.params['bpa'])
-
-        results['block_alloc'] = self.block_alloc
-        results['block_size'] = self.nbl
         results['rpr'] = self.params['rpr']
         results['step'] = self.params['step']
 

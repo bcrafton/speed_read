@@ -32,14 +32,10 @@ class Block1(Layer):
         self.params = params.copy()
         self.conv1.init(self.params)
         self.conv2.init(self.params)
-        
-    def set_profile_adc(self, counts):
-        self.conv1.set_profile_adc(counts)
-        self.conv2.set_profile_adc(counts)
 
-    def profile_adc(self, x):
-        y1, arg1 = self.conv1.profile_adc(x)
-        y2, arg2 = self.conv2.profile_adc(y1)
+    def profile(self, x):
+        y1, arg1 = self.conv1.profile(x)
+        y2, arg2 = self.conv2.profile(y1)
         y3 = self.act(relu(self.s * x + self.s2 * y2))
         
         args = []
@@ -54,9 +50,9 @@ class Block1(Layer):
         out = np.clip(out, -128, 127)
         return out
 
-    def forward(self, x, x_ref, profile=False):
-        y1, y1_ref, r1 = self.conv1.forward(x,  x_ref,  profile=profile)
-        y2, y2_ref, r2 = self.conv2.forward(y1, y1_ref, profile=profile)
+    def forward(self, x, x_ref):
+        y1, y1_ref, r1 = self.conv1.forward(x,  x_ref)
+        y2, y2_ref, r2 = self.conv2.forward(y1, y1_ref)
 
         y3     = self.act(relu(self.s * x     + self.s2 * y2))
         y3_ref = self.act(relu(self.s * x_ref + self.s2 * y2_ref))
@@ -65,15 +61,6 @@ class Block1(Layer):
         result.extend(r1)
         result.extend(r2)
         return y3, y3_ref, result 
-
-    def set_block_alloc(self, block_alloc):
-        pass
-
-    def set_layer_alloc(self, layer_alloc):
-        pass
-        
-    def weights(self):
-        return [self.conv1, self.conv2]
         
 #############
 
@@ -102,16 +89,11 @@ class Block2(Layer):
         self.conv1.init(self.params)
         self.conv2.init(self.params)
         self.conv3.init(self.params)
-        
-    def set_profile_adc(self, counts):
-        self.conv1.set_profile_adc(counts)
-        self.conv2.set_profile_adc(counts)
-        self.conv3.set_profile_adc(counts)
 
-    def profile_adc(self, x):
-        y1, arg1 = self.conv1.profile_adc(x)
-        y2, arg2 = self.conv2.profile_adc(y1)
-        y3, arg3 = self.conv3.profile_adc(x)
+    def profile(self, x):
+        y1, arg1 = self.conv1.profile(x)
+        y2, arg2 = self.conv2.profile(y1)
+        y3, arg3 = self.conv3.profile(x)
         y4 = self.act(relu(self.s2 * y2 + self.s3 * y3))
         
         args = []
@@ -127,10 +109,10 @@ class Block2(Layer):
         out = np.clip(out, -128, 127)
         return out
 
-    def forward(self, x, x_ref, profile=False):
-        y1, y1_ref, r1 = self.conv1.forward(x,  x_ref,  profile=profile)
-        y2, y2_ref, r2 = self.conv2.forward(y1, y1_ref, profile=profile)
-        y3, y3_ref, r3 = self.conv3.forward(x,  x_ref,  profile=profile)
+    def forward(self, x, x_ref):
+        y1, y1_ref, r1 = self.conv1.forward(x,  x_ref)
+        y2, y2_ref, r2 = self.conv2.forward(y1, y1_ref)
+        y3, y3_ref, r3 = self.conv3.forward(x,  x_ref)
 
         y4     = self.act(relu(self.s2 * y2     + self.s3 * y3))
         y4_ref = self.act(relu(self.s2 * y2_ref + self.s3 * y3_ref))
@@ -141,14 +123,6 @@ class Block2(Layer):
         result.extend(r3)
         return y4, y4_ref, result 
 
-    def set_block_alloc(self, block_alloc):
-        pass
-
-    def set_layer_alloc(self, layer_alloc):
-        pass
-        
-    def weights(self):
-        return [self.conv1, self.conv2, self.conv3]
         
 #############
 

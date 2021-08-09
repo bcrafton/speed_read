@@ -73,7 +73,6 @@ def run_command(x, y, model, params, return_list):
     'narray':    params['narray'],
     'lrs':       params['lrs'],
     'hrs':       params['hrs'],
-    'rpr_alloc': params['rpr_alloc'],
     'thresh':    params['thresh'],
     'abs_error': abs_error
     }
@@ -91,9 +90,9 @@ model, x, y = load_cifar(num_example=1, array_params=array_params)
 
 start = time.time()
 
-load_profile_adc = False
-if not load_profile_adc:
-    profile = model.profile_adc(x)
+load_profile = False
+if not load_profile:
+    profile = model.profile(x)
 
 ##########################
 
