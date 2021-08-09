@@ -5079,6 +5079,8 @@ before and after dont match:
 rpr_lut and step_lut diff
 wud try re-running to see if it would match itself ...
 might be some randomness in optimize_rpr
+> of [error, mean, delay, valid] passed into optimize_rpr ... error and mean differ.
+> so only thing that changed is expected_error()
 
 > so many loose ends right now - could be a (+1, -1) error or someting that we arnt seeing.
   > look up there ^^^ (+1) issue lol.
@@ -5100,6 +5102,8 @@ might be some randomness in optimize_rpr
 allow non-zero no ADC threshold
 allow skipping a binary VMM
 > auto-skip if no 1s
+
+kmeans cannot use WL (in counts) have to assume all take the same amount of time (xb, wb) unless we have some filtering.
 
 ====================
 
