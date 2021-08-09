@@ -5074,22 +5074,13 @@ cim.c
 
 ====================
 
-before and after dont match:
-> https://github.com/bcrafton/speed_read/commit/0226e635c1de8998d689cfb4eb47f24e78675848
-rpr_lut and step_lut diff
-wud try re-running to see if it would match itself ...
-might be some randomness in optimize_rpr
-> of [error, mean, delay, valid] passed into optimize_rpr ... error and mean differ.
-> so only thing that changed is expected_error()
+> remove profile (BB)
 
 > so many loose ends right now - could be a (+1, -1) error or someting that we arnt seeing.
   > look up there ^^^ (+1) issue lol.
 
 > will need full flow verification
   > like running with random.normal basically to verify confusion matrix is valid.
-
-> full sim
-  > need to compare [cards=0, cards=1] to see performance
 
 > why not allow tool to choose "adc" ? 
   > subject to area constraint ? 
@@ -5107,6 +5098,13 @@ kmeans cannot use WL (in counts) have to assume all take the same amount of time
 
 ====================
 
+>> sum of total cycles is better than BB right now.
+> BB with SAR ADC ? 
+>> sum of total cycles is better than BB right now.
+
+> full sim
+  > need to compare [cards=0, cards=1] to see performance
+
 > remove step from expected_error
 
 conf -> long
@@ -5115,10 +5113,15 @@ conf -> long
 > RPR = 64 -> memory challenges ? 
   > 13.6 % 
 
->> sum of total cycles is better than BB right now.
-> remove profile (BB)
-> BB with SAR ADC ? 
->> sum of total cycles is better than BB right now.
+before and after dont match:
+> https://github.com/bcrafton/speed_read/commit/0226e635c1de8998d689cfb4eb47f24e78675848
+rpr_lut and step_lut diff
+wud try re-running to see if it would match itself ...
+might be some randomness in optimize_rpr
+> of [error, mean, delay, valid] passed into optimize_rpr ... error and mean differ.
+> so only thing that changed is expected_error()
+
+> fix thresholds (should be a function of adc and rpr) otherwise allowing more thresholds with higher step ... incorrect
 
 ====================
 
