@@ -30,9 +30,10 @@ def expected_error(params, rpr, step, adc_hist, row, adc_thresh, adc_value):
 
     # pe
 
-    adc      =       adc_value.reshape(1 + min(rpr, params['adc']) // 2 ** step, 1, 1)
-    adc_low  = adc_thresh[:-1].reshape(1 + min(rpr, params['adc']) // 2 ** step, 1, 1)
-    adc_high = adc_thresh[ 1:].reshape(1 + min(rpr, params['adc']) // 2 ** step, 1, 1)
+    # step is passed as (2 ** step)
+    adc      =       adc_value.reshape(1 + min(rpr, params['adc']) // step, 1, 1)
+    adc_low  = adc_thresh[:-1].reshape(1 + min(rpr, params['adc']) // step, 1, 1)
+    adc_high = adc_thresh[ 1:].reshape(1 + min(rpr, params['adc']) // step, 1, 1)
 
     ########################################################################
 
@@ -110,10 +111,10 @@ def static_rpr(id, params, q):
             for rpr in range(params['max_rpr']):
                 for step in range(params['max_step']):
 
-                    thresh, values = thresholds(adc[xb, wb, rpr + 1], min(rpr + 1, params['adc']) // 2 ** step, method='kmeans')
+                    thresh, values = thresholds(adc[xb, wb, rpr + 1], min(rpr + 1, params['adc']) // 2 ** step, 2 ** step, method=params['method'])
                     conf = confusion(thresh, params['max_rpr'], min(rpr + 1, params['adc']) // 2 ** step, params['hrs'], params['lrs'])
 
-                    mse, mean = expected_error(params, rpr + 1, step, adc[xb, wb, rpr + 1], row[xb][rpr], thresh, values)
+                    mse, mean = expected_error(params, rpr + 1, 2 ** step, adc[xb, wb, rpr + 1], row[xb][rpr], thresh, values)
                     assert np.all(mse >= np.abs(mean))
 
                     conf_pad =       np.zeros(shape=(1 + params['max_rpr'], 1 + params['max_rpr'], params['adc'] - min(rpr + 1, params['adc']) // 2 ** step), dtype=np.uint32)

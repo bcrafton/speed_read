@@ -37,15 +37,14 @@ perf = {}
 power = {}
 error = {}
 
-for cards, thresh in [(0, 0.10), (1, 0.10)]:
-    perf[(cards, thresh)]  = []
-    power[(cards, thresh)] = []
-    error[(cards, thresh)] = []
+for cards, thresh, method in [(0, 0.10, 'normal'), (0, 0.10, 'kmeans'), (1, 0.10, 'normal'), (1, 0.10, 'kmeans')]:
+    perf[(cards, thresh, method)] = []
+    error[(cards, thresh, method)] = []
 
     for hrs in hrss:
         for lrs in lrss:
             ##################################################################
-            query = '(cards == %d) & (lrs == %f) & (hrs == %f) & (thresh == %f)' % (cards, lrs, hrs, thresh)
+            query = '(cards == %d) & (lrs == %f) & (hrs == %f) & (thresh == %f) & (method == "%s")' % (cards, lrs, hrs, thresh, method)
             samples = df.query(query)
             ##################################################################
             total_cycle = 0
@@ -63,12 +62,6 @@ for cards, thresh in [(0, 0.10), (1, 0.10)]:
                 for i in range(XB):
                     for j in range(WB):
                         #################################################
-                        '''
-                        sar = np.where(adc[i][j] > 0, 1 + np.ceil(np.log2(adc)), 0)
-                        sar = np.where(sar       > 0, np.maximum(1, sar - steps[l][i][j]), 0)
-                        total_cycle += np.sum(sar)
-                        '''
-                        #################################################
                         values, counts = np.unique(adc[i][j], return_counts=True)
                         sar = np.where(values > 0, 1 + np.ceil(np.log2(values)),        0)
                         sar = np.where(sar    > 0, np.maximum(1, sar - steps[l][i][j]), 0)
@@ -78,23 +71,8 @@ for cards, thresh in [(0, 0.10), (1, 0.10)]:
             ##################################################################
             e = np.max(samples['error'])
             ##################################################################
-            '''
-            adcs = samples['adc']
-            adc = []
-            for a in adcs:
-                adc.append(np.sum(a, axis=(0, 1, 2)))
-            adc = np.stack(adc, axis=0)
-            comps = np.arange(np.shape(adc)[-1])
-            energy = np.sum(comps * adc * comp_pJ * (256 / 8), axis=1)
-
-            energy += samples['ron'] * 2e-16
-            energy += samples['roff'] * 2e-16
-            top_per_pJ = 2. * np.sum(samples['nmac']) / 1e12 / np.sum(energy)
-            '''
-            ##################################################################
-            perf[(cards, thresh)].append(top_per_sec)
-            error[(cards, thresh)].append(e)
-            # power[(cards, thresh)].append(top_per_pJ)
+            perf[(cards, thresh, method)].append(top_per_sec)
+            error[(cards, thresh, method)].append(e)
 
 ######################################
 
@@ -111,7 +89,7 @@ color = {
 }
 
 ######################################
-
+'''
 plt.cla()
 for key in perf:
   plt.plot(lrss, perf[key], color=color[key], marker='.', markersize=3, linewidth=1)
@@ -123,9 +101,9 @@ plt.grid(True, linestyle='dotted')
 # plt.gcf().set_size_inches(1.65, 1.)
 # plt.tight_layout(0.)
 plt.savefig('cc_perf.png', dpi=500)
-
+'''
 ####################
-
+'''
 plt.cla()
 for key in perf:
   plt.plot(lrss, error[key], color=color[key], marker='.', markersize=3, linewidth=1)
@@ -137,7 +115,7 @@ plt.grid(True, linestyle='dotted')
 # plt.gcf().set_size_inches(1.65, 1.)
 # plt.tight_layout(0.)
 plt.savefig('cc_error.png', dpi=500)
-
+'''
 ####################
 
 

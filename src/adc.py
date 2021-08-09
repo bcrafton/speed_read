@@ -108,38 +108,30 @@ def confusion(THRESH, RPR, ADC, HRS, LRS):
 
 ####################################################
 
-def thresholds(counts, adc, method='normal'):
-    WL, ON = np.shape(counts)
-    thresh, value = thresholds_help(np.sum(counts, axis=0), adc, method)
-    return np.array(thresh), np.array(value)
-
-####################################################
-
-def thresholds_help(counts, adc, method='normal'):
-    if   method == 'normal': center = thresholds_normal(counts, adc)
-    elif method == 'step':   center = thresholds_step(counts, adc)
-    elif method == 'kmeans': center = thresholds_kmeans(counts, adc)
+def thresholds(counts, adc, step, method='normal'):
+    on_counts = np.sum(counts, axis=0)
+    if   method == 'normal': center = thresholds_normal(on_counts, adc, step)
+    elif method == 'kmeans': center = thresholds_kmeans(on_counts, adc, step)
     else:                    assert (False)
     low  = center[:-1]
     high = center[1:]
     thresh = (high + low) / 2.
     thresh = [-np.inf] + thresh.tolist() + [np.inf]
-    return thresh, center
+    return np.array(thresh), np.array(center)
 
 ####################################################
 
-def thresholds_kmeans(counts, adc):
+def thresholds_kmeans(counts, adc, step):
     if (adc + 1) >= np.count_nonzero(counts): return np.arange(0, adc + 1)
     values = np.arange(0, len(counts))
     centroids = kmeans(values=values, counts=counts, n_clusters=adc + 1)
     centroids.sort()
     return centroids
 
-def thresholds_step(counts, adc):
-    assert (False)
-
-def thresholds_normal(counts, adc):
-    assert (False)
+# step is passed as (2 ** step)
+def thresholds_normal(counts, adc, step):
+    centroids = np.arange(0, adc + 1) * step
+    return centroids
 
 ####################################################
 

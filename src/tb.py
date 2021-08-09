@@ -74,6 +74,7 @@ def run_command(x, y, model, params, return_list):
     'lrs':       params['lrs'],
     'hrs':       params['hrs'],
     'thresh':    params['thresh'],
+    'method':    params['method'],
     'abs_error': abs_error
     }
     

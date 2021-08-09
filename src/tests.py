@@ -43,23 +43,29 @@ def CC():
     arch_params1 = {
     'skip': [1],
     'alloc': ['block'],
+    # 'narray': [2 ** 9],
     'narray': [128],
+    # 'lrs': [0.02, 0.04, 0.06, 0.08],
     'lrs': [0.02], 
     'hrs': [0.03],
     'cards': [1],
     'profile': [0],
     'thresh': [0.10],
+    'method': ['kmeans', 'normal']
     }
 
     arch_params2 = {
     'skip': [1],
     'alloc': ['block'],
+    # 'narray': [2 ** 9],
     'narray': [128],
+    # 'lrs': [0.02, 0.04, 0.06, 0.08],
     'lrs': [0.02], 
     'hrs': [0.03],
     'cards': [0],
     'profile': [0],
     'thresh': [0.10],
+    'method': ['kmeans', 'normal']
     }
 
     arch_params1 = perms(arch_params1)
