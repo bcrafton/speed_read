@@ -556,6 +556,13 @@ kmeans cannot use WL (in counts) have to assume all take the same amount of time
   > step allows kmeans to get to 0 cycles ?
   > no it never should ... scale = max(1, adc - step)
 
+> add [area, adc, sar, N] to static_rpr
+  > nothing changes in cim.c
+  > changes in plot
+  > N = [0:8] ... new select ? 
+  > wb need not share ADC if it equals 8
+    > but we lose 64 RPR entries if processing together
+
 =====================================================
 
 NAH / DONE (8/10/2021):
