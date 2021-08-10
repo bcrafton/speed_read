@@ -5080,6 +5080,10 @@ cim.c
 > test flash ADC
 > valid (static_rpr)
 
+> min(rpr + 1, params['adc']) // 2 ** step
+  > idt this is correct
+  > 4 / 2^2 = 1 ... shouldnt this take zero cycles and have zero thresholds ? 
+
 > speedup kmeans I think
   > verify our change is (1) still good kmeans solution (2) actually goes faster
 
