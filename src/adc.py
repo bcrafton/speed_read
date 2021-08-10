@@ -129,6 +129,11 @@ def thresholds_kmeans(counts, adc, step):
     return centroids
 
 # step is passed as (2 ** step)
+# example -> [rpr=32, adc=16, step=2]
+# A: [0,2,4,...32]
+# B: [0,2,4,...16]
+# which should it be ? 
+# its currently (B).
 def thresholds_normal(counts, adc, step):
     centroids = np.arange(0, adc + 1) * step
     return centroids

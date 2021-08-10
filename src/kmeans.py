@@ -22,7 +22,7 @@ def mean_abs_err(dist, freq):
     return(np.sum(np.absolute(dist) * freq))
 
 # A "sparse" k-means implementation
-def kmeans(values, counts, n_clusters=8, max_iter=10, n_init=50, err_func=mean_sq_err):
+def kmeans(values, counts, n_clusters=8, max_iter=10, n_init=10, err_func=mean_sq_err):
     
     # In case we need these:
     probs = counts/np.sum(counts)

@@ -237,7 +237,8 @@ DLLEXPORT int cim(int8_t* x, int8_t* w, int8_t* p, int* y, uint8_t* count, uint3
             int xb_addr =           xb * 8 * size;
             int wb_addr =               wb * size;
             int count_addr = row_addr + wl_addr + xb_addr + wb_addr + wl_itr;
-            count[count_addr] = max(1, wl_sum);
+            // count[count_addr] = max(1, wl_sum);
+            count[count_addr] = wl_sum;
 
             assert (wl_itr < size);
             wl_itr += 1;

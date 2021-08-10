@@ -5081,6 +5081,7 @@ cim.c
 > valid (static_rpr)
 
 > speedup kmeans I think
+  > verify our change is (1) still good kmeans solution (2) actually goes faster
 
 > why not allow tool to choose "adc" ? 
   > subject to area constraint ? 
@@ -5101,6 +5102,11 @@ kmeans cannot use WL (in counts) have to assume all take the same amount of time
 
 > will need full flow verification
   > like running with random.normal basically to verify confusion matrix is valid.
+
+> count[count_addr] = max(1, wl_sum);
+  > think this is inflating cycles count.
+  > step allows kmeans to get to 0 cycles ?
+  > no it never should ... scale = max(1, adc - step)
 
 ====================
 
