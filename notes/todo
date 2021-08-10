@@ -509,7 +509,84 @@ compute
 >> use np.choice(y - y_ref, ,) instead of np.random.normal
 > wud give actual distribution and not some jank thing.
 
+=====================================================
 
+TODO (8/10/2021):
+-----------------
+
+> remove profile (BB)
+> method = {step, normal}
+> remove rpr_alloc
+> test flash ADC
+> valid (static_rpr)
+
+> min(rpr + 1, params['adc']) // 2 ** step
+  > idt this is correct
+  > 4 / 2^2 = 1 ... shouldnt this take zero cycles and have zero thresholds ? 
+
+> step = linear scale to try range(0, rpr, step)[0:adc] 
+  > A: [0,2,..16]
+  > B: [0,2,..32]
+
+> speedup kmeans I think
+  > verify our change is (1) still good kmeans solution (2) actually goes faster
+
+> why not allow tool to choose "adc" ? 
+  > subject to area constraint ? 
+  > one step at a time ... finish stuff below.
+  > 6b SAR will never choose 128 ... and 6b SAR is where it overtakes the flash.
+
+> SAR ADC 
+  > SAR should follow [3,7,15] ... not [4, 8, 16]
+
+allow non-zero no ADC threshold
+allow skipping a binary VMM
+> auto-skip if no 1s
+
+kmeans cannot use WL (in counts) have to assume all take the same amount of time (xb, wb) unless we have some filtering.
+
+> so many loose ends right now - could be a (+1, -1) error or someting that we arnt seeing.
+  > look up there ^^^ (+1) issue lol.
+
+> will need full flow verification
+  > like running with random.normal basically to verify confusion matrix is valid.
+
+> count[count_addr] = max(1, wl_sum);
+  > think this is inflating cycles count.
+  > step allows kmeans to get to 0 cycles ?
+  > no it never should ... scale = max(1, adc - step)
+
+=====================================================
+
+NAH / DONE (8/10/2021):
+-----------------
+
+>> sum of total cycles is better than BB right now.
+> BB with SAR ADC ? 
+>> sum of total cycles is better than BB right now.
+
+> full sim
+  > need to compare [cards=0, cards=1] to see performance
+
+> remove step from expected_error
+
+conf -> long
+> min -> 10..100 -> allow more precision 
+
+> RPR = 64 -> memory challenges ? 
+  > 13.6 % 
+
+before and after dont match:
+> https://github.com/bcrafton/speed_read/commit/0226e635c1de8998d689cfb4eb47f24e78675848
+rpr_lut and step_lut diff
+wud try re-running to see if it would match itself ...
+might be some randomness in optimize_rpr
+> of [error, mean, delay, valid] passed into optimize_rpr ... error and mean differ.
+> so only thing that changed is expected_error()
+
+> fix thresholds (should be a function of adc and rpr) otherwise allowing more thresholds with higher step ... incorrect
+
+=====================================================
 
 
 
