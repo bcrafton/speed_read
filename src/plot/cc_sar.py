@@ -50,13 +50,12 @@ for cards, thresh in [(1, 0.10)]:
                     ##################################################################
                     total_wl = 0
                     total_cycle = 0
+                    hist = np.zeros(shape=33)
+
                     count = samples['count']
                     rpr = samples['rpr']
                     steps = samples['step']
                     tops = []
-                    # '''
-                    hist = np.zeros(shape=33)
-                    # '''
                     for l in count.keys():
                         #################################################
                         N, NWL, XB, WB, SIZE = np.shape(count[l])
@@ -65,19 +64,18 @@ for cards, thresh in [(1, 0.10)]:
                             for j in range(WB):
                                 #################################################
                                 values, counts = np.unique(adc[i][j], return_counts=True)
-                                # '''
-                                for v, c in zip(values, counts):
-                                    hist[v] += c
-                                    total_wl += v * c
-                                # '''
                                 #################################################
                                 if sar:
                                     scale = np.where(values > 0, 1 + np.ceil(np.log2(values)),          0)
                                     scale = np.where(scale  > 0, np.maximum(1, scale - steps[l][i][j]), 0)
                                 else:
-                                    scale = np.ones_like(values)
+                                    scale = np.where(values > 0, 1, 0)
+
                                 total_cycle += np.sum(scale * counts)
-                                print (counts)
+                                #################################################
+                                for v, s, c in zip(values, scale, counts):
+                                    total_wl += v * c
+                                    hist[int(s)] += c
                                 #################################################
                     top_per_sec = total_cycle
                     ##################################################################
@@ -89,11 +87,11 @@ for cards, thresh in [(1, 0.10)]:
                     '''
                     print (sar, method)
                     print (np.around(hist).astype(int))
+                    print (total_wl)
                     plt.bar(x=range(len(hist)), height=hist, width=0.8)
                     plt.yscale('log')
                     plt.show()
                     '''
-                    print (total_wl)
                     #################################################
 
 ######################################
