@@ -9,19 +9,14 @@ cim_lib.cim.restype = ctypes.c_int
 
 ################################################################
 
-def cim(xb, wb, pb, params):
-
-    # WB, 256 / WB = 32, 6=ECC, scale, C
-    # 64 = 8 * 8
+def cim(xb, wb, params):
 
     N, NWL, WL, XB = np.shape(xb)
     NWL, WL, NBL, BL = np.shape(wb)
-    _, _, _, BL_P = np.shape(pb)
     WB = 8
     C = NBL * BL // WB
 
     wb = np.reshape(wb, (NWL, WL, NBL * BL))
-    pb = np.reshape(pb, (NWL, WL, NBL * BL_P))
     yb = np.zeros(shape=(N, C), dtype=np.int32)
 
     ################################################################
@@ -40,7 +35,6 @@ def cim(xb, wb, pb, params):
 
     xb = np.ascontiguousarray(xb.flatten(), np.int8)
     wb = np.ascontiguousarray(wb.flatten(), np.int8)
-    pb = np.ascontiguousarray(pb.flatten(), np.int8)
     yb = np.ascontiguousarray(yb.flatten(), np.int32)
     rpr = np.ascontiguousarray(params['rpr'].flatten(), np.uint8)
     step = np.ascontiguousarray(params['step'].flatten(), np.uint8)
@@ -52,7 +46,6 @@ def cim(xb, wb, pb, params):
     _ = cim_lib.cim(
     ctypes.c_void_p(xb.ctypes.data), 
     ctypes.c_void_p(wb.ctypes.data), 
-    ctypes.c_void_p(pb.ctypes.data), 
     ctypes.c_void_p(yb.ctypes.data), 
     ctypes.c_void_p(count.ctypes.data), 
     ctypes.c_void_p(error.ctypes.data), 
@@ -68,8 +61,7 @@ def cim(xb, wb, pb, params):
     ctypes.c_int(NWL),
     ctypes.c_int(WL),
     ctypes.c_int(NBL),
-    ctypes.c_int(BL),
-    ctypes.c_int(BL_P))
+    ctypes.c_int(BL))
 
     ################################################################
 

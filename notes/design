@@ -5158,8 +5158,10 @@ B: [0,2,..32]
 
 ====================
 
-
-
+trying to get rid of ecc ...
+look here for simplified cim.c
+https://github.com/bcrafton/speed_read/commit/08bae0fed1284e6160503f05d040f02b07ef0e64#diff-d68dc182c459a4c467bbd425e1810bd67f047fd9087372023dd84e26949241d8
+https://github.com/bcrafton/speed_read/commits/ecc_kmeans_9/src/cim.c
 
 
 

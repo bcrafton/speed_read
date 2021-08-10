@@ -16,7 +16,6 @@ from dynamic_rpr import dynamic_rpr
 from static_rpr import static_rpr
 from kmeans_rpr import kmeans_rpr
 from cim import cim
-from ecc import ecc_encode
 from adc import confusion
 
 #########################
@@ -78,7 +77,6 @@ class Conv(Layer):
         self.factor = nwl * nbl
         self.nwl = nwl
         self.nbl = nbl
-        self.pb = self.ecc()
 
         #########################
 
@@ -181,7 +179,7 @@ class Conv(Layer):
         
         #########################
 
-        y, metrics = cim(patches, self.wb, self.pb, self.params)
+        y, metrics = cim(patches, self.wb, self.params)
         y = np.reshape(y, (yh, yw, self.fn))
 
         #########################
@@ -268,16 +266,6 @@ class Conv(Layer):
         wb = np.reshape(wb, (nwl, self.params['wl'], -1, self.params['bl']))
         wb = wb.astype(int)
         return wb
-
-    def ecc(self):
-        wb = np.copy(self.wb)
-        nwl, wl, nbl, bl = np.shape(wb)
-        wb = np.reshape(wb, (nwl, wl, nbl, self.params['bl'] // 8, 8))        
-        wb = np.transpose(wb, (0,1,2,4,3))
-        pb = ecc_encode(wb)
-        pb = np.transpose(pb, (0,1,2,4,3))
-        pb = np.reshape(pb, (nwl, wl, nbl, 8 * 8))
-        return pb
         
         
         
