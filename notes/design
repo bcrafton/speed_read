@@ -5080,11 +5080,7 @@ cim.c
 > test flash ADC
 > valid (static_rpr)
 
-> so many loose ends right now - could be a (+1, -1) error or someting that we arnt seeing.
-  > look up there ^^^ (+1) issue lol.
-
-> will need full flow verification
-  > like running with random.normal basically to verify confusion matrix is valid.
+> speedup kmeans I think
 
 > why not allow tool to choose "adc" ? 
   > subject to area constraint ? 
@@ -5099,6 +5095,12 @@ allow skipping a binary VMM
 > auto-skip if no 1s
 
 kmeans cannot use WL (in counts) have to assume all take the same amount of time (xb, wb) unless we have some filtering.
+
+> so many loose ends right now - could be a (+1, -1) error or someting that we arnt seeing.
+  > look up there ^^^ (+1) issue lol.
+
+> will need full flow verification
+  > like running with random.normal basically to verify confusion matrix is valid.
 
 ====================
 
@@ -5129,8 +5131,22 @@ might be some randomness in optimize_rpr
 
 ====================
 
+adc, step, rpr:
+> adc = threshold limit
+> step = linear scale to try range(0, rpr, step)[0:adc] 
+> rpr = has actual meaning ... {adc, step} -> baked into confusion
 
+new idea is a tradeoff though
+[rpr=32, adc=16, step=2] 
+will just have a different meaning
+cannot create all patterns we might want with only step
 
+A: [0,2,..16]
+B: [0,2,..32]
+
+> B is far superior though I think.
+
+====================
 
 
 

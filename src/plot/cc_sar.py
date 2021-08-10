@@ -32,47 +32,52 @@ df = pd.DataFrame.from_dict(results)
 comp_pJ = 20e-15
 
 hrss = [0.03]
-lrss = [0.02, 0.04, 0.06, 0.08]
+lrss = [0.02]
 perf = {}
 power = {}
 error = {}
 
-for cards, thresh, method in [(0, 0.10, 'normal'), (0, 0.10, 'kmeans'), (1, 0.10, 'normal'), (1, 0.10, 'kmeans')]:
-    perf[(cards, thresh, method)] = []
-    error[(cards, thresh, method)] = []
+for cards, thresh in [(0, 0.10), (1, 0.10)]:
+    for method in ['normal', 'kmeans']:
+        for sar in [0, 1]:
+            perf[(cards, thresh, sar, method)] = []
+            error[(cards, thresh, sar, method)] = []
+            for hrs in hrss:
+                for lrs in lrss:
+                    ##################################################################
+                    query = '(cards == %d) & (lrs == %f) & (hrs == %f) & (thresh == %f) & (method == "%s") & (sar == %d)' % (cards, lrs, hrs, thresh, method, sar)
+                    samples = df.query(query)
+                    ##################################################################
+                    total_cycle = 0
+                    count = samples['count']
+                    rpr = samples['rpr']
+                    steps = samples['step']
+                    tops = []
+                    for l in count.keys():
+                        #################################################
+                        N, NWL, XB, WB, SIZE = np.shape(count[l])
+                        adc = count[l].transpose(2, 3, 0, 1, 4).reshape(XB, WB, N * NWL * SIZE)
+                        cycle = 0
+                        # print (steps[l])
+                        # print (rpr[l])
+                        for i in range(XB):
+                            for j in range(WB):
+                                #################################################
+                                values, counts = np.unique(adc[i][j], return_counts=True)
+                                if sar:
+                                    scale = np.where(values > 0, 1 + np.ceil(np.log2(values)),          0)
+                                    scale = np.where(scale  > 0, np.maximum(1, scale - steps[l][i][j]), 0)
+                                else:
+                                    scale = np.ones_like(values)
 
-    for hrs in hrss:
-        for lrs in lrss:
-            ##################################################################
-            query = '(cards == %d) & (lrs == %f) & (hrs == %f) & (thresh == %f) & (method == "%s")' % (cards, lrs, hrs, thresh, method)
-            samples = df.query(query)
-            ##################################################################
-            total_cycle = 0
-            count = samples['count']
-            rpr = samples['rpr']
-            steps = samples['step']
-            tops = []
-            for l in count.keys():
-                #################################################
-                N, NWL, XB, WB, SIZE = np.shape(count[l])
-                adc = count[l].transpose(2, 3, 0, 1, 4).reshape(XB, WB, N * NWL * SIZE)
-                cycle = 0
-                # print (steps[l])
-                # print (rpr[l])
-                for i in range(XB):
-                    for j in range(WB):
-                        #################################################
-                        values, counts = np.unique(adc[i][j], return_counts=True)
-                        sar = np.where(values > 0, 1 + np.ceil(np.log2(values)),        0)
-                        sar = np.where(sar    > 0, np.maximum(1, sar - steps[l][i][j]), 0)
-                        total_cycle += np.sum(sar * counts)
-                        #################################################
-            top_per_sec = total_cycle
-            ##################################################################
-            e = np.max(samples['error'])
-            ##################################################################
-            perf[(cards, thresh, method)].append(top_per_sec)
-            error[(cards, thresh, method)].append(e)
+                                total_cycle += np.sum(scale * counts)
+                                #################################################
+                    top_per_sec = total_cycle
+                    ##################################################################
+                    e = np.max(samples['error'])
+                    ##################################################################
+                    perf[(cards, thresh, sar, method)].append(top_per_sec)
+                    error[(cards, thresh, sar, method)].append(e)
 
 ######################################
 

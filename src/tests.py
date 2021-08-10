@@ -33,9 +33,7 @@ def CC():
     'wl': 256,
     'bl': 256,
     'offset': 128,
-    'max_rpr': 32,
-    'sar': True,
-    'max_step': 3
+    'max_rpr': 32
     }
 
     # 'hrs': [0.50 / 10., 0.48 / 18., 0.35 / 30.],
@@ -51,7 +49,9 @@ def CC():
     'cards': [1],
     'profile': [0],
     'thresh': [0.10],
-    'method': ['kmeans', 'normal']
+    'method': ['kmeans', 'normal'],
+    'sar': [0, 1],
+    'max_step': 3
     }
 
     arch_params2 = {
@@ -65,7 +65,9 @@ def CC():
     'cards': [0],
     'profile': [0],
     'thresh': [0.10],
-    'method': ['kmeans', 'normal']
+    'method': ['kmeans', 'normal'],
+    'sar': [0, 1],
+    'max_step': 1
     }
 
     arch_params1 = perms(arch_params1)
