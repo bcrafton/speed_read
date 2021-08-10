@@ -28,7 +28,6 @@ def CC():
     array_params = {
     'bpa': 8,
     'bpw': 8,
-    'adc': 16,
     'adc_mux': 8,
     'wl': 256,
     'bl': 256,
@@ -42,32 +41,30 @@ def CC():
     'skip': [1],
     'alloc': ['block'],
     'narray': [2 ** 9],
-    # 'narray': [128],
     'lrs': [0.02, 0.04, 0.06, 0.08],
-    # 'lrs': [0.02], 
     'hrs': [0.03],
     'cards': [1],
     'profile': [0],
     'thresh': [0.10],
     'method': ['kmeans', 'normal'],
-    'sar': [0, 1],
-    'max_step': 3
+    'sar': [1],
+    'max_step': 3,
+    'adc': 32
     }
 
     arch_params2 = {
     'skip': [1],
     'alloc': ['block'],
     'narray': [2 ** 9],
-    # 'narray': [128],
     'lrs': [0.02, 0.04, 0.06, 0.08],
-    # 'lrs': [0.02], 
     'hrs': [0.03],
-    'cards': [0],
+    'cards': [1],
     'profile': [0],
     'thresh': [0.10],
     'method': ['kmeans', 'normal'],
-    'sar': [0, 1],
-    'max_step': 1
+    'sar': [0],
+    'max_step': 1,
+    'adc': 8
     }
 
     arch_params1 = perms(arch_params1)

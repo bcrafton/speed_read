@@ -26,7 +26,7 @@ void clear(int* v)
 
 //////////////////////////////////////////////
 
-int profile(int* x, int* w, int* y, long* count_adc, int max_rpr, int adc, int R, int C, int NWL, int NBL, int WL, int BL)
+int profile(int* x, int* w, int* y, long* count_adc, int max_rpr, int R, int C, int NWL, int NBL, int WL, int BL)
 {
   int pdot[VECTOR_SIZE];
   int sat[VECTOR_SIZE];

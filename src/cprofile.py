@@ -62,7 +62,6 @@ def profile(layer, x, w, y_ref, y_shape, params):
     ctypes.c_void_p(y.ctypes.data), 
     ctypes.c_void_p(adc.ctypes.data),
     ctypes.c_int(params['max_rpr']),
-    ctypes.c_int(params['adc']),
     ctypes.c_int(nrow),
     ctypes.c_int(ncol),
     ctypes.c_int(nwl),
