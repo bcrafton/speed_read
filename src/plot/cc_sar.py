@@ -39,60 +39,52 @@ error = {}
 
 for cards, thresh in [(1, 0.10)]:
     for method in ['normal', 'kmeans']:
-        for sar in [0, 1]:
-            perf[(cards, thresh, sar, method)] = []
-            error[(cards, thresh, sar, method)] = []
-            for hrs in hrss:
-                for lrs in lrss:
-                    ##################################################################
-                    query = '(cards == %d) & (lrs == %f) & (hrs == %f) & (thresh == %f) & (method == "%s") & (sar == %d)' % (cards, lrs, hrs, thresh, method, sar)
-                    samples = df.query(query)
-                    ##################################################################
-                    total_wl = 0
-                    total_cycle = 0
-                    hist = np.zeros(shape=33)
+        perf[(cards, thresh, method)] = []
+        error[(cards, thresh, method)] = []
+        for hrs in hrss:
+            for lrs in lrss:
+                ##################################################################
+                query = '(cards == %d) & (lrs == %f) & (hrs == %f) & (thresh == %f) & (method == "%s")' % (cards, lrs, hrs, thresh, method)
+                samples = df.query(query)
+                ##################################################################
+                total_wl = 0
+                total_cycle = 0
+                hist = np.zeros(shape=33)
 
-                    count = samples['count']
-                    rpr = samples['rpr']
-                    steps = samples['step']
-                    tops = []
-                    for l in count.keys():
-                        #################################################
-                        N, NWL, XB, WB, SIZE = np.shape(count[l])
-                        adc = count[l].transpose(2, 3, 0, 1, 4).reshape(XB, WB, N * NWL * SIZE)
-                        for i in range(XB):
-                            for j in range(WB):
-                                #################################################
-                                values, counts = np.unique(adc[i][j], return_counts=True)
-                                #################################################
-                                if sar:
-                                    scale = np.where(values > 0, 1 + np.ceil(np.log2(values)),          0)
-                                    scale = np.where(scale  > 0, np.maximum(1, scale - steps[l][i][j]), 0)
-                                else:
-                                    scale = np.where(values > 0, 1, 0)
-
-                                total_cycle += np.sum(scale * counts)
-                                #################################################
-                                for v, s, c in zip(values, scale, counts):
-                                    total_wl += v * c
-                                    hist[int(s)] += c
-                                #################################################
-                    top_per_sec = total_cycle
-                    ##################################################################
-                    e = np.max(samples['error'])
-                    ##################################################################
-                    perf[(cards, thresh, sar, method)].append(top_per_sec)
-                    error[(cards, thresh, sar, method)].append(e)
-                    ##################################################################
-                    '''
-                    print (sar, method)
-                    print (np.around(hist).astype(int))
-                    print (total_wl)
-                    plt.bar(x=range(len(hist)), height=hist, width=0.8)
-                    plt.yscale('log')
-                    plt.show()
-                    '''
+                count = samples['count']
+                rpr = samples['rpr']
+                steps = samples['step']
+                sar = samples['sar']
+                tops = []
+                for l in count.keys():
+                    print (sar[l])
                     #################################################
+                    N, NWL, XB, WB, SIZE = np.shape(count[l])
+                    adc = count[l].transpose(2, 3, 0, 1, 4).reshape(XB, WB, N * NWL * SIZE)
+                    for i in range(XB):
+                        for j in range(WB):
+                            #################################################
+                            values, counts = np.unique(adc[i][j], return_counts=True)
+                            #################################################
+                            if sar[l][i][j]:
+                                scale = np.where(values > 0, 1 + np.ceil(np.log2(values)),          0)
+                                scale = np.where(scale  > 0, np.maximum(1, scale - steps[l][i][j]), 0)
+                            else:
+                                scale = np.where(values > 0, 1, 0)
+
+                            total_cycle += np.sum(scale * counts)
+                            #################################################
+                            for v, s, c in zip(values, scale, counts):
+                                total_wl += v * c
+                                hist[int(s)] += c
+                            #################################################
+                top_per_sec = total_cycle
+                ##################################################################
+                e = np.max(samples['error'])
+                ##################################################################
+                perf[(cards, thresh, method)].append(top_per_sec)
+                error[(cards, thresh, method)].append(e)
+                ##################################################################
 
 ######################################
 

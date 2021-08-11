@@ -75,7 +75,6 @@ def run_command(x, y, model, params, return_list):
     'hrs':       params['hrs'],
     'thresh':    params['thresh'],
     'method':    params['method'],
-    'sar':       params['sar'],
     'abs_error': abs_error
     }
     
@@ -92,7 +91,7 @@ model, x, y = load_cifar(num_example=1, array_params=array_params)
 
 start = time.time()
 
-load_profile = False
+load_profile = True
 if not load_profile:
     profile = model.profile(x)
 
