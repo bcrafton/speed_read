@@ -524,6 +524,16 @@ TODO (8/10/2021):
   > idt this is correct
   > 4 / 2^2 = 1 ... shouldnt this take zero cycles and have zero thresholds ? 
 
+> account for N in plot.
+> if N = 2, implies you will perform wb earlier 
+  > will not sum properly
+  > basically an adc may not get utilized
+
+> is perf accurate ? 
+  > row / rpr -> may not properly model x7/w7 ... because it never happens.
+  > count actual cycles in profile ? 
+
+> change f(rpr, adc, step)
 > step = linear scale to try range(0, rpr, step)[0:adc] 
   > A: [0,2,..16]
   > B: [0,2,..32]
