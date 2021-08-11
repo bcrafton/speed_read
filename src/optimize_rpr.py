@@ -134,14 +134,14 @@ def optimize_rpr(error, mean, delay, area, valid, threshold):
     print (step_lut)
     print (rpr_lut)
     print (adc_lut)
-    # print (num_lut)
-    # print (sar_lut)
+    print (num_lut)
+    print (sar_lut)
 
-    print (select.flatten() @ error)
-    print (select.flatten() @ mean)
+    # print (select.flatten() @ error)
+    # print (select.flatten() @ mean)
 
-    print (error[ np.where(select.flatten() > 0) ])
-    print (mean[ np.where(select.flatten() > 0) ])
+    # print (error[ np.where(select.flatten() > 0) ])
+    # print (mean[ np.where(select.flatten() > 0) ])
 
     ##########################################
 

@@ -46,7 +46,7 @@ def CC():
     'cards': [1],
     'profile': [0],
     'thresh': [0.10],
-    'method': ['normal'],
+    'method': ['normal', 'kmeans'],
     'max_step': 3,
     'adc': 8
     }
