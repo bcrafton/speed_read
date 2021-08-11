@@ -15,25 +15,18 @@ def round_fraction(x, f):
     return np.around(x / f) * f
 
 ##########################################
-'''
-from scipy.special import erf
-def cdf(x, mu, sd):
-    a = (x - mu) / (np.sqrt(2) * sd)
-    return 0.5 * (1 + erf(a))
-'''
-##########################################
 
 eps = 1e-10
 inf = 1e10
 
-def expected_error(params, rpr, step, adc_hist, row, adc_thresh, adc_value):
+def expected_error(params, step, rpr, adc, profile, row, adc_thresh, adc_value):
 
     # pe
 
     # step is passed as (2 ** step)
-    adc      =       adc_value.reshape(1 + min(rpr, params['adc']) // step, 1, 1)
-    adc_low  = adc_thresh[:-1].reshape(1 + min(rpr, params['adc']) // step, 1, 1)
-    adc_high = adc_thresh[ 1:].reshape(1 + min(rpr, params['adc']) // step, 1, 1)
+    adc_center =       adc_value.reshape(1 + min(rpr, adc) // step, 1, 1)
+    adc_low    = adc_thresh[:-1].reshape(1 + min(rpr, adc) // step, 1, 1)
+    adc_high   = adc_thresh[ 1:].reshape(1 + min(rpr, adc) // step, 1, 1)
 
     ########################################################################
 
@@ -59,14 +52,14 @@ def expected_error(params, rpr, step, adc_hist, row, adc_thresh, adc_value):
     ########################################################################
 
     # p
-    p = adc_hist.astype(np.float32)
+    p = profile.astype(np.float32)
     p = p / np.sum(p)
 
     ########################################################################
 
     # e
-    s = np.arange(0, params['max_rpr']+1, dtype=np.float32)
-    e = adc - s
+    s = np.arange(0, params['max_rpr'] + 1, dtype=np.float32)
+    e = adc_center - s
     
     ########################################################################
 
@@ -92,54 +85,48 @@ def static_rpr(id, params, q):
 
     ############
 
-    delay_table = np.zeros(shape=(8, 8, params['max_step'], params['max_rpr'], 2))
-    error_table = np.zeros(shape=(8, 8, params['max_step'], params['max_rpr'], 2))
-    mean_table  = np.zeros(shape=(8, 8, params['max_step'], params['max_rpr'], 2))
-    valid_table = np.zeros(shape=(8, 8, params['max_step'], params['max_rpr'], 2))
-    area_table  = np.zeros(shape=(8, 8, params['max_step'], params['max_rpr'], 2))
-
-    # [xb, wb] [step, rpr] [wl, on] [adc]
-    # conf_table = np.zeros(shape=(8, 8, params['max_step'], params['max_rpr'], 1 + params['max_rpr'], 1 + params['max_rpr'], 1 + params['adc']), dtype=np.uint32)
-    # [xb, wb] [step, rpr]          [adc]
-    # value_table  = np.zeros(shape=(8, 8, params['max_step'], params['max_rpr'],                                               1 + params['adc']), dtype=np.float32)
+    delay_table = np.zeros(shape=(8, 8, params['max_step'], params['max_rpr'], params['adc'], 2))
+    error_table = np.zeros(shape=(8, 8, params['max_step'], params['max_rpr'], params['adc'], 2))
+    mean_table  = np.zeros(shape=(8, 8, params['max_step'], params['max_rpr'], params['adc'], 2))
+    valid_table = np.zeros(shape=(8, 8, params['max_step'], params['max_rpr'], params['adc'], 2))
+    area_table  = np.zeros(shape=(8, 8, params['max_step'], params['max_rpr'], params['adc'], 2))
 
     thresh_table = {}
     value_table = {}
 
     profile = np.load('./profile/%d.npy' % (id), allow_pickle=True).item()
-    adc = profile['adc']
     row = np.maximum(1, profile['row'])
     ratio = profile['ratio']
+    profile = profile['adc']
 
     for wb in range(params['bpw']):
         for xb in range(params['bpa']):
             for step in range(params['max_step']):
                 for rpr in range(params['max_rpr']):
-                # rprs = np.array([1,2,4,8,16,32]) - 1
-                # for rpr in rprs:
-                    for sar in [0, 1]:
-                        thresh, values = thresholds(adc[xb, wb, rpr + 1], min(rpr + 1, params['adc']) // 2 ** step, 2 ** step, method=params['method'])
+                    for adc in range(params['adc']):
+                        for sar in [0, 1]:
+                            thresh, values = thresholds(profile[xb, wb, rpr + 1], 2 ** step, min(rpr + 1, adc + 1) // 2 ** step, method=params['method'])
 
-                        thresh_table[(xb, wb, step, rpr, sar)] = thresh
-                        value_table[(xb, wb, step, rpr, sar)] = values
+                            thresh_table[(xb, wb, step, rpr, adc, sar)] = thresh
+                            value_table[(xb, wb, step, rpr, adc, sar)] = values
 
-                        mse, mean = expected_error(params, rpr + 1, 2 ** step, adc[xb, wb, rpr + 1], row[xb][rpr], thresh, values)
-                        assert np.all(mse >= np.abs(mean))
+                            mse, mean = expected_error(params, 2 ** step, rpr + 1, adc + 1, profile[xb, wb, rpr + 1], row[xb][rpr], thresh, values)
+                            assert np.all(mse >= np.abs(mean))
 
-                        scale = 2**wb * 2**xb / q * ratio
-                        error_table[xb][wb][step][rpr][sar] = scale * mse
-                        mean_table [xb][wb][step][rpr][sar] = scale * mean
+                            scale = 2**wb * 2**xb / q * ratio
+                            error_table[xb][wb][step][rpr][adc][sar] = scale * mse
+                            mean_table [xb][wb][step][rpr][adc][sar] = scale * mean
 
-                        if sar:
-                            valid_table[xb][wb][step][rpr] = 1 if (min(rpr + 1, params['adc']) >= 2 ** step) else 0
-                            cycle = min(rpr + 1, params['adc'])
-                            cycle = 1 + np.ceil(np.log2(cycle)) - step
-                            delay_table[xb][wb][step][rpr][sar] = row[xb][rpr] * cycle
-                            area_table[xb][wb][step][rpr][sar] = 2
-                        else:
-                            valid_table[xb][wb][step][rpr][sar] = 1 if (step == 0) else 0
-                            delay_table[xb][wb][step][rpr][sar] = row[xb][rpr]
-                            area_table[xb][wb][step][rpr][sar] = params['adc']
+                            if sar:
+                                valid_table[xb][wb][step][rpr][adc][sar] = 1 if (min(rpr + 1, adc + 1) >= 2 ** step) else 0
+                                cycle = min(rpr + 1, adc + 1)
+                                cycle = 1 + np.ceil(np.log2(cycle)) - step
+                                delay_table[xb][wb][step][rpr][adc][sar] = row[xb][rpr] * cycle
+                                area_table[xb][wb][step][rpr][adc][sar] = 2
+                            else:
+                                valid_table[xb][wb][step][rpr][adc][sar] = 1 if (step == 0) else 0
+                                delay_table[xb][wb][step][rpr][adc][sar] = row[xb][rpr]
+                                area_table[xb][wb][step][rpr][adc][sar] = (adc + 1) // 2 ** step
 
     assert (np.sum(mean_table[:, :, 0, 0]) >= -params['thresh'])
     assert (np.sum(mean_table[:, :, 0, 0]) <=  params['thresh'])
@@ -163,7 +150,7 @@ def static_rpr(id, params, q):
     # mean_table = round_fraction(mean_table, 1e-4)
 
     if params['skip'] and params['cards']:
-        rpr_lut, step_lut, sar_lut, num_lut = optimize_rpr(error_table, np.abs(mean_table), delay_table, area_table, valid_table, params['thresh'])
+        rpr_lut, step_lut, sar_lut, adc_lut, num_lut = optimize_rpr(error_table, np.abs(mean_table), delay_table, area_table, valid_table, params['thresh'])
 
     mean = np.zeros(shape=(8, 8))
     error = np.zeros(shape=(8, 8))
@@ -171,20 +158,24 @@ def static_rpr(id, params, q):
     value = np.zeros(shape=(8, 8, 1 + params['adc']), dtype=np.float32)
     for wb in range(params['bpw']):
         for xb in range(params['bpa']):
-            rpr  = rpr_lut[xb][wb] - 1
             step = step_lut[xb][wb] 
+            rpr  = rpr_lut[xb][wb] - 1
+            adc  = adc_lut[xb][wb] - 1
             sar  = sar_lut[xb][wb]
 
-            error[xb][wb] = error_table[xb][wb][step][rpr][sar]
-            mean[xb][wb]  = mean_table[xb][wb][step][rpr][sar]
+            error[xb][wb] = error_table[xb][wb][step][rpr][adc][sar]
+            mean[xb][wb]  = mean_table[xb][wb][step][rpr][adc][sar]
 
-            conf1 = confusion(thresh_table[(xb, wb, step, rpr, sar)], params['max_rpr'], min(rpr + 1, params['adc']) // 2 ** step, params['hrs'], params['lrs'])
-            conf2 = np.zeros(shape=(1 + params['max_rpr'], 1 + params['max_rpr'], params['adc'] - min(rpr + 1, params['adc']) // 2 ** step), dtype=np.uint32)
+            conf1 = confusion(thresh_table[(xb, wb, step, rpr, adc, sar)], params['max_rpr'], min(rpr + 1, adc + 1) // 2 ** step, params['hrs'], params['lrs'])
+            conf2 = np.zeros(shape=(1 + params['max_rpr'], 1 + params['max_rpr'], params['adc'] - min(rpr + 1, adc + 1) // 2 ** step), dtype=np.uint32)
             conf[xb][wb] = np.concatenate((conf1, conf2), axis=-1)
 
-            values1 = value_table[(xb, wb, step, rpr, sar)]
-            values2 = -1 * np.ones(shape=(params['adc'] - min(rpr + 1, params['adc']) // 2 ** step), dtype=np.float32)
+            values1 = value_table[(xb, wb, step, rpr, adc, sar)]
+            values2 = -1 * np.ones(shape=(params['adc'] - min(rpr + 1, adc + 1) // 2 ** step), dtype=np.float32)
             value[xb][wb] = np.concatenate((values1, values2), axis=-1)
+
+            # print ( thresh_table[(xb, wb, step, rpr, adc, sar)] )
+            # print (  value_table[(xb, wb, step, rpr, adc, sar)] )
 
     return rpr_lut, step_lut, sar_lut, conf, value
 

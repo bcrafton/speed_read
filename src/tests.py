@@ -32,7 +32,7 @@ def CC():
     'wl': 256,
     'bl': 256,
     'offset': 128,
-    'max_rpr': 32
+    'max_rpr': 16
     }
 
     # 'hrs': [0.50 / 10., 0.48 / 18., 0.35 / 30.],
@@ -48,7 +48,7 @@ def CC():
     'thresh': [0.10],
     'method': ['normal'],
     'max_step': 3,
-    'adc': 16
+    'adc': 8
     }
 
     arch_params1 = perms(arch_params1)

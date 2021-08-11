@@ -108,7 +108,7 @@ def confusion(THRESH, RPR, ADC, HRS, LRS):
 
 ####################################################
 
-def thresholds(counts, adc, step, method='normal'):
+def thresholds(counts, step, adc, method='normal'):
     on_counts = np.sum(counts, axis=0)
     if   method == 'normal': center = thresholds_normal(on_counts, adc, step)
     elif method == 'kmeans': center = thresholds_kmeans(on_counts, adc, step)
