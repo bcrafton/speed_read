@@ -91,14 +91,14 @@ model, x, y = load_cifar(num_example=1, array_params=array_params)
 
 start = time.time()
 
-load_profile = False
+load_profile = True
 if not load_profile:
     profile = model.profile(x)
 
 ##########################
 
 num_runs = len(arch_params)
-parallel_runs = 12
+parallel_runs = 8
 
 thread_results = []
 manager = multiprocessing.Manager()

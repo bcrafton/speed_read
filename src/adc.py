@@ -1,5 +1,7 @@
 
+import sys
 import numpy as np
+np.set_printoptions(threshold=sys.maxsize)
 from scipy.stats import norm
 import matplotlib.pyplot as plt
 from kmeans import kmeans
@@ -70,13 +72,18 @@ def confusion(THRESH, RPR, ADC, HRS, LRS):
 ####################################################
 
 def check(x):
-    assert (np.all(np.isinf(x) == False))
-    assert (np.all(np.isnan(x) == False))
+    flag1 = np.any(np.isinf(x))
+    flag2 = np.any(np.isnan(x))
+    flag3 = not np.all(x >= 0.)
+    if flag1 or flag2 or flag3: print (np.shape(x))
+    assert (np.any(np.isinf(x)) == False)
+    assert (np.any(np.isnan(x)) == False)
     assert (np.all(x >= 0.))
 
 def confusion(THRESH, RPR, ADC, HRS, LRS):
     eps1 = 1e-12
     eps2 = 1e-6
+    assert (len(THRESH) == ADC+2)
 
     wl  = np.arange(0, RPR+1).reshape(RPR+1,     1,     1).astype(int)
     on  = np.arange(0, RPR+1).reshape(    1, RPR+1,     1).astype(int)
@@ -91,16 +98,20 @@ def confusion(THRESH, RPR, ADC, HRS, LRS):
     std = np.maximum(eps1, np.sqrt(var))
     check(std)
 
+    # should we assert ... sum(conf) == 1 ... ?
     conf = norm.cdf(THRESH[adc + 1], on, std) - norm.cdf(THRESH[adc], on, std)
+    assert np.all(np.isclose(np.sum(conf, axis=-1), 1))
     check(conf)
 
-    scale = np.min(np.where(conf > eps2, conf, np.inf), axis=-1, keepdims=True)
+    scale_max = np.max(                               conf, axis=-1, keepdims=True)
+    scale_min = np.min(np.where(conf > eps2, conf, np.inf), axis=-1, keepdims=True)
+    scale = np.minimum(scale_min, scale_max)
     check(scale)
 
     # will overflow here if > 2 ** 32
     # conf = (conf / scale).astype(np.uint32)
     conf = (conf / scale)
-    assert (np.all(conf < 0xFFFFFFFF))
+    assert (np.all(conf <= 0xFFFFFFFF))
     conf = conf.astype(np.uint32)
     check(conf)
 

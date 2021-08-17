@@ -32,23 +32,22 @@ def CC():
     'wl': 256,
     'bl': 256,
     'offset': 128,
-    'max_rpr': 16
+    'max_rpr': 64
     }
-
-    # 'hrs': [0.50 / 10., 0.48 / 18., 0.35 / 30.],
 
     arch_params1 = {
     'skip': [1],
     'alloc': ['block'],
     'narray': [2 ** 9],
-    'lrs': [0.02],
-    'hrs': [0.03],
     'cards': [1],
     'profile': [0],
     'thresh': [0.10],
-    'method': ['normal', 'kmeans'],
-    'max_step': 3,
-    'adc': 8
+    'method': ['kmeans'],
+    'max_step': 16,
+    'adc': 64,
+    'lrs': [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10],
+    'hrs': [0.02],
+    'area': [64, 128, 192, 256, 384, 512, 640, 768, 896, 1024]
     }
 
     arch_params1 = perms(arch_params1)

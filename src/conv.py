@@ -82,7 +82,15 @@ class Conv(Layer):
 
     def init(self, params):
         self.params.update(params)
-        self.params['rpr'], self.params['step'], self.params['sar'], self.params['conf'], self.params['value'] = static_rpr(self.layer_id, self.params, self.q)
+        self.params['step'], self.params['rpr'], self.params['comps'], self.params['sar'], self.params['N'], self.params['conf'], self.params['value'] = static_rpr(self.layer_id, self.params, self.q)
+        # print (self.params['step'])
+        print (self.params['rpr'])
+        print (self.params['comps'])
+        print (self.params['sar'])
+        print (self.params['N'])
+        # print (self.params['conf'])
+        # print (self.params['value'])
+
 
     def profile(self, x):
         # x
@@ -148,6 +156,7 @@ class Conv(Layer):
 
         nwl, _, nbl, _ = np.shape(self.wb)
 
+        # print (self.params['method'])
         print ('cycle: %d stall: %d mean: %0.3f std: %0.3f error: %0.3f' % 
               (results['cycle'], results['stall'], z_mean, z_std, z_error))
 
@@ -188,6 +197,9 @@ class Conv(Layer):
         results['rpr'] = self.params['rpr']
         results['step'] = self.params['step']
         results['sar'] = self.params['sar']
+        results['N'] = self.params['N']
+        results['area'] = self.params['area']
+        results['comps'] = self.params['comps']
 
         #########################
 

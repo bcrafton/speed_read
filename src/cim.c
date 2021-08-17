@@ -40,7 +40,7 @@ void clear(void* v, int size)
 
 //////////////////////////////////////////////
 
-DLLEXPORT int cim(int8_t* x, int8_t* w, int* y, uint8_t* count, uint32_t* error, uint8_t* rpr_table, uint8_t* step_table, uint32_t* conf, float* value, int size, int max_rpr, int adc, int R, int C, int NWL, int WL, int NBL, int BL) {
+DLLEXPORT int cim(int8_t* x, int8_t* w, int* y, uint8_t* count, uint32_t* error, uint8_t* rpr_table, uint32_t* conf, float* value, int size, int max_rpr, int adc, int R, int C, int NWL, int WL, int NBL, int BL) {
 
   default_random_engine generator;
   discrete_distribution<uint32_t>* distribution = new discrete_distribution<uint32_t>[8 * 8 * (max_rpr + 1) * (max_rpr + 1)];
@@ -76,7 +76,6 @@ DLLEXPORT int cim(int8_t* x, int8_t* w, int* y, uint8_t* count, uint32_t* error,
 
             int rpr = rpr_table[xb * 8 + wb];
             assert (rpr >= 1);
-            int step = step_table[xb * 8 + wb];
 
             while ((wl_ptr < WL) && (wl_sum + x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr * 8) + xb] <= rpr)) {
               if (x[(r * NWL * WL * 8) + (wl * WL * 8) + (wl_ptr * 8) + xb]) {
@@ -97,7 +96,6 @@ DLLEXPORT int cim(int8_t* x, int8_t* w, int* y, uint8_t* count, uint32_t* error,
               int on_addr =                               expected;
               int addr = xb_addr + wb_addr + wl_addr + on_addr;
               int code = distribution[addr](generator);
-              assert (code <= (adc / pow(2, step)));
 
               xb_addr = xb * 8 * (adc + 1);
               wb_addr =     wb * (adc + 1);

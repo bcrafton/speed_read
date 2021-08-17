@@ -514,37 +514,10 @@ compute
 TODO (8/10/2021):
 -----------------
 
-> remove profile (BB)
-> method = {step, normal}
-> remove rpr_alloc
-> test flash ADC
-> valid (static_rpr)
-
-> min(rpr + 1, params['adc']) // 2 ** step
-  > idt this is correct
-  > 4 / 2^2 = 1 ... shouldnt this take zero cycles and have zero thresholds ? 
-
-> account for N in plot.
-> if N = 2, implies you will perform wb earlier 
-  > will not sum properly
-  > basically an adc may not get utilized
-
-> is perf accurate ? 
-  > row / rpr -> may not properly model x7/w7 ... because it never happens.
-  > count actual cycles in profile ? 
-
 > change f(rpr, adc, step)
 > step = linear scale to try range(0, rpr, step)[0:adc] 
   > A: [0,2,..16]
   > B: [0,2,..32]
-
-> speedup kmeans I think
-  > verify our change is (1) still good kmeans solution (2) actually goes faster
-
-> why not allow tool to choose "adc" ? 
-  > subject to area constraint ? 
-  > one step at a time ... finish stuff below.
-  > 6b SAR will never choose 128 ... and 6b SAR is where it overtakes the flash.
 
 > SAR ADC 
   > SAR should follow [3,7,15] ... not [4, 8, 16]
@@ -561,22 +534,14 @@ kmeans cannot use WL (in counts) have to assume all take the same amount of time
 > will need full flow verification
   > like running with random.normal basically to verify confusion matrix is valid.
 
-> count[count_addr] = max(1, wl_sum);
-  > think this is inflating cycles count.
-  > step allows kmeans to get to 0 cycles ?
-  > no it never should ... scale = max(1, adc - step)
-
-> add [area, adc, sar, N] to static_rpr
-  > nothing changes in cim.c
-  > changes in plot
-  > N = [0:8] ... new select ? 
-  > wb need not share ADC if it equals 8
-    > but we lose 64 RPR entries if processing together
-
 =====================================================
 
 NAH / DONE (8/10/2021):
 -----------------
+
+{choose N=[1,2,4,8], choose ADC} -> takes so long
+> choose ADC -> if N=8 ... choose 8 different ADCs
+> neither are essential it seems, but would be great to have. 
 
 >> sum of total cycles is better than BB right now.
 > BB with SAR ADC ? 
@@ -602,6 +567,53 @@ might be some randomness in optimize_rpr
 > so only thing that changed is expected_error()
 
 > fix thresholds (should be a function of adc and rpr) otherwise allowing more thresholds with higher step ... incorrect
+
+> remove profile (BB)
+> method = {step, normal}
+> remove rpr_alloc
+> test flash ADC
+> valid (static_rpr)
+
+> add [area, adc, sar, N] to static_rpr
+  > nothing changes in cim.c
+  > changes in plot
+  > N = [0:8] ... new select ? 
+  > wb need not share ADC if it equals 8
+    > but we lose 64 RPR entries if processing together
+
+> count[count_addr] = max(1, wl_sum);
+  > think this is inflating cycles count.
+  > step allows kmeans to get to 0 cycles ?
+  > no it never should ... scale = max(1, adc - step)
+
+> speedup kmeans I think
+  > verify our change is (1) still good kmeans solution (2) actually goes faster
+
+> why not allow tool to choose "adc" ? 
+  > subject to area constraint ? 
+  > one step at a time ... finish stuff below.
+  > 6b SAR will never choose 128 ... and 6b SAR is where it overtakes the flash.
+
+> account for N in plot.
+> if N = 2, implies you will perform wb earlier 
+  > will not sum properly
+  > basically an adc may not get utilized
+
+> is perf accurate ? 
+  > row / rpr -> may not properly model x7/w7 ... because it never happens.
+  > count actual cycles in profile ? 
+> just capture average delay in profile ... wud be so ez.
+
+> min(rpr + 1, params['adc']) // 2 ** step
+  > idt this is correct
+  > 4 / 2^2 = 1 ... shouldnt this take zero cycles and have zero thresholds ? 
+
+Figure out the solver
+> MOSEK, GLPK_MI
+> non-MIP solver ? can they solve ILP ? 
+  > then just scale everything to integers ? 
+  > delay, error, mean, valid
+  > error and mean already rounded to 1e-4 ...
 
 =====================================================
 
