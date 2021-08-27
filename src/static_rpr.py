@@ -149,6 +149,14 @@ def static_rpr(id, params, q):
                             # not currently used:
                             area_table[xb][wb][step_idx][rpr_idx][adc_idx][sar_idx] = (adc + 1) + 1*(sar > 0)
 
+    kmeans = {
+    'thresh': thresh_table, 
+    'value': value_table,
+    'delay': delay_table,
+    'error': error_table
+    }
+    np.save('kmeans_%d' % (id), kmeans)
+
     assert (np.sum(mean_table[:, :, 0, 0]) >= -params['thresh'])
     assert (np.sum(mean_table[:, :, 0, 0]) <=  params['thresh'])
     assert (np.sum(np.min(error_table, axis=(2, 3))) <= params['thresh'])

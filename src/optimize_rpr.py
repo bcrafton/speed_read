@@ -36,7 +36,7 @@ cvxopt.solvers.options['reltol'] = 1e-2
 
 def optimize_rpr(error, mean, delay, valid, area_adc, area_sar, area, threshold):
     (best_lut, best_N, best_delay) = (None, 0, 1e12)
-    for N in [1, 2, 4, 8]:
+    for N in [1]:
         if (64 * N) > area: continue
         lut, current_delay = optimize_rpr_kernel(error, mean, delay, valid, area_adc, area_sar, area, threshold, N)
         if current_delay < best_delay: (best_lut, best_N, best_delay) = (lut, N, current_delay)

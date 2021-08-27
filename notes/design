@@ -5108,11 +5108,27 @@ look at different layers
 > Layer 1 = not interesting ... only 27 possible 1s.
 > 
 
- 
+====================
+
+area constraint commit:
+https://github.com/bcrafton/speed_read/commit/2cfb761ebc1bc809277a0c2f09e4d56764780cb7
+
+do we need to use this branch for kmeans pmf ? 
+> lot of nice changes in the branch for kmeans ...
+  > could pull them out though.
+
+====================
+
+question = [RPR, WL, ADC]
+> [64, 64, :]
+> sum([64, :, :], axis=0)
+
+do we include the WLs or not ?? 
+> YES: 2 normals
+> NOT: expect it to be super normal
 
 
-
-
+====================
 
 
 
