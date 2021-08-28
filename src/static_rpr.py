@@ -120,7 +120,7 @@ def static_rpr(id, params, q):
                             states = (adc + 1) * (2 ** sar)
                             if (rpr + 1) < states: continue
 
-                            thresh, values = thresholds(counts=profile[xb, wb, rpr + 1],
+                            thresh, values = thresholds(counts=np.sum(profile[xb, wb, rpr + 1], axis=0),
                                                         step=step+1,
                                                         adc=states,
                                                         method=params['method'])
