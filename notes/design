@@ -5130,5 +5130,63 @@ do we include the WLs or not ??
 
 ====================
 
+[XB, WB, RPR, WL, ADC]
+so PMF depends on [XB, WB]
+> IF we sum over WL 
+
+Big Question:
+A: [64, 64, :]
+B: sum([64, :, :], axis=0)
+
+Think its gotta be B.
+Because we have to consider when WL < RPR.
+We are not going to have [64 * 64] thresholds.
+Where we lookup base on [RPR, WL]
+
+In theory - we could use ONLY WL to generate thresholds
+BC it really only depends on WL ... look at [64, 64, :]
+BUT then you ignoring [XB, WB] scale ... 
+
+====================
+
+(1)
+X   = 0
+W   = 0
+RPR = 64
+ADC = 8
+
+(2)
+X   = 4
+W   = 4
+RPR = 32
+ADC = 16
+
+====================
+
+what should default thresholds be ? 
+range(0, 64, 8)
+> 0.5 ... 8.5 ? 
+> 3.5 ... 12.5 ? 
+
+range(0, 32, 2)
+
+====================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
