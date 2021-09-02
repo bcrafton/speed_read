@@ -158,8 +158,8 @@ def static_rpr(id, params, q):
                                                     mean=np.abs(mean_table), 
                                                     delay=delay_table, 
                                                     valid=valid_table, 
-                                                    area_adc=np.array([1, 2, 4, 8, 16, 24, 32, 48, 64]),
-                                                    area_sar=np.array([0, 1, 1.25, 1.50, 1.75, 2.00]),
+                                                    area_adc=params['adc_area'],
+                                                    area_sar=params['sar_area'],
                                                     area=params['area'],
                                                     threshold=params['thresh'],
                                                     Ns=params['Ns'])
