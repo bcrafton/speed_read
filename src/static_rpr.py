@@ -99,13 +99,13 @@ def static_rpr(id, params, q):
 
     for wb in range(params['bpw']):
         for xb in range(params['bpa']):
-            for rpr_idx, rpr in enumerate(params['rprs'] -  1):
-                for adc_idx, adc in enumerate(params['adcs'] -  1):
+            for rpr_idx, rpr in enumerate(params['rprs']):
+                for adc_idx, adc in enumerate(params['adcs']):
                     for sar_idx, sar in enumerate(params['sars']):
-                        states = (adc + 1) * (2 ** sar)
-                        if (rpr + 1) < states: continue
+                        states = adc * (2 ** sar)
+                        if rpr < states: continue
 
-                        thresh, values = thresholds(counts=profile[xb, wb, rpr + 1],
+                        thresh, values = thresholds(counts=profile[xb, wb, rpr],
                                                     adc=states,
                                                     method=params['method'])
 
@@ -117,8 +117,8 @@ def static_rpr(id, params, q):
                         mse, mean = expected_error(params=params, 
                                                    rpr=rpr+1,
                                                    adc=states,
-                                                   profile=profile[xb, wb, rpr + 1], 
-                                                   row=row[xb][rpr], 
+                                                   profile=profile[xb, wb, rpr], 
+                                                   row=row[xb][rpr - 1],
                                                    adc_thresh=thresh, 
                                                    adc_value=values)
 
@@ -128,9 +128,9 @@ def static_rpr(id, params, q):
                         mean_table [xb][wb][rpr_idx][adc_idx][sar_idx] = scale * mean
                         valid_table[xb][wb][rpr_idx][adc_idx][sar_idx] = 1
                         # not accurate:
-                        delay_table[xb][wb][rpr_idx][adc_idx][sar_idx] = row[xb][rpr] * (sar + 1)
+                        delay_table[xb][wb][rpr_idx][adc_idx][sar_idx] = row[xb][rpr - 1] * (sar + 1)
                         # not currently used:
-                        area_table[xb][wb][rpr_idx][adc_idx][sar_idx] = (adc + 1) + 1*(sar > 0)
+                        area_table[xb][wb][rpr_idx][adc_idx][sar_idx] = adc + 1*(sar > 0)
 
     assert (np.sum(mean_table[:, :, 0, 0]) >= -params['thresh'])
     assert (np.sum(mean_table[:, :, 0, 0]) <=  params['thresh'])
@@ -174,15 +174,15 @@ def static_rpr(id, params, q):
             adc_idx  = adc_lut[xb][wb]
             sar_idx  = sar_lut[xb][wb]
 
-            rpr  = params['rprs'][rpr_idx] - 1
-            adc  = params['adcs'][adc_idx] - 1
+            rpr  = params['rprs'][rpr_idx]
+            adc  = params['adcs'][adc_idx]
             sar  = params['sars'][sar_idx]
 
-            rpr_lut[xb][wb] = rpr + 1
-            adc_lut[xb][wb] = adc + 1
+            rpr_lut[xb][wb] = rpr
+            adc_lut[xb][wb] = adc
             sar_lut[xb][wb] = sar
             ##########################################
-            states = (adc + 1) * (2 ** sar)
+            states = adc * (2 ** sar)
 
             error[xb][wb] = error_table[xb][wb][rpr_idx][adc_idx][sar_idx]
             mean[xb][wb]  = mean_table[xb][wb][rpr_idx][adc_idx][sar_idx]
