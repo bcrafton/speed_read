@@ -26,9 +26,9 @@ def perms(param):
 def CC():
 
     rpr64 = np.array([1, 2, 4, 8, 16, 24, 32, 48, 64])
-    adc64 = np.array([1])
+    adc64 = np.array([1, 2, 4, 8, 16, 24, 32, 48, 64])
     sar64 = np.array([0, 2, 3, 4, 5, 6])
-    Ns    = np.array([1])
+    Ns    = np.array([1, 2, 4, 8])
 
     array_params = {
     'bpa': 8,
@@ -49,9 +49,9 @@ def CC():
     'thresh': [0.10],
     'method': ['kmeans'],
     'adc': 64,
-    'lrs': [0.01],
+    'lrs': [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10],
     'hrs': [0.02],
-    'area': [1e9],
+    'area': [1, 2, 3, 4, 6, 8, 10, 12, 14, 16],
     'rprs': [rpr64],
     'adcs': [adc64],
     'sars': [sar64],

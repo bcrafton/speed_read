@@ -40,7 +40,7 @@ comp_pJ = 20e-15
 
 hrss = [0.02]
 lrss = np.array([0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10])
-areas = np.array([64, 128, 192, 256, 384, 512, 640, 768, 896, 1024])
+areas = np.array([1, 2, 3, 4, 6, 8, 10, 12, 14, 16])
 
 perf = np.zeros(shape=(len(areas), len(lrss)))
 error = np.zeros(shape=(len(areas), len(lrss)))
@@ -63,7 +63,6 @@ for area_i, area in enumerate(areas):
 
             count = samples['count']
             rpr = samples['rpr']
-            steps = samples['step']
             sar = samples['sar']
             comps = samples['comps']
             N = samples['N']
@@ -88,8 +87,9 @@ for area_i, area in enumerate(areas):
                         values, counts = np.unique(adc[i][j], return_counts=True)
                         #################################################
                         if sar[l][i][j]:
-                            scale = np.where(values > 0, 1 + np.ceil(np.log2(values)),              0)
-                            scale = np.where(scale  > 0, np.maximum(1, scale - steps[l][i][j] + 1), 0)
+                            scale = np.where(values > 0, 1 + np.ceil(np.log2(values)), 0)
+                            # what was step before ? 0 or 1 ?
+                            # scale = np.where(scale  > 0, np.maximum(1, scale - steps[l][i][j] + 1), 0)
                         else:
                             scale = np.where(values > 0, 1, 0)
 
@@ -100,9 +100,9 @@ for area_i, area in enumerate(areas):
                             total_wl += v * c
                             hist[int(s)] += c
                         #################################################
-            error[area_i][lrs_i] = np.max(samples['error'])
-            perf[area_i][lrs_i] = total_mac / (total_cycle / N[l])
-            ##################################################################
+                error[area_i][lrs_i] = np.max(samples['error'])
+                perf[area_i][lrs_i] = total_mac / (total_cycle / N[l])
+                ##################################################################
 
 ######################################
 
