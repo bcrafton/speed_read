@@ -28,6 +28,7 @@ def CC():
     rpr64 = np.array([1, 2, 4, 8, 16, 24, 32, 48, 64])
     adc64 = np.array([1])
     sar64 = np.array([0, 2, 3, 4, 5, 6])
+    Ns    = np.array([1])
 
     array_params = {
     'bpa': 8,
@@ -53,7 +54,8 @@ def CC():
     'area': [1e9],
     'rprs': [rpr64],
     'adcs': [adc64],
-    'sars': [sar64]
+    'sars': [sar64],
+    'Ns':   [Ns]
     }
 
     arch_params1 = perms(arch_params1)

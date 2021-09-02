@@ -34,10 +34,10 @@ cvxopt.solvers.options['reltol'] = 1e-2
 
 ##########################################
 
-def optimize_rpr(error, mean, delay, valid, area_adc, area_sar, area, threshold):
+def optimize_rpr(error, mean, delay, valid, area_adc, area_sar, area, threshold, Ns):
     (best_lut, best_N, best_delay) = (None, 0, 1e12)
-    for N in [1]:
-        if (64 * N) > area: continue
+    for N in Ns:
+        if N > area: continue
         lut, current_delay = optimize_rpr_kernel(error, mean, delay, valid, area_adc, area_sar, area, threshold, N)
         if current_delay < best_delay: (best_lut, best_N, best_delay) = (lut, N, current_delay)
 
@@ -168,8 +168,8 @@ def optimize_rpr_kernel(error, mean, delay, valid, area_adc, area_sar, area, thr
 
     ##########################################
 
-    area1 = 64 * area_adc @ adc_var
-    area2 = 64 * area_sar @ sar_var
+    area1 = area_adc @ adc_var
+    area2 = area_sar @ sar_var
     area_constraint = (area1 + area2) <= area
     
     ##########################################
@@ -320,15 +320,6 @@ def optimize_rpr_kernel(error, mean, delay, valid, area_adc, area_sar, area, thr
 
     ##########################################
 
-    '''
-    print (rpr_lut)
-    print (adc_lut)
-    print (num_lut)
-    print (sar_lut)
-    '''
-
-    ##########################################
-
     print ('Total Error:', select.flatten() @ error)
     
     print ('Total Mean:', select.flatten() @ mean)
@@ -337,27 +328,12 @@ def optimize_rpr_kernel(error, mean, delay, valid, area_adc, area_sar, area, thr
     print ('Total Delay:', select.flatten() @ delay)
 
     ##########################################
-    '''
-    area1 = adc_lut.reshape(xb, wb // N, N)
-    area1 = np.max(area1, axis=(0, 1))
-    area1 = np.sum(area_adc[area1])
-
-    area2 = sar_lut.reshape(xb, wb // N, N)
-    area2 = np.max(area2, axis=(0, 1))
-    area2 = np.sum(area_sar[area2])
-
-    print ('Total Area:', 64 * (area1 + area2))
-    '''
-    ##########################################
     
     area1 = np.around(adc_var.value) @ area_adc
     area2 = np.around(sar_var.value) @ area_sar
-    print ('Total Area:', 64 * (area1 + area2)) 
+    print ('Total Area:', (area1 + area2)) 
 
     ##########################################
-
-    # this is useful
-    # grep -r "sar" | grep "num" | grep "adc"
 
     return (rpr_lut, adc_lut, sar_lut), total_delay
     

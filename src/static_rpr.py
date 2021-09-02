@@ -161,7 +161,8 @@ def static_rpr(id, params, q):
                                                     area_adc=np.array([1]),
                                                     area_sar=np.array([0, 1, 1.25, 1.50, 1.75, 2.00]),
                                                     area=params['area'],
-                                                    threshold=params['thresh'])
+                                                    threshold=params['thresh'],
+                                                    Ns=params['Ns'])
 
     mean = np.zeros(shape=(8, 8))
     error = np.zeros(shape=(8, 8))
