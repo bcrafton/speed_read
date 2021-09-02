@@ -82,8 +82,7 @@ class Conv(Layer):
 
     def init(self, params):
         self.params.update(params)
-        self.params['step'], self.params['rpr'], self.params['comps'], self.params['sar'], self.params['N'], self.params['conf'], self.params['value'] = static_rpr(self.layer_id, self.params, self.q)
-        # print (self.params['step'])
+        self.params['rpr'], self.params['comps'], self.params['sar'], self.params['N'], self.params['conf'], self.params['value'] = static_rpr(self.layer_id, self.params, self.q)
         print (self.params['rpr'])
         print (self.params['comps'])
         print (self.params['sar'])
@@ -195,7 +194,6 @@ class Conv(Layer):
 
         results = metrics
         results['rpr'] = self.params['rpr']
-        results['step'] = self.params['step']
         results['sar'] = self.params['sar']
         results['N'] = self.params['N']
         results['area'] = self.params['area']

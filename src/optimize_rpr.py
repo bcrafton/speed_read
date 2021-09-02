@@ -36,14 +36,14 @@ cvxopt.solvers.options['reltol'] = 1e-2
 
 def optimize_rpr(error, mean, delay, valid, area_adc, area_sar, area, threshold):
     (best_lut, best_N, best_delay) = (None, 0, 1e12)
-    for N in [1, 2, 4, 8]:
+    for N in [1]:
         if (64 * N) > area: continue
         lut, current_delay = optimize_rpr_kernel(error, mean, delay, valid, area_adc, area_sar, area, threshold, N)
         if current_delay < best_delay: (best_lut, best_N, best_delay) = (lut, N, current_delay)
 
     assert (best_N > 0)
-    step_lut, rpr_lut, adc_lut, sar_lut = best_lut
-    return step_lut, rpr_lut, adc_lut, sar_lut, best_N
+    rpr_lut, adc_lut, sar_lut = best_lut
+    return rpr_lut, adc_lut, sar_lut, best_N
 
 ##########################################
 
@@ -51,9 +51,9 @@ def optimize_rpr_kernel(error, mean, delay, valid, area_adc, area_sar, area, thr
     
     # TODO:
     # make dim all caps
-    xb, wb, step, rpr, adc, sar = np.shape(error)
+    xb, wb, rpr, adc, sar = np.shape(error)
     
-    # print (xb, wb, step, rpr, adc, sar)
+    # print (xb, wb, rpr, adc, sar)
     assert (np.shape(error) == np.shape(mean))
     assert (np.shape(error) == np.shape(delay))
     assert (np.shape(error) == np.shape(valid))
@@ -63,10 +63,10 @@ def optimize_rpr_kernel(error, mean, delay, valid, area_adc, area_sar, area, thr
 
     ##########################################
 
-    error = error.reshape(xb, wb, step, rpr, adc, sar)
-    mean  = mean.reshape( xb, wb, step, rpr, adc, sar)
-    delay = delay.reshape(xb, wb, step, rpr, adc, sar)
-    valid = valid.reshape(xb, wb, step, rpr, adc, sar)
+    error = error.reshape(xb, wb, rpr, adc, sar)
+    mean  = mean.reshape( xb, wb, rpr, adc, sar)
+    delay = delay.reshape(xb, wb, rpr, adc, sar)
+    valid = valid.reshape(xb, wb, rpr, adc, sar)
 
     # N = 4
     assert (N in [1, 2, 4, 8])
@@ -86,31 +86,31 @@ def optimize_rpr_kernel(error, mean, delay, valid, area_adc, area_sar, area, thr
     # https://www.cvxpy.org/tutorial/advanced/index.html#attributes
     # [shape, boolean, integer, nonneg, nonpos]
     # ValueError: Cannot set more than one special attribute in Variable.
-    selection = cvxpy.Variable((xb * wb * step * rpr * adc * sar), boolean=True)
+    selection = cvxpy.Variable((xb * wb * rpr * adc * sar), boolean=True)
     select_constraint = []
 
-    selection = cvxpy.reshape(expr=selection, shape=(xb*wb, step*rpr*adc*sar), order='C')
+    selection = cvxpy.reshape(expr=selection, shape=(xb*wb, rpr*adc*sar), order='C')
     for i in range(xb * wb):
         select_constraint.append( cvxpy.sum(selection[i]) == 1 )
-    selection = cvxpy.reshape(expr=selection, shape=(xb*wb*step*rpr*adc*sar), order='C')
+    selection = cvxpy.reshape(expr=selection, shape=(xb*wb*rpr*adc*sar), order='C')
 
     ##########################################
 
     adc_var = cvxpy.Variable(shape=adc, boolean=True)
     adc_constraint = []
 
-    selection_n = cvxpy.reshape(expr=selection, shape=(xb*wb*step*rpr*adc*sar), order='C')
+    selection_n = cvxpy.reshape(expr=selection, shape=(xb*wb*rpr*adc*sar), order='C')
 
-    selection_n = cvxpy.reshape(expr=selection_n, shape=(xb*wb, step*rpr*adc*sar), order='C')
+    selection_n = cvxpy.reshape(expr=selection_n, shape=(xb*wb, rpr*adc*sar), order='C')
     selection_n = cvxpy.sum(selection_n, axis=0)
-    selection_n = cvxpy.reshape(expr=selection_n, shape=(       step*rpr*adc,sar), order='C')
+    selection_n = cvxpy.reshape(expr=selection_n, shape=(       rpr*adc,sar), order='C')
     selection_n = cvxpy.sum(selection_n, axis=1)
-    selection_n = cvxpy.reshape(expr=selection_n, shape=(       step*rpr,adc    ), order='C')
+    selection_n = cvxpy.reshape(expr=selection_n, shape=(       rpr,adc    ), order='C')
     selection_n = cvxpy.transpose(expr=selection_n)
 
-    selection_n = cvxpy.reshape(expr=selection_n, shape=(adc, step*rpr), order='C')
+    selection_n = cvxpy.reshape(expr=selection_n, shape=(adc, rpr), order='C')
     selection_n = cvxpy.sum(selection_n, axis=1)
-    selection_n = cvxpy.reshape(expr=selection_n, shape=(adc,         ), order='C')
+    selection_n = cvxpy.reshape(expr=selection_n, shape=(adc,    ), order='C')
 
     constraint = cvxpy.sum(adc_var) == 1
     adc_constraint.append(constraint)
@@ -123,16 +123,16 @@ def optimize_rpr_kernel(error, mean, delay, valid, area_adc, area_sar, area, thr
     sar_var = cvxpy.Variable(shape=sar, boolean=True)
     sar_constraint = []
 
-    selection_n = cvxpy.reshape(expr=selection, shape=(xb*wb*step*rpr*adc*sar), order='C')
+    selection_n = cvxpy.reshape(expr=selection, shape=(xb*wb*rpr*adc*sar), order='C')
 
-    selection_n = cvxpy.reshape(expr=selection_n, shape=(xb*wb, step*rpr*adc*sar), order='C')
+    selection_n = cvxpy.reshape(expr=selection_n, shape=(xb*wb, rpr*adc*sar), order='C')
     selection_n = cvxpy.sum(selection_n, axis=0)
-    selection_n = cvxpy.reshape(expr=selection_n, shape=(       step*rpr*adc,sar), order='C')
+    selection_n = cvxpy.reshape(expr=selection_n, shape=(       rpr*adc,sar), order='C')
     selection_n = cvxpy.transpose(expr=selection_n)
 
-    selection_n = cvxpy.reshape(expr=selection_n, shape=(sar, step*rpr*adc), order='C')
+    selection_n = cvxpy.reshape(expr=selection_n, shape=(sar, rpr*adc), order='C')
     selection_n = cvxpy.sum(selection_n, axis=1)
-    selection_n = cvxpy.reshape(expr=selection_n, shape=(sar,             ), order='C')
+    selection_n = cvxpy.reshape(expr=selection_n, shape=(sar,        ), order='C')
 
     constraint = cvxpy.sum(sar_var) == 1
     sar_constraint.append(constraint)
@@ -144,14 +144,13 @@ def optimize_rpr_kernel(error, mean, delay, valid, area_adc, area_sar, area, thr
 
     rpr_constraint = []
 
-    selection_n = cvxpy.reshape(expr=selection, shape=(xb*wb*step*rpr*adc*sar), order='C')
+    selection_n = cvxpy.reshape(expr=selection, shape=(xb*wb*rpr*adc*sar), order='C')
 
-    selection_n = cvxpy.reshape(expr=selection_n, shape=(xb*wb*step*rpr, adc*sar), order='C')
+    selection_n = cvxpy.reshape(expr=selection_n, shape=(xb*wb*rpr, adc*sar), order='C')
     selection_n = cvxpy.sum(selection_n, axis=1)
-    selection_n = cvxpy.reshape(expr=selection_n, shape=(xb*wb*step, rpr), order='C')
+    selection_n = cvxpy.reshape(expr=selection_n, shape=(xb*wb, rpr), order='C')
     selection_n = cvxpy.transpose(expr=selection_n)
-    selection_n = cvxpy.reshape(expr=selection_n, shape=(rpr*xb*wb, step), order='C')
-    selection_n = cvxpy.sum(selection_n, axis=1)
+    selection_n = cvxpy.reshape(expr=selection_n, shape=(rpr*xb*wb), order='C')
     selection_n = cvxpy.reshape(expr=selection_n, shape=(rpr*xb, wb), order='C')
 
     for i in range(rpr * xb):
@@ -291,12 +290,12 @@ def optimize_rpr_kernel(error, mean, delay, valid, area_adc, area_sar, area, thr
     # print ( select[np.where(select > 0)] )
     # select = 1 * (select > 0) * (select > 1e-3)
     select = np.around(select).astype(int)
-    select = np.reshape(select, (xb, wb, step, rpr, adc, sar))
+    select = np.reshape(select, (xb, wb, rpr, adc, sar))
 
     # check 1
     ones1 = np.sum(select)
     # check 
-    ones2 = np.sum(select, axis=(2, 3, 4, 5))
+    ones2 = np.sum(select, axis=(2, 3, 4))
 
     # print (ones1)
     # print (ones2)
@@ -306,28 +305,22 @@ def optimize_rpr_kernel(error, mean, delay, valid, area_adc, area_sar, area, thr
 
     ##########################################
 
-    scale = np.arange(step, dtype=np.int32).reshape(-1, 1, 1, 1)
-    step_lut = np.sum(select * scale, axis=(2, 3, 4, 5))
+    scale = np.arange(rpr, dtype=np.int32).reshape(-1, 1, 1)
+    rpr_lut = np.sum(select * scale, axis=(2, 3, 4))
 
     ##########################################
 
-    scale = np.arange(rpr, dtype=np.int32).reshape(1, -1, 1, 1)
-    rpr_lut = np.sum(select * scale, axis=(2, 3, 4, 5))
+    scale = np.arange(adc, dtype=np.int32).reshape(1, -1, 1)
+    adc_lut = np.sum(select * scale, axis=(2, 3, 4))
 
     ##########################################
 
-    scale = np.arange(adc, dtype=np.int32).reshape(1, 1, -1, 1)
-    adc_lut = np.sum(select * scale, axis=(2, 3, 4, 5))
-
-    ##########################################
-
-    scale = np.arange(sar, dtype=np.int32).reshape(1, 1, 1, -1)
-    sar_lut = np.sum(select * scale, axis=(2, 3, 4, 5))
+    scale = np.arange(sar, dtype=np.int32).reshape(1, 1, -1)
+    sar_lut = np.sum(select * scale, axis=(2, 3, 4))
 
     ##########################################
 
     '''
-    print (step_lut)
     print (rpr_lut)
     print (adc_lut)
     print (num_lut)
@@ -366,7 +359,7 @@ def optimize_rpr_kernel(error, mean, delay, valid, area_adc, area_sar, area, thr
     # this is useful
     # grep -r "sar" | grep "num" | grep "adc"
 
-    return (step_lut, rpr_lut, adc_lut, sar_lut), total_delay
+    return (rpr_lut, adc_lut, sar_lut), total_delay
     
     
     

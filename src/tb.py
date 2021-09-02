@@ -91,7 +91,7 @@ model, x, y = load_cifar(num_example=1, array_params=array_params)
 
 start = time.time()
 
-load_profile = True
+load_profile = False
 if not load_profile:
     profile = model.profile(x)
 

@@ -19,11 +19,10 @@ def round_fraction(x, f):
 eps = 1e-10
 inf = 1e10
 
-def expected_error(params, step, rpr, adc, profile, row, adc_thresh, adc_value):
+def expected_error(params, rpr, adc, profile, row, adc_thresh, adc_value):
 
     # pe
 
-    # step is passed as (2 ** step)
     adc_center =       adc_value.reshape(1 + adc, 1, 1)
     adc_low    = adc_thresh[:-1].reshape(1 + adc, 1, 1)
     adc_high   = adc_thresh[ 1:].reshape(1 + adc, 1, 1)
@@ -78,30 +77,17 @@ def expected_error(params, step, rpr, adc, profile, row, adc_thresh, adc_value):
 def static_rpr(id, params, q):
     assert (q > 0)
 
-    ############
-
     rpr_lut = np.ones(shape=(8, 8), dtype=np.int32) * params['adc']
-    step_lut = np.zeros(shape=(8, 8), dtype=np.int32)
 
-    ############
+    # RPR = np.array([1, 2, 4, 8, 16, 24, 32, 48, 64]) - 1
+    # ADC = np.array([1]) - 1
+    # SAR = np.array([0, 2, 3, 4, 5, 6])
 
-    if params['method'] == 'kmeans': STEP = np.array([1]) - 1
-    else:                            STEP = np.array([1, 2, 4, 8, 16]) - 1
-    RPR = np.array([1, 2, 4, 8, 16, 24, 32, 48, 64]) - 1
-    ADC = np.array([1, 2, 4, 8, 16, 24, 32, 48, 64]) - 1
-    SAR = np.array([0, 2, 3, 4, 5, 6])
-
-    # STEP = np.array([1, 2, 4]) - 1
-    # RPR  = np.array([1, 2, 4, 8, 16]) - 1
-    # ADC  = np.array([1, 2, 4, 8, 16]) - 1
-
-    ############
-
-    delay_table = np.zeros(shape=(8, 8, len(STEP), len(RPR), len(ADC), len(SAR)))
-    error_table = np.zeros(shape=(8, 8, len(STEP), len(RPR), len(ADC), len(SAR)))
-    mean_table  = np.zeros(shape=(8, 8, len(STEP), len(RPR), len(ADC), len(SAR)))
-    valid_table = np.zeros(shape=(8, 8, len(STEP), len(RPR), len(ADC), len(SAR)))
-    area_table  = np.zeros(shape=(8, 8, len(STEP), len(RPR), len(ADC), len(SAR)))
+    delay_table = np.zeros(shape=(8, 8, len(params['rprs']), len(params['adcs']), len(params['sars'])))
+    error_table = np.zeros(shape=(8, 8, len(params['rprs']), len(params['adcs']), len(params['sars'])))
+    mean_table  = np.zeros(shape=(8, 8, len(params['rprs']), len(params['adcs']), len(params['sars'])))
+    valid_table = np.zeros(shape=(8, 8, len(params['rprs']), len(params['adcs']), len(params['sars'])))
+    area_table  = np.zeros(shape=(8, 8, len(params['rprs']), len(params['adcs']), len(params['sars'])))
 
     thresh_table = {}
     value_table = {}
@@ -113,41 +99,38 @@ def static_rpr(id, params, q):
 
     for wb in range(params['bpw']):
         for xb in range(params['bpa']):
-            for step_idx, step in enumerate(STEP):
-                for rpr_idx, rpr in enumerate(RPR):
-                    for adc_idx, adc in enumerate(ADC):
-                        for sar_idx, sar in enumerate(SAR):
-                            states = (adc + 1) * (2 ** sar)
-                            if (rpr + 1) < states: continue
+            for rpr_idx, rpr in enumerate(params['rprs'] -  1):
+                for adc_idx, adc in enumerate(params['adcs'] -  1):
+                    for sar_idx, sar in enumerate(params['sars']):
+                        states = (adc + 1) * (2 ** sar)
+                        if (rpr + 1) < states: continue
 
-                            thresh, values = thresholds(counts=profile[xb, wb, rpr + 1],
-                                                        step=step+1,
-                                                        adc=states,
-                                                        method=params['method'])
+                        thresh, values = thresholds(counts=profile[xb, wb, rpr + 1],
+                                                    adc=states,
+                                                    method=params['method'])
 
-                            thresh_table[(xb, wb, step_idx, rpr_idx, adc_idx, sar_idx)] = thresh
-                            value_table[(xb, wb, step_idx, rpr_idx, adc_idx, sar_idx)] = values
-                            assert (len(thresh) == states + 2)
-                            assert (len(values) == states + 1)
+                        thresh_table[(xb, wb, rpr_idx, adc_idx, sar_idx)] = thresh
+                        value_table[(xb, wb, rpr_idx, adc_idx, sar_idx)] = values
+                        assert (len(thresh) == states + 2)
+                        assert (len(values) == states + 1)
 
-                            mse, mean = expected_error(params=params, 
-                                                       step=step+1, 
-                                                       rpr=rpr+1,
-                                                       adc=states,
-                                                       profile=profile[xb, wb, rpr + 1], 
-                                                       row=row[xb][rpr], 
-                                                       adc_thresh=thresh, 
-                                                       adc_value=values)
+                        mse, mean = expected_error(params=params, 
+                                                   rpr=rpr+1,
+                                                   adc=states,
+                                                   profile=profile[xb, wb, rpr + 1], 
+                                                   row=row[xb][rpr], 
+                                                   adc_thresh=thresh, 
+                                                   adc_value=values)
 
-                            assert np.all(mse >= np.abs(mean))
-                            scale = 2**wb * 2**xb / q * ratio
-                            error_table[xb][wb][step_idx][rpr_idx][adc_idx][sar_idx] = scale * mse
-                            mean_table [xb][wb][step_idx][rpr_idx][adc_idx][sar_idx] = scale * mean
-                            valid_table[xb][wb][step_idx][rpr_idx][adc_idx][sar_idx] = 1
-                            # not accurate:
-                            delay_table[xb][wb][step_idx][rpr_idx][adc_idx][sar_idx] = row[xb][rpr] * (sar + 1)
-                            # not currently used:
-                            area_table[xb][wb][step_idx][rpr_idx][adc_idx][sar_idx] = (adc + 1) + 1*(sar > 0)
+                        assert np.all(mse >= np.abs(mean))
+                        scale = 2**wb * 2**xb / q * ratio
+                        error_table[xb][wb][rpr_idx][adc_idx][sar_idx] = scale * mse
+                        mean_table [xb][wb][rpr_idx][adc_idx][sar_idx] = scale * mean
+                        valid_table[xb][wb][rpr_idx][adc_idx][sar_idx] = 1
+                        # not accurate:
+                        delay_table[xb][wb][rpr_idx][adc_idx][sar_idx] = row[xb][rpr] * (sar + 1)
+                        # not currently used:
+                        area_table[xb][wb][rpr_idx][adc_idx][sar_idx] = (adc + 1) + 1*(sar > 0)
 
     assert (np.sum(mean_table[:, :, 0, 0]) >= -params['thresh'])
     assert (np.sum(mean_table[:, :, 0, 0]) <=  params['thresh'])
@@ -171,14 +154,14 @@ def static_rpr(id, params, q):
     # mean_table = round_fraction(mean_table, 1e-4)
 
     if params['skip'] and params['cards']:
-        step_lut, rpr_lut, adc_lut, sar_lut, N = optimize_rpr(error=error_table, 
-                                                              mean=np.abs(mean_table), 
-                                                              delay=delay_table, 
-                                                              valid=valid_table, 
-                                                              area_adc=np.array([1, 2, 4, 8, 16, 24, 32, 48, 64]),
-                                                              area_sar=np.array([0, 1, 1.25, 1.50, 1.75, 2.00]),
-                                                              area=params['area'],
-                                                              threshold=params['thresh'])
+        rpr_lut, adc_lut, sar_lut, N = optimize_rpr(error=error_table, 
+                                                    mean=np.abs(mean_table), 
+                                                    delay=delay_table, 
+                                                    valid=valid_table, 
+                                                    area_adc=np.array([1]),
+                                                    area_sar=np.array([0, 1, 1.25, 1.50, 1.75, 2.00]),
+                                                    area=params['area'],
+                                                    threshold=params['thresh'])
 
     mean = np.zeros(shape=(8, 8))
     error = np.zeros(shape=(8, 8))
@@ -187,27 +170,24 @@ def static_rpr(id, params, q):
     for wb in range(params['bpw']):
         for xb in range(params['bpa']):
             ##########################################
-            step_idx = step_lut[xb][wb]
             rpr_idx  = rpr_lut[xb][wb]
             adc_idx  = adc_lut[xb][wb]
             sar_idx  = sar_lut[xb][wb]
 
-            step = STEP[step_idx]
-            rpr  = RPR[rpr_idx]
-            adc  = ADC[adc_idx]
-            sar  = SAR[sar_idx]
+            rpr  = params['rprs'][rpr_idx] - 1
+            adc  = params['adcs'][adc_idx] - 1
+            sar  = params['sars'][sar_idx]
 
-            step_lut[xb][wb] = step + 1
             rpr_lut[xb][wb] = rpr + 1
             adc_lut[xb][wb] = adc + 1
             sar_lut[xb][wb] = sar
             ##########################################
             states = (adc + 1) * (2 ** sar)
 
-            error[xb][wb] = error_table[xb][wb][step_idx][rpr_idx][adc_idx][sar_idx]
-            mean[xb][wb]  = mean_table[xb][wb][step_idx][rpr_idx][adc_idx][sar_idx]
+            error[xb][wb] = error_table[xb][wb][rpr_idx][adc_idx][sar_idx]
+            mean[xb][wb]  = mean_table[xb][wb][rpr_idx][adc_idx][sar_idx]
 
-            conf1 = confusion(THRESH=thresh_table[(xb, wb, step_idx, rpr_idx, adc_idx, sar_idx)], 
+            conf1 = confusion(THRESH=thresh_table[(xb, wb, rpr_idx, adc_idx, sar_idx)], 
                               RPR=params['max_rpr'], 
                               ADC=states, 
                               HRS=params['hrs'], 
@@ -215,12 +195,12 @@ def static_rpr(id, params, q):
             conf2 = np.zeros(shape=(1 + params['max_rpr'], 1 + params['max_rpr'], params['adc'] - states), dtype=np.uint32)
             conf[xb][wb] = np.concatenate((conf1, conf2), axis=-1)
 
-            values1 = value_table[(xb, wb, step_idx, rpr_idx, adc_idx, sar_idx)]
+            values1 = value_table[(xb, wb, rpr_idx, adc_idx, sar_idx)]
             values2 = -1 * np.ones(shape=(params['adc'] - states), dtype=np.float32)
             value[xb][wb] = np.concatenate((values1, values2), axis=-1)
             ##########################################
 
-    return step_lut, rpr_lut, adc_lut, sar_lut, N, conf, value
+    return rpr_lut, adc_lut, sar_lut, N, conf, value
 
 ##########################################
     

@@ -119,10 +119,10 @@ def confusion(THRESH, RPR, ADC, HRS, LRS):
 
 ####################################################
 
-def thresholds(counts, step, adc, method='normal'):
+def thresholds(counts, adc, method='normal'):
     on_counts = np.sum(counts, axis=0)
-    if   method == 'normal': center = thresholds_normal(on_counts, adc, step)
-    elif method == 'kmeans': center = thresholds_kmeans(on_counts, adc, step)
+    if   method == 'normal': center = thresholds_normal(on_counts, adc)
+    elif method == 'kmeans': center = thresholds_kmeans(on_counts, adc)
     else:                    assert (False)
     low  = center[:-1]
     high = center[1:]
@@ -132,7 +132,7 @@ def thresholds(counts, step, adc, method='normal'):
 
 ####################################################
 
-def thresholds_kmeans(counts, adc, step):
+def thresholds_kmeans(counts, adc):
     if (adc + 1) >= np.count_nonzero(counts): return np.arange(0, adc + 1)
     values = np.arange(0, len(counts))
     centroids = kmeans(values=values, counts=counts, n_clusters=adc + 1)
@@ -145,8 +145,13 @@ def thresholds_kmeans(counts, adc, step):
 # B: [0,2,4,...16]
 # which should it be ? 
 # its currently (B).
-def thresholds_normal(counts, adc, step):
-    centroids = np.arange(0, adc + 1) * step
+# 
+# update: we scrapped step
+# 1: [0 .. adc]
+# 2: [0 .. adc] * len(counts) / 2
+# 3: sweep through all valid options and choose what minimizes error.
+def thresholds_normal(counts, adc):
+    centroids = np.arange(0, adc + 1)
     return centroids
 
 ####################################################
