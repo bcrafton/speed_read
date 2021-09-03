@@ -19,13 +19,13 @@ def round_fraction(x, f):
 eps = 1e-10
 inf = 1e10
 
-def expected_error(params, rpr, adc, profile, row, adc_thresh, adc_value):
+def expected_error(params, rpr, states, profile, row, adc_thresh, adc_value):
 
     # pe
 
-    adc_center =       adc_value.reshape(1 + adc, 1, 1)
-    adc_low    = adc_thresh[:-1].reshape(1 + adc, 1, 1)
-    adc_high   = adc_thresh[ 1:].reshape(1 + adc, 1, 1)
+    adc_center =       adc_value.reshape(states, 1, 1)
+    adc_low    = adc_thresh[:-1].reshape(states, 1, 1)
+    adc_high   = adc_thresh[ 1:].reshape(states, 1, 1)
 
     ########################################################################
 
@@ -102,21 +102,22 @@ def static_rpr(id, params, q):
             for rpr_idx, rpr in enumerate(params['rprs']):
                 for adc_idx, adc in enumerate(params['adcs']):
                     for sar_idx, sar in enumerate(params['sars']):
-                        states = adc * (2 ** sar)
+                        states = (adc + 1) * (2 ** sar)
                         if rpr < states: continue
 
                         thresh, values = thresholds(counts=profile[xb, wb, rpr],
-                                                    adc=states,
+                                                    adc=adc,
+                                                    sar=sar,
                                                     method=params['method'])
 
                         thresh_table[(xb, wb, rpr_idx, adc_idx, sar_idx)] = thresh
                         value_table[(xb, wb, rpr_idx, adc_idx, sar_idx)] = values
-                        assert (len(thresh) == states + 2)
-                        assert (len(values) == states + 1)
+                        assert (len(thresh) == states + 1)
+                        assert (len(values) == states + 0)
 
                         mse, mean = expected_error(params=params, 
                                                    rpr=rpr+1,
-                                                   adc=states,
+                                                   states=states,
                                                    profile=profile[xb, wb, rpr], 
                                                    row=row[xb][rpr - 1],
                                                    adc_thresh=thresh, 
@@ -183,7 +184,7 @@ def static_rpr(id, params, q):
             adc_lut[xb][wb] = adc
             sar_lut[xb][wb] = sar
             ##########################################
-            states = adc * (2 ** sar)
+            states = (adc + 1) * (2 ** sar)
 
             error[xb][wb] = error_table[xb][wb][rpr_idx][adc_idx][sar_idx]
             mean[xb][wb]  = mean_table[xb][wb][rpr_idx][adc_idx][sar_idx]
@@ -193,11 +194,11 @@ def static_rpr(id, params, q):
                               ADC=states, 
                               HRS=params['hrs'], 
                               LRS=params['lrs'])
-            conf2 = np.zeros(shape=(1 + params['max_rpr'], 1 + params['max_rpr'], params['adc'] - states), dtype=np.uint32)
+            conf2 = np.zeros(shape=(1 + params['max_rpr'], 1 + params['max_rpr'], params['adc'] + 1 - states), dtype=np.uint32)
             conf[xb][wb] = np.concatenate((conf1, conf2), axis=-1)
 
             values1 = value_table[(xb, wb, rpr_idx, adc_idx, sar_idx)]
-            values2 = -1 * np.ones(shape=(params['adc'] - states), dtype=np.float32)
+            values2 = -1 * np.ones(shape=(params['adc'] + 1 - states), dtype=np.float32)
             value[xb][wb] = np.concatenate((values1, values2), axis=-1)
             ##########################################
 

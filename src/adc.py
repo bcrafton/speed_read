@@ -5,6 +5,7 @@ np.set_printoptions(threshold=sys.maxsize)
 from scipy.stats import norm
 import matplotlib.pyplot as plt
 from kmeans import kmeans
+import itertools
 
 ####################################################
 '''
@@ -83,11 +84,11 @@ def check(x):
 def confusion(THRESH, RPR, ADC, HRS, LRS):
     eps1 = 1e-12
     eps2 = 1e-6
-    assert (len(THRESH) == ADC+2)
+    assert (len(THRESH) == ADC+1)
 
-    wl  = np.arange(0, RPR+1).reshape(RPR+1,     1,     1).astype(int)
-    on  = np.arange(0, RPR+1).reshape(    1, RPR+1,     1).astype(int)
-    adc = np.arange(0, ADC+1).reshape(    1,     1, ADC+1).astype(int)
+    wl  = np.arange(0, RPR+1).reshape(RPR+1,     1,   1).astype(int)
+    on  = np.arange(0, RPR+1).reshape(    1, RPR+1,   1).astype(int)
+    adc = np.arange(0,   ADC).reshape(    1,     1, ADC).astype(int)
     off = np.maximum(0, wl - on)
 
     assert (np.all(THRESH[adc + 1] > THRESH[adc]))
@@ -119,10 +120,11 @@ def confusion(THRESH, RPR, ADC, HRS, LRS):
 
 ####################################################
 
-def thresholds(counts, adc, method='normal'):
+def thresholds(counts, adc, sar, method='normal'):
     on_counts = np.sum(counts, axis=0)
-    if   method == 'normal': center = thresholds_normal(on_counts, adc)
-    elif method == 'kmeans': center = thresholds_kmeans(on_counts, adc)
+    if   method == 'normal': center = thresholds_normal(on_counts, adc, sar)
+    elif method == 'kmeans': center = thresholds_kmeans(on_counts, adc, sar)
+    elif method == 'soft':   center = thresholds_kmeans_soft(on_counts, adc, sar)
     else:                    assert (False)
     low  = center[:-1]
     high = center[1:]
@@ -132,12 +134,15 @@ def thresholds(counts, adc, method='normal'):
 
 ####################################################
 
-def thresholds_kmeans(counts, adc):
-    if (adc + 1) >= np.count_nonzero(counts): return np.arange(0, adc + 1)
+def thresholds_kmeans(counts, adc, sar):
+    states = (adc + 1) * (2 ** sar)
+    if states >= np.count_nonzero(counts): return np.arange(0, states)
     values = np.arange(0, len(counts))
-    centroids = kmeans(values=values, counts=counts, n_clusters=adc + 1)
+    centroids = kmeans(values=values, counts=counts, n_clusters=states)
     centroids.sort()
     return centroids
+
+####################################################
 
 # step is passed as (2 ** step)
 # example -> [rpr=32, adc=16, step=2]
@@ -150,9 +155,51 @@ def thresholds_kmeans(counts, adc):
 # 1: [0 .. adc]
 # 2: [0 .. adc] * len(counts) / 2
 # 3: sweep through all valid options and choose what minimizes error.
-def thresholds_normal(counts, adc):
-    centroids = np.arange(0, adc + 1)
+def thresholds_normal(counts, adc, sar):
+    states = (adc + 1) * (2 ** sar)
+    centroids = np.arange(0, states)
     return centroids
+
+####################################################
+
+# need to include sar in here ?
+# so k-means dosnt respect sar constraint ?
+# it dosnt look like it ...
+# if we ignore this constraint, can we make it work ? 
+def thresholds_kmeans_soft(counts, adc, sar):
+    max_rpr = len(counts) - 1
+    max_sar = np.log2(max_rpr)
+    assert (max_sar % 1 == 0)
+    max_sar = int(max_sar)
+    ###################################
+    refs = []
+    for ref in itertools.combinations(2 ** np.arange(max_sar), adc + sar):
+        configs = [0]
+        for size in range(1, adc + sar + 1):
+            for config in itertools.combinations(ref, size):
+                configs.append(np.sum(config))
+        configs = np.array(configs)
+        refs.append(configs)
+    ###################################
+    def compute_error(counts, ref):
+        val = np.arange(0, len(counts))
+        pmf = counts / np.sum(counts)
+        diff = val - ref.reshape(-1, 1)
+        diff = np.abs(diff)
+        diff = np.min(diff, axis=0)
+        error = np.sum(pmf * diff)
+        return error
+    ###################################
+    best_ref = None; best_error = np.inf
+    for ref in refs:
+        error = compute_error(counts, ref)
+        if error < best_error:
+            best_error = error
+            best_ref = ref
+    ###################################
+    assert best_ref is not None
+    best_ref.sort()
+    return best_ref
 
 ####################################################
 

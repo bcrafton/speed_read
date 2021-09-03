@@ -5108,9 +5108,22 @@ look at different layers
 > Layer 1 = not interesting ... only 27 possible 1s.
 > 
 
- 
+====================
 
+states = (adc + 1) * (2 ** sar)
+adc=1, sar=2 -> 4
+adc=2, sar=2 -> 12
+adc=3, sar=2 -> 16 
 
+... NOPE ...
+
+states = (adc + 1) ** sar
+adc=1, sar=2 -> 4
+adc=2, sar=2 -> 9
+adc=3, sar=2 -> 16 
+adc=4, sar=2 -> 25
+
+====================
 
 
 
