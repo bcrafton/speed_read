@@ -90,6 +90,9 @@ for area_i, area in enumerate(areas):
                             scale = np.where(values > 0, 1 + np.ceil(np.log2(values)), 0)
                             # what was step before ? 0 or 1 ?
                             # scale = np.where(scale  > 0, np.maximum(1, scale - steps[l][i][j] + 1), 0)
+                            # re-ran area_constraint
+                            # check what "step" was in cc_sar2
+                            # steps[l][i][j] == 1
                         else:
                             scale = np.where(values > 0, 1, 0)
 
