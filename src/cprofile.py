@@ -82,8 +82,10 @@ def profile(layer, x, w, y_ref, y_shape, params):
     ratio = np.count_nonzero(y_ref) / np.prod(np.shape(y_ref))
 
     ###########################
-    
-    profile = {'ratio': ratio, 'adc': adc, 'row': row}
+
+    assert (wl == params['wl'])
+    assert (bl == params['bl'])
+    profile = {'ratio': ratio, 'adc': adc, 'row': row, 'max_rpr': params['max_rpr'], 'wl': params['wl'], 'bl': params['bl']}
     np.save('profile/%d' % (layer), profile)
 
 

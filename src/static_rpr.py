@@ -93,6 +93,9 @@ def static_rpr(id, params, q):
     value_table = {}
 
     profile = np.load('./profile/%d.npy' % (id), allow_pickle=True).item()
+    assert (params['wl'] == profile['wl'])
+    assert (params['bl'] == profile['bl'])
+    assert (params['max_rpr'] == profile['max_rpr'])
     row = np.maximum(1, profile['row'])
     ratio = profile['ratio']
     profile = profile['adc']
