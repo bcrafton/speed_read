@@ -161,7 +161,7 @@ def thresholds_normal(counts, adc, sar):
     return centroids
 
 ####################################################
-
+'''
 # need to include sar in here ?
 # so k-means dosnt respect sar constraint ?
 # it dosnt look like it ...
@@ -200,12 +200,65 @@ def thresholds_kmeans_soft(counts, adc, sar):
     assert best_ref is not None
     best_ref.sort()
     return best_ref
-
+'''
 ####################################################
 
+def flatten(data):
+    if isinstance(data, tuple):
+        if len(data) == 0:
+            return ()
+        else:
+            return flatten(data[0]) + flatten(data[1:])
+    else:
+        return (data,)
 
+# need to include sar in here ?
+# so k-means dosnt respect sar constraint ?
+# it dosnt look like it ...
+# if we ignore this constraint, can we make it work ? 
+def thresholds_kmeans_soft(counts, adc, sar):
+    max_rpr = len(counts) - 1
+    max_sar = math.log(max_rpr, adc + 1)
+    max_sar = int(np.ceil(max_sar))
+    ###################################
+    choices = []
+    for s in range(max_sar):
+        choice = [a * (adc+1) ** s for a in range(adc + 1)]
+        choices.append(choice)
+    ###################################
+    refs = []
+    for comb in itertools.combinations(choices, sar):
+        comb_refs = []
+        for comb_ref in comb:
+            if comb_refs: comb_refs = list(itertools.product(comb_ref, comb_refs))
+            else:         comb_refs = comb_ref
+        ref = []
+        for comb_ref in comb_refs:
+            ref.append( np.sum(flatten(comb_ref)) )
+        ref = np.array(ref)
+        refs.append(ref)
+    ###################################
+    def compute_error(counts, ref):
+        val = np.arange(0, len(counts))
+        pmf = counts / np.sum(counts)
+        diff = val - ref.reshape(-1, 1)
+        diff = np.abs(diff)
+        diff = np.min(diff, axis=0)
+        error = np.sum(pmf * diff)
+        return error
+    ###################################
+    best_ref = None; best_error = np.inf
+    for ref in refs:
+        error = compute_error(counts, ref)
+        if error < best_error:
+            best_error = error
+            best_ref = ref
+    ###################################
+    assert best_ref is not None
+    best_ref.sort()
+    return best_ref
 
-
+####################################################
 
 
 
