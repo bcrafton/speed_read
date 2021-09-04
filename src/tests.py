@@ -27,7 +27,7 @@ def CC():
 
     rpr64 = np.array([1, 2, 4, 8, 16, 24, 32, 48, 64])
     adc64 = np.array([1])
-    sar64 = np.array([0, 2, 3, 4, 5, 6])
+    sar64 = np.array([1, 2, 3, 4, 5, 6])
     Ns    = np.array([1])
 
     adc64_area = np.array([1])

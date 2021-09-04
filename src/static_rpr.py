@@ -102,7 +102,7 @@ def static_rpr(id, params, q):
             for rpr_idx, rpr in enumerate(params['rprs']):
                 for adc_idx, adc in enumerate(params['adcs']):
                     for sar_idx, sar in enumerate(params['sars']):
-                        states = (adc + 1) * (2 ** sar)
+                        states = (adc + 1) ** sar
                         if rpr < states: continue
 
                         thresh, values = thresholds(counts=profile[xb, wb, rpr],
@@ -129,9 +129,9 @@ def static_rpr(id, params, q):
                         mean_table [xb][wb][rpr_idx][adc_idx][sar_idx] = scale * mean
                         valid_table[xb][wb][rpr_idx][adc_idx][sar_idx] = 1
                         # not accurate:
-                        delay_table[xb][wb][rpr_idx][adc_idx][sar_idx] = row[xb][rpr - 1] * (sar + 1)
+                        delay_table[xb][wb][rpr_idx][adc_idx][sar_idx] = row[xb][rpr - 1] * sar
                         # not currently used:
-                        area_table[xb][wb][rpr_idx][adc_idx][sar_idx] = adc + 1*(sar > 0)
+                        area_table[xb][wb][rpr_idx][adc_idx][sar_idx] = adc + (sar - 1)
 
     assert (np.sum(mean_table[:, :, 0, 0]) >= -params['thresh'])
     assert (np.sum(mean_table[:, :, 0, 0]) <=  params['thresh'])
@@ -184,7 +184,7 @@ def static_rpr(id, params, q):
             adc_lut[xb][wb] = adc
             sar_lut[xb][wb] = sar
             ##########################################
-            states = (adc + 1) * (2 ** sar)
+            states = (adc + 1) ** sar
 
             error[xb][wb] = error_table[xb][wb][rpr_idx][adc_idx][sar_idx]
             mean[xb][wb]  = mean_table[xb][wb][rpr_idx][adc_idx][sar_idx]

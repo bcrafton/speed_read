@@ -135,7 +135,7 @@ def thresholds(counts, adc, sar, method='normal'):
 ####################################################
 
 def thresholds_kmeans(counts, adc, sar):
-    states = (adc + 1) * (2 ** sar)
+    states = (adc + 1) ** sar
     if states >= np.count_nonzero(counts): return np.arange(0, states)
     values = np.arange(0, len(counts))
     centroids = kmeans(values=values, counts=counts, n_clusters=states)
@@ -156,7 +156,7 @@ def thresholds_kmeans(counts, adc, sar):
 # 2: [0 .. adc] * len(counts) / 2
 # 3: sweep through all valid options and choose what minimizes error.
 def thresholds_normal(counts, adc, sar):
-    states = (adc + 1) * (2 ** sar)
+    states = (adc + 1) ** sar
     centroids = np.arange(0, states)
     return centroids
 
@@ -173,9 +173,9 @@ def thresholds_kmeans_soft(counts, adc, sar):
     max_sar = int(max_sar)
     ###################################
     refs = []
-    for ref in itertools.combinations(2 ** np.arange(max_sar), adc + sar):
+    for ref in itertools.combinations(2 ** np.arange(max_sar), adc + sar - 1):
         configs = [0]
-        for size in range(1, adc + sar + 1):
+        for size in range(1, adc + sar):
             for config in itertools.combinations(ref, size):
                 configs.append(np.sum(config))
         configs = np.array(configs)
