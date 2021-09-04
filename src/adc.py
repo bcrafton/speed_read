@@ -6,6 +6,7 @@ from scipy.stats import norm
 import matplotlib.pyplot as plt
 from kmeans import kmeans
 import itertools
+import math
 
 ####################################################
 '''
