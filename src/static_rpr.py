@@ -133,7 +133,9 @@ def static_rpr(id, params, q):
                         mean_table [xb][wb][rpr_idx][adc_idx][sar_idx] = scale * mean
                         valid_table[xb][wb][rpr_idx][adc_idx][sar_idx] = 1
                         delay_table[xb][wb][rpr_idx][adc_idx][sar_idx] = row[xb][rpr - 1] * sar
-                        energy_table[xb][wb][rpr_idx][adc_idx][sar_idx] = (sar * adc * params['adc_energy']) + (sar * params['sar_energy'])
+                        adc_energy = (sar * adc * params['adc_energy'])
+                        sar_energy = (sar *       params['sar_energy'])
+                        energy_table[xb][wb][rpr_idx][adc_idx][sar_idx] = row[xb][rpr - 1] * (sar_energy + adc_energy)
                         # not currently used:
                         area_table[xb][wb][rpr_idx][adc_idx][sar_idx] = adc + (sar - 1)
 

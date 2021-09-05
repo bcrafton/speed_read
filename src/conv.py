@@ -153,11 +153,15 @@ class Conv(Layer):
         results['mean']     = z_mean
         results['error']    = z_error
 
-        nwl, _, nbl, _ = np.shape(self.wb)
+        # count = (1024, 1, 8, 8, 2)
+        # sar = (8, 8)
+        # adc = (8, 8)
+        cost = self.params['sar'].reshape(8, 8, 1) * self.params['comps'].reshape(8, 8, 1) + self.params['sar'].reshape(8, 8, 1)
+        results['energy'] = np.sum(cost * (results['count'] > 0))
 
-        # print (self.params['method'])
-        print ('cycle: %d stall: %d mean: %0.3f std: %0.3f error: %0.3f' % 
-              (results['cycle'], results['stall'], z_mean, z_std, z_error))
+        nwl, _, nbl, _ = np.shape(self.wb)
+        print ('cycle: %d energy: %d stall: %d mean: %0.3f std: %0.3f error: %0.3f' %
+              (results['cycle'], results['energy'], results['stall'], z_mean, z_std, z_error))
 
         ########################
 
