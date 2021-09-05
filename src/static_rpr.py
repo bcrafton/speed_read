@@ -83,11 +83,12 @@ def static_rpr(id, params, q):
     # ADC = np.array([1]) - 1
     # SAR = np.array([0, 2, 3, 4, 5, 6])
 
-    delay_table = np.zeros(shape=(8, 8, len(params['rprs']), len(params['adcs']), len(params['sars'])))
-    error_table = np.zeros(shape=(8, 8, len(params['rprs']), len(params['adcs']), len(params['sars'])))
-    mean_table  = np.zeros(shape=(8, 8, len(params['rprs']), len(params['adcs']), len(params['sars'])))
-    valid_table = np.zeros(shape=(8, 8, len(params['rprs']), len(params['adcs']), len(params['sars'])))
-    area_table  = np.zeros(shape=(8, 8, len(params['rprs']), len(params['adcs']), len(params['sars'])))
+    delay_table  = np.zeros(shape=(8, 8, len(params['rprs']), len(params['adcs']), len(params['sars'])))
+    energy_table = np.zeros(shape=(8, 8, len(params['rprs']), len(params['adcs']), len(params['sars'])))
+    error_table  = np.zeros(shape=(8, 8, len(params['rprs']), len(params['adcs']), len(params['sars'])))
+    mean_table   = np.zeros(shape=(8, 8, len(params['rprs']), len(params['adcs']), len(params['sars'])))
+    valid_table  = np.zeros(shape=(8, 8, len(params['rprs']), len(params['adcs']), len(params['sars'])))
+    area_table   = np.zeros(shape=(8, 8, len(params['rprs']), len(params['adcs']), len(params['sars'])))
 
     thresh_table = {}
     value_table = {}
@@ -131,8 +132,8 @@ def static_rpr(id, params, q):
                         error_table[xb][wb][rpr_idx][adc_idx][sar_idx] = scale * mse
                         mean_table [xb][wb][rpr_idx][adc_idx][sar_idx] = scale * mean
                         valid_table[xb][wb][rpr_idx][adc_idx][sar_idx] = 1
-                        # not accurate:
                         delay_table[xb][wb][rpr_idx][adc_idx][sar_idx] = row[xb][rpr - 1] * sar
+                        energy_table[xb][wb][rpr_idx][adc_idx][sar_idx] = (sar * adc * params['adc_energy']) + (sar * params['sar_energy'])
                         # not currently used:
                         area_table[xb][wb][rpr_idx][adc_idx][sar_idx] = adc + (sar - 1)
 

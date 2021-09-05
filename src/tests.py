@@ -60,7 +60,9 @@ def CC():
     'sars': [sar64],
     'Ns':   [Ns],
     'adc_area': [adc64_area],
-    'sar_area': [sar64_area]
+    'sar_area': [sar64_area],
+    'adc_energy': 1,
+    'sar_energy': 1
     }
 
     arch_params1 = perms(arch_params1)
