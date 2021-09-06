@@ -534,6 +534,12 @@ kmeans cannot use WL (in counts) have to assume all take the same amount of time
 > will need full flow verification
   > like running with random.normal basically to verify confusion matrix is valid.
 
+> 6 piece figure with SAR 
+  > find CC() from DAC ?
+  > delete old tests
+
+performance -- BB
+
 =====================================================
 
 NAH / DONE (8/10/2021):
