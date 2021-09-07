@@ -37,8 +37,8 @@ def CC():
     'bpa': 8,
     'bpw': 8,
     'adc_mux': 8,
-    'wl': 512,
-    'bl': 512,
+    'wl': 256,
+    'bl': 256,
     'offset': 128,
     'max_rpr': 64
     }

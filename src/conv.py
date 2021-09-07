@@ -160,6 +160,9 @@ class Conv(Layer):
         results['energy'] = np.sum(cost * (results['count'] > 0))
 
         nwl, _, nbl, _ = np.shape(self.wb)
+        results['nwl'] = nwl
+        results['nbl'] = nbl
+
         print ('cycle: %d energy: %d stall: %d mean: %0.3f std: %0.3f error: %0.3f' %
               (results['cycle'], results['energy'], results['stall'], z_mean, z_std, z_error))
 
