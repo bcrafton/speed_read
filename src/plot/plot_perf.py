@@ -26,7 +26,7 @@ results = np.load('../results.npy', allow_pickle=True)
 results = ld_to_dl(results)
 df = pd.DataFrame.from_dict(results)
 
-print (df.columns)
+# print (df.columns)
 # print (df['id'])
 # print (df['narray'])
 
