@@ -23,7 +23,7 @@ def perms(param):
     
 #######################################################
 
-def CC():
+def Simple():
 
     rpr64 = np.array([1, 2, 4, 8, 16, 24, 32, 48, 64])
     adc64 = np.array([1])
@@ -70,51 +70,81 @@ def CC():
     return array_params, arch_params
     
 #######################################################
-'''
+
+#
+# 6 piece figure
+# https://github.com/bcrafton/speed_read/blob/islped2021_6/src/tests.py
+#
+
 def CC():
+
+    rpr64 = np.array([1, 2, 4, 8, 16, 24, 32, 48, 64])
+    adc64 = np.array([1])
+    sar64 = np.array([1, 2, 3, 4, 5, 6])
+    Ns    = np.array([1])
+
+    adc64_area = np.array([1])
+    sar64_area = np.array([0, 1, 1.25, 1.50, 1.75, 2.00])
 
     array_params = {
     'bpa': 8,
     'bpw': 8,
-    'adc': 64,
     'adc_mux': 8,
     'wl': 256,
     'bl': 256,
     'offset': 128,
-    'max_rpr': 128,
+    'max_rpr': 64
     }
-
-    # 'hrs': [0.50 / 10., 0.48 / 18., 0.35 / 30.],
 
     arch_params1 = {
     'skip': [1],
     'alloc': ['block'],
-    'narray': [2 ** 12],
-    'lrs': [0.02, 0.04, 0.06, 0.08, 0.10], 
-    'hrs': [0.03, 0.015],
+    'narray': [2 ** 9],
     'cards': [1],
-    'profile': [1],
-    'rpr_alloc': ['static'],
+    'profile': [0],
     'thresh': [0.10, 0.25],
+    'method': ['soft'],
+    'adc': 64,
+    'lrs': [0.02, 0.04, 0.06, 0.08, 0.10],
+    'hrs': [0.03, 0.015],
+    'area': [16],
+    'rprs': [rpr64],
+    'adcs': [adc64],
+    'sars': [sar64],
+    'Ns':   [Ns],
+    'adc_area': [adc64_area],
+    'sar_area': [sar64_area],
+    'adc_energy': 1,
+    'sar_energy': 1
     }
 
     arch_params2 = {
     'skip': [1],
     'alloc': ['block'],
-    'narray': [2 ** 12],
-    'lrs': [0.02, 0.04, 0.06, 0.08], 
-    'hrs': [0.03, 0.015],
+    'narray': [2 ** 9],
     'cards': [0],
-    'profile': [1],
-    'rpr_alloc': ['static'],
+    'profile': [0],
     'thresh': [0.25],
+    'method': ['soft'],
+    'adc': 64,
+    'lrs': [0.02, 0.04, 0.06, 0.08],
+    'hrs': [0.03, 0.015],
+    'area': [16],
+    'rprs': [rpr64],
+    'adcs': [adc64],
+    'sars': [sar64],
+    'Ns':   [Ns],
+    'adc_area': [adc64_area],
+    'sar_area': [sar64_area],
+    'adc_energy': 1,
+    'sar_energy': 1
     }
 
     arch_params1 = perms(arch_params1)
     arch_params2 = perms(arch_params2)
     arch_params = arch_params1 + arch_params2
     return array_params, arch_params
-'''
+
 #######################################################
 
 
