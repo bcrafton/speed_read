@@ -2,7 +2,6 @@
 import math
 import numpy as np
 import matplotlib.pyplot as plt
-# from sklearn.cluster import KMeans
 from kmeans import kmeans
 
 from conv_utils import *
@@ -12,9 +11,7 @@ from var import *
 
 from layers import *
 from cprofile import profile
-from dynamic_rpr import dynamic_rpr
 from static_rpr import static_rpr
-from kmeans_rpr import kmeans_rpr
 from cim import cim
 from adc import confusion
 

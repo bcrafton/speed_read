@@ -12,9 +12,7 @@ from var import *
 
 from layers import *
 from cprofile import profile
-from dynamic_rpr import dynamic_rpr
 from static_rpr import static_rpr
-from kmeans_rpr import kmeans_rpr
 
 #########################
 

@@ -35,11 +35,6 @@ from resnet import load_resnet
 from cifar import load_cifar
 
 from tests import CC
-from tests import BB
-from tests import Thresh
-from tests import CE
-from tests import Simple
-from tests import dac2
 
 ############
 
