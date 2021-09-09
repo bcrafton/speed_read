@@ -30,16 +30,12 @@ assert (ret == 0)
 from resnet import load_resnet
 from cifar import load_cifar
 
-from tests import CC
+from tests import *
 
 ############
 
-array_params, arch_params = CC()
-# array_params, arch_params = BB()
-# array_params, arch_params = Thresh()
-# array_params, arch_params = CE()
-# array_params, arch_params = Simple()
-# array_params, arch_params = dac2()
+array_params, arch_params = Simple()
+# array_params, arch_params = CC()
 
 ############
 

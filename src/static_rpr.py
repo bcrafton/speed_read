@@ -19,7 +19,7 @@ def round_fraction(x, f):
 eps = 1e-10
 inf = 1e10
 
-def expected_error(params, rpr, states, profile, row, adc_thresh, adc_value):
+def expected_error(params, states, profile, row, adc_thresh, adc_value):
 
     # pe
 
@@ -107,7 +107,7 @@ def static_rpr(id, params, q):
                 for adc_idx, adc in enumerate(params['adcs']):
                     for sar_idx, sar in enumerate(params['sars']):
                         states = (adc + 1) ** sar
-                        if rpr < states: continue
+                        if rpr+1 < states: continue
 
                         thresh, values = thresholds(counts=profile[xb, wb, rpr],
                                                     adc=adc,
@@ -119,8 +119,7 @@ def static_rpr(id, params, q):
                         assert (len(thresh) == states + 1)
                         assert (len(values) == states + 0)
 
-                        mse, mean = expected_error(params=params, 
-                                                   rpr=rpr+1,
+                        mse, mean = expected_error(params=params,
                                                    states=states,
                                                    profile=profile[xb, wb, rpr], 
                                                    row=row[xb][rpr - 1],
@@ -139,9 +138,10 @@ def static_rpr(id, params, q):
                         # not currently used:
                         area_table[xb][wb][rpr_idx][adc_idx][sar_idx] = adc + (sar - 1)
 
-    assert (np.sum(mean_table[:, :, 0, 0]) >= -params['thresh'])
-    assert (np.sum(mean_table[:, :, 0, 0]) <=  params['thresh'])
-    assert (np.sum(np.min(error_table, axis=(2, 3))) <= params['thresh'])
+    assert (np.sum(valid_table[:, :, 0, 0, 0]) == 64)
+    assert (np.sum(mean_table[:, :, 0, 0, 0]) >= -params['thresh'])
+    assert (np.sum(mean_table[:, :, 0, 0, 0]) <=  params['thresh'])
+    assert (np.sum(np.min(error_table, axis=(2, 3, 4))) <= params['thresh'])
 
     # KeyError: 'infeasible problem'
     # https://stackoverflow.com/questions/46246349/infeasible-solution-for-an-lp-even-though-there-exists-feasible-solutionusing-c

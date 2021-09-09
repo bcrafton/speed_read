@@ -43,17 +43,17 @@ def Simple():
     'max_rpr': 64
     }
 
-    arch_params1 = {
+    arch_params = {
     'skip': [1],
     'alloc': ['block'],
     'narray': [2 ** 9],
     'cards': [1],
     'profile': [0],
     'thresh': [0.10],
-    'method': ['soft'],
+    'method': ['normal'],
     'adc': 64,
-    'lrs': [0.01],
-    'hrs': [0.02],
+    'lrs': [0.08],
+    'hrs': [0.015],
     'area': [16],
     'rprs': [rpr64],
     'adcs': [adc64],
@@ -65,8 +65,7 @@ def Simple():
     'sar_energy': 1
     }
 
-    arch_params1 = perms(arch_params1)
-    arch_params = arch_params1
+    arch_params = perms(arch_params)
     return array_params, arch_params
     
 #######################################################
