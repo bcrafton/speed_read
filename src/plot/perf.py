@@ -78,6 +78,12 @@ def perf(counts, costs, resources):
 
 ##########################################################
 
+def compute_cycles(counts, costs, resources):
+    return perf(counts, costs, resources)
+
+##########################################################
+
+
 
 
 

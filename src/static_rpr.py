@@ -170,6 +170,13 @@ def static_rpr(id, params, q):
                                                     area=params['area'],
                                                     threshold=params['thresh'],
                                                     Ns=params['Ns'])
+    else:
+        # A: np.argmax(params['rprs'])
+        # B: (len(params['rprs']) - 1)
+        rpr_lut = np.argmax(params['rprs']) * np.ones(shape=(params['bpa'], params['bpw']), dtype=int)
+        adc_lut = np.argmax(params['adcs']) * np.ones(shape=(params['bpa'], params['bpw']), dtype=int)
+        sar_lut = np.argmax(params['sars']) * np.ones(shape=(params['bpa'], params['bpw']), dtype=int)
+        N = 1
 
     mean = np.zeros(shape=(8, 8))
     error = np.zeros(shape=(8, 8))
@@ -207,6 +214,10 @@ def static_rpr(id, params, q):
             values2 = -1 * np.ones(shape=(params['adc'] + 1 - states), dtype=np.float32)
             value[xb][wb] = np.concatenate((values1, values2), axis=-1)
             ##########################################
+
+    print (rpr_lut)
+    print (adc_lut)
+    print (sar_lut)
 
     return rpr_lut, adc_lut, sar_lut, N, conf, value
 

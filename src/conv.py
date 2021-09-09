@@ -79,10 +79,10 @@ class Conv(Layer):
     def init(self, params):
         self.params.update(params)
         self.params['rpr'], self.params['comps'], self.params['sar'], self.params['N'], self.params['conf'], self.params['value'] = static_rpr(self.layer_id, self.params, self.q)
-        print (self.params['rpr'])
-        print (self.params['comps'])
-        print (self.params['sar'])
-        print (self.params['N'])
+        # print (self.params['rpr'])
+        # print (self.params['comps'])
+        # print (self.params['sar'])
+        # print (self.params['N'])
         # print (self.params['conf'])
         # print (self.params['value'])
 
