@@ -44,7 +44,7 @@ perf = {}
 power = {}
 error = {}
 
-for cards, thresh in [(1, 0.25), (0, 0.25)]:
+for cards, thresh in [(1, 0.25), (1, 0.10), (0, 0.25)]:
     perf[(cards, thresh)]  = []
     power[(cards, thresh)] = []
     error[(cards, thresh)] = []
@@ -94,7 +94,11 @@ for cards, thresh in [(1, 0.25), (0, 0.25)]:
                 costs.append(cost)
 
             cycles = compute_cycles(counts=counts, costs=costs, resources=2**10)
-            top_per_sec = cycles
+
+            ################################################
+
+            mac = np.sum( samples['nmac'].values )
+            top_per_sec = mac / cycles
   
             ################################################
 
@@ -103,11 +107,6 @@ for cards, thresh in [(1, 0.25), (0, 0.25)]:
             power[(cards, thresh)].append(top_per_pJ)
 
 ######################################
-
-color = {
-(1, 0.25):  '#808080',
-(0, 0.25):  '#404040'
-}
 
 plt.cla()
 for key in error:
