@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 from kmeans import kmeans
 
 from conv_utils import *
-from cdot import *
 from dot_ref import *
 from var import *
 

@@ -17,10 +17,6 @@ from multiprocessing import Pool
 # NOTE: This has to come before any module that loads the c code
 # before, this came after 'load_resnet', 'load_cifar' and so it loaded the previous version each time.
 
-cmd = "g++ pim.c array.c block.c layer.c layer_sync.c params.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -std=c++11 -shared -o pim.so"
-ret = os.system(cmd)
-assert (ret == 0)
-
 cmd = "gcc profile.c -DPYTHON_EXECUTABLE=/usr/bin/python3 -fPIC -shared -o profile.so"
 ret = os.system(cmd)
 assert (ret == 0)

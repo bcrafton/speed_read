@@ -2,11 +2,9 @@
 import math
 import numpy as np
 import matplotlib.pyplot as plt
-# from sklearn.cluster import KMeans
 from kmeans import kmeans
 
 from conv_utils import *
-from cdot import *
 from dot_ref import *
 from var import *
 
