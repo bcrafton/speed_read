@@ -109,8 +109,11 @@ for area_i, area in enumerate(areas):
 
 ######################################
 
+print ('adc')
 print (adcs)
+print ('sar')
 print (sars)
+print ('N')
 print (Ns)
 
 normalize = matplotlib.colors.Normalize(vmin=0, vmax=50)
