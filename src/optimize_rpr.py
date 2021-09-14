@@ -238,6 +238,8 @@ def optimize_rpr_kernel(error, mean, delay, valid, area_adc, area_sar, area, thr
     # iparam.mio_cut_selection_level
     # Controls how aggressively generated cuts are selected to be included in the relaxation.
 
+    ##########################################
+    # '''
     print ('Starting Solve')
     mosek_params = {mosek.dparam.mio_tol_rel_gap: 1e-2, 
                     mosek.dparam.intpnt_co_tol_rel_gap: 1e-2, 
@@ -264,7 +266,13 @@ def optimize_rpr_kernel(error, mean, delay, valid, area_adc, area_sar, area, thr
     knapsack_problem.solve(solver='MOSEK', verbose=True, mosek_params=mosek_params)
     if knapsack_problem.status != "optimal":
         print("status:", knapsack_problem.status)
-
+    # '''
+    ##########################################
+    '''
+    knapsack_problem.solve(solver='GLPK_MI', options=cvxopt.glpk.options, glpk={'msg_lev': 'GLP_MSG_ON'}, verbose=True)
+    if knapsack_problem.status != "optimal":
+        print("status:", knapsack_problem.status)
+    '''
     ##########################################
 
     print (np.around(adc_var.value))

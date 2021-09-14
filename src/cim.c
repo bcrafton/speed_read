@@ -43,7 +43,7 @@ void clear(void* v, int size)
 DLLEXPORT int cim(int8_t* x, int8_t* w, int* y, uint8_t* count, uint32_t* error, uint8_t* rpr_table, uint32_t* conf, float* value, int size, int max_rpr, int adc, int R, int C, int NWL, int WL, int NBL, int BL) {
 
   default_random_engine generator;
-  discrete_distribution<uint32_t>* distribution = new discrete_distribution<uint32_t>[8 * 8 * (max_rpr + 1) * (max_rpr + 1)];
+  discrete_distribution<uint32_t>** distribution = new discrete_distribution<uint32_t>*[8 * 8 * (max_rpr + 1) * (max_rpr + 1)];
   for (int xb=0; xb<8; xb++) {
     for (int wb=0; wb<8; wb++) {
       for (int wl=0; wl<max_rpr+1; wl++) {
@@ -55,7 +55,7 @@ DLLEXPORT int cim(int8_t* x, int8_t* w, int* y, uint8_t* count, uint32_t* error,
           int addr = xb_addr + wb_addr + wl_addr + on_addr;
           int offset = addr * (adc + 1);
           vector<uint32_t> prob(conf + offset, conf + offset + (adc + 1));
-          distribution[addr] = discrete_distribution<uint32_t>(prob.begin(), prob.end());
+          distribution[addr] = new discrete_distribution<uint32_t>(prob.begin(), prob.end());
         }
       }
     }
@@ -95,7 +95,7 @@ DLLEXPORT int cim(int8_t* x, int8_t* w, int* y, uint8_t* count, uint32_t* error,
               int wl_addr =                 wl_sum * (max_rpr + 1);
               int on_addr =                               expected;
               int addr = xb_addr + wb_addr + wl_addr + on_addr;
-              int code = distribution[addr](generator);
+              int code = (*(distribution[addr]))(generator);
 
               xb_addr = xb * 8 * (adc + 1);
               wb_addr =     wb * (adc + 1);
@@ -124,6 +124,25 @@ DLLEXPORT int cim(int8_t* x, int8_t* w, int* y, uint8_t* count, uint32_t* error,
       } // for (int xb=0; xb<8; xb++) {
     } // for (int wl=0; wl<WL; wl++) {
   } // for (int r=0; r<R; r++) {
+
+  delete pdot;
+  for (int xb=0; xb<8; xb++) {
+    for (int wb=0; wb<8; wb++) {
+      for (int wl=0; wl<max_rpr+1; wl++) {
+        for (int on=0; on<max_rpr+1; on++) {
+          int xb_addr = xb * 8 * (max_rpr + 1) * (max_rpr + 1);
+          int wb_addr =     wb * (max_rpr + 1) * (max_rpr + 1);
+          int wl_addr =                     wl * (max_rpr + 1);
+          int on_addr =                                     on;
+          int addr = xb_addr + wb_addr + wl_addr + on_addr;
+          int offset = addr * (adc + 1);
+          delete distribution[addr];
+        }
+      }
+    }
+  }
+  delete distribution;
+
   return 1;  
 }
 

@@ -514,13 +514,16 @@ compute
 TODO (8/10/2021):
 -----------------
 
-> change f(rpr, adc, step)
-> step = linear scale to try range(0, rpr, step)[0:adc] 
-  > A: [0,2,..16]
-  > B: [0,2,..32]
+> ResNet18 memory usage ... 7% ~ 2.25GB
+  > params['conf'] = [8 * 8 * 64 * 64 * 64] ... 4B each -> 67.108.864 MB each layer.
 
-> SAR ADC 
-  > SAR should follow [3,7,15] ... not [4, 8, 16]
+> ADC_vs_SAR
+> energy ILP
+
+> break model & layers idea ? make each just a job that starts from expected output ? 
+  > would save a lot of memory ... storing 'conf'
+
+> conf pmf not accurate ... will round 1 and 1.9 both to 1. where 1, 1.9 are normed values to min.
 
 allow non-zero no ADC threshold
 allow skipping a binary VMM
@@ -528,17 +531,8 @@ allow skipping a binary VMM
 
 kmeans cannot use WL (in counts) have to assume all take the same amount of time (xb, wb) unless we have some filtering.
 
-> so many loose ends right now - could be a (+1, -1) error or someting that we arnt seeing.
-  > look up there ^^^ (+1) issue lol.
-
 > will need full flow verification
   > like running with random.normal basically to verify confusion matrix is valid.
-
-> 6 piece figure with SAR 
-  > find CC() from DAC ?
-  > delete old tests
-
-performance -- BB
 
 =====================================================
 
@@ -620,6 +614,23 @@ Figure out the solver
   > then just scale everything to integers ? 
   > delay, error, mean, valid
   > error and mean already rounded to 1e-4 ...
+
+> 6 piece figure with SAR 
+  > find CC() from DAC ?
+  > delete old tests
+
+performance -- BB
+
+> change f(rpr, adc, step)
+> step = linear scale to try range(0, rpr, step)[0:adc] 
+  > A: [0,2,..16]
+  > B: [0,2,..32]
+
+> SAR ADC 
+  > SAR should follow [3,7,15] ... not [4, 8, 16]
+
+> so many loose ends right now - could be a (+1, -1) error or someting that we arnt seeing.
+  > look up there ^^^ (+1) issue lol.
 
 =====================================================
 
