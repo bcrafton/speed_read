@@ -72,18 +72,37 @@ def cim(xb, wb, params):
 
     metrics = {}
     metrics['cycle'] = np.sum(count > 0)
-    metrics['ron'] = 0
-    metrics['roff'] = 0
-    metrics['wl'] = np.sum(count)
+    # metrics['ron'] = 0
+    # metrics['roff'] = 0
+    # metrics['wl'] = np.sum(count)
     metrics['stall'] = 0
-    metrics['block_cycle'] = np.sum(count > 0, axis=(0, 2, 3, 4))
+    # metrics['block_cycle'] = np.sum(count > 0, axis=(0, 2, 3, 4))
     # metrics['bb'] = (count > 0) * 1
-    metrics['count'] = count
+    # metrics['count'] = count
+    metrics['bb_cycles'] = np.sum(count > 0, axis=(2, 3, 4))
+    metrics['vmm_cycles'] = np.sum(count > 0, axis=(0, 1, 4))
 
-    val, count = np.unique(count, return_counts=True)
+    vals, counts = np.unique(count, return_counts=True)
     metrics['adc'] = np.zeros(shape=params['max_rpr']+1)
-    for (v, c) in zip(val, count):
+    for (v, c) in zip(vals, counts):
         metrics['adc'][v] = c
+
+    metrics['VMM_WL'] = np.zeros(shape=(XB, WB, params['max_rpr'] + 1))
+    for xb in range(XB):
+        for wb in range(WB):
+            vals, counts = np.unique(count[:, :, xb, wb, :], return_counts=True)
+            for (v, c) in zip(vals, counts):
+                metrics['VMM_WL'][xb][wb][v] = c
+
+    ##################################################################################
+
+    flag = np.sum(metrics['VMM_WL'], axis=(0, 1)) == metrics['adc']
+    assert (np.all(flag))
+
+    flag = np.sum(metrics['VMM_WL'][:, :, 1:], axis=2) == metrics['vmm_cycles']
+    assert (np.all(flag))
+
+    ##################################################################################
 
     return yb, metrics
 

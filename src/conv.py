@@ -152,8 +152,8 @@ class Conv(Layer):
         # count = (1024, 1, 8, 8, 2)
         # sar = (8, 8)
         # adc = (8, 8)
-        cost = self.params['sar'].reshape(8, 8, 1) * self.params['comps'].reshape(8, 8, 1) + self.params['sar'].reshape(8, 8, 1)
-        results['energy'] = np.sum(cost * (results['count'] > 0))
+        cost = self.params['sar'].reshape(8, 8) * self.params['comps'].reshape(8, 8) + self.params['sar'].reshape(8, 8)
+        results['energy'] = np.sum(cost * results['vmm_cycles'])
 
         nwl, _, nbl, _ = np.shape(self.wb)
         results['nwl'] = nwl
