@@ -23,12 +23,10 @@ def array_allocation(cycles, costs, resources):
 
 def emulate(count, alloc):
     ret = 0
-    N, NWL, XB, WB, SIZE = np.shape(count)
-    # for each patch (N)
-    # [XB, WB, SIZE] can be summed together
+    N, NWL = np.shape(count)
     # NWL can be summed for (layer) but not (block)
     #######################################################
-    cycles = np.sum(count > 0, axis=(1, 2, 3, 4))
+    cycles = np.sum(count, axis=1)
     #######################################################
     next = 0
     mode = True
@@ -60,8 +58,8 @@ def perf(counts, costs, resources):
     assert (len(counts) == len(costs))
     layers = len(counts)
     cycles = []
-    for (cost, count) in zip(costs, counts):
-        # N, NWL, XB, WB, SIZE = np.shape(count)
+    for layer, (cost, count) in enumerate(zip(costs, counts)):
+        print (layer)
         cycle = np.sum(count > 0)
         cycles.append(cycle)
 
@@ -71,7 +69,8 @@ def perf(counts, costs, resources):
 
     assert (len(counts) == len(allocs))
     cycles = []
-    for (count, alloc) in zip(counts, allocs):
+    for layer, (count, alloc) in enumerate(zip(counts, allocs)):
+        print (layer)
         cycle = emulate(count=count, alloc=alloc)
         cycles.append(cycle)
     return np.max(cycles)

@@ -39,7 +39,7 @@ print (df['cards'])
 #####################
 
 hrss = [0.015]
-lrss = [0.02, 0.04, 0.06, 0.08]
+lrss = [0.02, 0.04, 0.06, 0.08, 0.10, 0.12]
 perf = {}
 power = {}
 error = {}
@@ -85,7 +85,7 @@ for cards, thresh in [(1, 0.25), (1, 0.10), (0, 0.25)]:
                 query = '(id == %d)' % (layer)
                 data = samples.query(query)
                 #
-                count = data['count'].values[0]
+                count = data['bb_cycles'].values[0]
                 counts.append(count)
                 #
                 nwl = data['nwl'].values[0]
@@ -93,7 +93,7 @@ for cards, thresh in [(1, 0.25), (1, 0.10), (0, 0.25)]:
                 cost = nwl * nbl
                 costs.append(cost)
 
-            cycles = compute_cycles(counts=counts, costs=costs, resources=2**10)
+            cycles = compute_cycles(counts=counts, costs=costs, resources=2**12)
 
             ################################################
 
