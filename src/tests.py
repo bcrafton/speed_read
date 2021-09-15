@@ -62,7 +62,8 @@ def Simple():
     'adc_area': [adc64_area],
     'sar_area': [sar64_area],
     'adc_energy': 1,
-    'sar_energy': 1
+    'sar_energy': 1,
+    'opt': ['delay'] # ['delay', 'energy']
     }
 
     arch_params = perms(arch_params)

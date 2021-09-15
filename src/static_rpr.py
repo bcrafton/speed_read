@@ -161,9 +161,12 @@ def static_rpr(id, params, q):
     # mean_table = round_fraction(mean_table, 1e-4)
 
     if params['skip'] and params['cards']:
+        if   params['opt'] == 'delay':  minimize = delay_table
+        elif params['opt'] == 'energy': minimize = energy_table
+        else:                           assert (False)
         rpr_lut, adc_lut, sar_lut, N = optimize_rpr(error=error_table, 
                                                     mean=np.abs(mean_table), 
-                                                    delay=delay_table, 
+                                                    delay=minimize,
                                                     valid=valid_table, 
                                                     area_adc=params['adc_area'],
                                                     area_sar=params['sar_area'],
