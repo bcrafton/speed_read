@@ -115,7 +115,8 @@ def CC():
     'adc_area': [adc64_area],
     'sar_area': [sar64_area],
     'adc_energy': 1,
-    'sar_energy': 1
+    'sar_energy': 1,
+    'opt': ['delay'] # ['delay', 'energy']
     }
 
     arch_params2 = {
@@ -137,7 +138,8 @@ def CC():
     'adc_area': [adc64_area],
     'sar_area': [sar64_area],
     'adc_energy': 1,
-    'sar_energy': 1
+    'sar_energy': 1,
+    'opt': ['delay'] # ['delay', 'energy']
     }
 
     arch_params1 = perms(arch_params1)
@@ -189,7 +191,8 @@ def Area():
     'adc_area': [adc64_area],
     'sar_area': [sar64_area],
     'adc_energy': 1,
-    'sar_energy': 1
+    'sar_energy': 1,
+    'opt': ['delay'] # ['delay', 'energy']
     }
 
     arch_params = perms(arch_params)
@@ -235,7 +238,8 @@ def Flash_vs_SAR():
     'adc_area': [adc_area],
     'sar_area': [sar_area],
     'adc_energy': 1,
-    'sar_energy': 1
+    'sar_energy': 1,
+    'opt': ['delay'] # ['delay', 'energy']
     }
 
     rprs = np.array([1, 2, 4, 8, 16, 24, 32, 48, 64])
@@ -264,7 +268,8 @@ def Flash_vs_SAR():
     'adc_area': [adc_area],
     'sar_area': [sar_area],
     'adc_energy': 1,
-    'sar_energy': 1
+    'sar_energy': 1,
+    'opt': ['delay'] # ['delay', 'energy']
     }
 
     arch_params1 = perms(arch_params1)
@@ -274,9 +279,53 @@ def Flash_vs_SAR():
 
 #######################################################
 
+def Kmeans():
 
+    rpr64 = np.array([1, 2, 4, 8, 16, 24, 32, 48, 64])
+    adc64 = np.array([1])
+    sar64 = np.array([1, 2, 3, 4, 5, 6])
+    Ns    = np.array([1])
 
+    adc64_area = np.array([1])
+    sar64_area = np.array([0, 1, 1.25, 1.50, 1.75, 2.00])
 
+    array_params = {
+    'bpa': 8,
+    'bpw': 8,
+    'adc_mux': 8,
+    'wl': 256,
+    'bl': 256,
+    'offset': 128,
+    'max_rpr': 64
+    }
+
+    arch_params = {
+    'skip': [1],
+    'alloc': ['block'],
+    'narray': [2 ** 9],
+    'cards': [1],
+    'profile': [0],
+    'thresh': [0.10],
+    'method': ['kmeans', 'soft', 'normal'],
+    'adc': 64,
+    'lrs': [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08],
+    'hrs': [0.01],
+    'area': [16],
+    'rprs': [rpr64],
+    'adcs': [adc64],
+    'sars': [sar64],
+    'Ns':   [Ns],
+    'adc_area': [adc64_area],
+    'sar_area': [sar64_area],
+    'adc_energy': 1,
+    'sar_energy': 1,
+    'opt': ['delay'] # ['delay', 'energy']
+    }
+
+    arch_params = perms(arch_params)
+    return array_params, arch_params
+
+#######################################################
 
 
 
