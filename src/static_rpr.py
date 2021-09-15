@@ -107,7 +107,9 @@ def static_rpr(id, params, q):
                 for adc_idx, adc in enumerate(params['adcs']):
                     for sar_idx, sar in enumerate(params['sars']):
                         states = (adc + 1) ** sar
+                        '''
                         if rpr+1 < states: continue
+                        '''
 
                         thresh, values = thresholds(counts=profile[xb, wb, rpr],
                                                     adc=adc,

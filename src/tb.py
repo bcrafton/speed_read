@@ -37,6 +37,7 @@ from tests import *
 array_params, arch_params = Simple()
 # array_params, arch_params = CC()
 # array_params, arch_params = Area()
+# array_params, arch_params = Flash_vs_SAR()
 
 ############
 

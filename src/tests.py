@@ -197,5 +197,87 @@ def Area():
 
 #######################################################
 
+def Flash_vs_SAR():
+
+    rprs = np.array([1, 2, 3, 4, 5, 6, 7, 8, 12, 16, 20, 24, 28, 32])
+    adcs = np.array([8])
+    sars = np.array([1])
+    Ns   = np.array([1])
+    adc_area = np.array([1])
+    sar_area = np.array([1])
+
+    array_params = {
+    'bpa': 8,
+    'bpw': 8,
+    'adc_mux': 8,
+    'wl': 256,
+    'bl': 256,
+    'offset': 128,
+    'max_rpr': 64
+    }
+
+    arch_params1 = {
+    'skip': [1],
+    'alloc': ['block'],
+    'narray': [2 ** 9],
+    'cards': [1],
+    'profile': [0],
+    'thresh': [0.10],
+    'method': ['soft'],
+    'adc': 64,
+    'lrs': [0.02, 0.04, 0.06, 0.08],
+    'hrs': [0.015],
+    'area': [16],
+    'rprs': [rprs],
+    'adcs': [adcs],
+    'sars': [sars],
+    'Ns':   [Ns],
+    'adc_area': [adc_area],
+    'sar_area': [sar_area],
+    'adc_energy': 1,
+    'sar_energy': 1
+    }
+
+    rprs = np.array([1, 2, 4, 8, 16, 24, 32, 48, 64])
+    adcs = np.array([1])
+    sars = np.array([1, 2, 3, 4, 5, 6])
+    Ns  = np.array([1])
+    adc_area = np.array([1])
+    sar_area = np.array([0, 1, 1.25, 1.50, 1.75, 2.00])
+
+    arch_params2 = {
+    'skip': [1],
+    'alloc': ['block'],
+    'narray': [2 ** 9],
+    'cards': [1],
+    'profile': [0],
+    'thresh': [0.10],
+    'method': ['soft'],
+    'adc': 64,
+    'lrs': [0.02, 0.04, 0.06, 0.08],
+    'hrs': [0.015],
+    'area': [16],
+    'rprs': [rprs],
+    'adcs': [adcs],
+    'sars': [sars],
+    'Ns':   [Ns],
+    'adc_area': [adc_area],
+    'sar_area': [sar_area],
+    'adc_energy': 1,
+    'sar_energy': 1
+    }
+
+    arch_params1 = perms(arch_params1)
+    arch_params2 = perms(arch_params2)
+    arch_params = arch_params1 + arch_params2
+    return array_params, arch_params
+
+#######################################################
+
+
+
+
+
+
 
 
