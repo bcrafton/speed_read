@@ -514,6 +514,13 @@ compute
 TODO (8/10/2021):
 -----------------
 
+KING OF TODOs:
+so we need to actually compute {MAE, MSE}
+> percent chance of all possible outcomes
+  > # rows, each possible option for each row output
+  > or can just use the profile
+> then sum squared or just sum 
+
 > ResNet18 memory usage ... 7% ~ 2.25GB
   > params['conf'] = [8 * 8 * 64 * 64 * 64] ... 4B each -> 67.108.864 MB each layer.
 
