@@ -47,13 +47,16 @@ def profile(layer, x, w, y_ref, y_shape, params):
 
     ################################
 
-    y = np.zeros(shape=y_shape)
-    adc = np.zeros(shape=(8, 8, params['max_rpr'] + 1, params['max_rpr'] + 1, params['max_rpr'] + 1))
-
     x = np.ascontiguousarray(x, np.int32)
     w = np.ascontiguousarray(w, np.int32)
+
+    y = np.zeros(shape=y_shape)
     y = np.ascontiguousarray(y, np.int32)
 
+    rprs = np.ascontiguousarray(params['rprs'], np.int32)
+    Nrpr = len(params['rprs'])
+
+    adc = np.zeros(shape=(8, 8, Nrpr, params['max_rpr'] + 1, params['max_rpr'] + 1))
     adc = np.ascontiguousarray(adc, np.int64)
 
     _ = profile_lib.profile(
@@ -61,6 +64,8 @@ def profile(layer, x, w, y_ref, y_shape, params):
     ctypes.c_void_p(w.ctypes.data), 
     ctypes.c_void_p(y.ctypes.data), 
     ctypes.c_void_p(adc.ctypes.data),
+    ctypes.c_int(rprs.ctypes.data),
+    ctypes.c_int(Nrpr),
     ctypes.c_int(params['max_rpr']),
     ctypes.c_int(nrow),
     ctypes.c_int(ncol),
@@ -73,9 +78,22 @@ def profile(layer, x, w, y_ref, y_shape, params):
 
     rpr  = np.arange(1, params['max_rpr'] + 1)
     bits = np.sum(x, axis=2).reshape(nrow, nwl, xb, 1)
-    row  = np.ceil(bits / rpr)
-    row  = np.sum(row, axis=1)
-    row  = np.mean(row, axis=0)
+    row  = np.ceil(bits / rpr).astype(int)
+
+    # sum over Nwl
+    row = np.sum(row, axis=1)
+
+    # avg over patches
+    row_avg = np.mean(row, axis=0)
+
+    pmf = np.zeros(shape=(xb, params['max_rpr'], params['max_rpr']))
+    for b in range(xb):
+        for r in range(params['max_rpr']):
+            val, count = np.unique(row[:, b, r], return_counts=True)
+            for (v, c) in zip(val, count):
+                pmf[b, r, v] = c
+
+    pmf = pmf / np.sum(pmf, axis=2, keepdims=True)
 
     ###########################
 
@@ -85,7 +103,7 @@ def profile(layer, x, w, y_ref, y_shape, params):
 
     assert (wl == params['wl'])
     assert (bl == params['bl'])
-    profile = {'ratio': ratio, 'adc': adc, 'row': row, 'max_rpr': params['max_rpr'], 'wl': params['wl'], 'bl': params['bl']}
+    profile = {'ratio': ratio, 'adc': adc, 'row': pmf, 'row_avg': row_avg, 'max_rpr': params['max_rpr'], 'wl': params['wl'], 'bl': params['bl']}
     np.save('profile/%d' % (layer), profile)
 
 

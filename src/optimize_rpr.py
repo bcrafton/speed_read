@@ -161,9 +161,6 @@ def optimize_rpr_kernel(error, mean, delay, valid, area_adc, area_sar, area, thr
 
     ##########################################
 
-    error_constraint = (error @ selection) <= threshold
-    mean_constraint1 = ( mean @ selection) <= threshold
-    mean_constraint2 = ( mean @ selection) >= -threshold
     valid_constraint = (valid @ selection) == 64
 
     ##########################################
@@ -177,8 +174,17 @@ def optimize_rpr_kernel(error, mean, delay, valid, area_adc, area_sar, area, thr
     total_delay = (delay @ selection)
 
     ##########################################
+    '''
+    mean_constraint1 = (mean @ selection) <= threshold
+    mean_constraint2 = (mean @ selection) >= -threshold
+    error_constraint = 0.5 * (error @ selection) + (np.abs(mean) @ selection) <= threshold
+    knapsack_problem = cvxpy.Problem(cvxpy.Minimize(total_delay), select_constraint + adc_constraint + sar_constraint + rpr_constraint + [area_constraint, mean_constraint1, mean_constraint2, error_constraint, valid_constraint])
+    '''
+    ##########################################
 
-    knapsack_problem = cvxpy.Problem(cvxpy.Minimize(total_delay), select_constraint + adc_constraint + sar_constraint + rpr_constraint + [area_constraint, error_constraint, mean_constraint1, mean_constraint2, valid_constraint])
+    error_constraint1 = ((mean @ selection) + (error @ selection)) <= threshold
+    error_constraint2 = ((mean @ selection) - (error @ selection)) >= -threshold
+    knapsack_problem = cvxpy.Problem(cvxpy.Minimize(total_delay), select_constraint + adc_constraint + sar_constraint + rpr_constraint + [area_constraint, error_constraint1, error_constraint2, valid_constraint])
 
     ##########################################
 

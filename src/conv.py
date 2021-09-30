@@ -61,6 +61,7 @@ class Conv(Layer):
         # q must be larger than 0
         if self.quantize_flag:
             assert(self.q > 0)
+        self.params['q'] = self.q
 
         maxval = pow(2, self.params['bpw'] - 1)
         minval = -1 * maxval
@@ -78,7 +79,7 @@ class Conv(Layer):
 
     def init(self, params):
         self.params.update(params)
-        self.params['rpr'], self.params['comps'], self.params['sar'], self.params['N'], self.params['conf'], self.params['value'] = static_rpr(self.layer_id, self.params, self.q)
+        self.params['rpr'], self.params['comps'], self.params['sar'], self.params['N'], self.params['conf'], self.params['value'], self.params['exp_error'], self.params['exp_mean'], self.params['exp_p'] = static_rpr(self.layer_id, self.params, self.q)
         # print (self.params['rpr'])
         # print (self.params['comps'])
         # print (self.params['sar'])
@@ -119,7 +120,7 @@ class Conv(Layer):
         y, results = self.conv(x=x)
 
         mean = np.mean(y - y_ref)
-        error = np.mean(np.absolute(y - y_ref))
+        error = np.mean(np.absolute(y - y_ref - mean))
         std = np.std(y - y_ref)
         results['cim_mean'] = mean
         results['cim_error'] = error
@@ -136,6 +137,9 @@ class Conv(Layer):
         z_mean = np.mean(z - z_ref)
         z_std = np.std(z - z_ref)
         z_error = np.mean(np.absolute(z - z_ref))
+
+        ref_error = error / self.q * np.sum(z_ref > 0) / np.prod(np.shape(z_ref))
+        ref_mean = mean / self.q * np.sum(z_ref > 0) / np.prod(np.shape(z_ref))
 
         # print (self.error, self.mean)
         # print (error * self.ratio / self.q, mean * self.ratio / self.q)
@@ -159,8 +163,8 @@ class Conv(Layer):
         results['nwl'] = nwl
         results['nbl'] = nbl
 
-        print ('cycle: %d energy: %d stall: %d mean: %0.3f std: %0.3f error: %0.3f' %
-              (results['cycle'], results['energy'], results['stall'], z_mean, z_std, z_error))
+        print ('lrs: %f cycle: %d energy: %d stall: %d mean: %0.3f std: %0.3f error: %0.3f' %
+              (self.params['lrs'], results['cycle'], results['energy'], results['stall'], ref_mean, 0, ref_error))
 
         ########################
 

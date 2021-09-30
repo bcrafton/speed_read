@@ -38,13 +38,13 @@ print (df['cards'])
 # '(rpr_alloc == "%s")' NOT '(rpr_alloc == %s)'
 #####################
 
-hrss = [0.001]
-lrss = [0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08]
+hrss = [0.01]
+lrss = [0.02, 0.04, 0.06, 0.08]
 perf = {}
 power = {}
 error = {}
 
-for method in ['soft', 'normal', 'kmeans']:
+for method in ['kmeans']:
     perf[method]  = []
     power[method] = []
     error[method] = []
