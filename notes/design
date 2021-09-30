@@ -5129,6 +5129,36 @@ adc=4, sar=2 -> 25
 https://github.com/bcrafton/speed_read/commit/6a38698425855f89feba6eb007ecd42b4610438b#diff-3ce174b30b2cefb459d5dbaea84a4c60889372c7d4d17818fd78067fc2c8b130
 > unchanged since islped
 
+====================
+
+sub-linear scaling ~ (pe * e)
+> when {xb, wb} is basically {+, -} even
+> AND sum(pe * e) is high
+> then you get high probability of sub-linear scaling
+which is exactly what we are seeing
+
+we see 3 ways forward:
+1) MSE
+2) some smarter ILP impelementation
+3) different optimization algorithm
+   > branch and bound
+   > start with greedy algorithm implementation
+
+====================
+
+turns out dont even have to be clever !!
+but new problem: correlation.
+
+1) error correlation:
+pe = 0.6, e = 1
+pe = 0.6, e = 1000
+
+2) wl correlation
+all x,w in set see the same WLs 
+so if there is bias in that correlation, we cannot get full pe scale.
+
+====================
+
 
 
 

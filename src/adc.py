@@ -83,8 +83,8 @@ def check(x):
     assert (np.all(x >= 0.))
 
 def confusion(THRESH, RPR, ADC, HRS, LRS):
-    eps1 = 1e-12
-    eps2 = 1e-6
+    eps1 = 1e-20
+    eps2 = 1e-10
     assert (len(THRESH) == ADC+1)
 
     wl  = np.arange(0, RPR+1).reshape(RPR+1,     1,   1).astype(int)
@@ -113,8 +113,9 @@ def confusion(THRESH, RPR, ADC, HRS, LRS):
     # will overflow here if > 2 ** 32
     # conf = (conf / scale).astype(np.uint32)
     conf = (conf / scale)
-    assert (np.all(conf <= 0xFFFFFFFF))
-    conf = conf.astype(np.uint32)
+    conf = conf * 100.
+    assert (np.all(conf <= 0xFFFFFFFFFFFFFFFF))
+    conf = conf.astype(np.uint64)
     check(conf)
 
     return conf
