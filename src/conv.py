@@ -61,6 +61,7 @@ class Conv(Layer):
         # q must be larger than 0
         if self.quantize_flag:
             assert(self.q > 0)
+        self.params['q'] = self.q
 
         maxval = pow(2, self.params['bpw'] - 1)
         minval = -1 * maxval
@@ -78,7 +79,7 @@ class Conv(Layer):
 
     def init(self, params):
         self.params.update(params)
-        self.params['rpr'], self.params['comps'], self.params['sar'], self.params['N'], self.params['conf'], self.params['value'] = static_rpr(self.layer_id, self.params, self.q)
+        self.params['rpr'], self.params['comps'], self.params['sar'], self.params['N'], self.params['conf'], self.params['value'], self.params['exp_error'], self.params['exp_mean'], self.params['exp_p'] = static_rpr(self.layer_id, self.params, self.q)
         # print (self.params['rpr'])
         # print (self.params['comps'])
         # print (self.params['sar'])
@@ -120,10 +121,11 @@ class Conv(Layer):
 
         mean = np.mean(y - y_ref)
         error = np.mean(np.absolute(y - y_ref))
+        mse = np.sqrt(np.mean( (y - y_ref)**2 ))
         std = np.std(y - y_ref)
         results['cim_mean'] = mean
         results['cim_error'] = error
-        results['cim_std'] = std
+        results['cim_std'] = 0
 
         z = self.act(y, quantize_flag=True)
         z_ref = self.act(y_ref, quantize_flag=True)
@@ -137,6 +139,14 @@ class Conv(Layer):
         z_std = np.std(z - z_ref)
         z_error = np.mean(np.absolute(z - z_ref))
 
+        ref_error = error / self.q
+        ref_mse = mse / self.q
+        ref_mean = mean / self.q
+        ref_std = std / self.q
+
+        # plt.hist((y.flatten() - y_ref.flatten()) / self.q, bins=100)
+        # plt.show()
+
         # print (self.error, self.mean)
         # print (error * self.ratio / self.q, mean * self.ratio / self.q)
         # print (error / self.q * self.ratio)
@@ -145,9 +155,9 @@ class Conv(Layer):
         results['id']       = self.weight_id
         results['layer_id'] = self.layer_id
         results['nmac']     = self.nmac
-        results['std']      = z_std
-        results['mean']     = z_mean
-        results['error']    = z_error
+        results['std']      = ref_std
+        results['mean']     = ref_mean
+        results['error']    = ref_mse
 
         # count = (1024, 1, 8, 8, 2)
         # sar = (8, 8)
@@ -159,8 +169,8 @@ class Conv(Layer):
         results['nwl'] = nwl
         results['nbl'] = nbl
 
-        print ('cycle: %d energy: %d stall: %d mean: %0.3f std: %0.3f error: %0.3f' %
-              (results['cycle'], results['energy'], results['stall'], z_mean, z_std, z_error))
+        print ('lrs: %f cycle: %d energy: %d stall: %d mean: %0.4f mse: %0.4f std: %0.3f error: %0.3f' %
+              (self.params['lrs'], results['cycle'], results['energy'], results['stall'], ref_mean, ref_mse, ref_std, ref_error))
 
         ########################
 
@@ -190,7 +200,7 @@ class Conv(Layer):
         
         #########################
 
-        y, metrics = cim(patches, self.wb, self.params)
+        y, metrics = cim(self.layer_id, patches, self.wb, self.params)
         y = np.reshape(y, (yh, yw, self.fn))
 
         #########################
@@ -279,6 +289,40 @@ class Conv(Layer):
 
         wb = np.reshape(wb, (nwl, self.params['wl'], -1, self.params['bl']))
         wb = wb.astype(int)
+
+        '''
+        import matplotlib.pyplot as plt
+        dist = np.sum(wb, axis=(0, 1)).flatten()
+        plt.hist(dist)
+        plt.show()
+        # assert (False)
+        '''
+        '''
+        dist = np.reshape(wb,   (1, 256, 2, 256))
+        dist = np.reshape(dist, (1, 256, 2, 32, 8))
+        pmf = np.mean(dist, axis=(0, 1, 2, 3))
+        wbs = []
+        for i in range(8):
+            wb = np.random.choice(a=[0, 1], size=(1, 256, 2, 32), p=[1 - pmf[i], pmf[i]], replace=True)
+            wbs.append(wb)
+        wb = np.stack(wbs, axis=-1)
+
+        import matplotlib.pyplot as plt
+        dist = np.sum(wb, axis=(0, 1)).flatten()
+        plt.hist(dist)
+        plt.show()
+        # assert (False)
+
+        scale = np.array([1,2,4,8,16,32,64,-128])
+        w = np.sum(scale * wb, axis=4)
+        w = np.reshape(w, (nwl * wl, ncol // nbit))
+        w = w[0:self.fh * self.fw * self.fc, 0:self.fn]
+        w = np.reshape(w, (self.fh, self.fw, self.fc, self.fn))
+        self.w = w
+
+        wb = np.reshape(wb, (1, 256, 2, 256))
+        '''
+
         return wb
         
         

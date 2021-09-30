@@ -40,10 +40,10 @@ void clear(void* v, int size)
 
 //////////////////////////////////////////////
 
-DLLEXPORT int cim(int8_t* x, int8_t* w, int* y, uint8_t* count, uint32_t* error, uint8_t* rpr_table, uint32_t* conf, float* value, int size, int max_rpr, int adc, int R, int C, int NWL, int WL, int NBL, int BL) {
+DLLEXPORT int cim(int8_t* x, int8_t* w, int* y, uint8_t* count, long* error, long* mean, uint8_t* rpr_table, uint64_t* conf, float* value, uint64_t* dist, uint8_t* dot, int size, int max_rpr, int adc, int R, int C, int NWL, int WL, int NBL, int BL) {
 
   default_random_engine generator;
-  discrete_distribution<uint32_t>** distribution = new discrete_distribution<uint32_t>*[8 * 8 * (max_rpr + 1) * (max_rpr + 1)];
+  discrete_distribution<uint64_t>** distribution = new discrete_distribution<uint64_t>*[8 * 8 * (max_rpr + 1) * (max_rpr + 1)];
   for (int xb=0; xb<8; xb++) {
     for (int wb=0; wb<8; wb++) {
       for (int wl=0; wl<max_rpr+1; wl++) {
@@ -54,8 +54,8 @@ DLLEXPORT int cim(int8_t* x, int8_t* w, int* y, uint8_t* count, uint32_t* error,
           int on_addr =                                     on;
           int addr = xb_addr + wb_addr + wl_addr + on_addr;
           int offset = addr * (adc + 1);
-          vector<uint32_t> prob(conf + offset, conf + offset + (adc + 1));
-          distribution[addr] = new discrete_distribution<uint32_t>(prob.begin(), prob.end());
+          vector<uint64_t> prob(conf + offset, conf + offset + (adc + 1));
+          distribution[addr] = new discrete_distribution<uint64_t>(prob.begin(), prob.end());
         }
       }
     }
@@ -96,17 +96,31 @@ DLLEXPORT int cim(int8_t* x, int8_t* w, int* y, uint8_t* count, uint32_t* error,
               int on_addr =                               expected;
               int addr = xb_addr + wb_addr + wl_addr + on_addr;
               int code = (*(distribution[addr]))(generator);
+              dist[ (adc + 1) * addr + code ] += 1;
 
               xb_addr = xb * 8 * (adc + 1);
               wb_addr =     wb * (adc + 1);
               float actual = value[xb_addr + wb_addr + code];
               assert (actual >= 0.);
 
+              if ( ((int) actual) != expected ) { error[xb*8 + wb] += 1; }
+              mean[xb*8 + wb] += 1;
+
               int yaddr = r * C + (bl / 8);
               assert(yaddr < R * C);
               int shift = wb + xb;
               int sign = (wb == 7) ? -1 : 1;
-              y[yaddr] += sign * actual * pow(2, shift);
+              y[yaddr] += sign * round(actual * pow(2, shift));
+
+              int dot_addr = 0;
+              dot_addr += r * NWL * 8 * NBL * BL * size * 3;
+              dot_addr +=      wl * 8 * NBL * BL * size * 3;
+              dot_addr +=          xb * NBL * BL * size * 3;
+              dot_addr +=              (bl + wb) * size * 3;
+              dot_addr +=                        wl_itr * 3;
+              dot[dot_addr + 0] = wl_sum;
+              dot[dot_addr + 1] = expected;
+              dot[dot_addr + 2] = code;
             }
 
             int row_addr = r * NWL * 8 * 8 * size;

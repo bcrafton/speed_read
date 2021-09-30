@@ -5129,8 +5129,97 @@ adc=4, sar=2 -> 25
 https://github.com/bcrafton/speed_read/commit/6a38698425855f89feba6eb007ecd42b4610438b#diff-3ce174b30b2cefb459d5dbaea84a4c60889372c7d4d17818fd78067fc2c8b130
 > unchanged since islped
 
+====================
 
+sub-linear scaling ~ (pe * e)
+> when {xb, wb} is basically {+, -} even
+> AND sum(pe * e) is high
+> then you get high probability of sub-linear scaling
+which is exactly what we are seeing
 
+we see 3 ways forward:
+1) MSE
+2) some smarter ILP impelementation
+3) different optimization algorithm
+   > branch and bound
+   > start with greedy algorithm implementation
+
+====================
+
+turns out dont even have to be clever !!
+but new problem: correlation.
+
+1) error correlation:
+pe = 0.6, e = 1
+pe = 0.6, e = 1000
+
+2) wl correlation
+all x,w in set see the same WLs 
+so if there is bias in that correlation, we cannot get full pe scale.
+
+====================
+
+if we think mse is due to randomness, we could look in cim.py ...
+and look at dist vs conf or w.e.
+
+====================
+
+so when we sum a bunch of (mu, mse)
+and mu grows
+dont we have to combine them and recompute ? 
+and that would be why std == compute mse.
+
+I think its the group thats causing the issues.
+if row is 1 -> implies its just [xb, wb]
+
+====================
+
+I think thats it actually. 
+
+think of 64 random variables
+> each with (mu, sigma)
+> if the mean is balanced, you can ignore it
+> but if the whole mean grows you need to add them together.
+
+so what we really need is:
+> mean + sqrt(var) <= thresh
+> because even if we squared-summed mean ... it wudnt do it justice.
+
+i hope this would be clear if we read it l8r on ..
+but it seems so obvious now.
+
+====================
+
+think last place for error is 
+1) row <-> error correlation
+   > p
+   > pe 
+   > e
+2) row_scale
+   > how should this actually scale ? 
+   > can we simulate it somehow ? 
+
+====================
+
+yeah but I think we are okay for now ... results look pretty decent.
+
+====================
+
+to figure out this row correlation,
+think we would want to change P
+P -> [WL, ON]
+would want
+P -> [1s, WL, ON]
+so like 32 1s, 2 RDS, 8 ON / 8 ON 
+but its too complex
+but would give what we are trying to clear out with row correlation
+
+i suspect whats happening is:
+often --- 17 1s -- 2 RDs -- 8 ON / 1 ON
+and we dont have the ADC threshold for 1
+and this happens often for layer 1 or something idk.
+
+====================
 
 
 
