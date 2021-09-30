@@ -27,18 +27,27 @@ def cim(xb, wb, params):
 
     ################################################################
 
-    count   = np.zeros(shape=(N, NWL, XB, WB, max_cycle), dtype=np.uint8)
-    count   = np.ascontiguousarray(count.flatten(), np.uint8)
+    count = np.zeros(shape=(N, NWL, XB, WB, max_cycle), dtype=np.uint8)
+    count = np.ascontiguousarray(count.flatten(), np.uint8)
 
-    error   = np.zeros(shape=(params['max_rpr']), dtype=np.uint32) # why is this [max_rpr]
-    error   = np.ascontiguousarray(error.flatten(), np.uint32)
+    error = np.zeros(shape=(XB, WB), dtype=np.uint64) 
+    error = np.ascontiguousarray(error.flatten(), np.uint64)
+
+    mean = np.zeros(shape=(XB, WB), dtype=np.uint64) 
+    mean = np.ascontiguousarray(mean.flatten(), np.uint64)
 
     xb = np.ascontiguousarray(xb.flatten(), np.int8)
     wb = np.ascontiguousarray(wb.flatten(), np.int8)
     yb = np.ascontiguousarray(yb.flatten(), np.int32)
+
+    assert (np.shape(params['rpr'])   == (XB, WB))
+    assert (np.shape(params['conf'])  == (XB, WB, params['max_rpr'] + 1, params['max_rpr'] + 1, params['adc'] + 1))
+    assert (np.shape(params['value']) == (XB, WB,                                               params['adc'] + 1))
+
     rpr = np.ascontiguousarray(params['rpr'].flatten(), np.uint8)
-    conf = np.ascontiguousarray(params['conf'].flatten(), np.uint32)
+    conf = np.ascontiguousarray(params['conf'].flatten(), np.uint64)
     value = np.ascontiguousarray(params['value'].flatten(), np.float32)
+    dist = np.zeros_like(conf)
 
     ################################################################
 
@@ -47,10 +56,12 @@ def cim(xb, wb, params):
     ctypes.c_void_p(wb.ctypes.data), 
     ctypes.c_void_p(yb.ctypes.data), 
     ctypes.c_void_p(count.ctypes.data), 
-    ctypes.c_void_p(error.ctypes.data), 
+    ctypes.c_void_p(error.ctypes.data),
+    ctypes.c_void_p(mean.ctypes.data), 
     ctypes.c_void_p(rpr.ctypes.data), 
     ctypes.c_void_p(conf.ctypes.data), 
     ctypes.c_void_p(value.ctypes.data), 
+    ctypes.c_void_p(dist.ctypes.data), 
     ctypes.c_int(max_cycle),
     ctypes.c_int(params['max_rpr']),
     ctypes.c_int(params['adc']),
@@ -63,11 +74,80 @@ def cim(xb, wb, params):
 
     ################################################################
 
-    yb      = np.reshape(yb,      (N, C))
-    count   = np.reshape(count,   (N, NWL, XB, WB, max_cycle))
-    error   = np.reshape(error,   (params['max_rpr']))
-    # print (error)
+    yb    = np.reshape(yb,    (N, C))
+    count = np.reshape(count, (N, NWL, XB, WB, max_cycle))
+    error = np.reshape(error, (XB, WB))
+    mean  = np.reshape(mean, (XB, WB))
 
+    conf = np.reshape(conf, (XB, WB, params['max_rpr'] + 1, params['max_rpr'] + 1, params['adc'] + 1))
+    dist = np.reshape(dist, (XB, WB, params['max_rpr'] + 1, params['max_rpr'] + 1, params['adc'] + 1))
+
+    ################################################################
+    '''
+    # use dist for p AND pe
+    p_ref = np.sum(dist, axis=-1)
+
+    profile = np.load('./profile/0.npy', allow_pickle=True).item()
+    p = np.zeros(shape=(XB, WB, params['max_rpr'] + 1, params['max_rpr'] + 1))
+    row = np.zeros(shape=(XB, WB))
+    for i in range(XB):
+        for j in range(WB):
+            k = params['rpr'][i][j]
+            k = np.where(k == params['rprs'])[0][0]
+            p[i][j] = profile['adc'][i, j, k, :, :]
+            row[i][j] = profile['row_avg'][i, params['rpr'][i][j] - 1]
+
+    print (np.ceil(row))
+    assert (np.sum(dist) == np.sum(mean))
+    assert (np.all(p_ref == p))
+
+    ################################################################
+    
+    conf_sums = np.sum(conf, axis=-1, keepdims=True)
+    dist_sums = np.sum(dist, axis=-1, keepdims=True)
+
+    mask = (conf_sums > 0) * (dist_sums > 0)
+    conf = np.where(mask, conf / (conf_sums + 1e-6), 0)
+    dist = np.where(mask, dist / (dist_sums + 1e-6), 0)
+
+    ################################################################
+
+    on    = np.arange(params['max_rpr'] + 1).reshape((1, 1, 1, -1, 1))
+    value = np.reshape(params['value'], (XB, WB, 1, 1, -1))
+    e = (value - on)
+
+    p = p / (np.sum(p, axis=(2, 3), keepdims=True) + 1e-6)
+    p = p.reshape(8, 8, 65, 65, 1)
+
+    scale = 2 ** np.arange(8)
+    scale = scale.reshape(-1,1,1,1,1) * scale.reshape(1,-1,1,1,1)
+
+    row = row.reshape(8, 8, 1, 1, 1)
+
+    pe1 = params['conf']
+    pe1 = pe1 / (np.sum(pe1, axis=-1, keepdims=True) + 1e-6)
+
+    pe2 = dist
+    pe2 = pe2 / (np.sum(pe2, axis=-1, keepdims=True) + 1e-6)
+
+    ################################################################
+
+    error = e * scale / params['q']
+
+    mean1 = np.sum(p * pe1 * error * row)
+    mae1_xw = np.sum(p * pe1 * np.abs(error) * row, axis=(2, 3, 4), keepdims=True)
+    mean1_xw = np.sum(p * pe1 * error * row, axis=(2, 3, 4), keepdims=True)
+    row_scale2 = 1 + np.abs(mean1_xw) / (mae1_xw + 1e-6)
+    mse1 = np.sqrt(np.sum(p * pe1 * (error - mean1_xw) ** 2 * row ** row_scale2))
+    print (mse1, mean1)
+
+    mean2 = np.sum(p * pe2 * error * row)
+    mae2_xw = np.sum(p * pe2 * np.abs(error) * row, axis=(2, 3, 4), keepdims=True)
+    mean2_xw = np.sum(p * pe2 * error * row, axis=(2, 3, 4), keepdims=True)
+    row_scale2 = 1 + np.abs(mean2_xw) / (mae2_xw + 1e-6)
+    mse2 = np.sqrt(np.sum(p * pe2 * (error - mean2_xw) ** 2 * row ** row_scale2))
+    print (mse2, mean2)
+    '''
     ################################################################
 
     metrics = {}

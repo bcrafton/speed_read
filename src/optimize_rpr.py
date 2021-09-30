@@ -34,11 +34,11 @@ cvxopt.solvers.options['reltol'] = 1e-2
 
 ##########################################
 
-def optimize_rpr(error, mean, delay, valid, area_adc, area_sar, area, threshold, Ns):
+def optimize_rpr(error, mean, delay, valid, prob, area_adc, area_sar, area, scale, threshold, Ns):
     (best_lut, best_N, best_delay) = (None, 0, 1e12)
     for N in Ns:
         if N > area: continue
-        lut, current_delay = optimize_rpr_kernel(error, mean, delay, valid, area_adc, area_sar, area, threshold, N)
+        lut, current_delay = optimize_rpr_kernel(error, mean, delay, valid, prob, area_adc, area_sar, area, scale, threshold, N)
         if current_delay < best_delay: (best_lut, best_N, best_delay) = (lut, N, current_delay)
 
     assert (best_N > 0)
@@ -47,7 +47,7 @@ def optimize_rpr(error, mean, delay, valid, area_adc, area_sar, area, threshold,
 
 ##########################################
 
-def optimize_rpr_kernel(error, mean, delay, valid, area_adc, area_sar, area, threshold, N):
+def optimize_rpr_kernel(error, mean, delay, valid, prob, area_adc, area_sar, area, scale, threshold, N):
     
     # TODO:
     # make dim all caps
@@ -57,6 +57,7 @@ def optimize_rpr_kernel(error, mean, delay, valid, area_adc, area_sar, area, thr
     assert (np.shape(error) == np.shape(mean))
     assert (np.shape(error) == np.shape(delay))
     assert (np.shape(error) == np.shape(valid))
+    assert (np.shape(error) == np.shape(prob))
 
     assert (len(area_adc) == adc)
     assert (len(area_sar) == sar)
@@ -67,6 +68,7 @@ def optimize_rpr_kernel(error, mean, delay, valid, area_adc, area_sar, area, thr
     mean  = mean.reshape( xb, wb, rpr, adc, sar)
     delay = delay.reshape(xb, wb, rpr, adc, sar)
     valid = valid.reshape(xb, wb, rpr, adc, sar)
+    prob  = prob.reshape(xb, wb, rpr, adc, sar)
 
     # N = 4
     assert (N in [1, 2, 4, 8])
@@ -80,6 +82,7 @@ def optimize_rpr_kernel(error, mean, delay, valid, area_adc, area_sar, area, thr
     mean  = np.reshape(mean,  -1)
     delay = np.reshape(delay, -1)
     valid = np.reshape(valid, -1)
+    prob  = np.reshape(prob,  -1)
 
     ##########################################
 
@@ -161,9 +164,6 @@ def optimize_rpr_kernel(error, mean, delay, valid, area_adc, area_sar, area, thr
 
     ##########################################
 
-    error_constraint = (error @ selection) <= threshold
-    mean_constraint1 = ( mean @ selection) <= threshold
-    mean_constraint2 = ( mean @ selection) >= -threshold
     valid_constraint = (valid @ selection) == 64
 
     ##########################################
@@ -177,8 +177,19 @@ def optimize_rpr_kernel(error, mean, delay, valid, area_adc, area_sar, area, thr
     total_delay = (delay @ selection)
 
     ##########################################
+    '''
+    mean_constraint1 = (mean @ selection) <= threshold
+    mean_constraint2 = (mean @ selection) >= -threshold
+    error_constraint = 0.5 * (error @ selection) + (np.abs(mean) @ selection) <= threshold
+    knapsack_problem = cvxpy.Problem(cvxpy.Minimize(total_delay), select_constraint + adc_constraint + sar_constraint + rpr_constraint + [area_constraint, mean_constraint1, mean_constraint2, error_constraint, valid_constraint])
+    '''
+    ##########################################
 
-    knapsack_problem = cvxpy.Problem(cvxpy.Minimize(total_delay), select_constraint + adc_constraint + sar_constraint + rpr_constraint + [area_constraint, error_constraint, mean_constraint1, mean_constraint2, valid_constraint])
+    mean_constraint  = (np.abs(mean) @ selection) <= threshold * scale
+    error_constraint = (np.abs(error) @ selection) <= pow(threshold * scale, 2)
+    # mse_constraint   = (np.abs(mean) @ selection) * threshold + (np.abs(error) @ selection) <= threshold * threshold
+    mse_constraint   = cvxpy.square(np.abs(mean) @ selection) + (np.abs(error) @ selection) <= threshold * threshold
+    knapsack_problem = cvxpy.Problem(cvxpy.Minimize(total_delay), select_constraint + adc_constraint + sar_constraint + rpr_constraint + [area_constraint, mse_constraint, valid_constraint])
 
     ##########################################
 
@@ -313,6 +324,18 @@ def optimize_rpr_kernel(error, mean, delay, valid, area_adc, area_sar, area, thr
 
     ##########################################
 
+    print ('Total Error:', np.sqrt(select.flatten() @ error) / scale)
+    print ('Total Mean:', select.flatten() @ mean / scale)
+    print ('Total Delay:', select.flatten() @ delay)
+
+    ##########################################
+    
+    area1 = np.around(adc_var.value) @ area_adc
+    area2 = np.around(sar_var.value) @ area_sar
+    print ('Total Area:', (area1 + area2)) 
+
+    ##########################################
+
     scale = np.arange(rpr, dtype=np.int32).reshape(-1, 1, 1)
     rpr_lut = np.sum(select * scale, axis=(2, 3, 4))
 
@@ -328,20 +351,7 @@ def optimize_rpr_kernel(error, mean, delay, valid, area_adc, area_sar, area, thr
 
     ##########################################
 
-    print ('Total Error:', select.flatten() @ error)
-    
-    print ('Total Mean:', select.flatten() @ mean)
-
     total_delay = select.flatten() @ delay
-    print ('Total Delay:', select.flatten() @ delay)
-
-    ##########################################
-    
-    area1 = np.around(adc_var.value) @ area_adc
-    area2 = np.around(sar_var.value) @ area_sar
-    print ('Total Area:', (area1 + area2)) 
-
-    ##########################################
 
     return (rpr_lut, adc_lut, sar_lut), total_delay
     

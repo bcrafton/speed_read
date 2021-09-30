@@ -34,11 +34,11 @@ from tests import *
 
 ############
 
-array_params, arch_params = Simple()
+# array_params, arch_params = Simple()
 # array_params, arch_params = CC()
 # array_params, arch_params = Area()
 # array_params, arch_params = Flash_vs_SAR()
-# array_params, arch_params = Kmeans()
+array_params, arch_params = Kmeans()
 
 ############
 
@@ -81,7 +81,7 @@ model, x, y = load_cifar(num_example=1, array_params=array_params)
 
 start = time.time()
 
-load_profile = False
+load_profile = True
 if not load_profile:
     profile = model.profile(x)
 

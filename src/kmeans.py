@@ -57,6 +57,7 @@ def kmeans(values, counts, n_clusters=8, max_iter=10, n_init=10, err_func=mean_s
         # Now recompute cluster centers:
         cl = np.sum(s * values.reshape((-1, 1)), axis=0)
         cl = np.round(cl * 4) / 4
+        # cl = np.round(cl)
         cl[0] = 0
         
         return (cl)

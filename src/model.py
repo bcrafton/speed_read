@@ -20,7 +20,7 @@ class Model:
         self.layers = layers
         self.nlayer = len(self.layers)
         self.array_params = array_params
-        np.random.seed(0)
+        # np.random.seed(0)
 
     def init(self, params):
         self.params = params

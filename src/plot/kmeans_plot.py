@@ -38,13 +38,13 @@ print (df['cards'])
 # '(rpr_alloc == "%s")' NOT '(rpr_alloc == %s)'
 #####################
 
-hrss = [0.001]
-lrss = [0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08]
+hrss = [0.01]
+lrss = [0.02, 0.04, 0.06, 0.08]
 perf = {}
 power = {}
 error = {}
 
-for method in ['soft', 'normal', 'kmeans']:
+for method in ['kmeans', 'normal']:
     perf[method]  = []
     power[method] = []
     error[method] = []
@@ -59,7 +59,9 @@ for method in ['soft', 'normal', 'kmeans']:
             samples = df.query(query)
             assert (len(samples) > 0)
 
-            e += np.average(samples['error'])
+            # print (samples['error'])
+            # e += np.average(samples['error'])
+            # e = np.max(samples['error'])
 
             '''
             adcs = samples['adc']
@@ -81,6 +83,8 @@ for method in ['soft', 'normal', 'kmeans']:
             counts = []
             costs = []
             layers = np.array(samples['id'])
+            layers = [1]
+            cycles = 0
             for layer in layers:
                 query = '(id == %d)' % (layer)
                 data = samples.query(query)
@@ -88,18 +92,30 @@ for method in ['soft', 'normal', 'kmeans']:
                 count = data['bb_cycles'].values[0]
                 counts.append(count)
                 #
+                vmm_cycles = data['vmm_cycles'].values[0]
+                sar_cycles = data['sar'].values[0]
+                cycles += np.sum(vmm_cycles * sar_cycles)
+                #
                 nwl = data['nwl'].values[0]
                 nbl = data['nbl'].values[0]
                 cost = nwl * nbl
                 costs.append(cost)
+                # 
+                e = np.max(samples['error'])
 
-            cycles = compute_cycles(counts=counts, costs=costs, resources=2**12)
+            '''
+            cycles = compute_cycles(counts=counts, costs=costs, resources=32)
+            '''
+            '''
+            cycles = samples['cycle']
+            cycles = np.sum(cycles)
+            '''
 
             ################################################
 
             mac = np.sum( samples['nmac'].values )
             top_per_sec = mac / cycles
-  
+
             ################################################
 
             perf[method].append(top_per_sec)
