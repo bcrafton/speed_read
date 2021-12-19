@@ -154,148 +154,13 @@ def CC():
 
 def Area():
 
-    rpr64 = np.array([1, 2, 4, 8, 16, 24, 32, 48, 64])
-    adc64 = np.array([1, 2, 4, 8, 16, 24, 32, 48, 64])
+    rpr64 = np.array([1, 2, 4, 8, 16, 32, 64])
+    adc64 = np.array([1, 2, 4, 8])
     sar64 = np.array([1, 2, 3, 4, 5, 6])
     Ns    = np.array([1, 2, 4, 8])
 
-    adc64_area = np.array([1, 2, 4, 8, 16, 24, 32, 48, 64])
-    sar64_area = np.array([0, 1, 1.25, 1.50, 1.75, 2.00])
-
-    array_params = {
-    'bpa': 8,
-    'bpw': 8,
-    'adc_mux': 8,
-    'wl': 256,
-    'bl': 256,
-    'offset': 128,
-    'max_rpr': 64
-    }
-
-    arch_params = {
-    'skip': [1],
-    'alloc': ['block'],
-    'narray': [2 ** 9],
-    'cards': [1],
-    'profile': [0],
-    'thresh': [0.10],
-    'method': ['soft'],
-    'adc': 64,
-    'lrs': [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10],
-    'hrs': [0.02],
-    'area': [1, 2, 3, 4, 6, 8, 10, 12, 14, 16],
-    'rprs': [rpr64],
-    'adcs': [adc64],
-    'sars': [sar64],
-    'Ns':   [Ns],
-    'adc_area': [adc64_area],
-    'sar_area': [sar64_area],
-    'adc_energy': 1,
-    'sar_energy': 1,
-    'opt': ['delay'] # ['delay', 'energy']
-    }
-
-    arch_params = perms(arch_params)
-    return array_params, arch_params
-
-#######################################################
-
-def Flash_vs_SAR():
-
-    rprs = np.array([1, 2, 3, 4, 5, 6, 7, 8, 12, 16, 20, 24, 28, 32])
-    adcs = np.array([8])
-    sars = np.array([1])
-    Ns   = np.array([1])
-    adc_area = np.array([1])
-    sar_area = np.array([1])
-
-    array_params = {
-    'bpa': 8,
-    'bpw': 8,
-    'adc_mux': 8,
-    'wl': 256,
-    'bl': 256,
-    'offset': 128,
-    'max_rpr': 64
-    }
-
-    arch_params1 = {
-    'skip': [1],
-    'alloc': ['block'],
-    'narray': [2 ** 9],
-    'cards': [1],
-    'profile': [0],
-    'thresh': [0.10],
-    'method': ['soft'],
-    'adc': 64,
-    'lrs': [0.02, 0.04, 0.06, 0.08],
-    'hrs': [0.015],
-    'area': [16],
-    'rprs': [rprs],
-    'adcs': [adcs],
-    'sars': [sars],
-    'Ns':   [Ns],
-    'adc_area': [adc_area],
-    'sar_area': [sar_area],
-    'adc_energy': 1,
-    'sar_energy': 1,
-    'opt': ['delay'] # ['delay', 'energy']
-    }
-
-    rprs = np.array([1, 2, 4, 8, 16, 24, 32, 48, 64])
-    adcs = np.array([1])
-    sars = np.array([1, 2, 3, 4, 5, 6])
-    Ns  = np.array([1])
-    adc_area = np.array([1])
-    sar_area = np.array([0, 1, 1.25, 1.50, 1.75, 2.00])
-
-    arch_params2 = {
-    'skip': [1],
-    'alloc': ['block'],
-    'narray': [2 ** 9],
-    'cards': [1],
-    'profile': [0],
-    'thresh': [0.10],
-    'method': ['soft'],
-    'adc': 64,
-    'lrs': [0.02, 0.04, 0.06, 0.08],
-    'hrs': [0.015],
-    'area': [16],
-    'rprs': [rprs],
-    'adcs': [adcs],
-    'sars': [sars],
-    'Ns':   [Ns],
-    'adc_area': [adc_area],
-    'sar_area': [sar_area],
-    'adc_energy': 1,
-    'sar_energy': 1,
-    'opt': ['delay'] # ['delay', 'energy']
-    }
-
-    arch_params1 = perms(arch_params1)
-    arch_params2 = perms(arch_params2)
-    arch_params = arch_params1 + arch_params2
-    return array_params, arch_params
-
-#######################################################
-
-def Kmeans():
-    
-    rpr64 = np.array([1, 2, 4, 8, 16, 24, 32, 48, 64])
-    adc64 = np.array([1])
-    sar64 = np.array([1, 2, 3, 4, 5, 6])
-    Ns    = np.array([1])
-    adc64_area = np.array([1])
-    sar64_area = np.array([1, 2, 3, 4, 5, 6])
-
-    '''
-    rpr64 = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
-    adc64 = np.array([8])
-    sar64 = np.array([1])
-    Ns    = np.array([1])
-    adc64_area = np.array([1])
-    sar64_area = np.array([0])
-    '''
+    adc64_area = np.array([1, 2, 4, 8])
+    sar64_area = np.array([0, 1., 1.25, 1.50, 1.75, 2.00])
 
     array_params = {
     'bpa': 8,
@@ -315,9 +180,59 @@ def Kmeans():
     'cards': [1],
     'profile': [0],
     'thresh': [0.25],
-    'method': ['kmeans'],
+    'pe': [1.0],
+    'method': ['normal', 'soft'],
     'adc': 64,
-    'lrs': [0.08],
+    'lrs': [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10],
+    'hrs': [0.02],
+    'area': [1, 2, 3, 4, 6, 8, 10, 12, 14, 16],
+    # 'rprs': [rpr64],
+    'adcs': [adc64],
+    'sars': [sar64],
+    'Ns':   [Ns],
+    'adc_area': [adc64_area],
+    'sar_area': [sar64_area],
+    'adc_energy': 1,
+    'sar_energy': 1,
+    'opt': ['delay'] # ['delay', 'energy']
+    }
+
+    arch_params = perms(arch_params)
+    return array_params, arch_params
+
+#######################################################
+
+def Kmeans():
+    
+    rpr64 = np.array([1, 2, 4, 8, 16, 24, 32, 48, 64])
+    adc64 = np.array([1])
+    sar64 = np.array([1, 2, 3, 4, 5, 6])
+    Ns    = np.array([1])
+    adc64_area = np.array([1])
+    sar64_area = np.array([1, 2, 3, 4, 5, 6])
+
+    array_params = {
+    'bpa': 8,
+    'bpw': 8,
+    'adc_mux': 8,
+    'wl': 256,
+    'bl': 256,
+    'offset': 128,
+    'max_rpr': 64,
+    'rprs': rpr64,
+    }
+
+    arch_params = {
+    'skip': [1],
+    'alloc': ['block'],
+    'narray': [2 ** 9],
+    'cards': [1],
+    'profile': [0],
+    'thresh': [0.25],
+    'pe': [1.0],
+    'method': ['soft', 'normal'],
+    'adc': 64,
+    'lrs': [0.02, 0.04, 0.06, 0.08],
     'hrs': [0.01],
     'area': [1000],
     'adcs': [adc64],

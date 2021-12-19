@@ -249,6 +249,7 @@ def thresholds_kmeans_soft(counts, adc, sar):
         error = np.sum(pmf * diff)
         return error
     ###################################
+    assert (len(refs) > 0)
     best_ref = None; best_error = np.inf
     for ref in refs:
         error = compute_error(counts, ref)

@@ -80,20 +80,29 @@ def profile(layer, x, w, y_ref, y_shape, params):
     # sum over WL
     bits = np.sum(x, axis=2).reshape(nrow, nwl, xb, 1)
     # ceil it -> each N_WL is atleast 1 cycle
-    row  = np.ceil(bits / rpr + 1e-6).astype(int)
+    row  = np.ceil(bits / rpr).astype(int)
     # sum over N_WL
     row = np.sum(row, axis=1)
-
     # avg over patches
     row_avg = np.mean(row, axis=0)
 
+    ###########################
+
+    rpr  = np.arange(1, params['max_rpr'] + 1)
+    # sum over WL
+    bits = np.sum(x, axis=2).reshape(nrow, nwl, xb, 1)
+    # ceil it -> each N_WL is atleast 1 cycle
+    row  = np.ceil(bits / rpr + 1e-6).astype(int)
+    # sum over N_WL
+    row = np.sum(row, axis=1)
+    # create row pmf
     pmf = np.zeros(shape=(xb, params['max_rpr'], params['wl'])) # params['wl'] is actually low-ball ... could be (NWL * WL)
     for b in range(xb):
         for r in range(params['max_rpr']):
             val, count = np.unique(row[:, b, r], return_counts=True)
             for (v, c) in zip(val, count):
                 pmf[b, r, v] = c
-
+    # normalize
     pmf = pmf / np.sum(pmf, axis=2, keepdims=True)
 
     ###########################

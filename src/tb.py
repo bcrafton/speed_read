@@ -36,9 +36,9 @@ from tests import *
 
 # array_params, arch_params = Simple()
 # array_params, arch_params = CC()
-# array_params, arch_params = Area()
+array_params, arch_params = Area()
 # array_params, arch_params = Flash_vs_SAR()
-array_params, arch_params = Kmeans()
+# array_params, arch_params = Kmeans()
 
 ############
 
@@ -64,6 +64,7 @@ def run_command(x, y, model, params, return_list):
     'lrs':       params['lrs'],
     'hrs':       params['hrs'],
     'thresh':    params['thresh'],
+    'pe':        params['pe'],
     'method':    params['method'],
     'abs_error': abs_error
     }
@@ -88,7 +89,7 @@ if not load_profile:
 ##########################
 
 num_runs = len(arch_params)
-parallel_runs = 8
+parallel_runs = 24
 
 thread_results = []
 manager = multiprocessing.Manager()

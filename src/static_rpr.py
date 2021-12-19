@@ -162,7 +162,7 @@ def static_rpr(id, params, q):
     assert (params['max_rpr'] == profile['max_rpr'])
     row = profile['row']
     # row_avg = np.maximum(1, profile['row_avg'])
-    assert (np.all(profile['row_avg'] >= 1))
+    # assert (np.all(profile['row_avg'] >= 1))
     row_avg = profile['row_avg']
     ratio = profile['ratio']
     profile = profile['adc']
@@ -174,13 +174,14 @@ def static_rpr(id, params, q):
                 for adc_idx, adc in enumerate(params['adcs']):
                     for sar_idx, sar in enumerate(params['sars']):
                         states = (adc + 1) ** sar
-                        '''
                         if rpr+1 < states: continue
-                        '''
+
+                        if sar > 1: method = params['method']
+                        else:       method = 'normal'
                         thresh, values = thresholds(counts=profile[xb, wb, rpr_idx],
                                                     adc=adc,
                                                     sar=sar,
-                                                    method=params['method'])
+                                                    method=method)
 
                         thresh_table[(xb, wb, rpr_idx, adc_idx, sar_idx)] = thresh
                         value_table[(xb, wb, rpr_idx, adc_idx, sar_idx)] = values
@@ -191,17 +192,17 @@ def static_rpr(id, params, q):
                         sign_wb = -1 if (wb == 7) else 1
                         scale = sign_xb * sign_wb * 2**wb * 2**xb / q
                         mse, mean, pe = expected_error(params=params,
-                                                      states=states,
-                                                      xb=xb,
-                                                      wb=wb,
-                                                      rpr=rpr,
-                                                      sar=sar,
-                                                      profile=profile[xb, wb, rpr_idx],
-                                                      scale=scale,
-                                                      row=row[xb][rpr - 1],
-                                                      row_avg=row_avg[xb][rpr - 1],
-                                                      adc_thresh=thresh, 
-                                                      adc_value=values)
+                                                       states=states,
+                                                       xb=xb,
+                                                       wb=wb,
+                                                       rpr=rpr,
+                                                       sar=sar,
+                                                       profile=profile[xb, wb, rpr_idx],
+                                                       scale=scale,
+                                                       row=row[xb][rpr - 1],
+                                                       row_avg=max(1, row_avg[xb][rpr - 1]),
+                                                       adc_thresh=thresh, 
+                                                       adc_value=values)
 
                         '''
                         if (xb == 0) and (wb == 2) and (rpr_idx == 6) and (sar_idx == 3):
@@ -211,7 +212,7 @@ def static_rpr(id, params, q):
                         error_table[xb][wb][rpr_idx][adc_idx][sar_idx] = mse
                         mean_table [xb][wb][rpr_idx][adc_idx][sar_idx] = mean
                         p_table    [xb][wb][rpr_idx][adc_idx][sar_idx] = pe
-                        valid_table[xb][wb][rpr_idx][adc_idx][sar_idx] = (pe < 0.5)
+                        valid_table[xb][wb][rpr_idx][adc_idx][sar_idx] = (pe <= params['pe'])
                         delay_table[xb][wb][rpr_idx][adc_idx][sar_idx] = row_avg[xb][rpr - 1] * sar
                         adc_energy = (sar * adc * params['adc_energy'])
                         sar_energy = (sar *       params['sar_energy'])
@@ -235,8 +236,8 @@ def static_rpr(id, params, q):
     # answer should be scaling by: [np.sqrt(nrow), nrow]
     # error should scale by sqrt(nrow)
     # mean should scale by nrow
-    # error_table = round_fraction(error_table, 1e-4) # - round_fraction(np.absolute(mean_table), 1e-4)
-    # mean_table = np.sign(mean_table) * round_fraction(np.absolute(mean_table), 1e-4)
+    error_table = round_fraction(error_table, 1e-4) # - round_fraction(np.absolute(mean_table), 1e-4)
+    mean_table = np.sign(mean_table) * round_fraction(np.absolute(mean_table), 1e-4)
     # 
     # error_table = round_fraction(error_table, 1e-4)
     # mean_table = round_fraction(mean_table, 1e-4)
@@ -244,8 +245,8 @@ def static_rpr(id, params, q):
     # p_table[2:8] = 0
     # p_table[:, 2:8] = 0
     if params['skip'] and params['cards']:
-        if   params['opt'] == 'delay':  minimize = delay_table
-        elif params['opt'] == 'energy': minimize = energy_table
+        if   params['opt'] == 'delay':  minimize = round_fraction(delay_table, 4)
+        elif params['opt'] == 'energy': minimize = round_fraction(energy_table, 4)
         else:                           assert (False)
         rpr_lut, adc_lut, sar_lut, N = optimize_rpr(error=error_table, 
                                                     mean=mean_table, 

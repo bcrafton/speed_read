@@ -5221,6 +5221,17 @@ and this happens often for layer 1 or something idk.
 
 ====================
 
+so enforcing (pe < 0.5) cuts deep into expected performance.
+
+
+====================
+
+
+
+
+
+
+
 
 
 
