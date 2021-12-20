@@ -131,6 +131,8 @@ def thresholds(counts, adc, sar, method='normal'):
     low  = center[:-1]
     high = center[1:]
     thresh = (high + low) / 2.
+    # thresh[0] = 0.25
+    if np.isclose(thresh[0], 0.5): thresh[0] = 0.25
     thresh = [-np.inf] + thresh.tolist() + [np.inf]
     return np.array(thresh), np.array(center)
 
@@ -249,6 +251,7 @@ def thresholds_kmeans_soft(counts, adc, sar):
         error = np.sum(pmf * diff)
         return error
     ###################################
+    assert (len(refs) > 0)
     best_ref = None; best_error = np.inf
     for ref in refs:
         error = compute_error(counts, ref)

@@ -53,58 +53,50 @@ for area_i, area in enumerate(areas):
     for hrs in hrss:
         for lrs_i, lrs in enumerate(lrss):
             ##################################################################
-            query = '(lrs == %f) & (hrs == %f) & (area == %d)' % (lrs, hrs, area)
+            query = '(lrs == %f) & (hrs == %f) & (area == %d) & (method == "soft")' % (lrs, hrs, area)
             samples = df.query(query)
             ##################################################################
             total_wl = 0
             total_cycle = 0
             total_mac = 0
+            total_row = 0
             hist = np.zeros(shape=33)
 
-            count = samples['count']
-            rpr = samples['rpr']
+            adc = samples['VMM_WL']
             sar = samples['sar']
             comps = samples['comps']
             N = samples['N']
 
+            rprs = samples['rpr']
+
             tops = []
-            for l in count.keys():
+            for l in adc.keys():
                 if samples['id'][l] != 1: continue
-                # print (area, N, lrs)
-                # print (sar[l])
-                # print (rpr[l])
-                # print (comps[l])
+                #################################################
+                profile = np.load("../profile/%d.npy" % (samples['id'][l]), allow_pickle=True).item()
                 #################################################
                 sars[area_i][lrs_i] = np.max(sar[l]) > 1
                 adcs[area_i][lrs_i] = np.max(comps[l])
                 Ns[area_i][lrs_i] = N[l]
                 #################################################
-                P, NWL, XB, WB, SIZE = np.shape(count[l])
-                adc = count[l].transpose(2, 3, 0, 1, 4).reshape(XB, WB, P * NWL * SIZE)
+                XB, WB, _ = np.shape(adc[l])
                 for i in range(XB):
                     for j in range(WB):
-                        #################################################
-                        values, counts = np.unique(adc[i][j], return_counts=True)
-                        #################################################
-                        if sar[l][i][j]:
-                            scale = np.where(values > 0, 1 + np.ceil(np.log2(values)), 0)
-                            # what was step before ? 0 or 1 ?
-                            # scale = np.where(scale  > 0, np.maximum(1, scale - steps[l][i][j] + 1), 0)
-                            # re-ran area_constraint
-                            # check what "step" was in cc_sar2
-                            # steps[l][i][j] == 1
-                        else:
-                            scale = np.where(values > 0, 1, 0)
-
-                        total_cycle += np.sum(scale * counts)
+                        assert (sar[l][i][j] >= 1)
+                        # scrap the cases where 0 WLs enabled ... we should take care of this elsewhere tho
+                        # total_cycle += sar[l][i][j] * np.sum(adc[l][i][j])
+                        total_cycle += sar[l][i][j] * np.sum(adc[l][i][j][1:])
+                        #################
+                        rpr = rprs[l][i][j]
+                        total_row += sar[l][i][j] * profile['row_avg'][i][rpr - 1]
+                        #################
                         total_mac += samples['nmac'][l]
-                        #################################################
-                        for v, s, c in zip(values, scale, counts):
-                            total_wl += v * c
-                            hist[int(s)] += c
-                        #################################################
+
                 error[area_i][lrs_i] = np.max(samples['error'])
-                perf[area_i][lrs_i] = total_mac / (total_cycle / N[l])
+
+                perf[area_i][lrs_i] = total_mac / (total_cycle / N[l]) # 23.3
+                # perf[area_i][lrs_i] = total_mac / (total_row / N[l]) # 23.3
+
                 ##################################################################
 
 ######################################
@@ -115,6 +107,8 @@ print ('sar')
 print (sars)
 print ('N')
 print (Ns)
+
+######################################
 
 normalize = matplotlib.colors.Normalize(vmin=0, vmax=50)
 perf_plot = perf

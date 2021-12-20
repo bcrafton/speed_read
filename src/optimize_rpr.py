@@ -185,11 +185,16 @@ def optimize_rpr_kernel(error, mean, delay, valid, prob, area_adc, area_sar, are
     '''
     ##########################################
 
-    mean_constraint  = (np.abs(mean) @ selection) <= threshold * scale
-    error_constraint = (np.abs(error) @ selection) <= pow(threshold * scale, 2)
-    # mse_constraint   = (np.abs(mean) @ selection) * threshold + (np.abs(error) @ selection) <= threshold * threshold
-    mse_constraint   = cvxpy.square(np.abs(mean) @ selection) + (np.abs(error) @ selection) <= threshold * threshold
-    knapsack_problem = cvxpy.Problem(cvxpy.Minimize(total_delay), select_constraint + adc_constraint + sar_constraint + rpr_constraint + [area_constraint, mse_constraint, valid_constraint])
+    # mean_constraint  = (np.abs(mean) @ selection) <= threshold
+    # mean_constraint  = (np.abs(mean) @ selection) <= 0.250 * threshold
+    mean_constraint  = (np.abs(mean) @ selection) <= 0.125 * threshold
+    # mean_constraint  = (np.abs(mean) @ selection) <= 0.075 * threshold
+
+    error_constraint = (np.abs(error) @ selection) <= threshold * threshold
+    knapsack_problem = cvxpy.Problem(cvxpy.Minimize(total_delay), select_constraint + adc_constraint + sar_constraint + rpr_constraint + [area_constraint, mean_constraint, error_constraint, valid_constraint])
+
+    # mse_constraint   = cvxpy.square(np.abs(mean) @ selection) + (np.abs(error) @ selection) <= threshold * threshold
+    # knapsack_problem = cvxpy.Problem(cvxpy.Minimize(total_delay), select_constraint + adc_constraint + sar_constraint + rpr_constraint + [area_constraint, mse_constraint, valid_constraint])
 
     ##########################################
 
@@ -250,8 +255,8 @@ def optimize_rpr_kernel(error, mean, delay, valid, prob, area_adc, area_sar, are
     # Controls how aggressively generated cuts are selected to be included in the relaxation.
 
     ##########################################
-    # '''
-    print ('Starting Solve')
+    '''
+    # print ('Starting Solve')
     mosek_params = {mosek.dparam.mio_tol_rel_gap: 1e-2, 
                     mosek.dparam.intpnt_co_tol_rel_gap: 1e-2, 
                     mosek.iparam.intpnt_solve_form: mosek.solveform.dual,
@@ -274,16 +279,16 @@ def optimize_rpr_kernel(error, mean, delay, valid, prob, area_adc, area_sar, are
                     mosek.iparam.intpnt_starting_point : mosek.startpointtype.satisfy_bounds,
                     mosek.iparam.presolve_use: mosek.presolvemode.on,
     }
-    knapsack_problem.solve(solver='MOSEK', verbose=True, mosek_params=mosek_params)
+    knapsack_problem.solve(solver='MOSEK', verbose=False, mosek_params=mosek_params)
     if knapsack_problem.status != "optimal":
         print("status:", knapsack_problem.status)
-    # '''
-    ##########################################
     '''
+    ##########################################
+
     knapsack_problem.solve(solver='GLPK_MI', options=cvxopt.glpk.options, glpk={'msg_lev': 'GLP_MSG_ON'}, verbose=True)
     if knapsack_problem.status != "optimal":
         print("status:", knapsack_problem.status)
-    '''
+
     ##########################################
 
     print (np.around(adc_var.value))

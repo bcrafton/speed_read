@@ -5221,6 +5221,60 @@ and this happens often for layer 1 or something idk.
 
 ====================
 
+so enforcing (pe < 0.5) cuts deep into expected performance.
+
+====================
+
+3 issues potentially causing higher MSE for k-means initially
+(1) not actually a normal distribution 
+(2) row
+(3) correlation between row and #wl
+
+>> only (3) we found to be true
+the other ones were def not true ...
+(1) -> every single one is normal
+(2) -> we figured out the correct equation for row scaling
+
+(3) there is actual correlation between row and #wl and could def be causing the issue
+but I dont think its worth solving. 
+
+====================
+
+wl_pmf = [xb, rpr, row, wl]
+> wl = max_rpr = 64
+> row = nwl * 256
+
+p(e | on) * p(on | wl) * p(wl | row) * row 
+
+>> something like this basically.
+
+====================
+
+could use sparse matrix to greatly decrease the size of things ...
+
+====================
+
+wl_pmf really dosnt work bc of how many samples are required deeper in network since so few rows (4x4)
+
+instead i think we would want to generate a set of all the sequences of LRS that occurs
+> [4, 8, 4, 2]
+> instead of PMF(), wl_pmf, row_pmf
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

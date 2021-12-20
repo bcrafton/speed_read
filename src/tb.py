@@ -64,6 +64,7 @@ def run_command(x, y, model, params, return_list):
     'lrs':       params['lrs'],
     'hrs':       params['hrs'],
     'thresh':    params['thresh'],
+    'pe':        params['pe'],
     'method':    params['method'],
     'abs_error': abs_error
     }
@@ -74,8 +75,8 @@ def run_command(x, y, model, params, return_list):
         
 ####
 
-# model, x, y = load_resnet(num_example=1, array_params=array_params)
-model, x, y = load_cifar(num_example=1, array_params=array_params)
+model, x, y = load_resnet(num_example=1, array_params=array_params)
+# model, x, y = load_cifar(num_example=1, array_params=array_params)
 
 ####
 

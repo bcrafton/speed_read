@@ -29,34 +29,6 @@ inf = 1e20
 
 def expected_error(params, states, xb, wb, rpr, sar, profile, scale, row, row_avg, adc_thresh, adc_value):
 
-    # pe
-    '''
-    adc_center =       adc_value.reshape(states, 1, 1)
-    adc_low    = adc_thresh[:-1].reshape(states, 1, 1)
-    adc_high   = adc_thresh[ 1:].reshape(states, 1, 1)
-
-    ########################################################################
-
-    N_lrs = np.zeros(shape=(params['max_rpr'] + 1, params['max_rpr'] + 1))
-    N_hrs = np.zeros(shape=(params['max_rpr'] + 1, params['max_rpr'] + 1))
-
-    for j in range(params['max_rpr'] + 1):
-        for k in range(params['max_rpr'] + 1):
-            N_lrs[j, k] = (k    ) if (k <= j) else 0
-            N_hrs[j, k] = (j - k) if (k <= j) else 0
-
-    ########################################################################
-
-    mu  = N_lrs
-    var = (params['lrs'] ** 2. * N_lrs) + (params['hrs'] ** 2. * N_hrs)
-    sd  = np.sqrt(var)
-
-    p_h = norm.cdf(adc_high, mu, np.maximum(sd, eps))
-    p_l = norm.cdf(adc_low, mu, np.maximum(sd, eps))
-    pe = np.clip(p_h - p_l, 0, 1)
-    pe = pe / np.sum(pe, axis=0, keepdims=True)
-    '''
-
     ########################################################################
 
     pe = confusion(THRESH=adc_thresh, RPR=params['max_rpr'], ADC=states, HRS=params['hrs'], LRS=params['lrs'])
@@ -84,52 +56,27 @@ def expected_error(params, states, xb, wb, rpr, sar, profile, scale, row, row_av
     ########################################################################
 
     error = e * scale
-    mean = np.sum(p * pe *        error  * row_avg)
-    mae  = np.sum(p * pe * np.abs(error) * row_avg)
-    # row ** (1 + mean/mae)
-    # row ** 2 if mean=mae.
-    # 
-    # row_scale = 1 + np.abs(mean) / (mae + 1e-6)
-    # mse  = np.sum(p * pe * error ** 2 * row_scale) * (row_avg ** row_scale)
-    # 
-    # mse  = np.sum(p * pe * error ** 2) * row_avg
-    # 
-    # 
-    row_scale = 1 + np.abs(mean) / (mae + 1e-6)
-    row_mse = np.sum(np.arange(len(row)) ** row_scale * row)
-    
-    # row_scale is incorrect.
-    # need to understand actual relationship here.
-    # mae(x + y) / (mae(x) + mae(y))
-
-    # too high
-    mse = np.sum(p * pe * (error - mean) ** 2) * row_mse
-    # too low
-    # mse = np.sum(p * pe * (error - mean) ** 2) * row_avg
 
     ########################################################################
-    '''
-    p = p.reshape(params['max_rpr'] + 1, params['max_rpr'] + 1)
 
-    ps = []
-    es = []
+    mae  = np.sum(p * pe * np.abs(error))
+    mae  = mae * row_avg
 
-    (wls, ons) = np.where(p > 0)
-    for wl, on in zip(wls, ons):
-        [pes] = np.where(pe[wl, on, :] > 0)
-        pes = np.array(pes)
-        _p = p[wl, on] * pe[wl, on, :][pes]
-        _e = adc_value[pes] - on
-        ps.extend( _p.tolist() )
-        es.extend( _e.tolist() )
+    ########################################################################
 
-    ps = np.array(ps)
-    es = np.array(es) * scale
-    mse, mae, mean = compute_error(es, ps)
+    mean = np.sum(p * pe * error)
+    mse  = np.sqrt(np.sum(p * pe * error ** 2))
+    std  = np.sqrt(mse ** 2 - mean ** 2)
 
-    mse = mse * row_avg
     mean = mean * row_avg
-    '''
+    # 
+    # std = std * np.sqrt(row_avg)
+    # 
+    rows = np.arange(len(row))
+    std = np.sqrt(np.sum(std ** 2 * row * rows))
+    # 
+    mse  = (mean ** 2) + (std ** 2)
+
     ########################################################################
 
     return mse, mean, np.sum(p * pe * (np.abs(e) > 0))
@@ -162,7 +109,7 @@ def static_rpr(id, params, q):
     assert (params['max_rpr'] == profile['max_rpr'])
     row = profile['row']
     # row_avg = np.maximum(1, profile['row_avg'])
-    assert (np.all(profile['row_avg'] >= 1))
+    # assert (np.all(profile['row_avg'] >= 1))
     row_avg = profile['row_avg']
     ratio = profile['ratio']
     profile = profile['adc']
@@ -174,13 +121,14 @@ def static_rpr(id, params, q):
                 for adc_idx, adc in enumerate(params['adcs']):
                     for sar_idx, sar in enumerate(params['sars']):
                         states = (adc + 1) ** sar
-                        '''
-                        if rpr+1 < states: continue
-                        '''
+                        if rpr + 1 < states: continue
+
+                        if sar > 1: method = params['method']
+                        else:       method = 'normal'
                         thresh, values = thresholds(counts=profile[xb, wb, rpr_idx],
                                                     adc=adc,
                                                     sar=sar,
-                                                    method=params['method'])
+                                                    method=method)
 
                         thresh_table[(xb, wb, rpr_idx, adc_idx, sar_idx)] = thresh
                         value_table[(xb, wb, rpr_idx, adc_idx, sar_idx)] = values
@@ -191,17 +139,17 @@ def static_rpr(id, params, q):
                         sign_wb = -1 if (wb == 7) else 1
                         scale = sign_xb * sign_wb * 2**wb * 2**xb / q
                         mse, mean, pe = expected_error(params=params,
-                                                      states=states,
-                                                      xb=xb,
-                                                      wb=wb,
-                                                      rpr=rpr,
-                                                      sar=sar,
-                                                      profile=profile[xb, wb, rpr_idx],
-                                                      scale=scale,
-                                                      row=row[xb][rpr - 1],
-                                                      row_avg=row_avg[xb][rpr - 1],
-                                                      adc_thresh=thresh, 
-                                                      adc_value=values)
+                                                       states=states,
+                                                       xb=xb,
+                                                       wb=wb,
+                                                       rpr=rpr,
+                                                       sar=sar,
+                                                       profile=profile[xb, wb, rpr_idx],
+                                                       scale=scale,
+                                                       row=row[xb][rpr - 1],
+                                                       row_avg=max(1, row_avg[xb][rpr - 1]),
+                                                       adc_thresh=thresh, 
+                                                       adc_value=values)
 
                         '''
                         if (xb == 0) and (wb == 2) and (rpr_idx == 6) and (sar_idx == 3):
@@ -211,7 +159,7 @@ def static_rpr(id, params, q):
                         error_table[xb][wb][rpr_idx][adc_idx][sar_idx] = mse
                         mean_table [xb][wb][rpr_idx][adc_idx][sar_idx] = mean
                         p_table    [xb][wb][rpr_idx][adc_idx][sar_idx] = pe
-                        valid_table[xb][wb][rpr_idx][adc_idx][sar_idx] = (pe < 0.5)
+                        valid_table[xb][wb][rpr_idx][adc_idx][sar_idx] = 1 # (pe <= params['pe'])
                         delay_table[xb][wb][rpr_idx][adc_idx][sar_idx] = row_avg[xb][rpr - 1] * sar
                         adc_energy = (sar * adc * params['adc_energy'])
                         sar_energy = (sar *       params['sar_energy'])
@@ -219,33 +167,33 @@ def static_rpr(id, params, q):
                         # not currently used:
                         area_table[xb][wb][rpr_idx][adc_idx][sar_idx] = adc + (sar - 1)
 
-    # assert (np.sum(valid_table[:, :, 0, 0, 0]) == 64)
-    # assert (np.sum(mean_table[:, :, 0, 0, 0]) >= -params['thresh'])
-    # assert (np.sum(mean_table[:, :, 0, 0, 0]) <=  params['thresh'])
-    # assert (np.sum(np.min(error_table, axis=(2, 3, 4))) <= params['thresh'])
+    ###########################################################
 
-    # KeyError: 'infeasible problem'
-    # https://stackoverflow.com/questions/46246349/infeasible-solution-for-an-lp-even-though-there-exists-feasible-solutionusing-c
-    # need to clip precision.
-    #
-    # error_table = np.clip(error_table, 1e-6, np.inf) - np.clip(np.absolute(mean_table), 1e-6, np.inf)
-    # mean_table = np.sign(mean_table) * np.clip(np.absolute(mean_table), 1e-6, np.inf)
-    # 
-    # this is silly. idky this works.
-    # answer should be scaling by: [np.sqrt(nrow), nrow]
-    # error should scale by sqrt(nrow)
-    # mean should scale by nrow
-    # error_table = round_fraction(error_table, 1e-4) # - round_fraction(np.absolute(mean_table), 1e-4)
-    # mean_table = np.sign(mean_table) * round_fraction(np.absolute(mean_table), 1e-4)
-    # 
-    # error_table = round_fraction(error_table, 1e-4)
-    # mean_table = round_fraction(mean_table, 1e-4)
+    error_table = round_fraction(error_table, 1e-4)
+    mean_table = np.sign(mean_table) * round_fraction(np.absolute(mean_table), 1e-4)
 
-    # p_table[2:8] = 0
-    # p_table[:, 2:8] = 0
+    ###########################################################
+    '''
+    where = np.where(valid_table == False)
+    error_table[where] = 1e9
+    mean_table[where] = 1e9
+
+    min_mse = np.sqrt(np.sum( np.min(mean_table ** 2 + error_table, axis=(2, 3, 4)) ))
+    max_mse = np.sqrt(np.sum( np.max(mean_table ** 2 + error_table, axis=(2, 3, 4)) ))
+    print ('min_mse', min_mse, 'max_mse', max_mse)
+    assert min_mse <= params['thresh']
+
+    min_mse = np.sqrt(np.sum( (mean_table[:,:,0,0,0] ** 2 + error_table[:,:,0,0,0]) ))
+    print ('min_mse', min_mse)
+    assert min_mse <= params['thresh']
+
+    assert np.all( valid_table[:,:,0,0,0] == 1 )
+    '''
+    ###########################################################
+
     if params['skip'] and params['cards']:
-        if   params['opt'] == 'delay':  minimize = delay_table
-        elif params['opt'] == 'energy': minimize = energy_table
+        if   params['opt'] == 'delay':  minimize = round_fraction(delay_table, 4)
+        elif params['opt'] == 'energy': minimize = round_fraction(energy_table, 4)
         else:                           assert (False)
         rpr_lut, adc_lut, sar_lut, N = optimize_rpr(error=error_table, 
                                                     mean=mean_table, 
@@ -318,15 +266,8 @@ def static_rpr(id, params, q):
             value[xb][wb] = np.concatenate((values1, values2), axis=-1)
             ##########################################
 
-    print (rpr_lut)
-    # print (adc_lut)
-    print (sar_lut)
-    # print (error)
-    '''
-    print (np.around(row, 3))
-    print (value[0][0])
-    print (value[0][2])
-    '''
+    # print (rpr_lut)
+    # print (sar_lut)
 
     return rpr_lut, adc_lut, sar_lut, N, conf, value, error, mean, p_lut
 

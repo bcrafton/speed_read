@@ -2,6 +2,8 @@
 import math
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy import stats
+
 from kmeans import kmeans
 
 from conv_utils import *
@@ -126,6 +128,16 @@ class Conv(Layer):
         results['cim_mean'] = mean
         results['cim_error'] = error
         results['cim_std'] = 0
+
+        '''
+        plt.cla()
+        plt.clf()
+        diff = (y - y_ref).flatten()
+        k2, p = stats.normaltest(diff)
+        print (k2, p)
+        plt.hist(diff, bins=50)
+        plt.savefig('%d.png' % (self.layer_id), dpi=300)
+        '''
 
         z = self.act(y, quantize_flag=True)
         z_ref = self.act(y_ref, quantize_flag=True)

@@ -25,7 +25,7 @@ results = np.load('../results.npy', allow_pickle=True)
 results = ld_to_dl(results)
 df = pd.DataFrame.from_dict(results)
 # print (df.columns)
-print (df['lrs'])
+# print (df['lrs'])
 
 '''
 print (df['thresh'])
@@ -40,88 +40,89 @@ print (df['cards'])
 #####################
 
 hrss = [0.01]
-lrss = [0.02, 0.04, 0.06]
+lrss = [0.02, 0.04, 0.06, 0.08]
 perf = {}
 power = {}
 error = {}
 
-for method in ['kmeans', 'normal']:
-    perf[method]  = []
-    power[method] = []
-    error[method] = []
+for method in ['normal', 'soft']:
+    for thresh in [0.25]:
+        for pe in [1.0]:
+            perf[(method, thresh, pe)]  = []
+            power[(method, thresh, pe)] = []
+            error[(method, thresh, pe)] = []
+            for hrs in hrss:
+                for lrs in lrss:
+                    e = 0.
+                    top_per_sec = 0.
+                    top_per_pJ = 0.
 
-    for hrs in hrss:
-        for lrs in lrss:
-            e = 0.
-            top_per_sec = 0.
-            top_per_pJ = 0.
+                    query = '(lrs == %f) & (hrs == %f) & (pe == %f) & (thresh == %f) & (method == "%s")' % (lrs, hrs, pe, thresh, method)
+                    samples = df.query(query)
+                    assert (len(samples) > 0)
 
-            query = '(lrs == %f) & (hrs == %f) & (method == "%s")' % (lrs, hrs, method)
-            samples = df.query(query)
-            assert (len(samples) > 0)
+                    # print (samples['error'])
+                    # e += np.average(samples['error'])
+                    # e = np.max(samples['error'])
 
-            # print (samples['error'])
-            # e += np.average(samples['error'])
-            # e = np.max(samples['error'])
+                    '''
+                    adcs = samples['adc']
+                    adc = []
+                    for a in adcs:
+                        adc.append(np.sum(a, axis=(0, 1, 2)))
+                    adc = np.stack(adc, axis=0)
+                    comps = np.arange(np.shape(adc)[-1])
+                    energy = np.sum(comps * adc * comp_pJ * (256 / 8), axis=1)
+                    top_per_pJ += 2. * np.sum(samples['nmac']) / 1e12 / np.sum(energy)
+                    '''
 
-            '''
-            adcs = samples['adc']
-            adc = []
-            for a in adcs:
-                adc.append(np.sum(a, axis=(0, 1, 2)))
-            adc = np.stack(adc, axis=0)
-            comps = np.arange(np.shape(adc)[-1])
-            energy = np.sum(comps * adc * comp_pJ * (256 / 8), axis=1)
-            top_per_pJ += 2. * np.sum(samples['nmac']) / 1e12 / np.sum(energy)
-            '''
+                    top_per_pJ = 0.
 
-            top_per_pJ = 0.
+                    ################################################
 
-            ################################################
+                    # print (cards, thresh, lrs)
+                    # print (samples)
+                    counts = []
+                    costs = []
+                    layers = np.array(samples['id'])
+                    layers = [1]
+                    cycles = 0
+                    for layer in layers:
+                        query = '(id == %d)' % (layer)
+                        data = samples.query(query)
+                        #
+                        count = data['bb_cycles'].values[0]
+                        counts.append(count)
+                        #
+                        vmm_cycles = data['vmm_cycles'].values[0]
+                        sar_cycles = data['sar'].values[0]
+                        cycles += np.sum(vmm_cycles * sar_cycles)
+                        #
+                        nwl = data['nwl'].values[0]
+                        nbl = data['nbl'].values[0]
+                        cost = nwl * nbl
+                        costs.append(cost)
+                        # 
+                        e = np.max(samples['error'])
 
-            # print (cards, thresh, lrs)
-            # print (samples)
-            counts = []
-            costs = []
-            layers = np.array(samples['id'])
-            layers = [1]
-            cycles = 0
-            for layer in layers:
-                query = '(id == %d)' % (layer)
-                data = samples.query(query)
-                #
-                count = data['bb_cycles'].values[0]
-                counts.append(count)
-                #
-                vmm_cycles = data['vmm_cycles'].values[0]
-                sar_cycles = data['sar'].values[0]
-                cycles += np.sum(vmm_cycles * sar_cycles)
-                #
-                nwl = data['nwl'].values[0]
-                nbl = data['nbl'].values[0]
-                cost = nwl * nbl
-                costs.append(cost)
-                # 
-                e = np.max(samples['error'])
+                    '''
+                    cycles = compute_cycles(counts=counts, costs=costs, resources=32)
+                    '''
+                    '''
+                    cycles = samples['cycle']
+                    cycles = np.sum(cycles)
+                    '''
 
-            '''
-            cycles = compute_cycles(counts=counts, costs=costs, resources=32)
-            '''
-            '''
-            cycles = samples['cycle']
-            cycles = np.sum(cycles)
-            '''
+                    ################################################
 
-            ################################################
+                    mac = np.sum( samples['nmac'].values )
+                    top_per_sec = mac / cycles
 
-            mac = np.sum( samples['nmac'].values )
-            top_per_sec = mac / cycles
+                    ################################################
 
-            ################################################
-
-            perf[method].append(top_per_sec)
-            error[method].append(e)
-            power[method].append(top_per_pJ)
+                    perf[(method, thresh, pe)].append(top_per_sec)
+                    error[(method, thresh, pe)].append(e)
+                    power[(method, thresh, pe)].append(top_per_pJ)
 
 ######################################
 
